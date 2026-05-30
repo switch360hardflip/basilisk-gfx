@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<registry>
+	<structures>
+		<structure name="bs_Header">
+			<field><type>int</type><name>id</name></field>
+			<field><type>int</type><name>source_id</name></field>
+		</structure>
+		
+		<structure name="bs_ImageSwap">
+			<field><type>struct VkImage_T*</type><name>view</name></field>
+			<field><type>struct VkDeviceMemory_T*</type><name>memory</name></field>
+			<field><type>VkImageUsageFlags</type><name>usage_flags</name></field>
+			<field><type>VkImageAspectFlags</type><name>aspect_flags</name></field>
+		</structure>
+		
+		<structure name="bs_Image">
+			<field><type>bs_Header</type><name>head</name></field>
+			<field><type>bs_ImageBits</type><name>flags</name></field>
+			<field><type>bs_ivec2</type><name>dim</name></field>
+			<field><type>int</type><name>num_indices</name></field>
+			<field><type>bs_ImageIndex*</type><name>indices</name></field>
+			<field><type>bs_Format</type><name>format</name></field>
+			<field><type>int</type><name>bind_set</name></field>
+			<field><type>int</type><name>bind_point</name></field>
+			<field><type>bs_ImageSwap</type><name>_[]</name></field>
+		</structure>
+	</structures>
+</registry>

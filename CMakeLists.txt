@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.23.2)
-project(woc)
+project(basilisk)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -10,9 +10,5 @@ add_subdirectory(basilisk-core/)
 add_subdirectory(basilisk-gen/)
 add_subdirectory(basilisk-gfx/)
 add_subdirectory(basilisk-mod/)
-add_subdirectory(basilisk-steam/)
 add_subdirectory(basilisk-test/)
 add_subdirectory(basilisk-test-runner/)
-
-add_subdirectory(external/SPIRV-Cross/)
-add_subdirectory(external/glslang/)

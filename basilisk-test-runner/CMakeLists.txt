@@ -28,7 +28,7 @@ source_group("Project Files" FILES ${PROJECT_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/basilisk-core/include
-    ${CMAKE_SOURCE_DIR}/basilisk-steam/include
+   # ${CMAKE_SOURCE_DIR}/basilisk-steam/include
     ${CMAKE_SOURCE_DIR}/basilisk-gfx/include
     ${CMAKE_SOURCE_DIR}/basilisk-gfx/src
     ${CMAKE_SOURCE_DIR}/basilisk-mod/include
@@ -43,7 +43,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 add_dependencies(${PROJECT_NAME}
     basilisk-core
-    basilisk-steam
+   # basilisk-steam
     basilisk-gfx
     basilisk-mod
     basilisk-test
@@ -55,10 +55,10 @@ target_link_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     basilisk-core
-    basilisk-steam
+   # basilisk-steam
     basilisk-gfx
     vulkan-1 
-    steam_api64 
+   # steam_api64 
     dwmapi
 )
 
@@ -90,9 +90,9 @@ SET(COPY_GFSDK_DLL_DEBUG ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/${BS_APP_
 SET(COPY_GFSDK_DLL_RELEASE ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/${BS_APP_NAME}/copy/GFSDK_Aftermath_Lib.x64.dll" "${CMAKE_CURRENT_BINARY_DIR}/Release")
 SET(COPY_GFSDK_DLL_RELEASE_DEBUG ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/${BS_APP_NAME}/copy/GFSDK_Aftermath_Lib.x64.dll" "${CMAKE_CURRENT_BINARY_DIR}/RelWithDebInfo")
 
-SET(COPY_STEAM_DLL_DEBUG ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/${BS_APP_NAME}/copy/steam_api64.dll" "${CMAKE_CURRENT_BINARY_DIR}/Debug")
-SET(COPY_STEAM_DLL_RELEASE ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/${BS_APP_NAME}/copy/steam_api64.dll" "${CMAKE_CURRENT_BINARY_DIR}/Release")
-SET(COPY_STEAM_DLL_RELEASE_DEBUG ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/${BS_APP_NAME}/copy/steam_api64.dll" "${CMAKE_CURRENT_BINARY_DIR}/RelWithDebInfo")
+#SET(COPY_STEAM_DLL_DEBUG ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/${BS_APP_NAME}/copy/steam_api64.dll" "${CMAKE_CURRENT_BINARY_DIR}/Debug")
+#SET(COPY_STEAM_DLL_RELEASE ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/${BS_APP_NAME}/copy/steam_api64.dll" "${CMAKE_CURRENT_BINARY_DIR}/Release")
+#SET(COPY_STEAM_DLL_RELEASE_DEBUG ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/${BS_APP_NAME}/copy/steam_api64.dll" "${CMAKE_CURRENT_BINARY_DIR}/RelWithDebInfo")
 
 add_custom_command(
     TARGET ${PROJECT_NAME} 
@@ -133,7 +133,7 @@ add_custom_command(
     TARGET ${PROJECT_NAME} 
     POST_BUILD
     COMMAND "$<$<CONFIG:Debug>:${COPY_GFSDK_DLL_DEBUG}>" COMMENT "POST_BUILD: Copying GFSDK_Aftermath_Lib.x64.dll/"
-    COMMAND "$<$<CONFIG:Debug>:${COPY_STEAM_DLL_DEBUG}>" COMMENT "POST_BUILD: Copying steam_api64.dll/"
+   # COMMAND "$<$<CONFIG:Debug>:${COPY_STEAM_DLL_DEBUG}>" COMMENT "POST_BUILD: Copying steam_api64.dll/"
     COMMAND "$<$<CONFIG:Debug>:${COPY_BASILISK_CORE_DLL_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk.dll/"
     COMMAND "$<$<CONFIG:Debug>:${COPY_BASILISK_GFX_DLL_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/"
     COMMAND "$<$<CONFIG:Debug>:${COPY_BASILISK_MOD_DLL_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk-mod.dll/"
@@ -148,7 +148,7 @@ add_custom_command(
     TARGET ${PROJECT_NAME} 
     POST_BUILD
     COMMAND "$<$<CONFIG:Release>:${COPY_GFSDK_DLL_RELEASE}>" COMMENT "POST_BUILD: Copying GFSDK_Aftermath_Lib.x64.dll/"
-    COMMAND "$<$<CONFIG:Release>:${COPY_STEAM_DLL_RELEASE}>" COMMENT "POST_BUILD: Copying steam_api64.dll/"
+   # COMMAND "$<$<CONFIG:Release>:${COPY_STEAM_DLL_RELEASE}>" COMMENT "POST_BUILD: Copying steam_api64.dll/"
     COMMAND "$<$<CONFIG:Release>:${COPY_BASILISK_CORE_DLL_RELEASE}>" COMMENT "POST_BUILD: Copying basilisk.dll/"
     COMMAND "$<$<CONFIG:Release>:${COPY_BASILISK_GFX_DLL_RELEASE}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/"
     COMMAND "$<$<CONFIG:Release>:${COPY_BASILISK_MOD_DLL_RELEASE}>" COMMENT "POST_BUILD: Copying basilisk-mod.dll/"
@@ -163,7 +163,7 @@ add_custom_command(
     TARGET ${PROJECT_NAME} 
     POST_BUILD
     COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_GFSDK_DLL_RELEASE_DEBUG}>" COMMENT "POST_BUILD: Copying GFSDK_Aftermath_Lib.x64.dll/"
-    COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_STEAM_DLL_RELEASE_DEBUG}>" COMMENT "POST_BUILD: Copying steam_api64.dll/"
+   # COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_STEAM_DLL_RELEASE_DEBUG}>" COMMENT "POST_BUILD: Copying steam_api64.dll/"
     COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_BASILISK_CORE_DLL_RELEASE_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk.dll/"
     COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_BASILISK_GFX_DLL_RELEASE_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/"
     COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_BASILISK_MOD_DLL_RELEASE_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk-mod.dll/"

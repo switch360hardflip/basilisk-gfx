@@ -90,9 +90,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_directories(${PROJECT_NAME} PRIVATE 
     ${CMAKE_SOURCE_DIR}/external/
-    ${CMAKE_SOURCE_DIR}/build/external/glslang/glslang/
-    ${CMAKE_SOURCE_DIR}/build/external/glslang/SPIRV/
-    ${CMAKE_SOURCE_DIR}/build/external/SPIRV-Cross/
+    ${CMAKE_SOURCE_DIR}/external/glslang/build/glslang/Release
+    ${CMAKE_SOURCE_DIR}/external/glslang/build/SPIRV/Release
+    ${CMAKE_SOURCE_DIR}/external/SPIRV-Cross/build/Release
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -103,27 +103,15 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     steam_api64 
     dwmapi
     GFSDK_Aftermath_Lib.x64
-    GenericCodeGen 
-    debug glslangd optimized glslang
-    debug glslang-default-resource-limitsd optimized glslang-default-resource-limits
-    debug MachineIndependentd  optimized MachineIndependent
-    debug SPIRVd optimized SPIRV
-    debug spirv-cross-cd optimized spirv-cross-c
-    debug spirv-cross-cored optimized spirv-cross-core
-    debug spirv-cross-glsld optimized spirv-cross-glsl
-)
-
-add_dependencies(${PROJECT_NAME}
-    glslang
-    glslang-default-resource-limits
-    MachineIndependent
     GenericCodeGen
-    SPIRV
-    spirv-cross-c
-    spirv-cross-core
-    spirv-cross-glsl
+    glslangd optimized glslang
+    glslang-default-resource-limitsd optimized glslang-default-resource-limits
+    MachineIndependentd  optimized MachineIndependent
+    SPIRVd optimized SPIRV
+    spirv-cross-cd optimized spirv-cross-c
+    spirv-cross-cored optimized spirv-cross-core
+    spirv-cross-glsld optimized spirv-cross-glsl
 )
-
 
 SET(COPY_BASILISK_MOD_DLL_DEBUG ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-mod/Debug/basilisk-mod.dll" "${CMAKE_SOURCE_DIR}/build/${BS_APP_NAME}/Debug/")
 SET(COPY_BASILISK_MOD_DLL_RELEASE ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-mod/Release/basilisk-mod.dll" "${CMAKE_SOURCE_DIR}/build/${BS_APP_NAME}/Release")

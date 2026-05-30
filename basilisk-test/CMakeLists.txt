@@ -28,7 +28,7 @@ source_group("Shaders/frag" FILES ${FS_SHADER_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/basilisk-core/include
-    ${CMAKE_SOURCE_DIR}/basilisk-steam/include
+   # ${CMAKE_SOURCE_DIR}/basilisk-steam/include
     ${CMAKE_SOURCE_DIR}/basilisk-gfx/include
     ${CMAKE_SOURCE_DIR}/basilisk-gfx/src
     ${CMAKE_SOURCE_DIR}/basilisk-mod/include
@@ -49,9 +49,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     basilisk-core
     basilisk-gfx
     basilisk-mod
-    basilisk-steam
+   # basilisk-steam
     vulkan-1 
-    steam_api64 
+   # steam_api64 
     dwmapi
     GFSDK_Aftermath_Lib.x64
 )

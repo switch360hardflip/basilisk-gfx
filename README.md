@@ -1,14 +1,12 @@
 # Basilisk
 
-Very broken rendering engine
-
 Need to:
 
-[] Replace shitty in house math library with cglm
-[] Error system rebuild (validation layer project)
-[] Get demos running (test project)
-[] Code generation project
-[] Bootstrapping project
+- [ ] Replace shitty in house math library with cglm
+- [ ] Error system rebuild (validation layer project)
+- [ ] Get demos running (test project)
+- [ ] Code generation project
+- [ ] Bootstrapping project
 
 After that, engine should be working again
 
@@ -21,19 +19,21 @@ After that, engine should be working again
 - glslang
 - spirv-cross
 - stb
+- libxml2
+- cglm
 
 ## Icons/Artwork
 
 ### Fugue Icons
-Icon pack created by Yusuke Kamiyamane
-Modified from original assets
+Icon pack created by Yusuke Kamiyamane, modified from original assets
 
 Website: http://p.yusukekamiyamane.com/
+
 License: https://creativecommons.org/licenses/by/3.0/
 
 ### Silk Icons
-Icon pack created by Mark James
-Modified from original assets
+Icon pack created by Mark James, modified from original assets
 
 Website: https://www.famfamfam.com/lab/icons/silk/
+
 License: https://creativecommons.org/licenses/by/2.5/
