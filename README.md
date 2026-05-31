@@ -17,7 +17,7 @@ After that, engine should be working again
 - lodepng
 - yyjson
 - glslang
-- spirv-cross
+- SPIRV-Cross
 - stb
 - libxml2
 - cglm
