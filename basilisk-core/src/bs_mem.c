@@ -214,6 +214,9 @@ void* bs_realloc(void* p, bs_U64 size) {
     return p;
 }
 
+void* bs_fetchUnitUnsafe(bs_List* list, bs_U32 offset) {
+    return ((bs_U8*)list->data) + offset * list->unit_size;
+}
 
 
   /*==============================================================================

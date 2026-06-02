@@ -32,18 +32,10 @@
 
 typedef BS_VERTEX_DECLARATION_STRUCTURE() bs_VertexDeclaration;
 
-static inline void bs_batchVertex(bs_VertexDeclaration* declaration, const unsigned char* src) {
-    unsigned char* dst = declaration->batch->vertices.data + *declaration->offset * declaration->batch->vertices.unit_size;
-
-    for (int i = 0; i < declaration->attributes_count; i++) {
-        memcpy(
-            dst + declaration->attributes[i].destination_offset,
-            src + declaration->attributes[i].source_offset,
-            declaration->attributes[i].source_size);
-    }
-
-    (*declaration->offset)++;
-}
+BSAPI void
+bs_batchVertex(
+    bs_VertexDeclaration* declaration,
+    const unsigned char* src);
 
 #define BS_VERTEX_DECLARATION_QUALIFIER(type, name) type name;
 #define BS_VERTEX_ATTRIBUTE_QUALIFIER(type, name) {     \

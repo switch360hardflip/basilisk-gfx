@@ -361,9 +361,10 @@ BSAPI void bs_systemF(const char* format, ...);
    * Lists
    *============================================================================*/
 
-    static inline void* bs_fetchUnitUnsafe(bs_List* list, bs_U32 offset) {
-        return ((bs_U8*)list->data) + offset * list->unit_size;
-    }
+    BSAPI void*
+    bs_fetchUnitUnsafe(
+        bs_List* list,
+        bs_U32 offset);
 
     BSAPI bool 
     bs_listContains(

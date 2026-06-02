@@ -40,10 +40,16 @@ typedef struct {
 } bsgen_Function;
 
 typedef struct {
+    char* type;
+    char* name;
+} bsgen_Extern;
+
+typedef struct {
     const char* path;
     bsgen_List macros;
     bsgen_List structures;
     bsgen_List functions;
+    bsgen_List externs;
 } bsgen_Library;
 
 void bsgen_warning(const char* format, ...) {
@@ -51,6 +57,31 @@ void bsgen_warning(const char* format, ...) {
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
+}
+
+static bsgen_String* bsgen_loadFileFromHandle(FILE* file) {
+    fseek(file, 0, SEEK_END);
+    long len = ftell(file) + 1;
+    fseek(file, 0, SEEK_SET);
+
+    bsgen_String* string = bsgen_stringAlloc(NULL, len);
+    string->len = len;
+
+    fread(string->value, 1, len, file);
+    fclose(file);
+
+    string->value[len - 1] = '\0';
+    return string;
+}
+
+bsgen_String* bsgen_loadFile(const char* path) {
+    FILE* file = fopen(path, "rb");
+    if (!file) {
+        bsgen_warning("Failed to load file \"%s\"\n", path);
+        exit(1);
+        return NULL;
+    }
+    return bsgen_loadFileFromHandle(file);
 }
 
 
@@ -93,14 +124,6 @@ static xmlNode* bsgen_getSingleChild(xmlNode* node, const char* name) {
  /**
   Macro
   */
-static void bsgen_printMacroLines(bsgen_Macro* m) {
-
-    for (int k = 0; k < m->lines.count; k++) {
-        bsgen_MacroLine* l = bsgen_fetchUnit(&m->lines, k);
-        printf("%d: %s\n", k, l->value);
-    }
-}
-
 static bsgen_Macro bsgen_readMacro(xmlNode* node) {
     xmlNode* name_node = bsgen_getSingleChild(node, "name");
 
@@ -213,9 +236,9 @@ static void bsgen_readStructures(bsgen_Library* library, xmlNode* node) {
     }
 }
 
- /**
-  Functions
-  */
+    /**
+     Functions
+     */
 static bsgen_Param bsgen_readParam(xmlNode* node) {
     xmlNode* child = node->children;
 
@@ -282,6 +305,43 @@ static void bsgen_readFunctions(bsgen_Library* library, xmlNode* node) {
 }
 
  /**
+  Externs
+  */
+static bsgen_Extern bsgen_readExtern(xmlNode* node) {
+    xmlNode* type = bsgen_getSingleChild(node, "type");
+    xmlNode* name = bsgen_getSingleChild(node, "name");
+
+    if (!type || !name) {
+        bsgen_warning("Type and name are required properties of \"%s\"\n", node->name);
+        return (bsgen_Extern) { 0 };
+    }
+
+    bsgen_Extern ext = {
+        .type = xmlStrdup(type->children->content),
+        .name = xmlStrdup(name->children->content),
+    };
+
+    return ext;
+}
+
+static void bsgen_readExterns(bsgen_Library* library, xmlNode* node) {
+    xmlNode* child = node->children;
+
+    while (child) {
+        if (child->type == XML_ELEMENT_NODE) {
+            if (xmlStrcmp(child->name, "extern") == 0) {
+                bsgen_Extern ext = bsgen_readExtern(child);
+
+                if (ext.name)
+                    bsgen_pushBack(&library->externs, &ext);
+            }
+        }
+
+        child = child->next;
+    }
+}
+
+ /**
   Library
   */
 static bsgen_Library bsgen_readLibrary(const char* path) {
@@ -290,6 +350,7 @@ static bsgen_Library bsgen_readLibrary(const char* path) {
         .macros = BSGEN_LIST(bsgen_Macro),
         .functions = BSGEN_LIST(bsgen_Function),
         .structures = BSGEN_LIST(bsgen_Structure),
+        .externs = BSGEN_LIST(bsgen_Extern),
     };
 
     xmlDoc* document = xmlReadFile(path, NULL, 0);
@@ -302,6 +363,8 @@ static bsgen_Library bsgen_readLibrary(const char* path) {
             bsgen_readStructures(&library, node);
         else if (xmlStrcmp(node->name, "functions") == 0)
             bsgen_readFunctions(&library, node);
+        else if (xmlStrcmp(node->name, "externs") == 0)
+            bsgen_readExterns(&library, node);
 
         node = node->next;
     }
@@ -315,10 +378,10 @@ static bsgen_Library bsgen_readLibrary(const char* path) {
   * Code Generation
   *============================================================================*/
 
-static void bsgen_generateHeader(bsgen_Library* library, const char* name, const char* header_id, const char* api_prefix) {
+static void bsgen_generateHeader(bsgen_Library* library, bsgen_String* license, const char* name, const char* header_id, const char* api_prefix) {
     bsgen_String* string = NULL;
 
-    string = bsgen_appendStringF(string, "#ifndef %s\n#define %s\n\n", header_id, header_id);
+    string = bsgen_appendStringF(string, "\n /**\n  %s\n  */\n\n#ifndef %s\n#define %s\n\n", license->value, header_id, header_id);
 
    /**
     Macros
@@ -345,9 +408,9 @@ static void bsgen_generateHeader(bsgen_Library* library, const char* name, const
 
     string = bsgen_appendString(string, "\n", 1);
 
-   /**
-    Definitions
-    */
+    /**
+     Definitions
+     */
     for (int i = 0; i < library->structures.count; i++) {
         bsgen_Structure* structure = bsgen_fetchUnit(&library->structures, i);
         string = bsgen_appendStringF(string, "typedef struct %s %s\n", structure->name, structure->name);
@@ -355,9 +418,9 @@ static void bsgen_generateHeader(bsgen_Library* library, const char* name, const
 
     string = bsgen_appendString(string, "\n", 1);
 
-   /**
-    Declarations
-    */
+    /**
+     Declarations
+     */
     for (int i = 0; i < library->structures.count; i++) {
         bsgen_Structure* structure = bsgen_fetchUnit(&library->structures, i);
         string = bsgen_appendStringF(string, "struct %s {\n", structure->name);
@@ -388,16 +451,50 @@ static void bsgen_generateHeader(bsgen_Library* library, const char* name, const
         string = bsgen_appendString(string, ");\n\n", 4);
     }
 
-    string = bsgen_appendStringF(string, "#endif");
+   /**
+    Externs
+    */
+    for (int i = 0; i < library->externs.count; i++) {
+        bsgen_Extern* ext = bsgen_fetchUnit(&library->externs, i);
+        string = bsgen_appendStringF(string, "%s extern %s _%s\n", api_prefix, ext->type, ext->name);
+    }
+
+    string = bsgen_appendStringF(string, "\n#endif");
     printf("%s\n", string->value);
 
     free(string);
 }
 
+static bsgen_String* bsgen_indentLicense(bsgen_String* license) {
+    int license_newline_count = 0;
+    for (int i = 0; i < license->len; i++) {
+        if (license->value[i] == '\n')
+            license_newline_count++;
+    }
+
+    int indented_len = license->len + license_newline_count * 2;
+    bsgen_String* license_indented = bsgen_stringAlloc(NULL, indented_len);
+
+    int j = 0;
+    for (int i = 0; i < license->len; i++) {
+        license_indented->value[j++] = license->value[i];
+        if (license->value[i] == '\n') {
+            license_indented->value[j++] = ' ';
+            license_indented->value[j++] = ' ';
+        }
+    }
+
+    license_indented->len = j;
+    return license_indented;
+}
+
 int main(int argc, const char* argv[]) {
+    bsgen_String* license = bsgen_loadFile("LICENSE");
+    bsgen_String* license_indented = bsgen_indentLicense(license);
+
     bsgen_Library basilisk_core = bsgen_readLibrary("xml/basilisk-core.xml");
 
-    bsgen_generateHeader(&basilisk_core, "basilisk.h", "BASILISK_H", "BSAPI");
+    bsgen_generateHeader(&basilisk_core, license_indented, "basilisk.h", "BASILISK_H", "BSAPI");
 
 	return 0;
 }

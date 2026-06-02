@@ -479,6 +479,19 @@ void bs_populateVertexDeclaration(bs_VertexDeclaration* declaration, bs_Attribut
     //declaration->populated = true;
 }
 
+void bs_batchVertex(bs_VertexDeclaration* declaration, const unsigned char* src) {
+    unsigned char* dst = declaration->batch->vertices.data + *declaration->offset * declaration->batch->vertices.unit_size;
+
+    for (int i = 0; i < declaration->attributes_count; i++) {
+        memcpy(
+            dst + declaration->attributes[i].destination_offset,
+            src + declaration->attributes[i].source_offset,
+            declaration->attributes[i].source_size);
+    }
+
+    (*declaration->offset)++;
+}
+
 bs_Range bs_batchRange(bs_Batch* batch, bs_U32 offset) {
     return (bs_Range) { 
         .offset = offset, 
@@ -615,7 +628,7 @@ bs_Range bs_pushCube(bs_Batch* batch, bs_RGBA color) {
     //        // bottom
     //        0, 4, 5,
     //        1, 0, 5,
-    //        // öeft
+    //        // Ã¶eft
     //        0, 2, 6,
     //        4, 0, 6,
     //        // right
@@ -910,7 +923,7 @@ bs_Range bs_pushPyramid(
 ) {
     int index_offset = batch->indices.count;
     int num_vertices = 5; // 4 base + 1 apex
-    int num_indices = 18; // 6 triangles (2 for base + 4 sides) × 3
+    int num_indices = 18; // 6 triangles (2 for base + 4 sides) * 3
 
     bs_ensureBatchSize(batch, num_indices, num_vertices);
 
@@ -932,7 +945,7 @@ bs_Range bs_pushBipyramid(
 ) {
     int index_offset = batch->indices.count;
     int num_vertices = 6; // 4 base + top + bottom
-    int num_indices = 24; // 8 triangles × 3
+    int num_indices = 24; // 8 triangles * 3
 
     bs_ensureBatchSize(batch, num_indices, num_vertices);
 

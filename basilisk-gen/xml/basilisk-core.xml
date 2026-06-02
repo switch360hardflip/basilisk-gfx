@@ -211,6 +211,15 @@
             <field><type>bs_vec3</type><name>extent</name></field>
             <field><type>bs_mat4*</type><name>transform</name></field>
         </structure>
+        <structure name="bs_FileInfo">
+            <field><type>char*</type><name>path</name></field>
+            <field><type>size_t</type><name>size</name></field>
+        </structure>
+        <structure name="bs_Procedure">
+            <field><type>const char*</type><name>func</name></field>
+            <field><type>size_t</type><name>size</name></field>
+            <field><type>bool</type><name>is_required</name></field>
+        </structure>
         <structure name="bs_Timer">
             <field><type>bs_BigInt</type><name>ticks_per_second</name></field>
             <field><type>bs_BigInt</type><name>tick_count</name></field>
@@ -277,6 +286,7 @@
             <field><type>bs_String*</type><name>data</name></field>
         </structure>
         <structure name="bs_ResourceHeader">
+            <field><type>bs_ResourceHeaderData</type><name>header</name></field>
             <field><type>char*</type><name>name</name></field>
             <field><type>bs_Resource*</type><name>resource</name></field>
         </structure>
@@ -314,6 +324,41 @@
             <field><type>int</type><name>bind_set</name></field>
             <field><type>int</type><name>bind_point</name></field>
         </structure>
+        <structure name="bs_BiffHeader">
+            <field><type>bs_U32</type><name>magic</name></field>
+            <field><type>bs_U32</type><name>version</name></field>
+            <field><type>bs_U32</type><name>images_count</name></field>
+            <field><type>bs_U32</type><name>width</name></field>
+            <field><type>bs_U32</type><name>height</name></field>
+            <field><type>bs_U32</type><name>channels_count</name></field>
+            <field><type>bs_U32 reserved_0,</type><name>reserved_1</name></field>
+        </structure>
+        <structure name="bs_BiffPointer">
+            <field><type>bs_U32</type><name>offset</name></field>
+            <field><type>bs_U32</type><name>size</name></field>
+            <field><type>bs_U32</type><name>name_length</name></field>
+            <field><type>bs_U32</type><name>reserved</name></field>
+        </structure>
+        <structure name="bs_BatlHeader">
+            <field><type>bs_U32</type><name>magic</name></field>
+            <field><type>bs_U32</type><name>version</name></field>
+            <field><type>bs_U32</type><name>images_count</name></field>
+            <field><type>bs_U32</type><name>width</name></field>
+            <field><type>bs_U32</type><name>height</name></field>
+            <field><type>bs_U32</type><name>channels_count</name></field>
+            <field><type>bs_U32</type><name>binary_offset</name></field>
+            <field><type>bs_U32</type><name>reserved_0</name></field>
+        </structure>
+        <structure name="bs_BatlPointer">
+            <field><type>bs_U32</type><name>x</name></field>
+            <field><type>bs_U32</type><name>y</name></field>
+            <field><type>bs_U32</type><name>w</name></field>
+            <field><type>bs_U32</type><name>h</name></field>
+            <field><type>bs_U32</type><name>name_length</name></field>
+            <field><type>bs_U32</type><name>flags</name></field>
+            <field><type>int</type><name>category</name></field>
+            <field><type>bs_U32</type><name>reserved_1</name></field>
+        </structure>
         <structure name="bs_AtlasTexture">
             <field><type>bs_vec4</type><name>coords</name></field>
             <field><type>int x,</type><name>y</name></field>
@@ -332,6 +377,15 @@
             <field><type>bs_Header</type><name>head</name></field>
             <field><type>bs_SamplerBits</type><name>flags</name></field>
             <field><type>bs_ImageFilter</type><name>filter</name></field>
+        </structure>
+        <structure name="bs_StencilOperation">
+            <field><type>bs_StencilOperationType</type><name>fail_op</name></field>
+            <field><type>bs_StencilOperationType</type><name>pass_op</name></field>
+            <field><type>bs_StencilOperationType</type><name>depth_fail_op</name></field>
+            <field><type>bs_ComparisonType</type><name>compare_op</name></field>
+            <field><type>bs_U32</type><name>compare_mask</name></field>
+            <field><type>bs_U32</type><name>write_mask</name></field>
+            <field><type>bs_U32</type><name>reference</name></field>
         </structure>
         <structure name="bs_Pipeline">
             <field><type>bs_Header</type><name>head</name></field>
@@ -573,6 +627,74 @@
             <field><type>void*</type><name>xaudio</name></field>
             <field><type>int</type><name>size</name></field>
         </structure>
+        <structure name="bs_LongHorMetric">
+            <field><type>bs_U16</type><name>advance_width</name></field>
+            <field><type>bs_I16</type><name>left_side_bearing</name></field>
+        </structure>
+        <structure name="bs_GlyfPt">
+            <field><type>bs_I16 x,</type><name>y</name></field>
+            <field><type>bool</type><name>on_curve</name></field>
+        </structure>
+        <structure name="bs_Glyph">
+            <field><type>int</type><name>index</name></field>
+            <field><type>bs_U16</type><name>num_points</name></field>
+            <field><type>bs_U16</type><name>num_contours</name></field>
+            <field><type>bs_I16 x_min,</type><name>x_max</name></field>
+            <field><type>bs_I16 y_min,</type><name>y_max</name></field>
+            <field><type>bs_U16*</type><name>contours</name></field>
+            <field><type>bs_GlyfPt*</type><name>coords</name></field>
+            <field><type>bs_vec2</type><name>tex_coord</name></field>
+            <field><type>bs_vec2</type><name>tex_offset</name></field>
+            <field><type>int</type><name>width</name></field>
+            <field><type>int</type><name>height</name></field>
+            <field><type>bs_U16</type><name>pairs_count</name></field>
+            <field><type>bs_U16</type><name>pairs_offset</name></field>
+            <field><type>bs_LongHorMetric</type><name>long_hor_metric</name></field>
+        </structure>
+        <structure name="bs_Head">
+            <field><type>char*</type><name>buf</name></field>
+            <field><type>int</type><name>units_per_em</name></field>
+            <field><type>bs_I16</type><name>index_to_loc_format</name></field>
+        </structure>
+        <structure name="bs_Maxp">
+            <field><type>char*</type><name>buf</name></field>
+            <field><type>bs_U16</type><name>num_glyphs</name></field>
+        </structure>
+        <structure name="bs_Hhea">
+            <field><type>char*</type><name>buf</name></field>
+            <field><type>bs_U16</type><name>num_of_long_hor_metrics</name></field>
+        </structure>
+        <structure name="bs_Hmtx">
+            <field><type>char*</type><name>buf</name></field>
+        </structure>
+        <structure name="bs_Loca">
+            <field><type>char*</type><name>buf</name></field>
+        </structure>
+        <structure name="bs_Glyf">
+            <field><type>char*</type><name>buf</name></field>
+        </structure>
+        <structure name="bs_Cmap">
+            <field><type>char*</type><name>buf</name></field>
+            <field><type>bs_U32</type><name>offset</name></field>
+            <field><type>int</type><name>num_subtables</name></field>
+            <field><type>char*</type><name>subtable</name></field>
+            <field><type>bs_U16</type><name>format</name></field>
+            <field><type>bs_U16</type><name>length</name></field>
+            <field><type>bs_U16</type><name>seg_count_x2</name></field>
+            <field><type>bs_U16</type><name>search_range</name></field>
+            <field><type>bs_U16</type><name>entry_selector</name></field>
+            <field><type>bs_U16</type><name>range_shift</name></field>
+            <field><type>bs_U16*</type><name>format_data</name></field>
+            <field><type>bs_U16*</type><name>end_code</name></field>
+            <field><type>bs_U16*</type><name>start_code</name></field>
+            <field><type>bs_I16*</type><name>id_delta</name></field>
+            <field><type>bs_U16*</type><name>id_range_offset</name></field>
+        </structure>
+        <structure name="bs_KerningPair">
+            <field><type>int</type><name>right_index</name></field>
+            <field><type>bs_U16</type><name>right</name></field>
+            <field><type>bs_I16</type><name>value</name></field>
+        </structure>
         <structure name="bs_TTF">
             <field><type>bs_Header</type><name>header</name></field>
             <field><type>bs_U32</type><name>offset</name></field>
@@ -590,6 +712,30 @@
             <field><type>bs_Hmtx</type><name>hmtx</name></field>
             <field><type>bs_Loca</type><name>loca</name></field>
             <field><type>bs_Glyf</type><name>glyf</name></field>
+        </structure>
+        <structure name="bs_BfntHeader">
+            <field><type>bs_U32</type><name>magic</name></field>
+            <field><type>bs_U32</type><name>version</name></field>
+            <field><type>bs_U32</type><name>glyphs_count</name></field>
+            <field><type>bs_U32</type><name>kerning_pairs_count</name></field>
+            <field><type>bs_U32</type><name>line_height</name></field>
+            <field><type>bs_U32</type><name>units_per_em</name></field>
+            <field><type>bs_U32</type><name>size</name></field>
+            <field><type>bs_U32</type><name>batl_offset</name></field>
+            <field><type>char</type><name>ascii_table[256]</name></field>
+        </structure>
+        <structure name="bs_BfntKerningPair">
+            <field><type>int</type><name>right</name></field>
+            <field><type>int</type><name>value</name></field>
+        </structure>
+        <structure name="bs_BfntGlyph">
+            <field><type>bs_U32</type><name>code</name></field>
+            <field><type>int</type><name>y_offset</name></field>
+            <field><type>int</type><name>advance_width</name></field>
+            <field><type>int</type><name>left_side_bearing</name></field>
+            <field><type>bs_U32</type><name>kerning_pair_offset</name></field>
+            <field><type>bs_U32</type><name>kerning_pair_count</name></field>
+            <field><type>bs_U32 reserved_0,</type><name>reserved_1</name></field>
         </structure>
         <structure name="bs_Font">
             <field><type>bs_Header</type><name>head</name></field>
@@ -667,7 +813,17 @@
             <field><type>bs_Binding*</type><name>bindings</name></field>
             <field><type>bs_Descriptor*</type><name>descriptors</name></field>
         </structure>
-        <structure name="bs_IO">
+        <structure name="bs_ObjectSource">
+            <field><type>bs_ObjectId*</type><name>ids</name></field>
+            <field><type>int</type><name>ids_count</name></field>
+            <field><type>bs_ObjectType</type><name>type</name></field>
+        </structure>
+        <structure name="bs_ObjectId">
+            <field><type>const char*</type><name>name</name></field>
+            <field><type>bs_U64</type><name>name_hash</name></field>
+            <field><type>bs_Object*</type><name>object</name></field>
+        </structure>
+        <structure name="bs_IO" instance="_bs_io">
             <field><type>bs_U64</type><name>exceptions</name></field>
             <field><type>bs_U64</type><name>caught</name></field>
             <field><type>bool</type><name>left_clicked</name></field>
@@ -683,7 +839,7 @@
             <field><type>bs_String*</type><name>log</name></field>
             <field><type>bs_I8 scroll,</type><name>scroll_old</name></field>
         </structure>
-        <structure name="bs_Window">
+        <structure name="bs_Window" instance="_bs_wnd">
             <field><type>const char*</type><name>title</name></field>
             <field><type>void*</type><name>hwnd</name></field>
             <field><type>bs_ivec2</type><name>dimensions</name></field>
@@ -700,16 +856,7 @@
             <field><type>bool</type><name>active</name></field>
             <field><type>bs_CursorIcon</type><name>cursor_icon</name></field>
         </structure>
-        <structure name="bs_ObjectSource">
-            <field><type>int</type><name>ids_count</name></field>
-            <field><type>bs_ObjectType</type><name>type</name></field>
-        </structure>
-        <structure name="bs_ObjectId">
-            <field><type>const char*</type><name>name</name></field>
-            <field><type>bs_U64</type><name>name_hash</name></field>
-            <field><type>bs_Object*</type><name>object</name></field>
-        </structure>
-        <structure name="bs_Instance">
+        <structure name="bs_Instance" instance="_bs_instance">
             <field><type>bs_Queue*</type><name>single_times_queue</name></field>
             <field><type>bool</type><name>paused</name></field>
             <field><type>bool</type><name>advance</name></field>
@@ -723,11 +870,11 @@
             <field><type>bs_Descriptor*</type><name>descriptors</name></field>
             <field><type>bool</type><name>descriptor_pool_needs_update</name></field>
         </structure>
-        <structure name="bs_Bindings">
+        <structure name="bs_Bindings" instance="_bs_bind">
             <field><type>bs_BindSet*</type><name>bs_bind_sets</name></field>
             <field><type>int</type><name>bs_bind_sets_count</name></field>
         </structure>
-        <structure name="bs_Swapchain">
+        <structure name="bs_Swapchain" instance="_bs_swapchain">
             <field><type>int</type><name>id</name></field>
             <field><type>int</type><name>frame</name></field>
             <field><type>bs_SwapchainBits</type><name>flags</name></field>
@@ -735,17 +882,17 @@
             <field><type>bool</type><name>image_acquired</name></field>
             <field><type>bs_Object*</type><name>image</name></field>
         </structure>
-        <structure name="bs_Config">
+        <structure name="bs_Config" instance="_bs_config">
             <field><type>bs_List</type><name>attributes</name></field>
         </structure>
-        <structure name="bs_Scope">
+        <structure name="bs_Scope" instance="bs_scope">
             <field><type>bool</type><name>has_begun</name></field>
             <field><type>bs_Renderer*</type><name>renderer</name></field>
             <field><type>int</type><name>subpass</name></field>
             <field><type>bs_Queue*</type><name>queue</name></field>
             <field><type>bs_U32</type><name>wait_num</name></field>
         </structure>
-        <structure name="bs_Args">
+        <structure name="bs_Args" instance="_bs_args">
             <field><type>bool</type><name>send_bugs</name></field>
             <field><type>bool</type><name>cmd_log</name></field>
             <field><type>bool</type><name>skip_log</name></field>
@@ -755,33 +902,2208 @@
             <field><type>bool</type><name>skip_log_info</name></field>
             <field><type>bool</type><name>track_changes</name></field>
         </structure>
-        <structure name="bs_Features">
+        <structure name="bs_Features" instance="_bs_features">
             <field><type>bool</type><name>independent_blend</name></field>
             <field><type>bool</type><name>ray_tracing</name></field>
         </structure>
-        <structure name="bs_Props">
+        <structure name="bs_Props" instance="_bs_props">
             <field><type>bs_U32</type><name>shader_group_handle_size</name></field>
             <field><type>bs_U32</type><name>shader_group_base_alignment</name></field>
             <field><type>bs_U32</type><name>min_acceleration_structure_scratch_offset_alignment</name></field>
         </structure>
-        <structure name="bs_Settings">
+        <structure name="bs_Settings" instance="_bs_settings">
             <field><type>bs_SwapchainMode frames_in_flight, buffer_count_min,</type><name>frames_in_flight_max</name></field>
         </structure>
     </structures>
+
+	<externs>
+		<extern><type>bs_IO</type><name>bs_io</name></extern>
+		<extern><type>bs_Window</type><name>bs_wnd</name></extern>
+		<extern><type>bs_Instance</type><name>bs_instance</name></extern>
+		<extern><type>bs_Bindings</type><name>bs_bind</name></extern>
+		<extern><type>bs_Swapchain</type><name>bs_swapchain</name></extern>
+		<extern><type>bs_Config</type><name>bs_config</name></extern>
+		<extern><type>bs_Scope</type><name>bs_scope</name></extern>
+		<extern><type>bs_Args</type><name>bs_args</name></extern>
+		<extern><type>bs_Features</type><name>bs_features</name></extern>
+		<extern><type>bs_Props</type><name>bs_props</name></extern>
+		<extern><type>bs_Settings</type><name>bs_settings</name></extern>
+	</externs>
 	
     <functions>
-        <function name="bs_playSound" section="Audio" comment="Plays a sound">
-	        <return>bs_Result</return>
-	        <param><type>bs_Sound*</type><name>sound</name></param>
-	        <param><type>float</type><name>volume</name></param>
+        <function name="bs_playSound" section="bs_audio.h">
+            <return>bs_Result</return>
+            <param><type>bs_Sound*</type><name>sound</name></param>
+            <param><type>float</type><name>volume</name></param>
         </function>
         <function name="bs_sound">
-	        <return>bs_Result</return>
-	        <param><type>bs_Resource*</type><name>resource</name></param>
-	        <param><type>bs_U32</type><name>flags</name></param>
+            <return>bs_Result</return>
+            <param><type>bs_Resource*</type><name>resource</name></param>
+            <param><type>bs_U32</type><name>flags</name></param>
         </function>
         <function name="bs_iniAudio">
             <return>bs_Result</return>
+        </function>
+        <function name="bs_ray" section="bs_collision.h">
+            <return>bs_Ray</return>
+            <param><type>bs_vec3</type><name>start</name></param>
+            <param><type>bs_vec3</type><name>direction</name></param>
+            <param><type>float</type><name>length</name></param>
+        </function>
+        <function name="bs_rayVsObb">
+            <return>bool</return>
+            <param><type>const bs_Ray*</type><name>ray</name></param>
+            <param><type>bs_vec3</type><name>position</name></param>
+            <param><type>bs_vec4</type><name>rotation</name></param>
+            <param><type>bs_vec3</type><name>scale</name></param>
+            <param><type>bs_vec3*</type><name>coordinate</name></param>
+            <param><type>bs_vec3*</type><name>normal</name></param>
+            <param><type>int*</type><name>plane</name></param>
+        </function>
+        <function name="bs_sphereVsPoint">
+            <return>bool</return>
+            <param><type>bs_vec3</type><name>center</name></param>
+            <param><type>float</type><name>radius</name></param>
+            <param><type>bs_vec3</type><name>point</name></param>
+        </function>
+        <function name="bs_sphereVsBox">
+            <return>bool</return>
+            <param><type>bs_vec3</type><name>center</name></param>
+            <param><type>float</type><name>radius</name></param>
+            <param><type>bs_vec3</type><name>position</name></param>
+            <param><type>bs_vec4</type><name>rotation</name></param>
+            <param><type>bs_vec3</type><name>scale</name></param>
+            <param><type>bs_vec3*</type><name>point</name></param>
+            <param><type>bs_vec3*</type><name>normal</name></param>
+            <param><type>float*</type><name>penetration</name></param>
+        </function>
+        <function name="bs_rectangleVsPoint">
+            <return>bool</return>
+            <param><type>bs_vec2</type><name>position</name></param>
+            <param><type>bs_vec2</type><name>dimensions</name></param>
+            <param><type>bs_vec2</type><name>point</name></param>
+        </function>
+        <function name="bs_rectangleVsPointAbs">
+            <return>bool</return>
+            <param><type>bs_vec2</type><name>position</name></param>
+            <param><type>bs_vec2</type><name>dimensions</name></param>
+            <param><type>bs_vec2</type><name>point</name></param>
+        </function>
+        <function name="bs_lineVsLine">
+            <return>bool</return>
+            <param><type>bs_vec2</type><name>l1_start</name></param>
+            <param><type>bs_vec2</type><name>l1_end</name></param>
+            <param><type>bs_vec2</type><name>l2_start</name></param>
+            <param><type>bs_vec2</type><name>l2_end</name></param>
+            <param><type>bs_vec2*</type><name>out</name></param>
+        </function>
+        <function name="bs_populateVertexDeclaration" section="bs_core.h">
+            <return>void</return>
+            <param><type>bs_VertexDeclaration*</type><name>declaration</name></param>
+            <param><type>bs_Attribute*</type><name>attributes</name></param>
+            <param><type>int</type><name>attributes_count</name></param>
+        </function>
+        <function name="bs_swapchain">
+            <return>bs_Swapchain*</return>
+        </function>
+        <function name="bs_currentSwap">
+            <return>int</return>
+        </function>
+        <function name="bs_beginComment">
+            <return>void</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_endComment">
+            <return>void</return>
+        </function>
+        <function name="bs_swapCount">
+            <return>int</return>
+        </function>
+        <function name="bs_swapchainImage">
+            <return>bs_Image*</return>
+        </function>
+        <function name="bs_clearStencil">
+            <return>void</return>
+            <param><type>bs_U32</type><name>index</name></param>
+            <param><type>bs_ivec2</type><name>resolution</name></param>
+            <param><type>bs_U32</type><name>value</name></param>
+        </function>
+        <function name="bs_clearDepth">
+            <return>void</return>
+            <param><type>bs_U32</type><name>index</name></param>
+            <param><type>bs_ivec2</type><name>dim</name></param>
+            <param><type>float</type><name>value</name></param>
+        </function>
+        <function name="bs_clearDepthStencil">
+            <return>void</return>
+            <param><type>bs_U32</type><name>index</name></param>
+            <param><type>bs_ivec2</type><name>dim</name></param>
+            <param><type>float</type><name>depth_value</name></param>
+            <param><type>bs_U32</type><name>stencil_value</name></param>
+        </function>
+        <function name="bs_clearColor">
+            <return>void</return>
+            <param><type>bs_U32</type><name>index</name></param>
+            <param><type>bs_ivec2</type><name>dim</name></param>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_stencilReference">
+            <return>void</return>
+            <param><type>bs_FaceType</type><name>face</name></param>
+            <param><type>bs_U32</type><name>reference</name></param>
+        </function>
+        <function name="bs_cull">
+            <return>void</return>
+            <param><type>bs_CullFlags</type><name>flags</name></param>
+        </function>
+        <function name="bs_setLineWidth">
+            <return>void</return>
+            <param><type>float</type><name>width</name></param>
+        </function>
+        <function name="bs_batchSize">
+            <return>int</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+        </function>
+        <function name="bs_render">
+            <return>void</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_Pipeline*</type><name>pipeline</name></param>
+            <param><type>bs_U32</type><name>vertex_offset</name></param>
+            <param><type>bs_U32</type><name>vertex_count</name></param>
+            <param><type>bs_U32</type><name>first_instance</name></param>
+            <param><type>bs_U32</type><name>num_instances</name></param>
+        </function>
+        <function name="bs_barrier">
+            <return>void</return>
+            <param><type>bs_U32</type><name>dependency_flags</name></param>
+            <param><type>bs_U32</type><name>src</name></param>
+            <param><type>bs_U32</type><name>dst</name></param>
+            <param><type>bs_U32</type><name>src_access</name></param>
+            <param><type>bs_U32</type><name>dst_access</name></param>
+        </function>
+        <function name="bs_testBarrier">
+            <return>void</return>
+        </function>
+        <function name="bs_rayTrace">
+            <return>void</return>
+            <param><type>bs_RayTracer*</type><name>ray_tracer</name></param>
+            <param><type>bs_Pipeline*</type><name>pipeline</name></param>
+            <param><type>bs_U32</type><name>width</name></param>
+            <param><type>bs_U32</type><name>height</name></param>
+            <param><type>bs_U32</type><name>depth</name></param>
+        </function>
+        <function name="bs_rayTracer">
+            <return>bs_Result</return>
+            <param><type>bs_Object*</type><name>object</name></param>
+            <param><type>bs_U32</type><name>flags</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_accelerateAabb">
+            <return>void</return>
+            <param><type>bs_RayTracer*</type><name>ray_tracer</name></param>
+            <param><type>bs_Aabb</type><name>aabb</name></param>
+        </function>
+        <function name="bs_accelerateBatch">
+            <return>void</return>
+            <param><type>bs_RayTracer*</type><name>tracer</name></param>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+        </function>
+        <function name="bs_build">
+            <return>bs_Result</return>
+            <param><type>bs_RayTracer*</type><name>ray_tracer</name></param>
+        </function>
+        <function name="bs_destroyRayTracer">
+            <return>void</return>
+            <param><type>bs_RayTracer*</type><name>tracer</name></param>
+        </function>
+        <function name="bs_dispatchAsync">
+            <return>void</return>
+            <param><type>bs_Pipeline*</type><name>pipeline</name></param>
+            <param><type>bs_U32</type><name>x</name></param>
+            <param><type>bs_U32</type><name>y</name></param>
+            <param><type>bs_U32</type><name>z</name></param>
+        </function>
+        <function name="bs_bufferSwaps">
+            <return>int</return>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+        </function>
+        <function name="bs_nameBuffer">
+            <return>void</return>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_buffer">
+            <return>bs_Result</return>
+            <param><type>bs_Object*</type><name>object</name></param>
+            <param><type>bs_U32</type><name>num_bytes</name></param>
+            <param><type>bs_BufferUsageFlags</type><name>usage_flags</name></param>
+            <param><type>bs_MemoryPropertyFlags</type><name>memory_flags</name></param>
+            <param><type>bs_BufferBits</type><name>flags</name></param>
+        </function>
+        <function name="bs_bufferMap">
+            <return>char*</return>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+        </function>
+        <function name="bs_mapBuffer">
+            <return>char*</return>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+            <param><type>bs_U32</type><name>num_bytes</name></param>
+        </function>
+        <function name="bs_unmapBuffer">
+            <return>void</return>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+        </function>
+        <function name="bs_stageNull">
+            <return>void</return>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+        </function>
+        <function name="bs_stageList">
+            <return>void</return>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+            <param><type>bs_List*</type><name>list</name></param>
+        </function>
+        <function name="bs_stageImage">
+            <return>void</return>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+            <param><type>bs_Format</type><name>format</name></param>
+            <param><type>bs_ivec2</type><name>dim</name></param>
+            <param><type>const char*</type><name>data</name></param>
+        </function>
+        <function name="bs_destroyBuffer">
+            <return>void</return>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+        </function>
+        <function name="bs_copyAsync">
+            <return>void</return>
+            <param><type>bs_Buffer*</type><name>src</name></param>
+            <param><type>bs_Buffer*</type><name>dst</name></param>
+            <param><type>bs_U32</type><name>src_offset</name></param>
+            <param><type>bs_U32</type><name>dst_offset</name></param>
+            <param><type>bs_U32</type><name>num_bytes</name></param>
+        </function>
+        <function name="bs_setBufferAsync">
+            <return>void</return>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+            <param><type>bs_U32</type><name>offset</name></param>
+            <param><type>bs_U32</type><name>num_bytes</name></param>
+            <param><type>bs_U32</type><name>value</name></param>
+        </function>
+        <function name="bs_batch">
+            <return>bs_Object*</return>
+            <param><type>bs_Object*</type><name>object</name></param>
+            <param><type>int</type><name>index_size</name></param>
+            <param><type>bs_Shader*</type><name>vertex_shader</name></param>
+            <param><type>bs_BatchBits</type><name>flags</name></param>
+        </function>
+        <function name="bs_queryAttribute">
+            <return>bs_Attribute*</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>char*</type><name>name</name></param>
+        </function>
+        <function name="bs_batchIsPushed">
+            <return>bool</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+        </function>
+        <function name="bs_batchIsIndexed">
+            <return>bool</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+        </function>
+        <function name="bs_minimizeBatch">
+            <return>void</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+        </function>
+        <function name="bs_pushBatch">
+            <return>void</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_U32</type><name>num_index_bytes</name></param>
+            <param><type>bs_U32</type><name>num_vertex_bytes</name></param>
+        </function>
+        <function name="bs_unpushBatch">
+            <return>void</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+        </function>
+        <function name="bs_destroyBatch">
+            <return>void</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+        </function>
+        <function name="bs_recreateBatch">
+            <return>void</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+        </function>
+        <function name="bs_ensureBatchSize">
+            <return>void</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_U32</type><name>num_indices</name></param>
+            <param><type>bs_U32</type><name>num_vertices</name></param>
+        </function>
+        <function name="bs_batchRange">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_U32</type><name>offset</name></param>
+        </function>
+        <function name="bs_pushIndex">
+            <return>void</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_U32</type><name>index</name></param>
+        </function>
+        <function name="bs_pushIndexV">
+            <return>void</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_U32</type><name>num_indices</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_pushCube">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_pushCone">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>int</type><name>segments</name></param>
+            <param><type>float</type><name>height</name></param>
+            <param><type>float</type><name>radius</name></param>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_pushRectangle">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_vec3</type><name>position</name></param>
+            <param><type>bs_vec2</type><name>dimensions</name></param>
+            <param><type>bs_vec2</type><name>texture_offset</name></param>
+            <param><type>bs_vec2</type><name>texture_coords</name></param>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_pushQuad">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_Quad</type><name>quad</name></param>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_pushTriangle">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_vec3</type><name>a</name></param>
+            <param><type>bs_vec3</type><name>b</name></param>
+            <param><type>bs_vec3</type><name>c</name></param>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_pushLine">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_vec3</type><name>start</name></param>
+            <param><type>bs_vec3</type><name>end</name></param>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_pushRay">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_Ray*</type><name>ray</name></param>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_pushPoint">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_vec3</type><name>position</name></param>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_pushAabb">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_Aabb*</type><name>aabb</name></param>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_pushSphere">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_vec3</type><name>position</name></param>
+            <param><type>float</type><name>radius</name></param>
+            <param><type>bs_U32</type><name>lats</name></param>
+            <param><type>bs_U32</type><name>longs</name></param>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_pushPyramid">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_vec3</type><name>pos</name></param>
+            <param><type>float</type><name>width</name></param>
+            <param><type>float</type><name>height</name></param>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_pushBipyramid">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_vec3</type><name>pos</name></param>
+            <param><type>float</type><name>width</name></param>
+            <param><type>float</type><name>height</name></param>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_pushPrimitive">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_Primitive*</type><name>primitive</name></param>
+        </function>
+        <function name="bs_pushMesh">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_Mesh*</type><name>mesh</name></param>
+        </function>
+        <function name="bs_pushModel">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_Model*</type><name>model</name></param>
+        </function>
+        <function name="bs_renderer">
+            <return>bs_Object*</return>
+            <param><type>bs_Object*</type><name>object</name></param>
+            <param><type>bs_RendererBits</type><name>flags</name></param>
+        </function>
+        <function name="bs_output">
+            <return>void</return>
+            <param><type>bs_Renderer*</type><name>renderer</name></param>
+            <param><type>bs_Output</type><name>output</name></param>
+        </function>
+        <function name="bs_input">
+            <return>void</return>
+            <param><type>bs_Renderer*</type><name>renderer</name></param>
+            <param><type>bs_Input</type><name>input</name></param>
+        </function>
+        <function name="bs_dependency">
+            <return>void</return>
+            <param><type>bs_Renderer*</type><name>renderer</name></param>
+            <param><type>bs_U32</type><name>src_subpass</name></param>
+            <param><type>bs_U32</type><name>dst_subpass</name></param>
+            <param><type>bs_DependencyFlags</type><name>flags</name></param>
+            <param><type>bs_PipelineStage</type><name>src_stage</name></param>
+            <param><type>bs_PipelineStage</type><name>dst_stage</name></param>
+            <param><type>bs_AccessMask</type><name>src_access</name></param>
+            <param><type>bs_AccessMask</type><name>dst_access</name></param>
+        </function>
+        <function name="bs_renderPass">
+            <return>void</return>
+            <param><type>bs_Renderer*</type><name>renderer</name></param>
+        </function>
+        <function name="bs_framebuffer">
+            <return>void</return>
+            <param><type>bs_Renderer*</type><name>renderer</name></param>
+            <param><type>bs_ivec2</type><name>resolution</name></param>
+        </function>
+        <function name="bs_runPass">
+            <return>void</return>
+            <param><type>bs_Renderer*</type><name>renderer</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_rendererIsDynamic">
+            <return>bool</return>
+            <param><type>bs_Renderer*</type><name>renderer</name></param>
+        </function>
+        <function name="bs_beginRender">
+            <return>void</return>
+            <param><type>bs_Renderer*</type><name>renderer</name></param>
+        </function>
+        <function name="bs_endRender">
+            <return>void</return>
+            <param><type>bs_Renderer*</type><name>renderer</name></param>
+        </function>
+        <function name="bs_destroyRenderer">
+            <return>void</return>
+            <param><type>bs_Renderer*</type><name>renderer</name></param>
+        </function>
+        <function name="bs_resizeRenderer">
+            <return>void</return>
+            <param><type>bs_Renderer*</type><name>renderer</name></param>
+            <param><type>bs_ivec2</type><name>resolution</name></param>
+        </function>
+        <function name="bs_singleTimesQueue">
+            <return>bs_Queue*</return>
+        </function>
+        <function name="bs_queueFamily">
+            <return>bs_I32</return>
+            <param><type>bs_QueueBits</type><name>flags</name></param>
+        </function>
+        <function name="bs_present">
+            <return>void</return>
+            <param><type>bs_Queue*</type><name>queue</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_acquire">
+            <return>void</return>
+        </function>
+        <function name="bs_awaitQueue">
+            <return>void</return>
+            <param><type>bs_Queue*</type><name>queue</name></param>
+            <param><type>bs_PipelineStage</type><name>stage</name></param>
+        </function>
+        <function name="bs_awaitAcquisition">
+            <return>void</return>
+        </function>
+        <function name="bs_enqueue">
+            <return>void</return>
+            <param><type>bs_Queue*</type><name>queue</name></param>
+            <param><type>bs_Callback</type><name>function</name></param>
+        </function>
+        <function name="bs_imageIndex">
+            <return>int</return>
+        </function>
+        <function name="bs_queueSwapsCount">
+            <return>int</return>
+            <param><type>bs_Queue*</type><name>queue</name></param>
+        </function>
+        <function name="bs_queue">
+            <return>bs_Object*</return>
+            <param><type>bs_Object*</type><name>object</name></param>
+            <param><type>bs_QueueBits</type><name>flags</name></param>
+        </function>
+        <function name="bs_destroyQueue">
+            <return>void</return>
+            <param><type>bs_Queue*</type><name>queue</name></param>
+        </function>
+        <function name="bs_stallGPU">
+            <return>void</return>
+        </function>
+        <function name="bs_stallQueue">
+            <return>void</return>
+            <param><type>bs_Queue*</type><name>queue</name></param>
+        </function>
+        <function name="bs_stall">
+            <return>bool</return>
+            <param><type>bs_Queue*</type><name>queue</name></param>
+        </function>
+        <function name="bs_poll">
+            <return>bool</return>
+            <param><type>bs_Queue*</type><name>queue</name></param>
+        </function>
+        <function name="bs_enterSingle">
+            <return>bs_Scope</return>
+        </function>
+        <function name="bs_leaveSingle">
+            <return>void</return>
+            <param><type>bs_Scope*</type><name>backup</name></param>
+        </function>
+        <function name="bs_getScope">
+            <return>bs_Scope*</return>
+        </function>
+        <function name="bs_setScope">
+            <return>void</return>
+            <param><type>bs_Scope*</type><name>scope</name></param>
+        </function>
+        <function name="bs_runSingle">
+            <return>void</return>
+            <param><type>void (*function)()</type></param>
+        </function>
+        <function name="bs_glyph" section="bs_font.h">
+            <return>void</return>
+            <param><type>bs_TTF*</type><name>ttf</name></param>
+            <param><type>bs_U16</type><name>code</name></param>
+        </function>
+        <function name="bs_ttf">
+            <return>void</return>
+            <param><type>bs_TTF*</type><name>existing</name></param>
+            <param><type>const char*</type><name>path</name></param>
+            <param><type>bs_U32</type><name>flags</name></param>
+        </function>
+        <function name="bs_rasterizeGlyph">
+            <return>void</return>
+            <param><type>bs_TTF*</type><name>font</name></param>
+            <param><type>bs_Glyph*</type><name>glyph</name></param>
+            <param><type>int</type><name>width</name></param>
+            <param><type>int</type><name>height</name></param>
+            <param><type>char*</type><name>out_bmp</name></param>
+            <param><type>float</type><name>scale</name></param>
+        </function>
+        <function name="bs_kern">
+            <return>void</return>
+            <param><type>bs_TTF*</type><name>ttf</name></param>
+        </function>
+        <function name="bs_bindFont">
+            <return>void</return>
+            <param><type>bs_Font*</type><name>font</name></param>
+            <param><type>bs_Sampler*</type><name>sampler</name></param>
+            <param><type>int</type><name>bind_set</name></param>
+            <param><type>int</type><name>bind_point</name></param>
+        </function>
+        <function name="bs_textDimensions">
+            <return>bs_vec2</return>
+            <param><type>bs_Font*</type><name>font</name></param>
+            <param><type>char*</type><name>name</name></param>
+            <param><type>int</type><name>length</name></param>
+        </function>
+        <function name="bs_loadFont">
+            <return>bs_Object*</return>
+            <param><type>bs_Object*</type><name>object</name></param>
+            <param><type>int</type><name>package_id</name></param>
+            <param><type>const char*</type><name>resource_name</name></param>
+            <param><type>const char*</type><name>alphabet</name></param>
+            <param><type>float</type><name>spacing</name></param>
+            <param><type>bs_U32</type><name>flags</name></param>
+        </function>
+        <function name="bs_image" section="bs_images.h">
+            <return>bs_Result</return>
+            <param><type>bs_Object*</type><name>object</name></param>
+            <param><type>bs_ivec2</type><name>dim</name></param>
+            <param><type>int</type><name>num_indices</name></param>
+            <param><type>bs_Format</type><name>format</name></param>
+            <param><type>bs_U32</type><name>flags</name></param>
+        </function>
+        <function name="bs_imageSwapsCount">
+            <return>int</return>
+            <param><type>bs_Image*</type><name>image</name></param>
+        </function>
+        <function name="bs_transition">
+            <return>void</return>
+            <param><type>bs_Image*</type><name>image</name></param>
+            <param><type>int</type><name>index</name></param>
+            <param><type>bs_ImageLayout</type><name>old_layout</name></param>
+            <param><type>bs_ImageLayout</type><name>new_layout</name></param>
+        </function>
+        <function name="bs_inspectPng">
+            <return>unsigned char*</return>
+            <param><type>const char*</type><name>path</name></param>
+            <param><type>int*</type><name>width</name></param>
+            <param><type>int*</type><name>height</name></param>
+            <param><type>size_t*</type><name>out_size</name></param>
+        </function>
+        <function name="bs_loadPngMemory">
+            <return>unsigned char*</return>
+            <param><type>char*</type><name>data</name></param>
+            <param><type>size_t</type><name>size</name></param>
+            <param><type>int*</type><name>width</name></param>
+            <param><type>int*</type><name>height</name></param>
+            <param><type>int</type><name>channels_count</name></param>
+        </function>
+        <function name="bs_loadPng">
+            <return>unsigned char*</return>
+            <param><type>const char*</type><name>path</name></param>
+            <param><type>int*</type><name>width</name></param>
+            <param><type>int*</type><name>height</name></param>
+            <param><type>int</type><name>channels_count</name></param>
+        </function>
+        <function name="bs_bitmapImage">
+            <return>bs_Result</return>
+            <param><type>bs_Object*</type><name>existing_object</name></param>
+            <param><type>unsigned char*</type><name>image_data</name></param>
+            <param><type>bs_ivec2</type><name>dim</name></param>
+            <param><type>bs_Format</type><name>format</name></param>
+            <param><type>bs_ImageBits</type><name>flags</name></param>
+        </function>
+        <function name="bs_savePng">
+            <return>void</return>
+            <param><type>char*</type><name>data</name></param>
+            <param><type>bs_ivec2</type><name>resolution</name></param>
+            <param><type>bs_PngType</type><name>type</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_encodePng">
+            <return>unsigned char*</return>
+            <param><type>size_t*</type><name>out_size</name></param>
+            <param><type>const unsigned char*</type><name>data</name></param>
+            <param><type>bs_ivec2</type><name>size</name></param>
+            <param><type>bs_PngType</type><name>type</name></param>
+        </function>
+        <function name="bs_savePngF">
+            <return>void</return>
+            <param><type>char*</type><name>data</name></param>
+            <param><type>bs_ivec2</type><name>resolution</name></param>
+            <param><type>bs_PngType</type><name>type</name></param>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_destroyImage">
+            <return>void</return>
+            <param><type>bs_Image*</type><name>image</name></param>
+        </function>
+        <function name="bs_resizeImage">
+            <return>void</return>
+            <param><type>bs_Image*</type><name>image</name></param>
+            <param><type>bs_ivec2</type><name>resolution</name></param>
+            <param><type>int</type><name>num_indices</name></param>
+        </function>
+        <function name="bs_queryImageIndexHash">
+            <return>int</return>
+            <param><type>bs_Image*</type><name>image</name></param>
+            <param><type>bs_U64</type><name>name_hash</name></param>
+            <param><type>char*</type><name>name</name></param>
+        </function>
+        <function name="bs_queryImageIndex">
+            <return>int</return>
+            <param><type>bs_Image*</type><name>image</name></param>
+            <param><type>char*</type><name>name</name></param>
+        </function>
+        <function name="bs_copyImageToBufferAsync">
+            <return>void</return>
+            <param><type>bs_Image*</type><name>image</name></param>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+            <param><type>int</type><name>image_index</name></param>
+            <param><type>bs_ImageLayout</type><name>layout</name></param>
+            <param><type>bs_U64</type><name>buffer_offset</name></param>
+            <param><type>bs_ivec2</type><name>offset</name></param>
+            <param><type>bs_ivec2</type><name>resolution</name></param>
+        </function>
+        <function name="bs_copyBufferToImage">
+            <return>void</return>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+            <param><type>bs_Image*</type><name>image</name></param>
+            <param><type>int</type><name>index</name></param>
+            <param><type>bs_ImageLayout</type><name>layout</name></param>
+        </function>
+        <function name="bs_blit">
+            <return>void</return>
+            <param><type>bs_BlitOperation</type><name>operation</name></param>
+        </function>
+        <function name="bs_loadImage">
+            <return>bs_Object*</return>
+            <param><type>bs_Object*</type><name>object</name></param>
+            <param><type>int</type><name>package_id</name></param>
+            <param><type>char*</type><name>resource_name</name></param>
+            <param><type>bs_ImageBits</type><name>flags</name></param>
+        </function>
+        <function name="bs_isStencilFormat">
+            <return>bool</return>
+            <param><type>bs_Format</type><name>format</name></param>
+        </function>
+        <function name="bs_isDepthFormat">
+            <return>bool</return>
+            <param><type>bs_Format</type><name>format</name></param>
+        </function>
+        <function name="bs_hasAlpha">
+            <return>bool</return>
+            <param><type>bs_Format</type><name>format</name></param>
+        </function>
+        <function name="bs_nameImage">
+            <return>void</return>
+            <param><type>bs_Image*</type><name>image</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_destroySampler">
+            <return>void</return>
+            <param><type>bs_Sampler*</type><name>sampler</name></param>
+        </function>
+        <function name="bs_sampler">
+            <return>bs_Object*</return>
+            <param><type>bs_Object*</type><name>object</name></param>
+            <param><type>bs_ImageFilter</type><name>filter</name></param>
+            <param><type>bs_SamplerBits</type><name>flags</name></param>
+        </function>
+        <function name="bs_loadAtlas">
+            <return>bs_Object*</return>
+            <param><type>int</type><name>id</name></param>
+            <param><type>int</type><name>package_id</name></param>
+            <param><type>const char*</type><name>resource_name</name></param>
+            <param><type>bs_U32</type><name>flags</name></param>
+        </function>
+        <function name="bs_atlasCoordinates">
+            <return>bs_vec4</return>
+            <param><type>bs_Atlas*</type><name>atlas</name></param>
+            <param><type>int</type><name>texture_id</name></param>
+            <param><type>int</type><name>frame</name></param>
+        </function>
+        <function name="bs_mirrorUV">
+            <return>bs_vec4</return>
+            <param><type>bs_vec4</type><name>uv</name></param>
+        </function>
+        <function name="bs_flipUV">
+            <return>bs_vec4</return>
+            <param><type>bs_vec4</type><name>uv</name></param>
+        </function>
+        <function name="bs_atlasSize">
+            <return>bs_vec2</return>
+            <param><type>bs_Atlas*</type><name>atlas</name></param>
+            <param><type>int</type><name>texture</name></param>
+        </function>
+        <function name="bs_queryAtlasHash">
+            <return>int</return>
+            <param><type>bs_Atlas*</type><name>atlas</name></param>
+            <param><type>bs_U64</type><name>hash</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_queryAtlas">
+            <return>int</return>
+            <param><type>bs_Atlas*</type><name>atlas</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_destroyAtlas">
+            <return>void</return>
+            <param><type>bs_Atlas*</type><name>atlas</name></param>
+        </function>
+        <function name="bs_splitAtlasTexture">
+            <return>void</return>
+            <param><type>bs_Atlas*</type><name>atlas</name></param>
+            <param><type>char*</type><name>name</name></param>
+            <param><type>int</type><name>split</name></param>
+        </function>
+        <function name="bs_loadAtlasMemory">
+            <return>bs_Object*</return>
+            <param><type>bs_Object*</type><name>object</name></param>
+            <param><type>int</type><name>package_id</name></param>
+            <param><type>char*</type><name>resource_name</name></param>
+            <param><type>char*</type><name>data</name></param>
+            <param><type>bs_U32</type><name>flags</name></param>
+        </function>
+        <function name="bs_loadAtlas">
+            <return>bs_Object*</return>
+            <param><type>bs_Object*</type><name>object</name></param>
+            <param><type>int</type><name>package_id</name></param>
+            <param><type>const char*</type><name>resource_name</name></param>
+            <param><type>bs_U32</type><name>flags</name></param>
+        </function>
+        <function name="bs_parseArgs" section="bs_ini.h">
+            <return>void</return>
+            <param><type>int</type><name>argc</name></param>
+            <param><type>char* argv[]</type></param>
+        </function>
+        <function name="bs_arguments">
+            <return>bs_Args*</return>
+        </function>
+        <function name="bs_ini">
+            <return>void</return>
+        </function>
+        <function name="bs_load">
+            <return>void</return>
+            <param><type>bs_Callback</type><name>load_resources</name></param>
+        </function>
+        <function name="bs_queryProcedures">
+            <return>void</return>
+            <param><type>bs_Procedure*</type><name>procedures</name></param>
+            <param><type>int</type><name>count</name></param>
+            <param><type>HMODULE</type><name>dll_handle</name></param>
+            <param><type>unsigned char*</type><name>destination</name></param>
+        </function>
+        <function name="bsi_fetchCommands" section="bs_internal.h">
+            <return>struct VkCommandBuffer_T*</return>
+        </function>
+        <function name="bsi_fetchDevice">
+            <return>struct VkDevice_T*</return>
+        </function>
+        <function name="bsi_resizeObjects">
+            <return>void</return>
+        </function>
+        <function name="bsi_resetQueue">
+            <return>void</return>
+            <param><type>bs_Queue*</type><name>queue</name></param>
+        </function>
+        <function name="bsi_pushQueue">
+            <return>void</return>
+            <param><type>bs_Queue*</type><name>queue</name></param>
+        </function>
+        <function name="bsi_nameHandle">
+            <return>void</return>
+            <param><type>bs_U64</type><name>handle</name></param>
+            <param><type>bs_U32</type><name>type</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bsi_nameHandleF">
+            <return>void</return>
+            <param><type>bs_U64</type><name>handle</name></param>
+            <param><type>bs_U32</type><name>type</name></param>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_procedures">
+            <return>bs_Procs*</return>
+        </function>
+        <function name="bs_beginEnumeration" section="bs_json.h">
+            <return>bs_JsonEnumeration</return>
+            <param><type>bs_Json*</type><name>json</name></param>
+        </function>
+        <function name="bs_enumerateJson">
+            <return>void</return>
+            <param><type>bs_Json*</type><name>json</name></param>
+            <param><type>bs_JsonEnumeration*</type><name>e</name></param>
+        </function>
+        <function name="bs_jsonRoot">
+            <return>bs_Json</return>
+            <param><type>bs_Json*</type><name>json</name></param>
+            <param><type>bs_JsonObject</type><name>object</name></param>
+        </function>
+        <function name="bs_ensureJsonMutable">
+            <return>void</return>
+            <param><type>bs_Json*</type><name>root</name></param>
+        </function>
+        <function name="bs_jsonCopy">
+            <return>bs_Json</return>
+            <param><type>const bs_Json*</type><name>root</name></param>
+        </function>
+        <function name="bs_saveJson">
+            <return>char*</return>
+            <param><type>bs_Json*</type><name>json</name></param>
+            <param><type>bs_SaveJsonBits</type><name>flags</name></param>
+        </function>
+        <function name="bs_emptyJson">
+            <return>bs_Json</return>
+        </function>
+        <function name="bs_emptyJsonArray">
+            <return>bs_Json</return>
+        </function>
+        <function name="bs_json">
+            <return>bs_Json</return>
+            <param><type>char*</type><name>raw</name></param>
+            <param><type>int</type><name>len</name></param>
+        </function>
+        <function name="bs_loadJson">
+            <return>bs_Json</return>
+            <param><type>const char*</type><name>path</name></param>
+        </function>
+        <function name="bs_loadJsonF">
+            <return>bs_Json</return>
+            <param><type>char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_destroyJson">
+            <return>void</return>
+            <param><type>bs_Json*</type><name>json</name></param>
+        </function>
+        <function name="bs_parseJsonValue">
+            <return>bs_JsonValue</return>
+            <param><type>char*</type><name>raw</name></param>
+        </function>
+        <function name="bs_fetchJson">
+            <return>bs_JsonValue</return>
+            <param><type>bs_Json*</type><name>root</name></param>
+            <param><type>bs_JsonType</type><name>expect</name></param>
+            <param><type>char*</type><name>path</name></param>
+        </function>
+        <function name="bs_fetchJsonF">
+            <return>bs_JsonValue</return>
+            <param><type>bs_Json*</type><name>root</name></param>
+            <param><type>bs_JsonType</type><name>expect</name></param>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_deleteJson">
+            <return>void</return>
+            <param><type>bs_Json*</type><name>root</name></param>
+            <param><type>char*</type><name>path</name></param>
+        </function>
+        <function name="bs_deleteJsonF">
+            <return>void</return>
+            <param><type>bs_Json*</type><name>root</name></param>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_ensureJson">
+            <return>bool</return>
+            <param><type>bs_Json*</type><name>root</name></param>
+            <param><type>bs_JsonValue</type><name>value</name></param>
+            <param><type>char*</type><name>path</name></param>
+        </function>
+        <function name="bs_ensureJsonF">
+            <return>bool</return>
+            <param><type>bs_Json*</type><name>root</name></param>
+            <param><type>bs_JsonValue</type><name>value</name></param>
+            <param><type>const char*</type><name>path</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_jsonValueFromObject">
+            <return>bs_JsonValue</return>
+            <param><type>bs_JsonObject</type><name>x</name></param>
+        </function>
+        <function name="bs_jsonValueFromRoot">
+            <return>bs_JsonValue</return>
+            <param><type>bs_Json</type><name>x</name></param>
+        </function>
+        <function name="bs_jsonValueFromBool">
+            <return>bs_JsonValue</return>
+            <param><type>bool</type><name>x</name></param>
+        </function>
+        <function name="bs_jsonValueFromInteger">
+            <return>bs_JsonValue</return>
+            <param><type>int</type><name>x</name></param>
+        </function>
+        <function name="bs_jsonValueFromFloat">
+            <return>bs_JsonValue</return>
+            <param><type>double</type><name>x</name></param>
+        </function>
+        <function name="bs_jsonValueFromString">
+            <return>bs_JsonValue</return>
+            <param><type>char*</type><name>x</name></param>
+        </function>
+        <function name="bs_jsonValueFromStringPointer">
+            <return>bs_JsonValue</return>
+            <param><type>char*</type><name>x</name></param>
+        </function>
+        <function name="bs_jsonValueFromDateTime">
+            <return>bs_JsonValue</return>
+            <param><type>bs_DateTime</type><name>x</name></param>
+        </function>
+        <function name="bs_jsonObject">
+            <return>bs_JsonValue</return>
+            <param><type>bs_Json*</type><name>json</name></param>
+        </function>
+        <function name="bs_jsonArray">
+            <return>bs_JsonValue</return>
+            <param><type>bs_JsonType</type><name>type</name></param>
+            <param><type>char*</type><name>data</name></param>
+            <param><type>int</type><name>count</name></param>
+        </function>
+        <function name="bs_jsonVec2">
+            <return>bs_JsonValue</return>
+            <param><type>bs_vec2*</type><name>vector</name></param>
+        </function>
+        <function name="bs_jsonVec3">
+            <return>bs_JsonValue</return>
+            <param><type>bs_vec3*</type><name>vector</name></param>
+        </function>
+        <function name="bs_jsonVec4">
+            <return>bs_JsonValue</return>
+            <param><type>bs_vec4*</type><name>vector</name></param>
+        </function>
+        <function name="bs_jsonRGBA">
+            <return>bs_JsonValue</return>
+            <param><type>bs_RGBA</type><name>color</name></param>
+        </function>
+        <function name="bs_logSectionV" section="bs_log.h">
+            <return>char*</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><type>va_list</type><name>args</name></param>
+        </function>
+        <function name="bs_logSectionF">
+            <return>char*</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_logEndOfSection">
+            <return>char*</return>
+        </function>
+        <function name="bs_logWithTimestampV">
+            <return>char*</return>
+            <param><type>const char*</type><name>type</name></param>
+            <param><type>int</type><name>type_len</name></param>
+            <param><type>const char*</type><name>format</name></param>
+            <param><type>va_list</type><name>args</name></param>
+        </function>
+        <function name="bs_logV">
+            <return>char*</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><type>va_list</type><name>args</name></param>
+        </function>
+        <function name="bs_warnV">
+            <return>char*</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><type>va_list</type><name>args</name></param>
+        </function>
+        <function name="bs_throwV">
+            <return>void</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><type>va_list</type><name>args</name></param>
+        </function>
+        <function name="bs_infoF">
+            <return>char*</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_infoF">
+            <return>char*</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_warnF">
+            <return>void</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_throwF">
+            <return>void</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_throwBasilisk">
+            <return>void</return>
+            <param><type>bs_U64</type><name>code</name></param>
+        </function>
+        <function name="bs_except">
+            <return>bs_U64</return>
+            <param><type>bs_U64</type><name>exceptions</name></param>
+        </function>
+        <function name="bs_caught">
+            <return>bool</return>
+        </function>
+        <function name="bs_exceptionName">
+            <return>const char*</return>
+            <param><type>bs_U64</type><name>code</name></param>
+        </function>
+        <function name="bs_logBasilisk">
+            <return>void</return>
+            <param><type>bs_U64</type><name>code</name></param>
+        </function>
+        <function name="bsi_throwBasiliskF">
+            <return>void</return>
+            <param><type>bs_U64</type><name>code</name></param>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_throwErrno">
+            <return>void</return>
+            <param><type>const char*</type><name>message</name></param>
+        </function>
+        <function name="bs_throwVulkan">
+            <return>void</return>
+            <param><type>int</type><name>result</name></param>
+        </function>
+        <function name="bs_throwNotImplemented">
+            <return>void</return>
+        </function>
+        <function name="bs_throwIfBufferTooSmall">
+            <return>void</return>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+            <param><type>bs_U32</type><name>num_bytes</name></param>
+        </function>
+        <function name="bs_throwIfNotMapped">
+            <return>void</return>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+        </function>
+        <function name="bs_throwIfStringConversionFail">
+            <return>void</return>
+            <param><type>char*</type><name>orig</name></param>
+            <param><type>char*</type><name>output</name></param>
+        </function>
+        <function name="bs_throwWin32Error">
+            <return>bool</return>
+            <param><type>bs_U64</type><name>code</name></param>
+            <param><type>char*</type><name>path</name></param>
+        </function>
+        <function name="bs_throwLastWin32Error">
+            <return>bool</return>
+            <param><type>char*</type><name>path</name></param>
+        </function>
+        <function name="bs_throwHResult">
+            <return>void</return>
+            <param><type>long</type><name>code</name></param>
+            <param><type>char*</type><name>str</name></param>
+        </function>
+        <function name="bs_logObjectDiff">
+            <return>void</return>
+        </function>
+        <function name="bs_logUnchangedObjects">
+            <return>void</return>
+        </function>
+        <function name="bs_logBindings">
+            <return>void</return>
+        </function>
+        <function name="bs_infoF4">
+            <return>void</return>
+            <param><type>bs_mat4*</type><name>m</name></param>
+        </function>
+        <function name="bs_instance" section="bs_mem.h">
+            <return>bs_Instance*</return>
+        </function>
+        <function name="bs_stringBuilder">
+            <return>bs_String*</return>
+        </function>
+        <function name="bs_args">
+            <return>bs_Args*</return>
+        </function>
+        <function name="bs_features">
+            <return>bs_Features*</return>
+        </function>
+        <function name="bs_props">
+            <return>bs_Props*</return>
+        </function>
+        <function name="bs_settings">
+            <return>bs_Settings*</return>
+        </function>
+        <function name="bs_config">
+            <return>bs_Config*</return>
+        </function>
+        <function name="bs_system">
+            <return>void</return>
+            <param><type>char*</type><name>s</name></param>
+        </function>
+        <function name="bs_systemAsync">
+            <return>void</return>
+            <param><type>char*</type><name>s</name></param>
+        </function>
+        <function name="bs_systemV">
+            <return>void</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><type>va_list</type><name>args</name></param>
+        </function>
+        <function name="bs_systemF">
+            <return>void</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_checkStringPool">
+            <return>const char*</return>
+            <param><type>bs_List*</type><name>pool</name></param>
+            <param><type>char*</type><name>string</name></param>
+        </function>
+        <function name="bs_stringAlloc">
+            <return>bs_String*</return>
+            <param><type>bs_String*</type><name>old</name></param>
+            <param><type>int</type><name>len</name></param>
+        </function>
+        <function name="bs_string">
+            <return>bs_String*</return>
+            <param><type>bs_String*</type><name>old</name></param>
+            <param><type>char*</type><name>data</name></param>
+            <param><type>int</type><name>len</name></param>
+        </function>
+        <function name="bs_emptyString">
+            <return>bs_String*</return>
+            <param><type>bs_String*</type><name>old</name></param>
+        </function>
+        <function name="bs_stringF">
+            <return>bs_String*</return>
+            <param><type>bs_String*</type><name>old</name></param>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_stringV">
+            <return>bs_String*</return>
+            <param><type>bs_String*</type><name>old</name></param>
+            <param><type>const char*</type><name>format</name></param>
+            <param><type>va_list</type><name>args</name></param>
+        </function>
+        <function name="bs_toUpper">
+            <return>void</return>
+            <param><type>char*</type><name>string</name></param>
+            <param><type>int</type><name>len</name></param>
+        </function>
+        <function name="bs_toLower">
+            <return>void</return>
+            <param><type>char*</type><name>string</name></param>
+            <param><type>int</type><name>len</name></param>
+        </function>
+        <function name="bs_hash">
+            <return>bs_U64</return>
+            <param><type>unsigned char*</type><name>data</name></param>
+            <param><type>size_t</type><name>size</name></param>
+        </function>
+        <function name="bs_stringHash">
+            <return>bs_U64</return>
+            <param><type>char*</type><name>string</name></param>
+        </function>
+        <function name="bs_startsWith">
+            <return>bool</return>
+            <param><type>char*</type><name>string</name></param>
+            <param><type>const char*</type><name>prefix</name></param>
+        </function>
+        <function name="bs_endsWith">
+            <return>bool</return>
+            <param><type>char*</type><name>string</name></param>
+            <param><type>const char*</type><name>suffix</name></param>
+        </function>
+        <function name="bs_lastChar">
+            <return>char</return>
+            <param><type>char*</type><name>string</name></param>
+            <param><type>int</type><name>len</name></param>
+        </function>
+        <function name="bs_stringContainsChar">
+            <return>bool</return>
+            <param><type>char*</type><name>string</name></param>
+            <param><type>char</type><name>c</name></param>
+        </function>
+        <function name="bs_workingDirectory">
+            <return>bs_String*</return>
+        </function>
+        <function name="bs_setWorkingDirectory">
+            <return>void</return>
+            <param><type>char*</type><name>path</name></param>
+        </function>
+        <function name="bs_executablePath">
+            <return>bs_String*</return>
+        </function>
+        <function name="bs_appdataPath">
+            <return>char*</return>
+        </function>
+        <function name="bs_copyToClipboard">
+            <return>void</return>
+            <param><type>char*</type><name>string</name></param>
+            <param><type>int</type><name>len</name></param>
+        </function>
+        <function name="bs_copyToClipboardV">
+            <return>void</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><type>va_list</type><name>args</name></param>
+        </function>
+        <function name="bs_copyToClipboardF">
+            <return>void</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_shortenString">
+            <return>void</return>
+            <param><type>bs_String*</type><name>string</name></param>
+            <param><type>int</type><name>len</name></param>
+        </function>
+        <function name="bs_appendString">
+            <return>bs_String*</return>
+            <param><type>bs_String*</type><name>string</name></param>
+            <param><type>char*</type><name>append</name></param>
+            <param><type>int</type><name>len</name></param>
+        </function>
+        <function name="bs_appendStringF">
+            <return>bs_String*</return>
+            <param><type>bs_String*</type><name>string</name></param>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_appendStringV">
+            <return>bs_String*</return>
+            <param><type>bs_String*</type><name>string</name></param>
+            <param><type>const char*</type><name>format</name></param>
+            <param><type>va_list</type><name>args</name></param>
+        </function>
+        <function name="bs_appendChar">
+            <return>bs_String*</return>
+            <param><type>bs_String*</type><name>string</name></param>
+            <param><type>char</type><name>c</name></param>
+        </function>
+        <function name="bs_removeLastNChars">
+            <return>void</return>
+            <param><type>bs_String*</type><name>string</name></param>
+            <param><type>int</type><name>n</name></param>
+        </function>
+        <function name="bs_removeCharRange">
+            <return>void</return>
+            <param><type>bs_String*</type><name>string</name></param>
+            <param><type>int</type><name>start</name></param>
+            <param><type>int</type><name>count</name></param>
+        </function>
+        <function name="bs_insertChar">
+            <return>bs_String*</return>
+            <param><type>bs_String*</type><name>string</name></param>
+            <param><type>int</type><name>index</name></param>
+            <param><type>char</type><name>c</name></param>
+        </function>
+        <function name="bs_appendPath">
+            <return>bs_String*</return>
+            <param><type>bs_String*</type><name>string</name></param>
+            <param><type>char*</type><name>path</name></param>
+            <param><type>int</type><name>path_len</name></param>
+        </function>
+        <function name="bs_replaceCharOccurrences">
+            <return>void</return>
+            <param><type>char*</type><name>string</name></param>
+            <param><type>int</type><name>string_len</name></param>
+            <param><type>char</type><name>a</name></param>
+            <param><type>char</type><name>b</name></param>
+        </function>
+        <function name="bs_strndup">
+            <return>char*</return>
+            <param><type>const char*</type><name>s</name></param>
+            <param><type>size_t</type><name>n</name></param>
+        </function>
+        <function name="bs_strnlen">
+            <return>size_t</return>
+            <param><type>const char*</type><name>src</name></param>
+            <param><type>size_t</type><name>n</name></param>
+        </function>
+        <function name="bs_strsep">
+            <return>char*</return>
+            <param><type>char**</type><name>stringp</name></param>
+            <param><type>const char*</type><name>delim</name></param>
+        </function>
+        <function name="bs_memmem">
+            <return>void*</return>
+            <param><type>const void*</type><name>haystack</name></param>
+            <param><type>bs_U32</type><name>haystack_len</name></param>
+            <param><type>const void* const</type><name>needle</name></param>
+            <param><type>const bs_U32</type><name>needle_len</name></param>
+        </function>
+        <function name="bs_alignUp">
+            <return>bs_U32</return>
+            <param><type>bs_U32</type><name>value</name></param>
+            <param><type>bs_U32</type><name>alignment</name></param>
+        </function>
+        <function name="bs_widen">
+            <return>void</return>
+            <param><type>char*</type><name>src</name></param>
+            <param><type>wchar_t*</type><name>dst</name></param>
+            <param><type>bs_U32</type><name>dst_size</name></param>
+        </function>
+        <function name="bs_charStringV">
+            <return>char*</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><type>va_list</type><name>args</name></param>
+        </function>
+        <function name="bs_charStringF">
+            <return>char*</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_free">
+            <return>void*</return>
+            <param><type>void*</type><name>p</name></param>
+        </function>
+        <function name="bs_malloc">
+            <return>void*</return>
+            <param><type>bs_U64</type><name>size</name></param>
+        </function>
+        <function name="bs_calloc">
+            <return>void*</return>
+            <param><type>bs_U64</type><name>num_units</name></param>
+            <param><type>bs_U64</type><name>unit_size</name></param>
+        </function>
+        <function name="bs_realloc">
+            <return>void*</return>
+            <param><type>void*</type><name>p</name></param>
+            <param><type>bs_U64</type><name>size</name></param>
+        </function>
+        <function name="bs_listContains">
+            <return>bool</return>
+            <param><type>bs_List*</type><name>list</name></param>
+            <param><type>void*</type><name>data</name></param>
+        </function>
+        <function name="bs_fetchUnit">
+            <return>void*</return>
+            <param><type>bs_List*</type><name>list</name></param>
+            <param><type>bs_U32</type><name>index</name></param>
+        </function>
+        <function name="bs_fetchLast">
+            <return>void*</return>
+            <param><type>bs_List*</type><name>list</name></param>
+        </function>
+        <function name="bs_fetchLastNull">
+            <return>void*</return>
+            <param><type>bs_List*</type><name>list</name></param>
+        </function>
+        <function name="bs_ensureSize">
+            <return>void</return>
+            <param><type>bs_List*</type><name>list</name></param>
+            <param><type>bs_U32</type><name>num_units</name></param>
+        </function>
+        <function name="bs_erase">
+            <return>void</return>
+            <param><type>bs_List*</type><name>list</name></param>
+            <param><type>int</type><name>index</name></param>
+            <param><type>bs_U32</type><name>count</name></param>
+        </function>
+        <function name="bs_pushBack">
+            <return>void*</return>
+            <param><type>bs_List*</type><name>list</name></param>
+            <param><type>char*</type><name>data</name></param>
+        </function>
+        <function name="bs_pushBackUnsafe">
+            <return>void*</return>
+            <param><type>bs_List*</type><name>list</name></param>
+            <param><type>char*</type><name>data</name></param>
+        </function>
+        <function name="bs_pushBackList">
+            <return>void*</return>
+            <param><type>bs_List*</type><name>destination</name></param>
+            <param><type>bs_List*</type><name>source</name></param>
+        </function>
+        <function name="bs_destroyList">
+            <return>void</return>
+            <param><type>bs_List*</type><name>list</name></param>
+        </function>
+        <function name="bs_seekList">
+            <return>void</return>
+            <param><type>bs_List*</type><name>list</name></param>
+            <param><type>bs_U32</type><name>unit_index</name></param>
+        </function>
+        <function name="bs_minimizeList">
+            <return>void</return>
+            <param><type>bs_List*</type><name>list</name></param>
+        </function>
+        <function name="bs_list">
+            <return>bs_List</return>
+            <param><type>int</type><name>unit_size</name></param>
+            <param><type>int</type><name>increment</name></param>
+        </function>
+        <function name="bs_guidToString">
+            <return>void</return>
+            <param><type>bs_GUID*</type><name>guid</name></param>
+            <param><type>char out[37]</type></param>
+        </function>
+        <function name="bs_stringToGuid">
+            <return>bs_GUID</return>
+            <param><type>const char*</type><name>str</name></param>
+        </function>
+        <function name="bs_sameGuid">
+            <return>bool</return>
+            <param><type>bs_GUID*</type><name>a</name></param>
+            <param><type>bs_GUID*</type><name>b</name></param>
+        </function>
+        <function name="bs_guid">
+            <return>bs_GUID</return>
+        </function>
+        <function name="bs_guidIsNull">
+            <return>bool</return>
+            <param><type>bs_GUID*</type><name>guid</name></param>
+        </function>
+        <function name="bs_foreachFile">
+            <return>void</return>
+            <param><type>void(*x)(bs_FileInfo, void*)</type></param>
+            <param><type>void*</type><name>param</name></param>
+            <param><type>const char*</type><name>directory</name></param>
+        </function>
+        <function name="bs_foreachDirectory">
+            <return>void</return>
+            <param><type>void(*x)(bs_FileInfo, void*)</type></param>
+            <param><type>void*</type><name>param</name></param>
+            <param><type>const char*</type><name>directory</name></param>
+        </function>
+        <function name="bs_foreachFileF">
+            <return>void</return>
+            <param><type>void(*x)(bs_FileInfo, void*)</type></param>
+            <param><type>void*</type><name>param</name></param>
+            <param><type>char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_foreachDirectoryF">
+            <return>void</return>
+            <param><type>void(*x)(bs_FileInfo, void*)</type></param>
+            <param><type>void*</type><name>param</name></param>
+            <param><type>char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_numFiles">
+            <return>int</return>
+            <param><type>const char*</type><name>directory</name></param>
+        </function>
+        <function name="bs_numFilesF">
+            <return>int</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_numDirectories">
+            <return>int</return>
+            <param><type>const char*</type><name>directory</name></param>
+        </function>
+        <function name="bs_numDirectoriesF">
+            <return>int</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_numDigits">
+            <return>int</return>
+            <param><type>int</type><name>n</name></param>
+        </function>
+        <function name="bs_loadFile">
+            <return>bs_String*</return>
+            <param><type>const char*</type><name>path</name></param>
+        </function>
+        <function name="bs_loadFileF">
+            <return>bs_String*</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_loadFileChunk">
+            <return>bs_String*</return>
+            <param><type>long</type><name>offset</name></param>
+            <param><type>size_t</type><name>size</name></param>
+            <param><type>const char*</type><name>path</name></param>
+        </function>
+        <function name="bs_loadFileChunkF">
+            <return>bs_String*</return>
+            <param><type>long</type><name>offset</name></param>
+            <param><type>size_t</type><name>size</name></param>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_deleteFile">
+            <return>void</return>
+            <param><type>const char*</type><name>path</name></param>
+        </function>
+        <function name="bs_deleteFileF">
+            <return>void</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_deleteDirectoryContents">
+            <return>void</return>
+            <param><type>const char*</type><name>path</name></param>
+        </function>
+        <function name="bs_deleteDirectoryContentsF">
+            <return>void</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_deleteDirectory">
+            <return>void</return>
+            <param><type>const char*</type><name>path</name></param>
+        </function>
+        <function name="bs_deleteDirectoryF">
+            <return>void</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_directoryExists">
+            <return>bool</return>
+            <param><type>char*</type><name>path</name></param>
+        </function>
+        <function name="bs_fileExtension">
+            <return>char*</return>
+            <param><type>const char*</type><name>path</name></param>
+        </function>
+        <function name="bs_fileExtensionIs">
+            <return>bool</return>
+            <param><type>const char*</type><name>path</name></param>
+            <param><type>char*</type><name>extension</name></param>
+        </function>
+        <function name="bs_fileName">
+            <return>char*</return>
+            <param><type>const char*</type><name>path</name></param>
+        </function>
+        <function name="bs_appendFile">
+            <return>void</return>
+            <param><type>const char*</type><name>path</name></param>
+            <param><type>const char*</type><name>data</name></param>
+        </function>
+        <function name="bs_saveFile">
+            <return>void</return>
+            <param><type>const char*</type><name>path</name></param>
+            <param><type>char*</type><name>data</name></param>
+            <param><type>bs_U32</type><name>data_len</name></param>
+        </function>
+        <function name="bs_saveFileF">
+            <return>void</return>
+            <param><type>char*</type><name>data</name></param>
+            <param><type>bs_U32</type><name>data_len</name></param>
+            <param><type>char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_convertWin32Path">
+            <return>void</return>
+            <param><type>char*</type><name>path</name></param>
+            <param><type>int</type><name>len</name></param>
+        </function>
+        <function name="bs_ensureDirectory">
+            <return>void</return>
+            <param><type>const char*</type><name>path</name></param>
+        </function>
+        <function name="bs_ensureDirectoryF">
+            <return>void</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_fileModifiedDate">
+            <return>bs_DateTime</return>
+            <param><type>const char*</type><name>path</name></param>
+        </function>
+        <function name="bs_setFileModifiedDate">
+            <return>void</return>
+            <param><type>const char*</type><name>path</name></param>
+            <param><type>bs_DateTime*</type><name>date_time</name></param>
+        </function>
+        <function name="bs_fileModifiedDateF">
+            <return>bs_DateTime</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_fullPath">
+            <return>bs_String*</return>
+            <param><type>bs_String*</type><name>old</name></param>
+            <param><type>const char*</type><name>path</name></param>
+            <param><type>int</type><name>path_len</name></param>
+        </function>
+        <function name="bs_fileExists">
+            <return>bool</return>
+            <param><type>const char*</type><name>path</name></param>
+        </function>
+        <function name="bs_fileExistsF">
+            <return>bool</return>
+            <param><type>char*</type><name>format</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_toLong">
+            <return>bs_I64</return>
+            <param><type>const char*</type><name>str</name></param>
+        </function>
+        <function name="bs_toULong">
+            <return>bs_U64</return>
+            <param><type>const char*</type><name>str</name></param>
+        </function>
+        <function name="bs_toDouble">
+            <return>bs_F64</return>
+            <param><type>const char*</type><name>str</name></param>
+        </function>
+        <function name="bs_toLongNull">
+            <return>bs_I64*</return>
+            <param><type>const char*</type><name>str</name></param>
+            <param><type>bs_I64*</type><name>inout</name></param>
+        </function>
+        <function name="bs_toULongNull">
+            <return>bs_U64*</return>
+            <param><type>const char*</type><name>str</name></param>
+            <param><type>bs_U64*</type><name>inout</name></param>
+        </function>
+        <function name="bs_toDoubleNull">
+            <return>bs_F64*</return>
+            <param><type>const char*</type><name>str</name></param>
+            <param><type>bs_F64*</type><name>inout</name></param>
+        </function>
+        <function name="bs_model" section="bs_models.h">
+            <return>bs_Resource*</return>
+            <param><type>int</type><name>package_id</name></param>
+            <param><type>const char*</type><name>name</name></param>
+            <param><type>bs_U32</type><name>flags</name></param>
+        </function>
+        <function name="bs_destroyModel">
+            <return>void</return>
+            <param><type>bs_Model*</type><name>model</name></param>
+        </function>
+        <function name="bs_interpolateRotation">
+            <return>bs_vec4</return>
+            <param><type>bs_AnimationBone*</type><name>animation_joint</name></param>
+            <param><type>float</type><name>time</name></param>
+        </function>
+        <function name="bs_interpolateTranslation">
+            <return>bs_vec3</return>
+            <param><type>bs_AnimationBone*</type><name>animation_joint</name></param>
+            <param><type>float</type><name>time</name></param>
+        </function>
+        <function name="bs_interpolateScale">
+            <return>bs_vec3</return>
+            <param><type>bs_AnimationBone*</type><name>animation_joint</name></param>
+            <param><type>float</type><name>time</name></param>
+        </function>
+        <function name="bs_boneTransform">
+            <return>bs_mat4</return>
+            <param><type>bs_Armature*</type><name>armature</name></param>
+            <param><type>bs_Bone*</type><name>bone</name></param>
+        </function>
+        <function name="bs_bonePosition">
+            <return>bs_vec3</return>
+            <param><type>bs_Armature*</type><name>armature</name></param>
+            <param><type>bs_Bone*</type><name>bone</name></param>
+        </function>
+        <function name="bs_transformBone">
+            <return>bs_mat4*</return>
+            <param><type>bs_Armature*</type><name>armature</name></param>
+            <param><type>bs_Bone*</type><name>bone</name></param>
+            <param><type>bs_mat4</type><name>transform</name></param>
+        </function>
+        <function name="bs_blendPose">
+            <return>void</return>
+            <param><type>bs_Armature*</type><name>armature</name></param>
+            <param><type>bs_Animation*</type><name>animation_a</name></param>
+            <param><type>bs_Animation*</type><name>animation_b</name></param>
+            <param><type>float</type><name>factor</name></param>
+            <param><type>float</type><name>time_a</name></param>
+            <param><type>float</type><name>time_b</name></param>
+        </function>
+        <function name="bs_bone">
+            <return>int</return>
+            <param><type>bs_Armature*</type><name>armature</name></param>
+            <param><type>bs_mat4</type><name>local_transform</name></param>
+            <param><type>int</type><name>parent_id</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_fabrik">
+            <return>void</return>
+            <param><type>bs_Armature*</type><name>armature</name></param>
+            <param><type>int</type><name>end_effector_id</name></param>
+            <param><type>bs_vec3</type><name>target</name></param>
+            <param><type>int</type><name>chain_length</name></param>
+            <param><type>float*</type><name>chain</name></param>
+        </function>
+        <function name="bs_bindPose">
+            <return>void</return>
+            <param><type>bs_Armature*</type><name>armature</name></param>
+        </function>
+        <function name="bs_keyframePosition">
+            <return>void</return>
+            <param><type>bs_AnimationBone*</type><name>bone</name></param>
+            <param><type>float</type><name>timestamp</name></param>
+            <param><type>bs_vec3</type><name>position</name></param>
+        </function>
+        <function name="bs_keyframeRotation">
+            <return>void</return>
+            <param><type>bs_AnimationBone*</type><name>bone</name></param>
+            <param><type>float</type><name>timestamp</name></param>
+            <param><type>bs_vec4</type><name>rotation</name></param>
+        </function>
+        <function name="bs_keyframeScale">
+            <return>void</return>
+            <param><type>bs_AnimationBone*</type><name>bone</name></param>
+            <param><type>float</type><name>timestamp</name></param>
+            <param><type>bs_vec3</type><name>scale</name></param>
+        </function>
+        <function name="bs_loadAnimation">
+            <return>bs_Animation</return>
+            <param><type>bs_Model*</type><name>model</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_queryBoneId">
+            <return>int</return>
+            <param><type>bs_Armature*</type><name>armature</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_queryArmature">
+            <return>bs_Armature*</return>
+            <param><type>bs_Model*</type><name>model</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_queryBone">
+            <return>bs_Bone*</return>
+            <param><type>bs_Armature*</type><name>armature</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_queryMesh">
+            <return>bs_Mesh*</return>
+            <param><type>bs_Model*</type><name>model</name></param>
+            <param><type>const char *</type><name>name</name></param>
+        </function>
+        <function name="bs_queryMeshHash">
+            <return>bs_Mesh*</return>
+            <param><type>bs_Model*</type><name>model</name></param>
+            <param><type>bs_U64</type><name>hash</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_queryMaterial">
+            <return>bs_Material*</return>
+            <param><type>bs_Model*</type><name>model</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_assertSourceIsType" section="bs_objects.h">
+            <return>void</return>
+            <param><type>int</type><name>source_id</name></param>
+            <param><type>bs_ObjectType</type><name>object_type</name></param>
+        </function>
+        <function name="bs_idName">
+            <return>const char*</return>
+            <param><type>bs_U32</type><name>source_id</name></param>
+            <param><type>bs_U32</type><name>id</name></param>
+        </function>
+        <function name="bs_object">
+            <return>bs_Object*</return>
+            <param><type>bs_U32</type><name>source_id</name></param>
+            <param><type>bs_U32</type><name>id</name></param>
+            <param><type>size_t</type><name>size</name></param>
+            <param><type>size_t</type><name>flexible_size</name></param>
+            <param><type>int</type><name>flexible_count</name></param>
+            <param><type>bs_U32</type><name>flags</name></param>
+        </function>
+        <function name="bs_packages">
+            <return>bs_List*</return>
+        </function>
+        <function name="bs_objectSources">
+            <return>bs_List*</return>
+        </function>
+        <function name="bs_destroyResource">
+            <return>void</return>
+            <param><type>bs_Resource*</type><name>resource</name></param>
+        </function>
+        <function name="bs_queryResource">
+            <return>bs_Resource*</return>
+            <param><type>int</type><name>package_id</name></param>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_queryPackage">
+            <return>int</return>
+            <param><type>const char*</type><name>name</name></param>
+        </function>
+        <function name="bs_loadResource">
+            <return>bs_Resource*</return>
+            <param><type>int</type><name>package_id</name></param>
+            <param><type>const char*</type><name>resource_name</name></param>
+            <param><type>bs_U32</type><name>flags</name></param>
+        </function>
+        <function name="bs_loadPackage">
+            <return>int</return>
+            <param><type>const char*</type><name>path</name></param>
+        </function>
+        <function name="bs_configureSource">
+            <return>int</return>
+            <param><type>bs_ObjectType</type><name>type</name></param>
+            <param><type>int</type><name>count</name></param>
+            <param><type>const char**</type><name>names</name></param>
+        </function>
+        <function name="bs_exists">
+            <return>bool</return>
+            <param><type>bs_U32</type><name>source_id</name></param>
+            <param><type>bs_U32</type><name>id</name></param>
+        </function>
+        <function name="bs_fetch">
+            <return>bs_Object*</return>
+            <param><type>bs_U32</type><name>source_id</name></param>
+            <param><type>bs_U32</type><name>id</name></param>
+        </function>
+        <function name="bs_shouldLoadId">
+            <return>bool</return>
+            <param><type>bs_U32</type><name>source_id</name></param>
+            <param><type>bs_U32</type><name>id</name></param>
+        </function>
+        <function name="bs_deserializeShaderType" section="bs_shaders.h">
+            <return>bs_ShaderType</return>
+            <param><type>const char*</type><name>type_name</name></param>
+        </function>
+        <function name="bs_serializeShaderType">
+            <return>const char*</return>
+            <param><type>bs_ShaderType</type><name>type</name></param>
+        </function>
+        <function name="bs_shader">
+            <return>bs_Result</return>
+            <param><type>int</type><name>package_id</name></param>
+            <param><type>const char*</type><name>name</name></param>
+            <param><type>bs_U32</type><name>flags</name></param>
+            <param><type>bs_Resource**</type><name>out</name></param>
+        </function>
+        <function name="bs_destroyShader">
+            <return>void</return>
+            <param><type>bs_Shader*</type><name>shader</name></param>
+        </function>
+        <function name="bs_computePipeline">
+            <return>bs_Pipeline*</return>
+            <param><type>bs_Shader*</type><name>compute_shader</name></param>
+            <param><type>bs_PipelineFlags</type><name>flags</name></param>
+        </function>
+        <function name="bs_destroyComputePipeline">
+            <return>void</return>
+            <param><type>bs_Pipeline*</type><name>pipeline</name></param>
+        </function>
+        <function name="bs_queryPipeline">
+            <return>bs_Pipeline*</return>
+            <param><type>bs_U64</type><name>hash</name></param>
+        </function>
+        <function name="bs_pipelineHash">
+            <return>bs_U64</return>
+            <param><type>bs_PipelineHash*</type><name>descriptor</name></param>
+        </function>
+        <function name="bs_pipeline">
+            <return>bs_Pipeline*</return>
+            <param><type>bs_PipelineHash*</type><name>descriptor</name></param>
+        </function>
+        <function name="bs_destroyPipeline">
+            <return>void</return>
+            <param><type>bs_Pipeline*</type><name>pipeline</name></param>
+        </function>
+        <function name="bs_pushConstant">
+            <return>void</return>
+            <param><type>bs_Pipeline*</type><name>pipeline</name></param>
+            <param><type>bs_U32</type><name>offset</name></param>
+            <param><type>bs_U32</type><name>size</name></param>
+            <param><type>void*</type><name>data</name></param>
+        </function>
+        <function name="bs_rayTracingPipeline">
+            <return>bs_Pipeline*</return>
+            <param><type>bs_RayTracePipelineHash*</type><name>pipeline_hash</name></param>
+        </function>
+        <function name="bs_deserializeBindType">
+            <return>bs_BindType</return>
+            <param><type>const char*</type><name>string</name></param>
+        </function>
+        <function name="bs_serializeBindType">
+            <return>const char*</return>
+            <param><type>bs_BindType</type><name>type</name></param>
+        </function>
+        <function name="bs_loadBindings">
+            <return>void</return>
+            <param><type>int</type><name>package_id</name></param>
+            <param><type>const char*</type><name>path</name></param>
+        </function>
+        <function name="bs_bindImage">
+            <return>void</return>
+            <param><type>bs_U32</type><name>bind_set_slot</name></param>
+            <param><type>bs_U32</type><name>binding_slot</name></param>
+            <param><type>bs_Image*</type><name>image</name></param>
+            <param><type>bs_Sampler*</type><name>sampler</name></param>
+            <param><type>bs_ImageLayout</type><name>layout</name></param>
+        </function>
+        <function name="bs_bindImages">
+            <return>void</return>
+            <param><type>bs_U32</type><name>bind_set_slot</name></param>
+            <param><type>bs_U32</type><name>slot</name></param>
+            <param><type>bs_ImageDescriptor*</type><name>images</name></param>
+            <param><type>int</type><name>images_count</name></param>
+        </function>
+        <function name="bs_bindBuffer">
+            <return>void</return>
+            <param><type>bs_U32</type><name>bind_set_slot</name></param>
+            <param><type>bs_U32</type><name>binding_slot</name></param>
+            <param><type>bs_Buffer*</type><name>buffer</name></param>
+        </function>
+        <function name="bs_bindAccelerationStructure">
+            <return>void</return>
+            <param><type>bs_U32</type><name>bind_set_slot</name></param>
+            <param><type>bs_U32</type><name>slot</name></param>
+            <param><type>bs_RayTracer*</type><name>ray_tracer</name></param>
+        </function>
+        <function name="bs_pushDescriptors">
+            <return>void</return>
+        </function>
+        <function name="bs_pushBindings">
+            <return>void</return>
+        </function>
+        <function name="bs_queryBindSet">
+            <return>bs_BindSet*</return>
+            <param><type>bs_U32</type><name>id</name></param>
+        </function>
+        <function name="bs_queryBinding">
+            <return>bs_Binding*</return>
+            <param><type>bs_BindSet*</type><name>bind_set</name></param>
+            <param><type>bs_U32</type><name>id</name></param>
+        </function>
+        <function name="bs_configureAttribute">
+            <return>void</return>
+            <param><type>const char*</type><name>name</name></param>
+            <param><type>bs_Format</type><name>base_format</name></param>
+        </function>
+        <function name="bs_wnd" section="bs_window.h">
+            <return>bs_Window*</return>
+        </function>
+        <function name="bs_io">
+            <return>bs_IO*</return>
+        </function>
+        <function name="bs_timeZoneBias">
+            <return>int</return>
+        </function>
+        <function name="bs_dateTime">
+            <return>bs_DateTime</return>
+        </function>
+        <function name="bs_totalSeconds">
+            <return>bs_I64</return>
+            <param><type>const bs_DateTime*</type><name>date_time</name></param>
+        </function>
+        <function name="bs_isLaterThan">
+            <return>bool</return>
+            <param><type>const bs_DateTime*</type><name>a</name></param>
+            <param><type>const bs_DateTime*</type><name>b</name></param>
+        </function>
+        <function name="bs_cursorPosition">
+            <return>bs_vec2</return>
+        </function>
+        <function name="bs_getWindowPosition">
+            <return>bs_ivec2</return>
+        </function>
+        <function name="bs_screenCursorPosition">
+            <return>bs_vec2</return>
+        </function>
+        <function name="bs_setCursorPosition">
+            <return>void</return>
+            <param><type>int</type><name>x</name></param>
+            <param><type>int</type><name>y</name></param>
+        </function>
+        <function name="bs_lockCursorPosition">
+            <return>void</return>
+            <param><type>bool</type><name>value</name></param>
+        </function>
+        <function name="bs_disableUserInputs">
+            <return>void</return>
+            <param><type>bool</type><name>value</name></param>
+        </function>
+        <function name="bs_middleClick">
+            <return>bool</return>
+        </function>
+        <function name="bs_middleClickOnce">
+            <return>bool</return>
+        </function>
+        <function name="bs_middleClickUpOnce">
+            <return>bool</return>
+        </function>
+        <function name="bs_leftClick">
+            <return>bool</return>
+        </function>
+        <function name="bs_rightClick">
+            <return>bool</return>
+        </function>
+        <function name="bs_rightClickOnce">
+            <return>bool</return>
+        </function>
+        <function name="bs_leftClickOnce">
+            <return>bool</return>
+        </function>
+        <function name="bs_rightClickUpOnce">
+            <return>bool</return>
+        </function>
+        <function name="bs_leftClickUpOnce">
+            <return>bool</return>
+        </function>
+        <function name="bs_keyDown">
+            <return>bool</return>
+            <param><type>bs_U32</type><name>code</name></param>
+        </function>
+        <function name="bs_keyHeld">
+            <return>bool</return>
+            <param><type>bs_U32</type><name>code</name></param>
+        </function>
+        <function name="bs_keyDownOnce">
+            <return>bool</return>
+            <param><type>bs_U32</type><name>code</name></param>
+        </function>
+        <function name="bs_keyUpOnce">
+            <return>bool</return>
+            <param><type>bs_U32</type><name>code</name></param>
+        </function>
+        <function name="bs_charDown">
+            <return>bool</return>
+            <param><type>unsigned char</type><name>c</name></param>
+        </function>
+        <function name="bs_charDownOnce">
+            <return>bool</return>
+            <param><type>unsigned char</type><name>c</name></param>
+        </function>
+        <function name="bs_charUpOnce">
+            <return>bool</return>
+            <param><type>unsigned char</type><name>c</name></param>
+        </function>
+        <function name="bs_scroll">
+            <return>int</return>
+        </function>
+        <function name="bs_resize">
+            <return>void</return>
+            <param><type>bs_U32</type><name>width</name></param>
+            <param><type>bs_U32</type><name>height</name></param>
+        </function>
+        <function name="bs_screenDimensions">
+            <return>bs_ivec2</return>
+        </function>
+        <function name="bs_moveWindow">
+            <return>void</return>
+            <param><type>int</type><name>x</name></param>
+            <param><type>int</type><name>y</name></param>
+        </function>
+        <function name="bs_window">
+            <return>void</return>
+            <param><type>bs_U32</type><name>width</name></param>
+            <param><type>bs_U32</type><name>height</name></param>
+            <param><type>const char*</type><name>title</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_tick">
+            <return>void</return>
+            <param><type>bs_Callback</type><name>tick</name></param>
+            <param><type>bs_Callback</type><name>fixed_tick</name></param>
+        </function>
+        <function name="bs_exit">
+            <return>void</return>
+        </function>
+        <function name="bs_setCursor">
+            <return>void</return>
+            <param><type>bs_CursorIcon</type><name>type</name></param>
+        </function>
+        <function name="bs_maximize">
+            <return>void</return>
+        </function>
+        <function name="bs_minimize">
+            <return>void</return>
+        </function>
+        <function name="bs_deltaTime">
+            <return>double</return>
+        </function>
+        <function name="bs_pause">
+            <return>void</return>
+        </function>
+        <function name="bs_advance">
+            <return>void</return>
+        </function>
+        <function name="bs_elapsedTime">
+            <return>double</return>
+        </function>
+        <function name="bs_resolution">
+            <return>bs_ivec2</return>
+        </function>
+        <function name="bs_queryResolution">
+            <return>bs_ivec2</return>
+        </function>
+        <function name="bs_title">
+            <return>void</return>
+            <param><type>const char*</type><name>title</name></param>
+            <param><name>...</name></param>
+        </function>
+        <function name="bs_inFixedTick">
+            <return>bool</return>
+        </function>
+        <function name="bs_timer">
+            <return>bs_Timer</return>
+        </function>
+        <function name="bs_checkTimer">
+            <return>void</return>
+            <param><type>bs_Timer*</type><name>timer</name></param>
         </function>
     </functions>
 </registry>
