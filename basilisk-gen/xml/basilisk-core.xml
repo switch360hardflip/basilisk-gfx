@@ -1,28 +1,787 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <registry>
-	<structures>
-		<structure name="bs_Header">
-			<field><type>int</type><name>id</name></field>
-			<field><type>int</type><name>source_id</name></field>
-		</structure>
+	<macros>
+		<macro><name>#define BS_ENUM_GEN(ENUM)</name><line>ENUM,</line></macro>
+		<macro><name>#define BS_STRING_GEN(STRING)</name><line>#STRING,</line></macro>
+		<macro comment="Count the number of variadic arguments in a macro\nUsed like __VA_NARG__(__VA_ARGS__)">
+			<name>#ifndef __VA_NARG__</name>
+		</macro>
+		<macro>
+			<name>#define __VA_NARG__(...)</name>
+			<line>BS_ARGS_COUNT_(__VA_ARGS__,BS_RSEQ_N())</line>
+		</macro>
+		<macro>
+			<name>#define BS_ARGS_COUNT_(...)</name>
+			<line>BS_ARG_N(__VA_ARGS__)</line>
+		</macro>
+		<macro>
+			<name>#define BS_ARG_N(</name>
+			<line>_1, _2, _3, _4, _5, _6, _7, _8, _9,_10,</line>
+			<line>_11,_12,_13,_14,_15,_16,_17,_18,_19,_20,</line>
+			<line>_21,_22,_23,_24,_25,_26,_27,_28,_29,_30,</line>
+			<line>_31,_32,_33,_34,_35,_36,_37,_38,_39,_40,</line>
+			<line>_41,_42,_43,_44,_45,_46,_47,_48,_49,_50,</line>
+			<line>_51,_52,_53,_54,_55,_56,_57,_58,_59,_60,</line>
+			<line>_61,_62,_63,N,...) N</line>
+		</macro>
+		<macro>
+			<name>#define BS_RSEQ_N()</name>
+            <line>63,62,61,60,</line>
+            <line>59,58,57,56,55,54,53,52,51,50,</line>
+            <line>49,48,47,46,45,44,43,42,41,40,</line>
+            <line>39,38,37,36,35,34,33,32,31,30,</line>
+            <line>29,28,27,26,25,24,23,22,21,20,</line>
+            <line>19,18,17,16,15,14,13,12,11,10,</line>
+            <line>9,8,7,6,5,4,3,2,1,0</line>
+		</macro>
+		<macro>
+			<name>#endif</name>
+		</macro>
+		<macro><name>#ifndef __VA_FOR__</name></macro>
+		<macro><name>#define FE_0(WHAT)</name></macro>
+		<macro><name>#define FE_1(WHAT, X)</name><line>WHAT(X)</line></macro>
+	    <macro><name>#define FE_2(WHAT, X, ...)</name><line>WHAT(X) FE_1(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_3(WHAT, X, ...)</name><line>WHAT(X) FE_2(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_4(WHAT, X, ...)</name><line>WHAT(X) FE_3(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_5(WHAT, X, ...)</name><line>WHAT(X) FE_4(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_6(WHAT, X, ...)</name><line>WHAT(X) FE_5(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_7(WHAT, X, ...)</name><line>WHAT(X) FE_6(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_8(WHAT, X, ...)</name><line>WHAT(X) FE_7(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_9(WHAT, X, ...)</name><line>WHAT(X) FE_8(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_10(WHAT, X, ...)</name><line>WHAT(X) FE_9(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_11(WHAT, X, ...)</name><line>WHAT(X) FE_10(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_12(WHAT, X, ...)</name><line>WHAT(X) FE_11(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_13(WHAT, X, ...)</name><line>WHAT(X) FE_12(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_14(WHAT, X, ...)</name><line>WHAT(X) FE_13(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_15(WHAT, X, ...)</name><line>WHAT(X) FE_14(WHAT, __VA_ARGS__)</line></macro>
+	    <macro><name>#define FE_16(WHAT, X, ...)</name><line>WHAT(X) FE_15(WHAT, __VA_ARGS__)</line></macro>
+		<macro><name>#define GET_MACRO(_0,_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,NAME,...)</name><line>NAME</line></macro>
+	    <macro>
+			<name>#define __VA_FOR__(action, ...)</name>
+			<line>GET_MACRO(_0, __VA_ARGS__,</line>
+			<line>FE_16,FE_15,FE_14,FE_13,FE_12,FE_11,FE_10,FE_9,</line>
+			<line>FE_8,FE_7,FE_6,FE_5,FE_4,FE_3,FE_2,FE_1,FE_0)</line>
+			<line>(action, __VA_ARGS__)</line>
+		</macro>
+		<macro><name>#endif</name></macro>
 		
-		<structure name="bs_ImageSwap">
-			<field><type>struct VkImage_T*</type><name>view</name></field>
-			<field><type>struct VkDeviceMemory_T*</type><name>memory</name></field>
-			<field><type>VkImageUsageFlags</type><name>usage_flags</name></field>
-			<field><type>VkImageAspectFlags</type><name>aspect_flags</name></field>
-		</structure>
+		<macro><name>#define FE2_0(WHAT)</name></macro>
+		<macro><name>#define FE2_2(WHAT, a, b)</name><line>WHAT(a, b)</line></macro>
+        <macro><name>#define FE2_4(WHAT, a, b, ...)</name><line>WHAT(a, b) FE2_2(WHAT, __VA_ARGS__)</line></macro>
+        <macro><name>#define FE2_6(WHAT, a, b, ...)</name><line>WHAT(a, b) FE2_4(WHAT, __VA_ARGS__)</line></macro>
+        <macro><name>#define FE2_8(WHAT, a, b, ...)</name><line>WHAT(a, b) FE2_6(WHAT, __VA_ARGS__)</line></macro>
+        <macro><name>#define FE2_10(WHAT, a, b, ...)</name><line>WHAT(a, b) FE2_8(WHAT, __VA_ARGS__)</line></macro>
+        <macro><name>#define FE2_12(WHAT, a, b, ...)</name><line>WHAT(a, b) FE2_10(WHAT, __VA_ARGS__)</line></macro>
+        <macro><name>#define FE2_14(WHAT, a, b, ...)</name><line>WHAT(a, b) FE2_12(WHAT, __VA_ARGS__)</line></macro>
+        <macro><name>#define FE2_16(WHAT, a, b, ...)</name><line>WHAT(a, b) FE2_14(WHAT, __VA_ARGS__)</line></macro>
+
+        <macro><name>#define GET_FE2_MACRO(_1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,NAME,...)</name><line>NAME</line></macro>
 		
-		<structure name="bs_Image">
-			<field><type>bs_Header</type><name>head</name></field>
-			<field><type>bs_ImageBits</type><name>flags</name></field>
-			<field><type>bs_ivec2</type><name>dim</name></field>
-			<field><type>int</type><name>num_indices</name></field>
-			<field><type>bs_ImageIndex*</type><name>indices</name></field>
-			<field><type>bs_Format</type><name>format</name></field>
-			<field><type>int</type><name>bind_set</name></field>
-			<field><type>int</type><name>bind_point</name></field>
-			<field><type>bs_ImageSwap</type><name>_[]</name></field>
-		</structure>
-	</structures>
+		<macro>
+			<name>#define __VA_FOR_2__(action, ...)</name>
+            <line>GET_FE2_MACRO(__VA_ARGS__,</line>
+            <line>FE2_16,FE2_16,</line>
+            <line>FE2_14,FE2_14,</line>
+            <line>FE2_12,FE2_12,</line>
+            <line>FE2_10,FE2_10,</line>
+            <line>FE2_8, FE2_8,</line>
+            <line>FE2_6, FE2_6,</line>
+            <line>FE2_4, FE2_4,</line>
+            <line>FE2_2, FE2_2,</line>
+            <line>FE2_0)</line>
+            <line>(action, __VA_ARGS__)</line>
+		</macro>
+    
+		<macro><name>BS_MAX_NUM_BINDINGS</name><line>32</line></macro>
+		<macro><name>#define BS_MAX_NUM_BIND_SETS</name><line>32</line></macro>
+		<macro><name>#define BS_MAX_NUM_QUEUES</name><line>8</line></macro>
+		<macro><name>#define BS_MAX_NUM_SIGNALS</name><line>8</line></macro>
+		<macro><name>#define BS_MAX_NUM_WAITS</name><line>8</line></macro>
+		<macro><name>#define BS_MAX_NUM_SUBPASSES</name><line>6</line></macro>
+		<macro><name>#define BS_MAX_NUM_SUBPASS_DEPENDENCIES</name><line>6</line></macro>
+		<macro><name>#define BS_MAX_NUM_ATTACHMENTS</name><line>12</line></macro>
+		
+		<macro comment="Amount of time in nanoseconds it takes for the GPU to timeout">
+			<name>#define BS_TIMEOUT</name>
+			<line>60000000000000</line>
+		</macro>
+		
+		<macro>
+			<name>#define BS_KEYS_COUNT</name>
+			<line>256</line>
+		</macro>
+
+		<macro>
+			<name>#define BS_KEY_BYTES_COUNT</name>
+			<line>((BS_KEYS_COUNT + 8) / 8)</line>
+		</macro>
+
+		<macro>
+			<name>#define BS_MAT4_IDENTITY</name>
+			<line>(bs_mat4) {{</line>
+			<line>    { 1.0, 0.0, 0.0, 0.0 },</line>
+			<line>    { 0.0, 1.0, 0.0, 0.0 },</line>
+			<line>    { 0.0, 0.0, 1.0, 0.0 },</line>
+			<line>    { 0.0, 0.0, 0.0, 1.0 }</line>
+			<line>}}</line>
+		</macro>
+
+		<macro>
+			<name>#define BS_MAT3_IDENTITY</name>
+			<line>(bs_mat3) {{</line>
+			<line>    { 1.0, 0.0, 0.0 },</line>
+			<line>    { 0.0, 1.0, 0.0 },</line>
+			<line>    { 0.0, 0.0, 1.0 }</line>
+			<line>}}</line>
+		</macro>
+		<macro>
+			<name>#define BS_QUAT_IDENTITY</name>
+			<line>(bs_vec4) { 0.0, 0.0, 0.0, 1.0 }</line>
+		</macro>
+		
+		<macro><name>#define BS_I8_MIN</name><line>(bs_I8)(-127 - 1)</line></macro>
+		<macro><name>#define BS_I16_MIN</name><line>(bs_I16)(-32767 - 1)</line></macro>
+		<macro><name>#define BS_I32_MIN</name><line>(bs_I32)(-2147483647 - 1)</line></macro>
+		<macro><name>#define BS_I64_MIN</name><line>(bs_I64)(-9223372036854775807 - 1)</line></macro>
+		<macro><name>#define BS_I8_MAX</name><line>(bs_I8)(127)</line></macro>
+		<macro><name>#define BS_I16_MAX</name><line>(bs_I16)(32767)</line></macro>
+		<macro><name>#define BS_I32_MAX</name><line>(bs_I32)(2147483647)</line></macro>
+		<macro><name>#define BS_I64_MAX</name><line>(bs_I64)(9223372036854775807)</line></macro>
+		<macro><name>#define BS_U8_MAX</name><line>(bs_U8)(0xff)</line></macro>
+		<macro><name>#define BS_U16_MAX</name><line>(bs_U16)(0xffff)</line></macro>
+		<macro><name>#define BS_U32_MAX</name><line>(bs_U32)(0xffffffff)</line></macro>
+		<macro><name>#define BS_U64_MAX</name><line>(bs_U64)(0xffffffffffffffff)</line></macro>
+		
+        <macro><name>#define BS_PRINT_BLACK</name><line>"\033[0;30m"</line></macro>
+        <macro><name>#define BS_PRINT_RED</name><line>"\033[0;31m"</line></macro>
+        <macro><name>#define BS_PRINT_RED_BRIGHT</name><line>"\033[1;31m"</line></macro>
+        <macro><name>#define BS_PRINT_GREEN</name><line>"\033[1;32m"</line></macro>
+        <macro><name>#define BS_PRINT_DARK_GREEN</name><line>"\033[0;32m"</line></macro>
+        <macro><name>#define BS_PRINT_YELLOW</name><line>"\033[0;33m"</line></macro>
+        <macro><name>#define BS_PRINT_YELLOW_BRIGHT</name><line>"\033[1;33m"</line></macro>
+        <macro><name>#define BS_PRINT_BLUE</name><line>"\033[0;34m"</line></macro>
+        <macro><name>#define BS_PRINT_BLUE_BRIGHT</name><line>"\033[1;34m"</line></macro>
+        <macro><name>#define BS_PRINT_MAGENTA</name><line>"\033[0;35m"</line></macro>
+        <macro><name>#define BS_PRINT_MAGENTA_BRIGHT</name><line>"\033[1;35m"</line></macro>
+        <macro><name>#define BS_PRINT_CYAN</name><line>"\033[0;36m"</line></macro>
+        <macro><name>#define BS_PRINT_CYAN_BRIGHT</name><line>"\033[1;36m"</line></macro>
+        <macro><name>#define BS_PRINT_WHITE</name><line>"\033[0;37m"</line></macro>
+        <macro><name>#define BS_PRINT_GRAY</name><line>"\033[38;5;245m"</line></macro>
+        <macro><name>#define BS_PRINT_RESET</name><line>"\033[0m"</line></macro>
+
+        <macro><name>#define BS_PRINT_COLOR(string, color)</name><line>color string BS_PRINT_RESET</line></macro>
+
+        <macro><name>#define BS_PRINT_BLACK_UNDERLINED</name><line>"\033[4;30m"</line></macro>
+        <macro><name>#define BS_PRINT_RED_UNDERLINED</name><line>"\033[4;31m"</line></macro>
+        <macro><name>#define BS_PRINT_GREEN_UNDERLINED</name><line>"\033[4;32m"</line></macro>
+        <macro><name>#define BS_PRINT_YELLOW_UNDERLINED</name><line>"\033[4;33m"</line></macro>
+        <macro><name>#define BS_PRINT_BLUE_UNDERLINED</name><line>"\033[4;34m"</line></macro>
+        <macro><name>#define BS_PRINT_MAGENTA_UNDERLINED</name><line>"\033[4;35m"</line></macro>
+        <macro><name>#define BS_PRINT_CYAN_UNDERLINED</name><line>"\033[4;36m"</line></macro>
+        <macro><name>#define BS_PRINT_WHITE_UNDERLINED</name><line>"\033[4;37m"</line></macro>
+	</macros>
+	
+    <structures>
+        <structure name="bs_Aabb">
+            <field><type>bs_vec3</type><name>min</name></field>
+            <field><type>bs_vec3</type><name>max</name></field>
+        </structure>
+        <structure name="bs_Sphere">
+            <field><type>bs_vec3</type><name>center</name></field>
+            <field><type>float</type><name>radius</name></field>
+        </structure>
+        <structure name="bs_Rectangle">
+            <field><type>bs_vec2</type><name>position</name></field>
+            <field><type>bs_vec2</type><name>dimensions</name></field>
+        </structure>
+        <structure name="bs_Ray">
+            <field><type>bs_vec3</type><name>origin</name></field>
+            <field><type>bs_vec3</type><name>direction</name></field>
+            <field><type>float</type><name>length</name></field>
+        </structure>
+        <structure name="bs_Quad">
+            <field><type>bs_vec3 a, b, c,</type><name>d</name></field>
+            <field><type>bs_vec2 ca, cb, cc,</type><name>cd</name></field>
+        </structure>
+        <structure name="bs_Plane">
+            <field><type>bs_vec3</type><name>point</name></field>
+            <field><type>bs_vec3</type><name>normal</name></field>
+        </structure>
+        <structure name="bs_Box">
+            <field><type>bs_vec3</type><name>extent</name></field>
+            <field><type>bs_mat4*</type><name>transform</name></field>
+        </structure>
+        <structure name="bs_Timer">
+            <field><type>bs_BigInt</type><name>ticks_per_second</name></field>
+            <field><type>bs_BigInt</type><name>tick_count</name></field>
+            <field><type>bs_BigInt</type><name>last_tick_count</name></field>
+            <field><type>bs_U64</type><name>microseconds</name></field>
+            <field><type>double</type><name>seconds</name></field>
+        </structure>
+        <structure name="bs_DateTime">
+            <field><type>unsigned int</type><name>years</name></field>
+            <field><type>unsigned int</type><name>months</name></field>
+            <field><type>unsigned int</type><name>days</name></field>
+            <field><type>unsigned int</type><name>hours</name></field>
+            <field><type>unsigned int</type><name>minutes</name></field>
+            <field><type>unsigned int</type><name>seconds</name></field>
+            <field><type>unsigned int</type><name>milliseconds</name></field>
+            <field><type>unsigned int</type><name>day_of_week</name></field>
+        </structure>
+        <structure name="bs_GUID">
+            <field><type>bs_U64 a,</type><name>b</name></field>
+        </structure>
+        <structure name="bs_List">
+            <field><type>int</type><name>count</name></field>
+            <field><type>int</type><name>unit_size</name></field>
+            <field><type>int</type><name>capacity</name></field>
+            <field><type>int</type><name>increment</name></field>
+            <field><type>bs_U8*</type><name>data</name></field>
+        </structure>
+        <structure name="bs_mat3SVD">
+            <field><type>bs_mat3</type><name>U</name></field>
+            <field><type>bs_vec3</type><name>S</name></field>
+            <field><type>bs_mat3</type><name>V</name></field>
+        </structure>
+        <structure name="bs_String">
+            <field><type>int</type><name>len</name></field>
+            <field><type>int</type><name>capacity</name></field>
+            <field><type>char</type><name>value[]</name></field>
+        </structure>
+        <structure name="bs_StringPoolEntry">
+            <field><type>bs_U64</type><name>hash</name></field>
+            <field><type>const char*</type><name>string</name></field>
+        </structure>
+        <structure name="bs_Range">
+            <field><type>bs_U32</type><name>offset</name></field>
+            <field><type>bs_U32</type><name>num</name></field>
+            <field><type>bs_Batch*</type><name>batch</name></field>
+        </structure>
+        <structure name="bs_Vertex">
+        </structure>
+        <structure name="bs_Header">
+            <field><type>int</type><name>id</name></field>
+            <field><type>int</type><name>source_id</name></field>
+        </structure>
+        <structure name="bs_Object">
+            <field><type>bs_U32</type><name>flags</name></field>
+        </structure>
+        <structure name="bs_ResourceParams">
+            <field><type>bs_U32</type><name>type</name></field>
+            <field><type>int</type><name>unit_size</name></field>
+            <field><type>const char*</type><name>name</name></field>
+        </structure>
+        <structure name="bs_Resource">
+            <field><type>bs_U64</type><name>hash</name></field>
+            <field><type>char*</type><name>name</name></field>
+            <field><type>bs_String*</type><name>data</name></field>
+        </structure>
+        <structure name="bs_ResourceHeader">
+            <field><type>char*</type><name>name</name></field>
+            <field><type>bs_Resource*</type><name>resource</name></field>
+        </structure>
+        <structure name="bs_ResourceHeaderData">
+            <field><type>bs_U64</type><name>name_hash</name></field>
+            <field><type>int</type><name>chunk</name></field>
+            <field><type>int</type><name>offset</name></field>
+            <field><type>int</type><name>size</name></field>
+            <field><type>int</type><name>name_length</name></field>
+        </structure>
+        <structure name="bs_Package">
+            <field><type>bs_U64</type><name>path_hash</name></field>
+            <field><type>char*</type><name>path</name></field>
+            <field><type>bs_List</type><name>resource_headers</name></field>
+            <field><type>bs_String*</type><name>raw</name></field>
+        </structure>
+        <structure name="bs_BlitOperation">
+            <field><type>bs_Image*</type><name>source</name></field>
+            <field><type>bs_Image*</type><name>destination</name></field>
+            <field><type>bs_ImageLayout</type><name>source_layout</name></field>
+            <field><type>bs_ImageLayout</type><name>destination_layout</name></field>
+            <field><type>bs_ivec2</type><name>source_scale</name></field>
+            <field><type>bs_ivec2</type><name>destination_scale</name></field>
+        </structure>
+        <structure name="bs_ImageIndex">
+            <field><type>char*</type><name>name</name></field>
+            <field><type>bs_U64</type><name>name_hash</name></field>
+        </structure>
+        <structure name="bs_Image">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>bs_ImageBits</type><name>flags</name></field>
+            <field><type>bs_ivec2</type><name>dim</name></field>
+            <field><type>int</type><name>num_indices</name></field>
+            <field><type>bs_ImageIndex*</type><name>indices</name></field>
+            <field><type>int</type><name>bind_set</name></field>
+            <field><type>int</type><name>bind_point</name></field>
+        </structure>
+        <structure name="bs_AtlasTexture">
+            <field><type>bs_vec4</type><name>coords</name></field>
+            <field><type>int x,</type><name>y</name></field>
+            <field><type>int w,</type><name>h</name></field>
+            <field><type>int</type><name>split</name></field>
+            <field><type>bs_U32</type><name>flags</name></field>
+        </structure>
+        <structure name="bs_Atlas">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>int</type><name>count</name></field>
+            <field><type>bs_AtlasTexture*</type><name>mapped</name></field>
+            <field><type>bs_Image*</type><name>image</name></field>
+            <field><type>bs_Buffer*</type><name>buffer</name></field>
+        </structure>
+        <structure name="bs_Sampler">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>bs_SamplerBits</type><name>flags</name></field>
+            <field><type>bs_ImageFilter</type><name>filter</name></field>
+        </structure>
+        <structure name="bs_Pipeline">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>int</type><name>shaders_count</name></field>
+            <field><type>bs_U64</type><name>hash</name></field>
+            <field><type>bs_PipelineType</type><name>type</name></field>
+            <field><type>bs_PipelineFlags</type><name>flags</name></field>
+            <field><type>bs_SlotBits</type><name>bind_sets</name></field>
+            <field><type>bs_U32</type><name>shader_stages</name></field>
+            <field><type>int</type><name>num_bind_sets</name></field>
+            <field><type>int</type><name>constant_size</name></field>
+            <field><type>bs_String*</type><name>name</name></field>
+            <field><type>bs_Buffer*</type><name>binding_table</name></field>
+        </structure>
+        <structure name="bs_PipelineHash">
+            <field><type>bs_PipelineFlags</type><name>flags</name></field>
+            <field><type>int</type><name>subpass</name></field>
+            <field><type>bs_Renderer*</type><name>renderer</name></field>
+            <field><type>bs_TopologyType</type><name>topology_type</name></field>
+            <field><type>bs_BlendFactorType</type><name>src_color_factor</name></field>
+            <field><type>bs_BlendFactorType</type><name>dst_color_factor</name></field>
+            <field><type>bs_BlendFactorType</type><name>src_alpha_factor</name></field>
+            <field><type>bs_BlendFactorType</type><name>dst_alpha_factor</name></field>
+            <field><type>bs_BlendOperationType</type><name>color_op</name></field>
+            <field><type>bs_BlendOperationType</type><name>alpha_op</name></field>
+            <field><type>bs_StencilOperation</type><name>stencil_front</name></field>
+            <field><type>bs_StencilOperation</type><name>stencil_back</name></field>
+            <field><type>bs_CullType</type><name>cull_type</name></field>
+            <field><type>bs_PolygonType</type><name>polygon_type</name></field>
+            <field><type>bs_ComparisonType</type><name>depth_comparison</name></field>
+            <field><type>bool</type><name>restart_primitive</name></field>
+            <field><type>bool</type><name>clamp_depth</name></field>
+            <field><type>bool</type><name>skip_depth_test</name></field>
+            <field><type>bool</type><name>skip_stencil_test</name></field>
+            <field><type>bool</type><name>skip_depth_write</name></field>
+            <field><type>bool</type><name>disable_blend</name></field>
+        </structure>
+        <structure name="bs_RayTracePipelineHash">
+            <field><type>bs_RayTracer*</type><name>ray_tracer</name></field>
+        </structure>
+        <structure name="bs_AttributeType">
+            <field><type>const char*</type><name>name</name></field>
+            <field><type>bs_U64</type><name>name_hash</name></field>
+            <field><type>bs_Format</type><name>base_format</name></field>
+        </structure>
+        <structure name="bs_Attribute">
+            <field><type>char*</type><name>name</name></field>
+            <field><type>bs_U64</type><name>name_hash</name></field>
+            <field><type>bs_U32</type><name>location</name></field>
+            <field><type>bs_U32</type><name>size</name></field>
+            <field><type>bs_U32</type><name>format</name></field>
+            <field><type>bs_U32</type><name>offset</name></field>
+        </structure>
+        <structure name="bs_Shader">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>bs_ShaderType</type><name>type</name></field>
+            <field><type>bs_PipelineType</type><name>pipeline_type</name></field>
+            <field><type>bs_SlotBits</type><name>bind_sets</name></field>
+            <field><type>bs_U32*</type><name>spirv</name></field>
+            <field><type>bs_U32</type><name>spirv_length</name></field>
+            <field><type>bs_Attribute*</type><name>attributes</name></field>
+            <field><type>int</type><name>num_attributes</name></field>
+            <field><type>int</type><name>constant_size</name></field>
+            <field><type>bs_Resource*</type><name>resource</name></field>
+        </structure>
+        <structure name="bs_Buffer">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>bs_BufferBits</type><name>flags</name></field>
+            <field><type>bs_U32</type><name>bind_set</name></field>
+            <field><type>bs_U32</type><name>binding</name></field>
+            <field><type>bs_U32</type><name>num_bytes</name></field>
+            <field><type>bs_BufferUsageFlags</type><name>usage_flags</name></field>
+            <field><type>bs_MemoryPropertyFlags</type><name>memory_flags</name></field>
+        </structure>
+        <structure name="bs_Output">
+            <field><type>bs_OutputFlags</type><name>flags</name></field>
+            <field><type>bs_U32</type><name>subpass</name></field>
+            <field><type>bs_U32</type><name>attachment</name></field>
+            <field><type>bs_LoadOp</type><name>load_op</name></field>
+            <field><type>bs_StoreOp</type><name>store_op</name></field>
+            <field><type>bs_Image*</type><name>image</name></field>
+            <field><type>bs_ImageLayout</type><name>old_layout</name></field>
+            <field><type>bs_ImageLayout</type><name>new_layout</name></field>
+        </structure>
+        <structure name="bs_Input">
+            <field><type>bs_InputBits</type><name>flags</name></field>
+            <field><type>bs_U32</type><name>subpass</name></field>
+            <field><type>bs_U32</type><name>parent_subpass</name></field>
+            <field><type>bs_U32</type><name>attachment</name></field>
+            <field><type>bs_Image*</type><name>image</name></field>
+        </structure>
+        <structure name="bs_Renderer">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>bs_RendererBits</type><name>flags</name></field>
+            <field><type>bs_Input*</type><name>inputs</name></field>
+            <field><type>bs_Output*</type><name>outputs</name></field>
+            <field><type>int</type><name>num_inputs</name></field>
+            <field><type>int</type><name>num_outputs</name></field>
+            <field><type>int</type><name>num_subpasses</name></field>
+            <field><type>int</type><name>num_dependencies</name></field>
+            <field><type>bs_ivec2</type><name>dim</name></field>
+        </structure>
+        <structure name="bs_RendererSwaps">
+        </structure>
+        <structure name="bs_Batch">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>bs_BatchBits</type><name>flags</name></field>
+            <field><type>bs_Attribute*</type><name>attributes</name></field>
+            <field><type>bs_U32</type><name>attributes_count</name></field>
+            <field><type>bs_U32</type><name>attribute_flags</name></field>
+            <field><type>bs_Object*</type><name>vertex_buffer</name></field>
+            <field><type>bs_Object*</type><name>index_buffer</name></field>
+            <field><type>bs_Object*</type><name>staging_buffer</name></field>
+            <field><type>bs_List</type><name>vertices</name></field>
+            <field><type>bs_List</type><name>indices</name></field>
+        </structure>
+        <structure name="bs_Queue">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>bs_QueueBits</type><name>flags</name></field>
+            <field><type>bs_U32</type><name>family</name></field>
+        </structure>
+        <structure name="bs_RayTracer">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>bs_List</type><name>aabbs</name></field>
+            <field><type>bs_List</type><name>batches</name></field>
+            <field><type>bs_Buffer*</type><name>BLAS_buffer</name></field>
+            <field><type>bs_Buffer*</type><name>TLAS_buffer</name></field>
+            <field><type>bs_Buffer*</type><name>BLAS_scratch_buffer</name></field>
+            <field><type>bs_Buffer*</type><name>TLAS_scratch_buffer</name></field>
+            <field><type>bs_U32</type><name>record_size</name></field>
+            <field><type>bs_U32</type><name>groups_count</name></field>
+        </structure>
+        <structure name="bs_ShaderGroup">
+            <field><type>bs_Shader*</type><name>shader</name></field>
+        </structure>
+        <structure name="bs_JsonArray">
+        </structure>
+        <structure name="bs_Json">
+            <field><type>bool</type><name>is_mutable</name></field>
+            <field><type>void*</type><name>doc</name></field>
+        </structure>
+        <structure name="bs_JsonValue">
+            <field><type>bool</type><name>found</name></field>
+            <field><type>bs_JsonType</type><name>type</name></field>
+            <field><type>int</type><name>size</name></field>
+        </structure>
+        <structure name="bs_JsonEnumeration">
+            <field><type>const char*</type><name>key</name></field>
+            <field><type>bs_JsonValue</type><name>value</name></field>
+        </structure>
+        <structure name="bs_Material">
+            <field><type>char*</type><name>name</name></field>
+            <field><type>bs_RGBA</type><name>color</name></field>
+        </structure>
+        <structure name="bs_Primitive">
+            <field><type>float*</type><name>vertices</name></field>
+            <field><type>int</type><name>num_vertices</name></field>
+            <field><type>int</type><name>vertex_size</name></field>
+            <field><type>int</type><name>texture_offset</name></field>
+            <field><type>int</type><name>normal_offset</name></field>
+            <field><type>int</type><name>bone_offset</name></field>
+            <field><type>int</type><name>weight_offset</name></field>
+            <field><type>int</type><name>index_offset</name></field>
+            <field><type>bs_U32</type><name>num_indices</name></field>
+            <field><type>bs_U32*</type><name>indices</name></field>
+            <field><type>int</type><name>material_id</name></field>
+            <field><type>bs_Mesh*</type><name>parent</name></field>
+            <field><type>bs_Aabb</type><name>aabb</name></field>
+            <field><type>int*</type><name>extra</name></field>
+        </structure>
+        <structure name="bs_Mesh">
+            <field><type>char*</type><name>name</name></field>
+            <field><type>bs_U64</type><name>name_hash</name></field>
+            <field><type>bs_vec3</type><name>position</name></field>
+            <field><type>bs_vec4</type><name>rotation</name></field>
+            <field><type>bs_vec3</type><name>scale</name></field>
+            <field><type>bs_Primitive*</type><name>primitives</name></field>
+            <field><type>int</type><name>primitives_count</name></field>
+            <field><type>int</type><name>num_vertices</name></field>
+            <field><type>int</type><name>num_indices</name></field>
+            <field><type>bs_Model*</type><name>model</name></field>
+            <field><type>bs_Aabb</type><name>aabb</name></field>
+            <field><type>int*</type><name>extra</name></field>
+        </structure>
+        <structure name="bs_Model">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>bs_ModelFlags</type><name>flags</name></field>
+            <field><type>bs_Armature*</type><name>armatures</name></field>
+            <field><type>bs_Mesh*</type><name>meshes</name></field>
+            <field><type>bs_Material*</type><name>materials</name></field>
+            <field><type>bs_U64*</type><name>animation_hashes</name></field>
+            <field><type>int</type><name>animations_count</name></field>
+            <field><type>int</type><name>armatures_count</name></field>
+            <field><type>int</type><name>meshes_count</name></field>
+            <field><type>int</type><name>materials_count</name></field>
+            <field><type>int</type><name>primitives_count</name></field>
+            <field><type>int</type><name>num_vertices</name></field>
+            <field><type>int</type><name>num_indices</name></field>
+            <field><type>bs_Json</type><name>json</name></field>
+            <field><type>bs_Aabb</type><name>aabb</name></field>
+            <field><type>unsigned char*</type><name>gltf</name></field>
+            <field><type>int*</type><name>extra</name></field>
+        </structure>
+        <structure name="bs_Bone">
+            <field><type>bs_U32</type><name>id</name></field>
+            <field><type>int</type><name>parent_idx</name></field>
+            <field><type>int</type><name>opposite_id</name></field>
+            <field><type>int</type><name>name_length</name></field>
+            <field><type>char*</type><name>name</name></field>
+            <field><type>bs_U64</type><name>name_hash</name></field>
+            <field><type>bs_mat4</type><name>local_matrix</name></field>
+            <field><type>bs_mat4</type><name>bind_matrix_inverse</name></field>
+        </structure>
+        <structure name="bs_Armature">
+            <field><type>int</type><name>bones_count</name></field>
+            <field><type>int</type><name>bones_allocated</name></field>
+            <field><type>char*</type><name>name</name></field>
+        </structure>
+        <structure name="bs_AnimationBone">
+            <field><type>bs_vec3</type><name>last_translation</name></field>
+            <field><type>bs_vec4</type><name>last_rotation</name></field>
+            <field><type>bs_vec3</type><name>last_scale</name></field>
+            <field><type>int translations_count,</type><name>translations_allocated</name></field>
+            <field><type>int rotations_count,</type><name>rotations_allocated</name></field>
+            <field><type>int scalings_count,</type><name>scalings_allocated</name></field>
+        </structure>
+        <structure name="bs_Animation">
+            <field><type>char*</type><name>name</name></field>
+            <field><type>bs_AnimationBone*</type><name>bones</name></field>
+            <field><type>int</type><name>bones_count</name></field>
+            <field><type>int</type><name>bones_allocated</name></field>
+            <field><type>int</type><name>frames_count</name></field>
+            <field><type>float</type><name>length</name></field>
+        </structure>
+        <structure name="bs_Sound">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>const char*</type><name>name</name></field>
+            <field><type>void*</type><name>data</name></field>
+            <field><type>void*</type><name>xaudio</name></field>
+            <field><type>int</type><name>size</name></field>
+        </structure>
+        <structure name="bs_TTF">
+            <field><type>bs_Header</type><name>header</name></field>
+            <field><type>bs_U32</type><name>offset</name></field>
+            <field><type>bs_String*</type><name>buffer</name></field>
+            <field><type>const char*</type><name>name</name></field>
+            <field><type>const char*</type><name>alphabet</name></field>
+            <field><type>bs_List</type><name>glyphs</name></field>
+            <field><type>bs_List</type><name>kerning_pairs</name></field>
+            <field><type>bs_U16</type><name>table_count</name></field>
+            <field><type>int</type><name>x_offset</name></field>
+            <field><type>int</type><name>y_offset</name></field>
+            <field><type>bs_Head</type><name>head</name></field>
+            <field><type>bs_Maxp</type><name>maxp</name></field>
+            <field><type>bs_Hhea</type><name>hhea</name></field>
+            <field><type>bs_Hmtx</type><name>hmtx</name></field>
+            <field><type>bs_Loca</type><name>loca</name></field>
+            <field><type>bs_Glyf</type><name>glyf</name></field>
+        </structure>
+        <structure name="bs_Font">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>const char*</type><name>alphabet</name></field>
+            <field><type>bs_Atlas*</type><name>atlas</name></field>
+            <field><type>int</type><name>min_y_shift</name></field>
+            <field><type>int</type><name>size</name></field>
+            <field><type>int</type><name>units_per_em</name></field>
+            <field><type>int</type><name>height</name></field>
+            <field><type>float</type><name>spacing</name></field>
+            <field><type>int</type><name>pairs_count</name></field>
+        </structure>
+        <structure name="bs_Endpoint">
+            <field><type>bs_EndpointType</type><name>type</name></field>
+            <field><type>int</type><name>name_len</name></field>
+            <field><type>const char*</type><name>name</name></field>
+        </structure>
+        <structure name="bs_Server">
+            <field><type>bs_List</type><name>endpoints</name></field>
+            <field><type>void*</type><name>queue</name></field>
+            <field><type>void*</type><name>overlapped</name></field>
+            <field><type>char*</type><name>buffer</name></field>
+            <field><type>int</type><name>buffer_capacity</name></field>
+            <field><type>bool</type><name>is_waiting</name></field>
+            <field><type>int</type><name>reserved</name></field>
+        </structure>
+        <structure name="bs_Simulation">
+            <field><type>float</type><name>mass</name></field>
+            <field><type>float</type><name>inverse_mass</name></field>
+            <field><type>float</type><name>damping</name></field>
+            <field><type>float</type><name>angular_damping</name></field>
+            <field><type>float</type><name>gravity_scale</name></field>
+            <field><type>bs_vec3</type><name>velocity</name></field>
+            <field><type>bs_vec3</type><name>angular_velocity</name></field>
+            <field><type>bs_vec3</type><name>acceleration_last</name></field>
+            <field><type>bs_vec3</type><name>force</name></field>
+            <field><type>bs_vec3</type><name>torque</name></field>
+            <field><type>bs_vec3</type><name>position</name></field>
+            <field><type>bs_vec4</type><name>rotation</name></field>
+            <field><type>bs_mat3</type><name>local_inverse_inertia</name></field>
+            <field><type>bs_mat3</type><name>world_inverse_inertia</name></field>
+        </structure>
+        <structure name="bs_Contact">
+            <field><type>bs_mat3</type><name>to_world</name></field>
+            <field><type>bs_vec3</type><name>normal</name></field>
+            <field><type>bs_vec3</type><name>point</name></field>
+            <field><type>bs_vec3</type><name>velocity</name></field>
+            <field><type>float</type><name>delta_velocity</name></field>
+            <field><type>float</type><name>penetration</name></field>
+        </structure>
+        <structure name="bs_Descriptor">
+            <field><type>int</type><name>object_type</name></field>
+            <field><type>int</type><name>reserved</name></field>
+            <field><type>int</type><name>bind_set</name></field>
+            <field><type>int</type><name>bind_point</name></field>
+        </structure>
+        <structure name="bs_Binding">
+            <field><type>bs_U32</type><name>stages</name></field>
+            <field><type>int</type><name>slot</name></field>
+            <field><type>int</type><name>set</name></field>
+            <field><type>int</type><name>location</name></field>
+            <field><type>int</type><name>descriptors_count</name></field>
+            <field><type>bool</type><name>in_use</name></field>
+            <field><type>bs_BindType</type><name>type</name></field>
+            <field><type>int</type><name>size</name></field>
+            <field><type>char*</type><name>name</name></field>
+        </structure>
+        <structure name="bs_BindSet">
+            <field><type>bs_U32</type><name>slot</name></field>
+            <field><type>bool</type><name>needs_update</name></field>
+            <field><type>int</type><name>bindings_count</name></field>
+            <field><type>int</type><name>descriptors_count</name></field>
+            <field><type>int</type><name>max_binding</name></field>
+            <field><type>int</type><name>bound_descriptors_count</name></field>
+            <field><type>bs_Binding*</type><name>bindings</name></field>
+            <field><type>bs_Descriptor*</type><name>descriptors</name></field>
+        </structure>
+        <structure name="bs_IO">
+            <field><type>bs_U64</type><name>exceptions</name></field>
+            <field><type>bs_U64</type><name>caught</name></field>
+            <field><type>bool</type><name>left_clicked</name></field>
+            <field><type>bool</type><name>right_clicked</name></field>
+            <field><type>bool</type><name>middle_clicked</name></field>
+            <field><type>bool</type><name>left_clicked_last</name></field>
+            <field><type>bool</type><name>right_clicked_last</name></field>
+            <field><type>bool</type><name>middle_clicked_last</name></field>
+            <field><type>bool</type><name>disable_inputs</name></field>
+            <field><type>bs_String*</type><name>executable</name></field>
+            <field><type>bs_String*</type><name>cwd</name></field>
+            <field><type>bs_String*</type><name>appdata</name></field>
+            <field><type>bs_String*</type><name>log</name></field>
+            <field><type>bs_I8 scroll,</type><name>scroll_old</name></field>
+        </structure>
+        <structure name="bs_Window">
+            <field><type>const char*</type><name>title</name></field>
+            <field><type>void*</type><name>hwnd</name></field>
+            <field><type>bs_ivec2</type><name>dimensions</name></field>
+            <field><type>bs_Callback</type><name>resize</name></field>
+            <field><type>bs_Callback</type><name>destroy</name></field>
+            <field><type>bs_vec2</type><name>cursor</name></field>
+            <field><type>bs_vec2</type><name>screen_cursor</name></field>
+            <field><type>double time,</type><name>time_old</name></field>
+            <field><type>double</type><name>delta_time</name></field>
+            <field><type>double</type><name>fixed_time</name></field>
+            <field><type>double</type><name>fixed_interpolation</name></field>
+            <field><type>bool</type><name>in_fixed</name></field>
+            <field><type>bool</type><name>lock_cursor_position</name></field>
+            <field><type>bool</type><name>active</name></field>
+            <field><type>bs_CursorIcon</type><name>cursor_icon</name></field>
+        </structure>
+        <structure name="bs_ObjectSource">
+            <field><type>int</type><name>ids_count</name></field>
+            <field><type>bs_ObjectType</type><name>type</name></field>
+        </structure>
+        <structure name="bs_ObjectId">
+            <field><type>const char*</type><name>name</name></field>
+            <field><type>bs_U64</type><name>name_hash</name></field>
+            <field><type>bs_Object*</type><name>object</name></field>
+        </structure>
+        <structure name="bs_Instance">
+            <field><type>bs_Queue*</type><name>single_times_queue</name></field>
+            <field><type>bool</type><name>paused</name></field>
+            <field><type>bool</type><name>advance</name></field>
+            <field><type>bool</type><name>alive</name></field>
+            <field><type>int</type><name>bind_sets_count</name></field>
+            <field><type>int</type><name>bindings_count</name></field>
+            <field><type>int</type><name>descriptors_count</name></field>
+            <field><type>int</type><name>max_bind_set</name></field>
+            <field><type>bs_BindSet*</type><name>bind_sets</name></field>
+            <field><type>bs_Binding*</type><name>bindings</name></field>
+            <field><type>bs_Descriptor*</type><name>descriptors</name></field>
+            <field><type>bool</type><name>descriptor_pool_needs_update</name></field>
+        </structure>
+        <structure name="bs_Bindings">
+            <field><type>bs_BindSet*</type><name>bs_bind_sets</name></field>
+            <field><type>int</type><name>bs_bind_sets_count</name></field>
+        </structure>
+        <structure name="bs_Swapchain">
+            <field><type>int</type><name>id</name></field>
+            <field><type>int</type><name>frame</name></field>
+            <field><type>bs_SwapchainBits</type><name>flags</name></field>
+            <field><type>bool</type><name>resized</name></field>
+            <field><type>bool</type><name>image_acquired</name></field>
+            <field><type>bs_Object*</type><name>image</name></field>
+        </structure>
+        <structure name="bs_Config">
+            <field><type>bs_List</type><name>attributes</name></field>
+        </structure>
+        <structure name="bs_Scope">
+            <field><type>bool</type><name>has_begun</name></field>
+            <field><type>bs_Renderer*</type><name>renderer</name></field>
+            <field><type>int</type><name>subpass</name></field>
+            <field><type>bs_Queue*</type><name>queue</name></field>
+            <field><type>bs_U32</type><name>wait_num</name></field>
+        </structure>
+        <structure name="bs_Args">
+            <field><type>bool</type><name>send_bugs</name></field>
+            <field><type>bool</type><name>cmd_log</name></field>
+            <field><type>bool</type><name>skip_log</name></field>
+            <field><type>bool</type><name>color_log</name></field>
+            <field><type>bool</type><name>use_lisk</name></field>
+            <field><type>bool</type><name>use_validation_layers</name></field>
+            <field><type>bool</type><name>skip_log_info</name></field>
+            <field><type>bool</type><name>track_changes</name></field>
+        </structure>
+        <structure name="bs_Features">
+            <field><type>bool</type><name>independent_blend</name></field>
+            <field><type>bool</type><name>ray_tracing</name></field>
+        </structure>
+        <structure name="bs_Props">
+            <field><type>bs_U32</type><name>shader_group_handle_size</name></field>
+            <field><type>bs_U32</type><name>shader_group_base_alignment</name></field>
+            <field><type>bs_U32</type><name>min_acceleration_structure_scratch_offset_alignment</name></field>
+        </structure>
+        <structure name="bs_Settings">
+            <field><type>bs_SwapchainMode frames_in_flight, buffer_count_min,</type><name>frames_in_flight_max</name></field>
+        </structure>
+    </structures>
+	
+    <functions>
+        <function name="bs_playSound" section="Audio" comment="Plays a sound">
+	        <return>bs_Result</return>
+	        <param><type>bs_Sound*</type><name>sound</name></param>
+	        <param><type>float</type><name>volume</name></param>
+        </function>
+        <function name="bs_sound">
+	        <return>bs_Result</return>
+	        <param><type>bs_Resource*</type><name>resource</name></param>
+	        <param><type>bs_U32</type><name>flags</name></param>
+        </function>
+        <function name="bs_iniAudio">
+            <return>bs_Result</return>
+        </function>
+    </functions>
 </registry>

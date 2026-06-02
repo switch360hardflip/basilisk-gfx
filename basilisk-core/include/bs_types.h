@@ -139,7 +139,6 @@ typedef enum {
 
    /**
     Amount of time in nanoseconds it takes for the GPU to timeout
-    Set to 1s
     */
     #define BS_TIMEOUT                          60000000000000
 
@@ -215,17 +214,6 @@ typedef enum {
     #define BS_PRINT_MAGENTA_UNDERLINED         "\033[4;35m"
     #define BS_PRINT_CYAN_UNDERLINED            "\033[4;36m"
     #define BS_PRINT_WHITE_UNDERLINED           "\033[4;37m"
-
-   /**
-    1-Byte alignment
-    */
-    #ifdef __GNUC__
-    #define BS_PACK( __Declaration__ ) __Declaration__ __attribute__((__packed__))
-    #endif
-
-    #ifdef _MSC_VER
-    #define BS_PACK( __Declaration__ ) __pragma( pack(push, 1) ) __Declaration__ __pragma( pack(pop))
-    #endif
 
 
 
