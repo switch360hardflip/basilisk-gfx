@@ -3,7 +3,7 @@
 
 #include <assert.h>
 
-#define BSGEN_LIST(type) { .unit_size = sizeof(type) }
+#define BSGEN_LIST(type) (bsgen_List) { .unit_size = sizeof(type) }
 
 typedef struct {
     int count;
