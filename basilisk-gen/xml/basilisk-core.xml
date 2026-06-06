@@ -2070,7 +2070,12 @@
             <field><type>float</type><name>delta_velocity</name></field>
             <field><type>float</type><name>penetration</name></field>
         </structure>
-        <structure name="bs_Descriptor">
+		<structure name="bs_ImageDescriptor">
+			<field><type>bs_Sampler*</type><name>sampler</name></field>
+			<field><type>bs_Image*</type><name>image</name></field>
+			<field><type>bs_ImageLayout</type><name>layout</name></field>
+		</structure>
+		<structure name="bs_Descriptor">
             <field><type>int</type><name>object_type</name></field>
             <field><type>int</type><name>reserved</name></field>
             <field><type>int</type><name>bind_set</name></field>
