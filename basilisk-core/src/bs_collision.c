@@ -30,10 +30,11 @@ bs_Ray bs_ray(bs_vec3 start, bs_vec3 direction, float length) {
 }
 
 static inline bool bs_rayVsPlane(bs_vec3 ray_direction, bs_vec3 ray_origin, bs_vec3 normal, bs_vec3 origin, float* t) {
-    float denom = bs_v3Dot(normal, ray_direction);
+    float denom = bs_v3Dot(&normal, &ray_direction);
     if (denom > 1e-6) {
-        bs_vec3 p0l0 = bs_v3Sub(origin, ray_origin);
-        *t = bs_v3Dot(p0l0, normal) / denom;
+        bs_vec3 p0l0;
+        bs_v3Sub(&origin, &ray_origin, &p0l0);
+        *t = bs_v3Dot(&p0l0, &normal) / denom;
         return *t >= 0;
     }
 
@@ -56,15 +57,28 @@ bool bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 
 
     const int RIGHT = 0, LEFT = 1, MIDDLE = 2;
 
-    bs_mat4 transform = bs_transform(position, rotation, bs_v3V1(1.0));
-    bs_mat3 rotation_matrix = bs_qToMat3(rotation);
-    bs_mat3 inverse_rotation_matrix = bs_m3Inverse(rotation_matrix);
+    bs_mat4 transform = BS_MAT4_IDENTITY;
+    bs_mat3 rotation_matrix;
+    bs_mat3 rotation_matrix_inverse;
 
-    bs_vec3 origin = bs_m3MulV3(inverse_rotation_matrix, bs_v3Sub(ray->origin, position));
-    bs_vec3 direction = bs_m3MulV3(inverse_rotation_matrix, ray->direction);
+    bs_m4Translate(&transform, &position, &transform);
+    bs_m4Rotate(&transform, &rotation, &transform);
 
-    bs_vec3 min = bs_v3MulV1(scale, -1.0);
-    bs_vec3 max = scale;
+    bs_m3FromQ(&rotation, &rotation_matrix);
+    bs_m3Inverse(&rotation_matrix, &rotation_matrix_inverse);
+
+    bs_vec3 origin;
+    bs_vec3 direction;
+    bs_vec3 min, max;
+
+    bs_vec3 s;
+    bs_v3Sub(&ray->origin, &position, &s);
+
+    bs_m3MulV3(&rotation_matrix_inverse, &s, &origin);
+    bs_m3MulV3(&rotation_matrix_inverse, &ray->direction, &direction);
+
+    bs_v3MulV1(&scale, -1.0, &min);
+    max = scale;
 
     // find candidate planes; this loop can be avoided if
     // rays cast all from the eye(assume perpsective view)
@@ -89,7 +103,7 @@ bool bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 
             *coordinate = ray->origin;
 
         if (normal)
-            *normal = bs_v3MulV1(ray->direction, -1.0);
+            bs_v3MulV1(&ray->direction, -1.0, normal);
 
         return true;
     }
@@ -115,8 +129,8 @@ bool bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 
         *normal = bs_m3MulV3(rotation_matrix, *normal);
 
         if (quadrant[which_plane] == LEFT)
-            *normal = bs_v3MulV1(*normal, -1.0);
-        *normal = bs_v3Normalize(*normal);
+            bs_v3MulV1(normal, -1.0, normal);
+        bs_v3Normalize(normal);
     }
 
     bs_vec3 coord;

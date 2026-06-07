@@ -107,7 +107,7 @@ void bs_v3Mul(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
     glm_vec3_mul(a->a, b->a, out->a);
 }
 
-void bs_v3MulS(bs_vec3* a, float s, bs_vec3* out) {
+void bs_v3MulV1(bs_vec3* a, float s, bs_vec3* out) {
     glm_vec3_scale(a->a, s, out->a);
 }
 

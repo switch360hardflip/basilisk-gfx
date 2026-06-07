@@ -2312,7 +2312,11 @@
 	</externs>
 	
     <functions>
-        <function name="bs_playSound" section="bs_audio.h">
+		<vectorTemplate>2</vectorTemplate>
+		<vectorTemplate>3</vectorTemplate>
+		<vectorTemplate>4</vectorTemplate>
+
+		<function name="bs_playSound" section="bs_audio.h">
             <return>bs_Result</return>
             <param><type>bs_Sound*</type><name>sound</name></param>
             <param><type>float</type><name>volume</name></param>
@@ -3146,7 +3150,7 @@
             <return>void</return>
             <param><type>bs_Procedure*</type><name>procedures</name></param>
             <param><type>int</type><name>count</name></param>
-            <param><type>HMODULE</type><name>dll_handle</name></param>
+            <param><type>void*</type><name>dll_handle</name></param>
             <param><type>unsigned char*</type><name>destination</name></param>
         </function>
         <function name="bsi_fetchCommands" section="bs_internal.h">

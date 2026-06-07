@@ -6,6 +6,7 @@
 #include <assert.h>
 
 #include <basilisk.h>
+#include <bs_internal.h>
 
 #define BS_FLAGSET(flag, cmp) ((flag >> cmp) & 0x01)
 
