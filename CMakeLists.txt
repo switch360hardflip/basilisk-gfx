@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(BS_APP_NAME ${PROJECT_NAME})
 
 add_subdirectory(basilisk-core/)
-add_subdirectory(basilisk-gen/)
 add_subdirectory(basilisk-gfx/)
 add_subdirectory(basilisk-mod/)
 add_subdirectory(basilisk-test/)

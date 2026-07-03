@@ -1,9 +1,0 @@
-<model>
-    <resource>
-        <action name="one"/>
-    </resource>
-    <resource>
-        <action name="one"/>
-        <action name="two"/>
-    </resource>
-</model>

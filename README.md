@@ -19,8 +19,6 @@ After that, engine should be working again
 - glslang
 - SPIRV-Cross
 - stb
-- libxml2
-- libxslt
 - cglm
 
 ## Icons/Artwork

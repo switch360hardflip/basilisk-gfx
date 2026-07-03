@@ -7,17 +7,21 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 file(GLOB_RECURSE SOURCE_FILES "src/*.c")
 file(GLOB_RECURSE HEADER_FILES "include/*.h")
+file(GLOB_RECURSE GENERATED_FILES "generated/*.*")
 
 add_library(${PROJECT_NAME} SHARED
     ${SOURCE_FILES}
     ${HEADER_FILES}
+    ${GENERATED_FILES}
 )
 
 source_group("Source Files" FILES ${SOURCE_FILES})
 source_group("Header Files" FILES ${HEADER_FILES})
+source_group("Generated Files" FILES ${GENERATED_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     include/
+    generated/
     ${CMAKE_SOURCE_DIR}/external/
     ${CMAKE_SOURCE_DIR}/external/cglm-0.9.6/include
     ${CMAKE_SOURCE_DIR}/external/vulkan
