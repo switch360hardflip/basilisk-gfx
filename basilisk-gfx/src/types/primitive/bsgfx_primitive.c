@@ -1,7 +1,7 @@
 #include <types/primitive/bsgfx_primitive.h>
 #include <types/tile/bsgfx_tile.h>
 #include <../bsgfx_contracts.h>
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bsgfx_instance.h>
 #include <bsgfx.h>
 

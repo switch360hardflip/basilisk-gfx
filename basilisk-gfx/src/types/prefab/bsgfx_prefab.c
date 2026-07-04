@@ -1,4 +1,4 @@
-#include <basilisk.h>
+#include <basilisk-core.h>
 
 #include <types/prefab/bsgfx_prefab.h>
 #include <types/tile/bsgfx_tile.h>

@@ -1,4 +1,4 @@
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bs_internal.h>
 
 #include <stdio.h>
@@ -24,18 +24,18 @@ struct VkDevice_T* bsi_fetchDevice() {
 }
 
 int bs_currentSwap() {
-    return _bs_swapchain->frame;
+    return _bs_swapchain_->frame;
 }
 
-bs_Procs* bs_procedures() {
-    return &_bs_procs;
+bs_Procedure* _bs_procedures() {
+    return &_bs_procs_;
 }
 
 bs_Swapchain* bs_swapchain() {
-    return _bs_swapchain;
+    return _bs_swapchain_;
 }
 
-void bs_beginComment(const char* format, ...) {
+bs_Result _bs_beginComment(const char* format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -51,15 +51,15 @@ void bs_beginComment(const char* format, ...) {
     };
 
     VkCommandBuffer commands = bsi_fetchCommands();
-    assert(_bs_procs.vkCmdInsertDebugUtilsLabelEXT);
-    assert(_bs_procs.vkCmdBeginDebugUtilsLabelEXT);
+    assert(_bs_procs_.vkCmdInsertDebugUtilsLabelEXT);
+    assert(_bs_procs_.vkCmdBeginDebugUtilsLabelEXT);
 //    bs_procs.vkCmdInsertDebugUtilsLabelEXT(commands, &label);
-    _bs_procs.vkCmdBeginDebugUtilsLabelEXT(commands, &label);
+    _bs_procs_.vkCmdBeginDebugUtilsLabelEXT(commands, &label);
 }
 
 void bs_endComment() {
-    assert(_bs_procs.vkCmdEndDebugUtilsLabelEXT);
-    _bs_procs.vkCmdEndDebugUtilsLabelEXT(bsi_fetchCommands());
+    assert(_bs_procs_.vkCmdEndDebugUtilsLabelEXT);
+    _bs_procs_.vkCmdEndDebugUtilsLabelEXT(bsi_fetchCommands());
 }
 
 int bs_swapCount() {
@@ -146,15 +146,15 @@ static void bs_clearAttachment(bs_U32 index, bs_ivec2 dim, VkImageAspectFlags as
     vkCmdClearAttachments(commands, 1, &clear_attachment, 1, &rectangle);
 }
 
-void bs_clearStencil(bs_U32 index, bs_ivec2 dim, bs_U32 value) {
+BSAPI void _bs_clearStencil(bs_U32 index, bs_ivec2 dim, bs_U32 value) {
     bs_clearAttachment(index, dim, VK_IMAGE_ASPECT_STENCIL_BIT, (VkClearValue) {.depthStencil.stencil = value });
 }
 
-void bs_clearDepth(bs_U32 index, bs_ivec2 dim, float value) {
+BSAPI void _bs_clearDepth(bs_U32 index, bs_ivec2 dim, float value) {
     bs_clearAttachment(index, dim, VK_IMAGE_ASPECT_DEPTH_BIT, (VkClearValue) { .depthStencil.depth = value });
 }
 
-void bs_clearDepthStencil(bs_U32 index, bs_ivec2 dim, float depth_value, bs_U32 stencil_value) {
+BSAPI void _bs_clearDepthStencil(bs_U32 index, bs_ivec2 dim, float depth_value, bs_U32 stencil_value) {
     bs_clearAttachment(index, dim, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, (VkClearValue) {
         .depthStencil = {
             .depth = depth_value,
@@ -163,7 +163,7 @@ void bs_clearDepthStencil(bs_U32 index, bs_ivec2 dim, float depth_value, bs_U32 
     });
 }
 
-void bs_clearColor(bs_U32 index, bs_ivec2 dim, bs_RGBA color) {
+BSAPI void _bs_clearColor(bs_U32 index, bs_ivec2 dim, bs_RGBA color) {
     bs_clearAttachment(index, dim, VK_IMAGE_ASPECT_COLOR_BIT, (VkClearValue) { 
         .color.uint32 = { 
             [0] = color.r, [1] = color.g, [2] = color.b, [3] = color.a,
@@ -171,7 +171,7 @@ void bs_clearColor(bs_U32 index, bs_ivec2 dim, bs_RGBA color) {
     });
 }
 
-void bs_stencilReference(bs_FaceType face, bs_U32 reference) {
+BSAPI void _bs_stencilReference(bs_FaceType face, bs_U32 reference) {
     assert(BS_FACE_FRONT == VK_STENCIL_FACE_FRONT_BIT);
     assert(BS_FACE_BACK == VK_STENCIL_FACE_BACK_BIT);
     assert(BS_FACE_FRONT_AND_BACK == VK_STENCIL_FACE_FRONT_AND_BACK);
@@ -179,27 +179,27 @@ void bs_stencilReference(bs_FaceType face, bs_U32 reference) {
     vkCmdSetStencilReference(commands, face, reference);
 }
 
-void bs_cull(bs_CullFlags flags) {
+BSAPI void _bs_cull(bs_CullFlags flags) {
     VkCommandBuffer commands = bsi_fetchCommands();
     vkCmdSetCullMode(commands, flags);
 }
 
-void bs_setLineWidth(float width) {
+BSAPI void _bs_setLineWidth(float width) {
     VkCommandBuffer commands = bsi_fetchCommands();
     vkCmdSetLineWidth(commands, width);
 }
 
-int bs_bufferSwaps(bs_Buffer* buffer) {
+BSAPI int _bs_bufferSwaps(bs_Buffer* buffer) {
     return buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_settings.frames_in_flight : 1;
 }
 
-void bs_nameBuffer(bs_Buffer* buffer, const char* name) {
+BSAPI void _bs_nameBuffer(bs_Buffer* buffer, const char* name) {
     buffer->flags |= BS_BUFFER_IS_NAMED;
     for (int i = 0; i < bs_bufferSwaps(buffer); i++)
-        bsi_nameHandle(buffer->_[i].vk_buffer, VK_OBJECT_TYPE_BUFFER, name);
+        bsi_nameHandle(buffer->_[i].vk_buffer, VK_OBJECT_TYPE_BUFFER, name, strlen(name));
 }
 
-bs_Result bs_buffer(bs_Object* object, bs_U32 num_bytes, bs_BufferUsageFlags usage_flags, bs_MemoryPropertyFlags memory_flags, bs_BufferBits flags) {
+BSAPI bs_Result _bs_buffer(bs_Object* object, bs_U32 num_bytes, bs_BufferUsageFlags usage_flags, bs_MemoryPropertyFlags memory_flags, bs_BufferBits flags) {
     VkResult result;
 
     if (num_bytes == 0)
@@ -300,35 +300,32 @@ bs_Result bs_buffer(bs_Object* object, bs_U32 num_bytes, bs_BufferUsageFlags usa
     return BS_RESULT_OK;
 }
 
-char* bs_bufferMap(bs_Buffer* buffer) {
-    bs_throwIfNotMapped(buffer);
-    int swap = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain->frame : 0;
+BSAPI char* _bs_bufferMap(bs_Buffer* buffer) {
+    int swap = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
     return buffer->_[swap].data;
 }
 
-char* bs_mapBuffer(bs_Buffer* buffer, bs_U32 num_bytes) {
-    if (!buffer)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
-
+BSAPI bs_Result _bs_mapBuffer(bs_Buffer* buffer, bs_U32 num_bytes) {
     if (buffer->_->data)
         return bs_bufferMap(buffer);
 
     if (num_bytes == BS_U32_MAX)
         num_bytes = buffer->num_bytes;
     else if (num_bytes > buffer->num_bytes)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
+        return BS_RESULT_OUT_OF_BOUNDS;
 
     bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_settings.frames_in_flight : 1;
-    for (int i = 0; i < num_swaps; i++)
-        bs_throwVulkan(vkMapMemory(_bs_instance->device, buffer->_[i].memory, 0, buffer->num_bytes, 0, (void**)&buffer->_[i].data));
+    for (int i = 0; i < num_swaps; i++) {
+        VkResult result = vkMapMemory(_bs_instance->device, buffer->_[i].memory, 0, buffer->num_bytes, 0, (void**)&buffer->_[i].data);
+        if (result != VK_SUCCESS) {
+            return bs_convertVulkanResult(result);
+        }
+    }
 
-    return bs_bufferMap(buffer);
+    return BS_RESULT_OK;
 }
 
-void bs_unmapBuffer(bs_Buffer* buffer) {
-    if (!buffer)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
-
+BSAPI void _bs_unmapBuffer(bs_Buffer* buffer) {
     if (buffer->_->data == NULL) return;
 
     bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_settings.frames_in_flight : 1;
@@ -338,17 +335,26 @@ void bs_unmapBuffer(bs_Buffer* buffer) {
     }
 }
 
-void bs_stageNull(bs_Buffer* buffer) {
+BSAPI void _bs_stageNull(bs_Buffer* buffer) {
     memset(bs_bufferMap(buffer), 0, buffer->num_bytes);
 }
 
-void bs_stageList(bs_Buffer* buffer, bs_List* list) {
+BSAPI bs_Result _val_bs_stageList(bs_Buffer* buffer, bs_List* list) {
     bs_U32 size = list->count * list->unit_size;
-    bs_throwIfBufferTooSmall(buffer, size);
-    memcpy(bs_bufferMap(buffer), list->data, size);
+    if (buffer->num_bytes < size)
+        return BS_RESULT_OUT_OF_BOUNDS;
+
+    return BS_RESULT_OK;
 }
 
-void bs_stageImage(bs_Buffer* buffer, bs_Format format, bs_ivec2 dim, const char* data) {
+BSAPI bs_Result _bs_stageList(bs_Buffer* buffer, bs_List* list) {
+    bs_U32 size = list->count * list->unit_size;
+    memcpy(bs_bufferMap(buffer), list->data, size);
+
+    return BS_RESULT_OK;
+}
+
+BSAPI bs_Result _bs_stageImage(bs_Buffer* buffer, bs_Format format, bs_ivec2 dim, const char* data) {
     bs_U32 size = dim.x * dim.y;
 
     switch(format) {
@@ -357,15 +363,15 @@ void bs_stageImage(bs_Buffer* buffer, bs_Format format, bs_ivec2 dim, const char
         case VK_FORMAT_R8G8B8_SRGB: size *= 3; break;
         case VK_FORMAT_R8G8B8A8_SRGB: size *= 4; break;
         case BS_FORMAT_R8G8B8A8_UNORM: size *= 4; break;
-        default: bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_TYPE);
+        default: 
+            return BS_RESULT_INVALID_TYPE;
     }
 
-    bs_throwIfBufferTooSmall(buffer, size);
-
     memcpy(bs_bufferMap(buffer), data, size);
+    return BS_RESULT_OK;
 }
 
-void bs_destroyBuffer(bs_Buffer* buffer) {
+BSAPI void _bs_destroyBuffer(bs_Buffer* buffer) {
     assert(buffer != NULL);
 
     bs_unmapBuffer(buffer);
@@ -392,14 +398,9 @@ void bs_destroyBuffer(bs_Buffer* buffer) {
     buffer->head.id = id;
 }
 
-void bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 dst_offset, bs_U32 src_offset, bs_U32 num_bytes) {
-    if (!src || !dst)
-        return;
-
+BSAPI bs_Result _bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 dst_offset, bs_U32 src_offset, bs_U32 num_bytes) {
     if (num_bytes == BS_U32_MAX)
         num_bytes = BS_MIN(dst->num_bytes, src->num_bytes);
-
-    bs_throwIfBufferTooSmall(src, num_bytes);
 
     VkBufferCopy copy_region = {
         .srcOffset = src_offset,
@@ -407,27 +408,40 @@ void bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 dst_offset, bs_U32 src_
         .size = num_bytes
     };
 
-    int src_swap = (src->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain->frame : 0;
-    int dst_swap = (dst->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain->frame : 0;
+    int src_swap = (src->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
+    int dst_swap = (dst->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
 
     VkCommandBuffer commands = bsi_fetchCommands();
     assert(src->_[src_swap].vk_buffer);
     assert(dst->_[dst_swap].vk_buffer);
     vkCmdCopyBuffer(commands, src->_[src_swap].vk_buffer, dst->_[dst_swap].vk_buffer, 1, &copy_region);
+
     if (_bs_scope.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
         bsi_pushQueue(_bs_scope.queue);
-        bs_throwVulkan(vkQueueWaitIdle(_bs_scope.queue->queue));
+        return vkQueueWaitIdle(_bs_scope.queue->queue);
     }
+
+    return BS_RESULT_OK;
 }
 
-void bs_setBufferAsync(bs_Buffer* buffer, bs_U32 offset, bs_U32 num_bytes, bs_U32 value) {
+BSAPI bs_Result _val_bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 dst_offset, bs_U32 src_offset, bs_U32 num_bytes) {
+    if (src->num_bytes < num_bytes) {
+        return BS_RESULT_OUT_OF_BOUNDS;
+    }
+
+    return _bs_copyAsync(src, dst, dst_offset, src_offset, num_bytes);
+}
+
+BSAPI bs_Result _bs_setBufferAsync(bs_Buffer* buffer, bs_U32 offset, bs_U32 num_bytes, bs_U32 value) {
     VkCommandBuffer commands = bsi_fetchCommands();
-    int swap = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_swapchain->frame : 0;
+    int swap = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_swapchain_->frame : 0;
     vkCmdFillBuffer(commands, buffer->_[swap].vk_buffer, offset, num_bytes, value);
     if (_bs_scope.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
         bsi_pushQueue(_bs_scope.queue);
-        bs_throwVulkan(vkQueueWaitIdle(_bs_scope.queue->queue));
+        return vkQueueWaitIdle(_bs_scope.queue->queue);
     }
+
+    return BS_RESULT_OK;
 }
 
 static VkDeviceAddress bs_bufferAddress(VkBuffer buffer) {
@@ -449,7 +463,7 @@ static VkDeviceAddress bs_bufferAddress(VkBuffer buffer) {
    * Batch Population
    *============================================================================*/
 
-void bs_populateVertexDeclaration(bs_VertexDeclaration* declaration, bs_Attribute* attributes, int attributes_count) {
+BSAPI void _bs_populateVertexDeclaration(bs_VertexDeclaration* declaration, bs_Attribute* attributes, int attributes_count) {
     for (int i = 0, offset = 0; i < declaration->attributes_count; i++) {
         declaration->attributes[i].source_offset = offset;
         offset += declaration->attributes[i].source_size;
@@ -476,7 +490,7 @@ void bs_populateVertexDeclaration(bs_VertexDeclaration* declaration, bs_Attribut
     //declaration->populated = true;
 }
 
-void bs_batchVertex(bs_VertexDeclaration* declaration, const unsigned char* src) {
+BSAPI void _bs_batchVertex(bs_VertexDeclaration* declaration, const unsigned char* src) {
     unsigned char* dst = declaration->batch->vertices.data + *declaration->offset * declaration->batch->vertices.unit_size;
 
     for (int i = 0; i < declaration->attributes_count; i++) {
@@ -489,7 +503,7 @@ void bs_batchVertex(bs_VertexDeclaration* declaration, const unsigned char* src)
     (*declaration->offset)++;
 }
 
-bs_Range bs_batchRange(bs_Batch* batch, bs_U32 offset) {
+BSAPI bs_Range _bs_batchRange(bs_Batch* batch, bs_U32 offset) {
     return (bs_Range) { 
         .offset = offset, 
         .num = batch->indices.count - offset, 
@@ -497,13 +511,13 @@ bs_Range bs_batchRange(bs_Batch* batch, bs_U32 offset) {
     };
 }
 
-void bs_ensureBatchSize(bs_Batch* batch, bs_U32 num_indices, bs_U32 num_vertices) {
+BSAPI void _bs_ensureBatchSize(bs_Batch* batch, bs_U32 num_indices, bs_U32 num_vertices) {
     bs_ensureSize(&batch->vertices, num_vertices);
     if (num_indices != 0)
         bs_ensureSize(&batch->indices, num_indices);
 }
 
-void bs_pushIndex(bs_Batch* batch, bs_U32 index) {
+BSAPI void _bs_pushIndex(bs_Batch* batch, bs_U32 index) {
     bs_List* indices = &batch->indices;
 
     index += batch->vertices.count;
@@ -512,12 +526,12 @@ void bs_pushIndex(bs_Batch* batch, bs_U32 index) {
     indices->count++;
 }
 
-void bs_pushIndices(bs_Batch* batch, bs_U32* indices, bs_U32 num_indices) {
+BSAPI void _bs_pushIndices(bs_Batch* batch, bs_U32* indices, bs_U32 num_indices) {
     for (int i = 0; i < num_indices; i++)
         bs_pushIndex(batch, indices[i]);
 }
 
-void bs_pushIndexV(bs_Batch* batch, bs_U32 num_indices, ...) {
+BSAPI void _bs_pushIndexV(bs_Batch* batch, bs_U32 num_indices, ...) {
     va_list args;
     va_start(args, num_indices);
 
@@ -614,7 +628,7 @@ static inline void bs_batchCube(bs_Batch* batch, bs_U32* offset, bs_RGBA color) 
     bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = { 1,  1, -1 }, .bs_Color = color, .bs_Normal = { 0, 0, -1 }, .bs_Texture = { 1, 1 } });
 }
 
-bs_Range bs_pushCube(bs_Batch* batch, bs_RGBA color) {
+BSAPI bs_Range _bs_pushCube(bs_Batch* batch, bs_RGBA color) {
     int index_offset = batch->indices.count;
     bs_ensureBatchSize(batch, BS_NUM_CUBE_INDICES, BS_NUM_CUBE_VERTICES);
     //if (smooth_shade)
@@ -647,7 +661,7 @@ bs_Range bs_pushCube(bs_Batch* batch, bs_RGBA color) {
     return bs_batchRange(batch, index_offset);
 }
 
-void bs_batchCone(bs_Batch* batch, bs_U32* offset, bs_RGBA color, int segments, float height, float radius) {
+BSAPI void _bs_batchCone(bs_Batch* batch, bs_U32* offset, bs_RGBA color, int segments, float height, float radius) {
     BS_VERTEX_DECLARATION(
         declaration, batch, offset,
         bs_vec3, bs_Position,
@@ -677,7 +691,7 @@ void bs_batchCone(bs_Batch* batch, bs_U32* offset, bs_RGBA color, int segments, 
     });
 }
 
-void bs_batchPyramid(
+BSAPI void _bs_batchPyramid(
     bs_Batch* batch, bs_U32* offset,
     bs_vec3 pos, float width, float height, bs_RGBA color
 ) {
@@ -696,7 +710,7 @@ void bs_batchPyramid(
     bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = { pos.x, pos.y + height, pos.z }, .bs_Texture = { 0.5, 0.5 } });
 }
 
-void bs_batchBipyramid(
+BSAPI void _bs_batchBipyramid(
     bs_Batch* batch, bs_U32* offset,
     bs_vec3 pos, float width, float height, bs_RGBA color
 ) {
@@ -716,7 +730,7 @@ void bs_batchBipyramid(
     bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = { pos.x, pos.y - height, pos.z }, .bs_Texture = { 0.5, 1.0 } });
 }
 
-void bs_batchQuad(bs_Batch* batch, bs_U32* offset, bs_Quad quad, bs_RGBA color) {
+BSAPI void _bs_batchQuad(bs_Batch* batch, bs_U32* offset, bs_Quad quad, bs_RGBA color) {
     BS_VERTEX_DECLARATION(
         declaration, batch, offset,
         bs_vec3, bs_Position,
@@ -730,7 +744,7 @@ void bs_batchQuad(bs_Batch* batch, bs_U32* offset, bs_Quad quad, bs_RGBA color) 
     bs_batchVertex(&declaration, &(bs_Vertex) { quad.d, quad.cd, color });
 }
 
-void bs_batchTriangle(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color) {
+BSAPI void _bs_batchTriangle(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color) {
     BS_VERTEX_DECLARATION(
         declaration, batch, offset,
         bs_vec3, bs_Position,
@@ -743,7 +757,7 @@ void bs_batchTriangle(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, bs_
     bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = c, .bs_Texture = bs_v2(0.0, 1.0), .bs_Color = color });
 }
 
-void bs_batchLine(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, bs_RGBA color) {
+BSAPI void _bs_batchLine(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, bs_RGBA color) {
     BS_VERTEX_DECLARATION(
         declaration, batch, offset,
         bs_vec3, bs_Position,
@@ -755,7 +769,7 @@ void bs_batchLine(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, bs_RGBA
     bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = b, .bs_Texture = bs_v2(1.0, 0.0), .bs_Color = color });
 }
 
-void bs_batchPoint(bs_Batch* batch, bs_U32* offset, bs_vec3 pos, bs_RGBA color) {
+BSAPI void _bs_batchPoint(bs_Batch* batch, bs_U32* offset, bs_vec3 pos, bs_RGBA color) {
     BS_VERTEX_DECLARATION(
         declaration, batch, offset,
         bs_vec3, bs_Position,
@@ -766,7 +780,7 @@ void bs_batchPoint(bs_Batch* batch, bs_U32* offset, bs_vec3 pos, bs_RGBA color) 
     bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = pos, .bs_Color = color });
 }
 
-void bs_batchAabb(bs_Batch* batch, bs_U32* offset, bs_Aabb* aabb, bs_RGBA color) {
+BSAPI void _bs_batchAabb(bs_Batch* batch, bs_U32* offset, bs_Aabb* aabb, bs_RGBA color) {
     // top
     bs_batchLine(batch, offset, aabb->min, bs_v3(aabb->max.x, aabb->min.y, aabb->min.z), color);
     bs_batchLine(batch, offset, aabb->min, bs_v3(aabb->min.x, aabb->min.y, aabb->max.z), color);
@@ -799,20 +813,24 @@ void bs_batchSphere(bs_Batch* batch, bs_U32* offset, bs_vec3 position, float rad
 
     for (int i = 0; i <= longs; i++) {
         float stack_angle = BS_PI / 2.0 - i * stack_step;
+        bs_vec3 v;
         float xy = radius * cosf(stack_angle);
-        float z = radius * sinf(stack_angle);
+        v.z = radius * sinf(stack_angle);
 
         for (int j = 0; j <= lats; j++) {
             float sector_angle = j * sector_step;
-            float x = xy * cosf(sector_angle);
-            float y = xy * sinf(sector_angle);
+            v.x = xy * cosf(sector_angle);
+            v.y = xy * sinf(sector_angle);
 
-            bs_batchVertex(&declaration, &(const bs_Vertex) {
-                .bs_Position = bs_v3Add(position, bs_v3(x, y, z)),
-                .bs_Normal = bs_v3MulV1(bs_v3(x, y, z), length_inverse),
-                .bs_Texture = bs_v2((float)j / lats, (float)i / longs),
+            bs_Vertex vertex = {
+                .bs_Texture = { (float)j / lats, (float)i / longs },
                 .bs_Color = color,
-            });
+            };
+
+            bs_v3Add(&position, &v, &vertex.bs_Position);
+            bs_v3MulV1(&v, length_inverse, &vertex.bs_Normal);
+
+            bs_batchVertex(&declaration, &vertex);
         }
     }
 }
@@ -1071,21 +1089,21 @@ void bs_pushText(bs_Batch* batch, bs_Font* font, bs_vec3 pos, bs_RGBA col, float
    * Batches
    *============================================================================*/
 
-bs_Attribute* bs_queryAttribute(bs_Batch* batch, char* name) {
+BSAPI bs_Result _bs_queryAttribute(bs_Batch* batch, char* name, bs_Attribute** out) {
     bs_U64 name_hash = bs_stringHash(name);
     for (int i = 0; i < batch->attributes_count; i++) {
         bs_Attribute* attribute = batch->attributes + i;
 
-        if (attribute->name_hash == name_hash)
-            return attribute;
+        if (attribute->name_hash == name_hash) {
+            *out = attribute;
+            return BS_RESULT_OK;
+        }
     }
 
-    bs_throwBasilisk(BSX_FAILED_TO_QUERY);
-    return NULL;
+    return BS_RESULT_FAILED_TO_QUERY;
 }
 
-#define BS_BATCH_INCR_BY 256
-bs_Object* bs_batch(bs_Object* object, int index_size, bs_Shader* shader, bs_BatchBits flags) {
+BSAPI bs_Result _bs_batch(bs_Object* object, int index_size, bs_Shader* shader, bs_BatchBits flags) {
     bs_Batch* batch = object->batch;
 
     if (!batch) return NULL;
@@ -1105,25 +1123,26 @@ bs_Object* bs_batch(bs_Object* object, int index_size, bs_Shader* shader, bs_Bat
     batch->flags = flags;
     batch->attributes = shader->attributes;
     batch->attributes_count = shader->num_attributes;
+#define BS_BATCH_INCR_BY 256
     batch->vertices = bs_list(vertex_size, BS_BATCH_INCR_BY);
     batch->indices = bs_list(index_size, BS_BATCH_INCR_BY);
 
-    return object;
+    return BS_RESULT_OK;
 }
 
-bool bs_batchIsPushed(bs_Batch* batch) {
+BSAPI bool _bs_batchIsPushed(bs_Batch* batch) {
     if (!batch)
         bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
     return batch->flags & BS_BATCH_IS_PUSHED;
 }
 
-bool bs_batchIsIndexed(bs_Batch* batch) {
+BSAPI bool _bs_batchIsIndexed(bs_Batch* batch) {
     if (!batch)
         bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
     return batch->indices.unit_size > 0;
 }
 
-void bs_minimizeBatch(bs_Batch* batch) {
+BSAPI void _bs_minimizeBatch(bs_Batch* batch) {
     bs_minimizeList(&batch->vertices);
     bs_minimizeList(&batch->indices);
 }
@@ -1153,11 +1172,8 @@ static struct bs_BatchBindings {
     return bindings;
 };
 
-bs_Result bs_pushBatch(bs_Batch* batch, bs_U32 num_indices, bs_U32 num_vertices) {
+BSAPI bs_Result _bs_pushBatch(bs_Batch* batch, bs_U32 num_indices, bs_U32 num_vertices) {
     bs_Result result;
-
-    if (!batch)
-        return BS_RESULT_INVALID_PARAM;
 
     if (num_indices == BS_U32_MAX) 
         num_indices = batch->indices.count;
@@ -1170,8 +1186,7 @@ bs_Result bs_pushBatch(bs_Batch* batch, bs_U32 num_indices, bs_U32 num_vertices)
     struct bs_BatchBindings bindings = bs_batchBindings(batch);
 
     if (vertex_size == 0) {
-        bs_destroyBatch(batch);
-        return BS_RESULT_OK;
+        return bs_destroyBatch(batch);
     }
 
     bs_U32 object_flags = (batch->flags & BSI_BATCH_SWAPS_BIT) ? BS_OBJECT_HAS_SWAPS_BIT : 0;
@@ -1190,12 +1205,11 @@ bs_Result bs_pushBatch(bs_Batch* batch, bs_U32 num_indices, bs_U32 num_vertices)
         0);
 
     if (result != BS_RESULT_OK) {
-        bs_destroyBatch(batch);
-        return result;
+        return bs_destroyBatch(batch);
     }
 
     bs_mapBuffer(batch->staging_buffer->buffer, vertex_size);
-    bs_nameBuffer(batch->staging_buffer->buffer, "staging");
+    bs_nameBuffer(batch->staging_buffer->buffer, "staging", sizeof("staging") - 1);
 
     if (bindings.staging_was_bound)
         bs_bindBuffer(bindings.staging_bind_set, bindings.staging_binding, batch->staging_buffer->buffer);
@@ -1216,7 +1230,7 @@ bs_Result bs_pushBatch(bs_Batch* batch, bs_U32 num_indices, bs_U32 num_vertices)
 
     bs_stageList(batch->staging_buffer->buffer, &batch->vertices);
     bs_copyAsync(batch->staging_buffer->buffer, batch->vertex_buffer->buffer, 0, 0, BS_U32_MAX);
-    bs_nameBuffer(batch->vertex_buffer->buffer, "vertex");
+    bs_nameBuffer(batch->vertex_buffer->buffer, "vertex", sizeof("vertex") - 1);
 
     if (bindings.vertex_was_bound)
         bs_bindBuffer(bindings.vertex_bind_set, bindings.vertex_binding, batch->vertex_buffer->buffer);
@@ -1224,32 +1238,26 @@ bs_Result bs_pushBatch(bs_Batch* batch, bs_U32 num_indices, bs_U32 num_vertices)
    /**
     Index buffer
     */
-    if (batch->indices.unit_size != 0) {
-        bool invalid_size = batch->indices.unit_size != sizeof(bs_U16) && batch->indices.unit_size != sizeof(bs_U32);
-        if (invalid_size)
-            bs_throwBasilisk(BSXI_INTERNAL | BSX_UNKNOWN_TYPE_SIZE);
+    if (batch->indices.count != 0) {
+        bs_stageList(batch->staging_buffer->buffer, &batch->indices);
 
-        if (batch->indices.count != 0) {
-            bs_stageList(batch->staging_buffer->buffer, &batch->indices);
+        batch->index_buffer = BS_BUFFER(-1, 0, object_flags);
+        result = bs_buffer(batch->index_buffer, index_size,
+            usage_flags | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            0);
 
-            batch->index_buffer = BS_BUFFER(-1, 0, object_flags);
-            result = bs_buffer(batch->index_buffer, index_size,
-                usage_flags | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                0);
-
-            if (result != BS_RESULT_OK) {
-                bs_destroyBatch(batch);
-                return result;
-            }
-
-            bs_copyAsync(batch->staging_buffer->buffer, batch->index_buffer->buffer, 0, 0, BS_U32_MAX);
-            bs_nameBuffer(batch->index_buffer->buffer, "index");
+        if (result != BS_RESULT_OK) {
+            bs_destroyBatch(batch);
+            return result;
         }
 
-        if (bindings.index_was_bound)
-            bs_bindBuffer(bindings.index_bind_set, bindings.index_binding, batch->index_buffer->buffer);
+        bs_copyAsync(batch->staging_buffer->buffer, batch->index_buffer->buffer, 0, 0, BS_U32_MAX);
+        bs_nameBuffer(batch->index_buffer->buffer, "index", sizeof("index") - 1);
     }
+
+    if (bindings.index_was_bound)
+        bs_bindBuffer(bindings.index_bind_set, bindings.index_binding, batch->index_buffer->buffer);
 
     if (!(batch->flags & BS_BATCH_KEEP_DATA)) {
         bs_destroyList(&batch->vertices);
@@ -1281,10 +1289,7 @@ int bs_batchSize(bs_Batch* batch) {
     return (batch->indices.unit_size == 0) ? batch->vertices.count : batch->indices.count;
 }
 
-void bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offset, bs_U32 vertex_count, bs_U32 instance_offset, bs_U32 instance_count) {
-    if (!batch || !pipeline)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
-
+void _bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offset, bs_U32 vertex_count, bs_U32 instance_offset, bs_U32 instance_count) {
     VkDeviceSize offsets[] = { 0 };
     VkCommandBuffer command_buffer = bsi_fetchCommands();
 
@@ -1295,9 +1300,7 @@ void bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offset, bs_
     if (instance_count <= 0) return;
     if (!batch->vertex_buffer) return;
 
-    bs_U32 vertex_swap = (batch->vertex_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain->frame : 0;
-    if (!batch->vertex_buffer->buffer->_[vertex_swap].vk_buffer)
-        return;
+    bs_U32 vertex_swap = (batch->vertex_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
 
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
     if (pipeline->num_bind_sets != 0) {
@@ -1314,13 +1317,13 @@ void bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offset, bs_
     if (!bs_batchIsIndexed(batch)) {
         vkCmdDraw(command_buffer, vertex_count, instance_count, vertex_offset, instance_offset);
     } else {
-        bs_U32 index_swap = (batch->index_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain->frame : 0;
+        bs_U32 index_swap = (batch->index_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
         vkCmdBindIndexBuffer(command_buffer, batch->index_buffer->buffer->_[index_swap].vk_buffer, 0, VK_INDEX_TYPE_UINT32);
         vkCmdDrawIndexed(command_buffer, vertex_count, instance_count, vertex_offset, 0, instance_offset);
     }
 }
 
-void bs_destroyBatch(bs_Batch* batch) {
+BSAPI void _bs_destroyBatch(bs_Batch* batch) {
     assert(batch != NULL);
 
     batch->flags &= ~(BS_BATCH_IS_PUSHED);
@@ -1344,7 +1347,7 @@ void bs_destroyBatch(bs_Batch* batch) {
    * Renderer 
    *============================================================================*/
 
-bs_Object* bs_renderer(bs_Object* object, bs_RendererBits flags) {
+bs_Result _bs_renderer(bs_Object* object, bs_RendererBits flags) {
     assert(object != NULL);
     bs_Renderer* renderer = object->renderer;
 
@@ -1363,23 +1366,26 @@ bs_Object* bs_renderer(bs_Object* object, bs_RendererBits flags) {
 
     // BS_MAX(_bs_settings.frames_in_flight, _bs_settings.buffer_count_min)
 
-    return object;
+    return BS_RESULT_OK;
 }
 
-void bs_output(bs_Renderer* renderer, bs_Output output) {
-    assert(renderer != NULL);
-    assert(output.image != NULL);
-
-    if (renderer->num_outputs >= BS_MAX_NUM_ATTACHMENTS)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
-
+void _bs_output(bs_Renderer* renderer, bs_Output output) {
     renderer->outputs[renderer->num_outputs++] = output;
 }
 
-void bs_input(bs_Renderer* renderer, bs_Input input) {
-    if (!renderer)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
+#define BS_VALIDATE(condition, format, ...) \
+    if (!(condition)) {                     \
+        bs_logF("%s", #condition); \
+        __VA_OPT__(bs_warnF(format, __VA_ARGS__)) \
+    }
 
+void _val_bs_input(bs_Renderer* renderer, bs_Input input) {
+    if (!(renderer->num_inputs >= 12)) {
+        bs_logF("%s", "renderer->num_inputs >= BS_MAX_NUM_ATTACHMENTS");
+    }; return;
+}
+
+void bs_input(bs_Renderer* renderer, bs_Input input) {
     if (renderer->num_inputs >= BS_MAX_NUM_ATTACHMENTS)
         bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
 
@@ -1546,7 +1552,6 @@ void bs_framebuffer(bs_Renderer* renderer, bs_ivec2 dim) {
             .layers = 1,
         };
 
-        struct bs_RendererSwaps* swaps = renderer->_;
         bs_throwVulkan(vkCreateFramebuffer(_bs_instance->device, &framebuf_ci, NULL, &renderer->_[i].framebuffer));
     }
 }
@@ -1594,7 +1599,7 @@ void bs_beginRender(bs_Renderer* renderer) {
         vkCmdBeginRenderPass(command_buffer, &render_pass_i, VK_SUBPASS_CONTENTS_INLINE);
     }
     else {
-        if (!_bs_procs.vkCmdBeginRenderingKHR || !_bs_procs.vkCmdEndRenderingKHR)
+        if (!_bs_procs_.vkCmdBeginRenderingKHR || !_bs_procs_.vkCmdEndRenderingKHR)
             bs_throwBasiliskF(BSX_NOT_SUPPORTED, "Dynamic rendering (vkCmdBeginRenderingKHR)");
 
         VkRenderingAttachmentInfo* attachments = _alloca(renderer->num_outputs * sizeof(VkRenderingAttachmentInfo));
@@ -1633,7 +1638,7 @@ void bs_beginRender(bs_Renderer* renderer) {
             .pStencilAttachment = VK_NULL_HANDLE,
         };
 
-        _bs_procs.vkCmdBeginRenderingKHR(command_buffer, &rendering_info);
+        _bs_procs_.vkCmdBeginRenderingKHR(command_buffer, &rendering_info);
     }
 
     VkViewport viewport = {
@@ -1665,7 +1670,7 @@ void bs_endRender(bs_Renderer* renderer) {
         vkCmdEndRenderPass(command_buffer);
     }
     else {
-        _bs_procs.vkCmdEndRenderingKHR(bsi_fetchCommands());
+        _bs_procs_.vkCmdEndRenderingKHR(bsi_fetchCommands());
     }
 
     _bs_scope.renderer = NULL;
@@ -1817,7 +1822,7 @@ void bs_rayTrace(bs_RayTracer* ray_tracer, bs_Pipeline* pipeline, bs_U32 width, 
         };
     }
 
-    _bs_procs.vkCmdTraceRaysKHR(command_buffer, tables + 0, tables + 1, tables + 2, tables + 3, width, height, depth);
+    _bs_procs_.vkCmdTraceRaysKHR(command_buffer, tables + 0, tables + 1, tables + 2, tables + 3, width, height, depth);
 }
 
 bs_Object* bs_rayTracer(bs_Object* object, bs_U32 flags, ...) {
@@ -1864,8 +1869,8 @@ void bs_accelerateBatch(bs_RayTracer* tracer, bs_Batch* batch) {
 }
 
 void bs_destroyRayTracer(bs_RayTracer* tracer) { // i'm already tracer
-    _bs_procs.vkDestroyAccelerationStructureKHR(_bs_instance->device, tracer->BLAS, NULL);
-    _bs_procs.vkDestroyAccelerationStructureKHR(_bs_instance->device, tracer->TLAS, NULL);
+    _bs_procs_.vkDestroyAccelerationStructureKHR(_bs_instance->device, tracer->BLAS, NULL);
+    _bs_procs_.vkDestroyAccelerationStructureKHR(_bs_instance->device, tracer->TLAS, NULL);
     tracer->BLAS = tracer->TLAS = NULL;
 
     memset(tracer, 0, sizeof(bs_RayTracer));
@@ -1940,7 +1945,7 @@ static bs_Result bs_buildBLAS(bs_RayTracer* tracer, bs_Buffer* staging_buffer) {
     };
 
     VkAccelerationStructureBuildSizesInfoKHR size_info = { VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR };
-    _bs_procs.vkGetAccelerationStructureBuildSizesKHR(
+    _bs_procs_.vkGetAccelerationStructureBuildSizesKHR(
         _bs_instance->device,
         VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
         &build_info,
@@ -1968,7 +1973,7 @@ static bs_Result bs_buildBLAS(bs_RayTracer* tracer, bs_Buffer* staging_buffer) {
         .offset = 0,
     };
 
-    result = bs_convertVulkanResult(_bs_procs.vkCreateAccelerationStructureKHR(_bs_instance->device, &createInfo, NULL, &tracer->BLAS));
+    result = bs_convertVulkanResult(_bs_procs_.vkCreateAccelerationStructureKHR(_bs_instance->device, &createInfo, NULL, &tracer->BLAS));
     if (result != BS_RESULT_OK) {
         bs_destroyRayTracer(tracer);
         return result;
@@ -1992,7 +1997,7 @@ static bs_Result bs_buildBLAS(bs_RayTracer* tracer, bs_Buffer* staging_buffer) {
 
     VkAccelerationStructureBuildRangeInfoKHR* pRangeInfo = &aabb_range_info;
 
-    _bs_procs.vkCmdBuildAccelerationStructuresKHR(bsi_fetchCommands(), 1, &build_info, &pRangeInfo);
+    _bs_procs_.vkCmdBuildAccelerationStructuresKHR(bsi_fetchCommands(), 1, &build_info, &pRangeInfo);
     _bs_scope.queue->flags |= BS_QUEUE_SINGLE_TIMES_BIT;
 
     bsi_pushQueue(_bs_scope.queue);
@@ -2009,7 +2014,7 @@ static bs_Result bs_buildTLAS(bs_RayTracer* tracer, bs_Buffer* staging_buffer) {
 
     VkAccelerationStructureDeviceAddressInfoKHR address_info = { VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR };
     address_info.accelerationStructure = tracer->BLAS;
-    VkDeviceAddress blasAddress = _bs_procs.vkGetAccelerationStructureDeviceAddressKHR(_bs_instance->device, &address_info);
+    VkDeviceAddress blasAddress = _bs_procs_.vkGetAccelerationStructureDeviceAddressKHR(_bs_instance->device, &address_info);
 
     VkAccelerationStructureInstanceKHR instance = { 0 };
     const float rcpSqrt2 = sqrtf(0.5f);
@@ -2086,7 +2091,7 @@ static bs_Result bs_buildTLAS(bs_RayTracer* tracer, bs_Buffer* staging_buffer) {
     };
 
     VkAccelerationStructureBuildSizesInfoKHR size_info = { VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR };
-    _bs_procs.vkGetAccelerationStructureBuildSizesKHR(_bs_instance->device, VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &build_info,
+    _bs_procs_.vkGetAccelerationStructureBuildSizesKHR(_bs_instance->device, VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &build_info,
         &range_info.primitiveCount, &size_info);
 
     tracer->TLAS_buffer = BS_BUFFER(-1, 0, 0)->buffer;
@@ -2110,7 +2115,7 @@ static bs_Result bs_buildTLAS(bs_RayTracer* tracer, bs_Buffer* staging_buffer) {
         .offset = 0,
     };
 
-    result = bs_convertVulkanResult(_bs_procs.vkCreateAccelerationStructureKHR(_bs_instance->device, &createInfo, NULL, &tracer->TLAS));
+    result = bs_convertVulkanResult(_bs_procs_.vkCreateAccelerationStructureKHR(_bs_instance->device, &createInfo, NULL, &tracer->TLAS));
     if (result != BS_RESULT_OK) {
         bs_destroyRayTracer(tracer);
         return result;
@@ -2135,7 +2140,7 @@ static bs_Result bs_buildTLAS(bs_RayTracer* tracer, bs_Buffer* staging_buffer) {
 
     VkAccelerationStructureBuildRangeInfoKHR* p_range_info = &range_info;
 
-    _bs_procs.vkCmdBuildAccelerationStructuresKHR(bsi_fetchCommands(), 1, &build_info, &p_range_info);
+    _bs_procs_.vkCmdBuildAccelerationStructuresKHR(bsi_fetchCommands(), 1, &build_info, &p_range_info);
     _bs_scope.queue->flags |= BS_QUEUE_SINGLE_TIMES_BIT;
 
     bsi_pushQueue(_bs_scope.queue);
@@ -2248,7 +2253,7 @@ int bs_queueSwapsCount(bs_Queue* queue) {
 }
 
 int bs_queueSwap(bs_Queue* queue) {
-    return queue->flags & BSI_QUEUE_SWAPS_BIT ? _bs_swapchain->frame : 0;
+    return queue->flags & BSI_QUEUE_SWAPS_BIT ? _bs_swapchain_->frame : 0;
 }
 
 bs_Object* bs_queue(bs_Object* object, bs_QueueBits flags) {
@@ -2373,7 +2378,7 @@ void bs_awaitQueue(bs_Queue* queue, bs_PipelineStage stage) {
 }
 
 void bs_awaitAcquisition() {
-    _bs_scope.wait_semaphores[_bs_scope.wait_num] = _bs_swapchain->_[_bs_swapchain->frame].semaphore;
+    _bs_scope.wait_semaphores[_bs_scope.wait_num] = _bs_swapchain_->_[_bs_swapchain_->frame].semaphore;
     _bs_scope.wait_stages[_bs_scope.wait_num] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     _bs_scope.wait_num++;
 }
@@ -2500,7 +2505,7 @@ void bs_runSingle(void (*f)()) {
    *============================================================================*/
 
 bs_Image* bs_swapchainImage() {
-    return _bs_swapchain->image->image;
+    return _bs_swapchain_->image->image;
 }
 
 int bs_imageIndex() {
@@ -2510,12 +2515,12 @@ int bs_imageIndex() {
 void bs_prepareSwapchain();
 void bs_destroySwapchain() {
     for (int i = 0; i < _bs_settings.frames_in_flight; i++) {
-        vkDestroyImageView(_bs_instance->device, _bs_swapchain->image->image->_[i].view, NULL);
-        _bs_swapchain->image->image->_[i].view = 0;
+        vkDestroyImageView(_bs_instance->device, _bs_swapchain_->image->image->_[i].view, NULL);
+        _bs_swapchain_->image->image->_[i].view = 0;
     }
 
-    vkDestroySwapchainKHR(_bs_instance->device, _bs_swapchain->swapchain, NULL);
-    _bs_swapchain->swapchain = 0;
+    vkDestroySwapchainKHR(_bs_instance->device, _bs_swapchain_->swapchain, NULL);
+    _bs_swapchain_->swapchain = 0;
 }
 
 void bs_resizeSwapchain() {
@@ -2536,13 +2541,13 @@ void bs_resizeSwapchain() {
 
 // these functions should probably not be called by user
 void bs_acquire() {
-    if (_bs_swapchain->image_acquired) return;
+    if (_bs_swapchain_->image_acquired) return;
 
     VkResult result = vkAcquireNextImageKHR(
         _bs_instance->device,
-        _bs_swapchain->swapchain,
+        _bs_swapchain_->swapchain,
         BS_U64_MAX,
-        _bs_swapchain->_[_bs_swapchain->frame].semaphore,
+        _bs_swapchain_->_[_bs_swapchain_->frame].semaphore,
         VK_NULL_HANDLE,
         &bs_image_index);
 
@@ -2620,7 +2625,7 @@ void bs_present(bs_Queue* queue, ...) {
         .waitSemaphoreCount = num_wait_semaphores,
         .pWaitSemaphores = wait_semaphores,
         .swapchainCount = 1,
-        .pSwapchains = &_bs_swapchain->swapchain,
+        .pSwapchains = &_bs_swapchain_->swapchain,
         .pImageIndices = &bs_image_index,
     };
 
@@ -2631,6 +2636,6 @@ void bs_present(bs_Queue* queue, ...) {
     else if (result != VK_SUCCESS)
         bs_throwVulkan(result);
 
-    _bs_swapchain->frame = (_bs_swapchain->frame + 1) % _bs_settings.frames_in_flight;
-    _bs_swapchain->image_acquired = false;
+    _bs_swapchain_->frame = (_bs_swapchain_->frame + 1) % _bs_settings.frames_in_flight;
+    _bs_swapchain_->image_acquired = false;
 }

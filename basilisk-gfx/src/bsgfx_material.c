@@ -1,4 +1,4 @@
-#include <basilisk.h>
+#include <basilisk-core.h>
 
 #include <bsgfx.h>
 #include <bsgfx_cache.h>

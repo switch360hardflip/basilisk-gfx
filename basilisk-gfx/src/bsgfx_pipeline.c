@@ -1,5 +1,5 @@
 #include <bs_internal.h> 
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bs_base64.h> 
 
 #include <bsgfx.h>

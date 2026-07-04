@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <inttypes.h>
 
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bs_internal.h>
 #include <vulkan.h>
 
@@ -1395,7 +1395,7 @@ bs_Result bs_rayTracingPipeline(bs_RayTracePipelineHash* pipeline_hash, bs_Pipel
         .layout = existing->layout,
     };
 
-    result = bs_convertVulkanResult(_bs_procs.vkCreateRayTracingPipelinesKHR(
+    result = bs_convertVulkanResult(_bs_procs_.vkCreateRayTracingPipelinesKHR(
         _bs_instance->device, 
         NULL, 
         NULL, 
@@ -1425,7 +1425,7 @@ bs_Result bs_rayTracingPipeline(bs_RayTracePipelineHash* pipeline_hash, bs_Pipel
     bs_U32 buffer_size = tracer->groups_count * tracer->record_size;
 
     char* shader_handle_storage = bs_malloc(buffer_size);
-    _bs_procs.vkGetRayTracingShaderGroupHandlesKHR(_bs_instance->device, existing->pipeline, 0, tracer->groups_count, buffer_size, shader_handle_storage);
+    _bs_procs_.vkGetRayTracingShaderGroupHandlesKHR(_bs_instance->device, existing->pipeline, 0, tracer->groups_count, buffer_size, shader_handle_storage);
 
     existing->binding_table = BS_BUFFER(-1, 0, 0);
     bs_buffer(existing->binding_table, buffer_size,

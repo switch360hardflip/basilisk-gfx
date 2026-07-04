@@ -13,7 +13,7 @@
 #include <unistd.h>
 #endif
 
-#include <basilisk.h>s
+#include <basilisk-core.h>s
 #include <bs_internal.h>
 #include <vulkan.h>
 
@@ -27,7 +27,7 @@ bs_Window _bs_wnd = {
 
 bs_Instance* _bs_instance;
 bs_IO _bs_io;
-bs_Swapchain* _bs_swapchain;
+bs_Swapchain* _bs_swapchain_;
 int bs_image_index = 0;
 bs_String* _bs_string_builder = NULL;
 

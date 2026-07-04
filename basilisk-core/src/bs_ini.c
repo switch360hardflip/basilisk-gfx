@@ -7,7 +7,7 @@
 #include <vulkan.h>
 #include <vulkan/vulkan_core.h>
 
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bs_internal.h>
 
 const char* validation_layers[] = {
@@ -21,7 +21,7 @@ bs_Settings _bs_settings = {
     .frames_in_flight = 2,
     .frames_in_flight_max = 3,
 };
-bs_Procs _bs_procs = { 0 };
+bs_Procs _bs_procs_ = { 0 };
 bs_Config _bs_config = {
     .attributes.unit_size = sizeof(bs_AttributeType),
 };
@@ -629,25 +629,25 @@ void bs_prepareSwapchain() {
     bs_infoF("Swapchain\n  Format: %d\n  Mode: %d\n  Images: %d\n", swapchain_ci.imageFormat, swapchain_ci.presentMode, _bs_settings.frames_in_flight);
 
     // TODO: use new object system
-    if (!_bs_swapchain) {
+    if (!_bs_swapchain_) {
         swapchain.image = BS_OBJECT(bs_Image, -1, 0, swapchain_image_count, BS_OBJECT_HAS_SWAPS_BIT);
         *swapchain.image->image = image;
         bs_U64 size = sizeof(bs_Swapchain) + BS_SWAP_SIZE(bs_Swapchain) * swapchain_image_count;
-        _bs_swapchain = _bs_swapchain ? _bs_swapchain : bs_malloc(size);
+        _bs_swapchain_ = _bs_swapchain_ ? _bs_swapchain_ : bs_malloc(size);
     }
     else
         *swapchain.image->image = image;
-    memcpy(_bs_swapchain, &swapchain, sizeof(bs_Swapchain));
+    memcpy(_bs_swapchain_, &swapchain, sizeof(bs_Swapchain));
 
    /**
     Swapchain image views
     */
     for (int i = 0; i < swapchain_image_count; i++) {
-        _bs_swapchain->image->image->_[i].vk_image = images[i];
+        _bs_swapchain_->image->image->_[i].vk_image = images[i];
 
         VkImageViewCreateInfo image_view_ci = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .image = _bs_swapchain->image->image->_[i].vk_image,
+            .image = _bs_swapchain_->image->image->_[i].vk_image,
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
             .format = surface_format.format,
             .subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -655,7 +655,7 @@ void bs_prepareSwapchain() {
             .subresourceRange.layerCount = 1,
         };
 
-        bs_throwVulkan(vkCreateImageView(_bs_instance->device, &image_view_ci, NULL, &_bs_swapchain->image->image->_[i].view));
+        bs_throwVulkan(vkCreateImageView(_bs_instance->device, &image_view_ci, NULL, &_bs_swapchain_->image->image->_[i].view));
     }
 
    /**
@@ -666,7 +666,7 @@ void bs_prepareSwapchain() {
     };
 
     for (int i = 0; i < swapchain_image_count; i++) {
-        bs_throwVulkan(vkCreateSemaphore(_bs_instance->device, &semaphore_ci, NULL, &_bs_swapchain->_[i].semaphore));
+        bs_throwVulkan(vkCreateSemaphore(_bs_instance->device, &semaphore_ci, NULL, &_bs_swapchain_->_[i].semaphore));
     }
 }
 
@@ -688,7 +688,7 @@ void bs_parseArgs(int argc, char* argv[]) {
 }
 
 #define BS_REQUIRE_PROCEDURE(name) \
-    if (!_bs_procs.##name##) { \
+    if (!_bs_procs_.##name##) { \
         bs_throwBasiliskF(BSX_FAILED_TO_QUERY, #name); \
     }
 
@@ -726,7 +726,7 @@ void bs_ini() {
     bs_prepareLogicalDevice();
 
     bs_Procedure procedures[] = { BS_FOREACH_PROC(BS_STRING_GEN_2) };
-    bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), 0, &_bs_procs);
+    bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), 0, &_bs_procs_);
 
     bs_prepareSwapchain();
     bs_prepareCommands();

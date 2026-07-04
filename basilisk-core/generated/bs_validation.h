@@ -42,6 +42,7 @@ bs_FunctionTable _val_bs_getFunctions() {
         &_val_bs_getFunctions,
         &module);
 
+    functions.bs_v2 = GetProcAddress(module, "_val_bs_v2");
     functions.bs_v2Add = GetProcAddress(module, "_val_bs_v2Add");
     functions.bs_v2Sub = GetProcAddress(module, "_val_bs_v2Sub");
     functions.bs_v2Mul = GetProcAddress(module, "_val_bs_v2Mul");
@@ -51,6 +52,7 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_v2Dot = GetProcAddress(module, "_val_bs_v2Dot");
     functions.bs_v2Normalize = GetProcAddress(module, "_val_bs_v2Normalize");
     functions.bs_v2NormalizeTo = GetProcAddress(module, "_val_bs_v2NormalizeTo");
+    functions.bs_v3 = GetProcAddress(module, "_val_bs_v3");
     functions.bs_v3Add = GetProcAddress(module, "_val_bs_v3Add");
     functions.bs_v3Sub = GetProcAddress(module, "_val_bs_v3Sub");
     functions.bs_v3Mul = GetProcAddress(module, "_val_bs_v3Mul");
@@ -60,6 +62,7 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_v3Dot = GetProcAddress(module, "_val_bs_v3Dot");
     functions.bs_v3Normalize = GetProcAddress(module, "_val_bs_v3Normalize");
     functions.bs_v3NormalizeTo = GetProcAddress(module, "_val_bs_v3NormalizeTo");
+    functions.bs_v4 = GetProcAddress(module, "_val_bs_v4");
     functions.bs_v4Add = GetProcAddress(module, "_val_bs_v4Add");
     functions.bs_v4Sub = GetProcAddress(module, "_val_bs_v4Sub");
     functions.bs_v4Mul = GetProcAddress(module, "_val_bs_v4Mul");
@@ -131,6 +134,7 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_destroyBatch = GetProcAddress(module, "_val_bs_destroyBatch");
     functions.bs_recreateBatch = GetProcAddress(module, "_val_bs_recreateBatch");
     functions.bs_ensureBatchSize = GetProcAddress(module, "_val_bs_ensureBatchSize");
+    functions.bs_batchVertex = GetProcAddress(module, "_val_bs_batchVertex");
     functions.bs_batchRange = GetProcAddress(module, "_val_bs_batchRange");
     functions.bs_pushIndex = GetProcAddress(module, "_val_bs_pushIndex");
     functions.bs_pushIndexV = GetProcAddress(module, "_val_bs_pushIndexV");

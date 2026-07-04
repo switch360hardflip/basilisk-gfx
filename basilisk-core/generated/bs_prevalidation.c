@@ -36,6 +36,10 @@ void _preval_bs_setFunctions(bs_FunctionTable functions) {
     next = functions;
 }
 
+static bs_vec2 _preval_bs_v2() {
+    return next.bs_v2();
+}
+
 static void _preval_bs_v2Add(bs_vec2* a, bs_vec2* b, bs_vec2* out) {
     if (a == NULL)
         return;
@@ -135,6 +139,10 @@ static float _preval_bs_v2NormalizeTo(const bs_vec2* v, bs_vec2* out) {
     return next.bs_v2NormalizeTo(v, out);
 }
 
+static bs_vec3 _preval_bs_v3() {
+    return next.bs_v3();
+}
+
 static void _preval_bs_v3Add(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
     if (a == NULL)
         return;
@@ -232,6 +240,10 @@ static float _preval_bs_v3NormalizeTo(const bs_vec3* v, bs_vec3* out) {
         return 0;
 
     return next.bs_v3NormalizeTo(v, out);
+}
+
+static bs_vec4 _preval_bs_v4() {
+    return next.bs_v4();
 }
 
 static void _preval_bs_v4Add(bs_vec4* a, bs_vec4* b, bs_vec4* out) {
@@ -403,15 +415,15 @@ static bs_Result _preval_bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2
     return next.bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, result);
 }
 
-static bs_Result _preval_bs_populateVertexDeclaration(bs_VertexDeclaration* declaration, bs_Attribute* attributes, int attributes_count) {
+static void _preval_bs_populateVertexDeclaration(bs_VertexDeclaration* declaration, bs_Attribute* attributes, int attributes_count) {
     if (declaration == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (attributes == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (!(attributes_count > 0))
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_populateVertexDeclaration(declaration, attributes, attributes_count);
 }
@@ -478,12 +490,12 @@ static int _preval_bs_batchSize(bs_Batch* batch) {
     return next.bs_batchSize(batch);
 }
 
-static bs_Result _preval_bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offset, bs_U32 vertex_count, bs_U32 first_instance, bs_U32 num_instances) {
+static void _preval_bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offset, bs_U32 vertex_count, bs_U32 first_instance, bs_U32 num_instances) {
     if (batch == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (pipeline == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_render(batch, pipeline, vertex_offset, vertex_count, first_instance, num_instances);
 }
@@ -578,9 +590,9 @@ static char* _preval_bs_bufferMap(bs_Buffer* buffer) {
     return next.bs_bufferMap(buffer);
 }
 
-static char* _preval_bs_mapBuffer(bs_Buffer* buffer, bs_U32 num_bytes) {
+static bs_Result _preval_bs_mapBuffer(bs_Buffer* buffer, bs_U32 num_bytes) {
     if (buffer == NULL)
-        return NULL;
+        return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_mapBuffer(buffer, num_bytes);
 }
@@ -656,14 +668,17 @@ static bs_Result _preval_bs_batch(bs_Object* object, int index_size, bs_Shader* 
     return next.bs_batch(object, index_size, vertex_shader, flags);
 }
 
-static bs_Attribute* _preval_bs_queryAttribute(bs_Batch* batch, char* value, int value_length) {
+static bs_Attribute* _preval_bs_queryAttribute(bs_Batch* batch, bs_Batch* , char* value, int value_length) {
     if (batch == NULL)
+        return NULL;
+
+    if ( == NULL)
         return NULL;
 
     if (value == NULL)
         return NULL;
 
-    return next.bs_queryAttribute(batch, value, value_length);
+    return next.bs_queryAttribute(batch, , value, value_length);
 }
 
 static bool _preval_bs_batchIsPushed(bs_Batch* batch) {
@@ -720,6 +735,16 @@ static bs_Result _preval_bs_ensureBatchSize(bs_Batch* batch, bs_U32 num_indices,
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_ensureBatchSize(batch, num_indices, num_vertices);
+}
+
+static void _preval_bs_batchVertex(bs_VertexDeclaration* declaration, const unsigned char* src) {
+    if (declaration == NULL)
+        return;
+
+    if (src == NULL)
+        return;
+
+    return next.bs_batchVertex(declaration, src);
 }
 
 static bs_Range _preval_bs_batchRange(bs_Batch* batch, bs_U32 offset) {
@@ -872,6 +897,9 @@ static bs_Result _preval_bs_renderer(bs_Object* object, bs_RendererBits flags) {
 
 static void _preval_bs_output(bs_Renderer* renderer, bs_Output output) {
     if (renderer == NULL)
+        return;
+
+    if (!(renderer >= BS_MAX_NUM_ATTACHMENTS))
         return;
 
     return next.bs_output(renderer, output);
@@ -3368,6 +3396,7 @@ static void _preval_bs_deleteDirectory(char* value, int value_length) {
 bs_FunctionTable _preval_bs_getFunctionTable() {
     bs_FunctionTable functions;
 
+    functions.bs_v2 = _preval_bs_v2;
     functions.bs_v2Add = _preval_bs_v2Add;
     functions.bs_v2Sub = _preval_bs_v2Sub;
     functions.bs_v2Mul = _preval_bs_v2Mul;
@@ -3377,6 +3406,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v2Dot = _preval_bs_v2Dot;
     functions.bs_v2Normalize = _preval_bs_v2Normalize;
     functions.bs_v2NormalizeTo = _preval_bs_v2NormalizeTo;
+    functions.bs_v3 = _preval_bs_v3;
     functions.bs_v3Add = _preval_bs_v3Add;
     functions.bs_v3Sub = _preval_bs_v3Sub;
     functions.bs_v3Mul = _preval_bs_v3Mul;
@@ -3386,6 +3416,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v3Dot = _preval_bs_v3Dot;
     functions.bs_v3Normalize = _preval_bs_v3Normalize;
     functions.bs_v3NormalizeTo = _preval_bs_v3NormalizeTo;
+    functions.bs_v4 = _preval_bs_v4;
     functions.bs_v4Add = _preval_bs_v4Add;
     functions.bs_v4Sub = _preval_bs_v4Sub;
     functions.bs_v4Mul = _preval_bs_v4Mul;
@@ -3451,6 +3482,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_destroyBatch = _preval_bs_destroyBatch;
     functions.bs_recreateBatch = _preval_bs_recreateBatch;
     functions.bs_ensureBatchSize = _preval_bs_ensureBatchSize;
+    functions.bs_batchVertex = _preval_bs_batchVertex;
     functions.bs_batchRange = _preval_bs_batchRange;
     functions.bs_pushIndex = _preval_bs_pushIndex;
     functions.bs_pushIndexV = _preval_bs_pushIndexV;

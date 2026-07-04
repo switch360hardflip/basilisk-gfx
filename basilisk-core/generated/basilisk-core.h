@@ -91,6 +91,7 @@ typedef struct bs_Input bs_Input;
 typedef struct bs_RendererSwaps bs_RendererSwaps;
 typedef struct bs_Renderer bs_Renderer;
 typedef struct bs_Batch bs_Batch;
+typedef struct bs_QueueSwaps bs_QueueSwaps;
 typedef struct bs_Queue bs_Queue;
 typedef struct bs_RayTracer bs_RayTracer;
 typedef struct bs_ShaderGroup bs_ShaderGroup;
@@ -1918,6 +1919,15 @@ struct bs_Header {
 struct bs_Object {
     bs_Header* head;
     bs_U32 flags;
+    union  {
+        bs_Batch* batch;
+        bs_Buffer* buffer;
+        bs_Image* image;
+        bs_Sampler* sampler;
+        bs_Renderer* renderer;
+        bs_Sound* sound;
+        bs_Queue* queue;
+    };
 };
 
 struct bs_ResourceParams {
@@ -2060,6 +2070,8 @@ struct bs_Pipeline {
     int constant_size;
     bs_String* name;
     bs_Buffer* binding_table;
+    struct VkPipelineLayout_T* layout;
+    struct VkPipeline_T* pipeline;
 };
 
 struct bs_PipelineHash {
@@ -2168,6 +2180,8 @@ struct bs_Renderer {
     int num_subpasses;
     int num_dependencies;
     bs_ivec2 dim;
+    bs_ivec2 dim;
+    bs_RendererSwaps _[];
 };
 
 struct bs_Batch {
@@ -2183,10 +2197,16 @@ struct bs_Batch {
     bs_List indices;
 };
 
+struct bs_QueueSwaps {
+    struct VkCommandBuffer_T* command_buffer;
+};
+
 struct bs_Queue {
     bs_Header head;
     bs_QueueBits flags;
     bs_U32 family;
+    struct VkQueue_T* queue;
+    bs_QueueSwaps _[];
 };
 
 struct bs_RayTracer {
@@ -2793,6 +2813,7 @@ enum bs_Result {
     BS_RESULT_NOT_SUPPORTED,
     BS_RESULT_NOT_IMPLEMENTED,
     BS_RESULT_FAILED_TO_QUERY,
+    BS_RESULT_OUT_OF_BOUNDS,
 };
 
 enum bs_IniFlag {
@@ -3537,6 +3558,12 @@ enum bs_SwapchainMode {
 };
 
  /**
+  @return bs_vec2
+  */
+BSAPI bs_vec2
+bs_v2();
+
+ /**
   @param a
   @param b
   @param out
@@ -3637,6 +3664,12 @@ bs_v2NormalizeTo(
     bs_vec2* out);
 
  /**
+  @return bs_vec3
+  */
+BSAPI bs_vec3
+bs_v3();
+
+ /**
   @param a
   @param b
   @param out
@@ -3735,6 +3768,12 @@ BSAPI float
 bs_v3NormalizeTo(
     const bs_vec3* v,
     bs_vec3* out);
+
+ /**
+  @return bs_vec4
+  */
+BSAPI bs_vec4
+bs_v4();
 
  /**
   @param a
@@ -3972,9 +4011,9 @@ bs_lineVsLine(
   @param declaration
   @param attributes
   @param attributes_count
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_populateVertexDeclaration(
     bs_VertexDeclaration* declaration,
     bs_Attribute* attributes,
@@ -4131,9 +4170,9 @@ bs_batchSize(
   @param vertex_count
   @param first_instance
   @param num_instances
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_render(
     bs_Batch* batch,
     bs_Pipeline* pipeline,
@@ -4307,9 +4346,9 @@ bs_bufferMap(
  /**
   @param buffer
   @param num_bytes
-  @return char*
+  @return bs_Result
   */
-BSAPI char*
+BSAPI bs_Result
 bs_mapBuffer(
     bs_Buffer* buffer,
     bs_U32 num_bytes);
@@ -4408,6 +4447,7 @@ bs_batch(
 
  /**
   @param batch
+  @param 
   @param value
   @param value_length
   @return bs_Attribute*
@@ -4415,11 +4455,13 @@ bs_batch(
 BSAPI bs_Attribute*
 bs_queryAttribute(
     bs_Batch* batch,
+    bs_Batch* ,
     char* value,
     int value_length);
 
  /**
   @param batch
+  @param 
   @param format
   @param args
   @return bs_Attribute*
@@ -4427,11 +4469,13 @@ bs_queryAttribute(
 BSAPI bs_Attribute*
 bs_queryAttributeV(
     bs_Batch* batch,
+    bs_Batch* ,
     char* format,
     va_list args);
 
  /**
   @param batch
+  @param 
   @param format
   @param ...
   @return bs_Attribute*
@@ -4439,6 +4483,7 @@ bs_queryAttributeV(
 BSAPI bs_Attribute*
 bs_queryAttributeF(
     bs_Batch* batch,
+    bs_Batch* ,
     char* format,
      ...);
 
@@ -4513,6 +4558,16 @@ bs_ensureBatchSize(
     bs_Batch* batch,
     bs_U32 num_indices,
     bs_U32 num_vertices);
+
+ /**
+  @param declaration
+  @param src
+  @return void
+  */
+BSAPI void
+bs_batchVertex(
+    bs_VertexDeclaration* declaration,
+    const unsigned char* src);
 
  /**
   @param batch

@@ -33,6 +33,7 @@
 #ifndef BS_INTERNAL_H
 #define BS_INTERNAL_H
 
+typedef bs_vec2(__stdcall* PFN_bs_v2)();
 typedef void(__stdcall* PFN_bs_v2Add)(bs_vec2* a, bs_vec2* b, bs_vec2* out);
 typedef void(__stdcall* PFN_bs_v2Sub)(bs_vec2* a, bs_vec2* b, bs_vec2* out);
 typedef void(__stdcall* PFN_bs_v2Mul)(bs_vec2* a, bs_vec2* b, bs_vec2* out);
@@ -42,6 +43,7 @@ typedef void(__stdcall* PFN_bs_v2DivV1)(bs_vec2* v, float s, bs_vec2* out);
 typedef float(__stdcall* PFN_bs_v2Dot)(bs_vec2* a, bs_vec2* b);
 typedef float(__stdcall* PFN_bs_v2Normalize)(bs_vec2* v);
 typedef float(__stdcall* PFN_bs_v2NormalizeTo)(const bs_vec2* v, bs_vec2* out);
+typedef bs_vec3(__stdcall* PFN_bs_v3)();
 typedef void(__stdcall* PFN_bs_v3Add)(bs_vec3* a, bs_vec3* b, bs_vec3* out);
 typedef void(__stdcall* PFN_bs_v3Sub)(bs_vec3* a, bs_vec3* b, bs_vec3* out);
 typedef void(__stdcall* PFN_bs_v3Mul)(bs_vec3* a, bs_vec3* b, bs_vec3* out);
@@ -51,6 +53,7 @@ typedef void(__stdcall* PFN_bs_v3DivV1)(bs_vec3* v, float s, bs_vec3* out);
 typedef float(__stdcall* PFN_bs_v3Dot)(bs_vec3* a, bs_vec3* b);
 typedef float(__stdcall* PFN_bs_v3Normalize)(bs_vec3* v);
 typedef float(__stdcall* PFN_bs_v3NormalizeTo)(const bs_vec3* v, bs_vec3* out);
+typedef bs_vec4(__stdcall* PFN_bs_v4)();
 typedef void(__stdcall* PFN_bs_v4Add)(bs_vec4* a, bs_vec4* b, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_v4Sub)(bs_vec4* a, bs_vec4* b, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_v4Mul)(bs_vec4* a, bs_vec4* b, bs_vec4* out);
@@ -70,7 +73,7 @@ typedef bs_Result(__stdcall* PFN_bs_sphereVsBox)(bs_vec3 center, float radius, b
 typedef bs_Result(__stdcall* PFN_bs_rectangleVsPoint)(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point, bs_RectangleVsPoint* result);
 typedef bs_Result(__stdcall* PFN_bs_rectangleVsPointAbs)(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point, bs_RectangleVsPoint* result);
 typedef bs_Result(__stdcall* PFN_bs_lineVsLine)(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_LineVsLine* result);
-typedef bs_Result(__stdcall* PFN_bs_populateVertexDeclaration)(bs_VertexDeclaration* declaration, bs_Attribute* attributes, int attributes_count);
+typedef void(__stdcall* PFN_bs_populateVertexDeclaration)(bs_VertexDeclaration* declaration, bs_Attribute* attributes, int attributes_count);
 typedef bs_Swapchain*(__stdcall* PFN_bs_swapchain)();
 typedef int(__stdcall* PFN_bs_currentSwap)();
 typedef bs_Result(__stdcall* PFN_bs_beginComment)(char* value, int value_length);
@@ -85,7 +88,7 @@ typedef bs_Result(__stdcall* PFN_bs_stencilReference)(bs_FaceType face, bs_U32 r
 typedef bs_Result(__stdcall* PFN_bs_cull)(bs_CullFlags flags);
 typedef bs_Result(__stdcall* PFN_bs_setLineWidth)(float width);
 typedef int(__stdcall* PFN_bs_batchSize)(bs_Batch* batch);
-typedef bs_Result(__stdcall* PFN_bs_render)(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offset, bs_U32 vertex_count, bs_U32 first_instance, bs_U32 num_instances);
+typedef void(__stdcall* PFN_bs_render)(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offset, bs_U32 vertex_count, bs_U32 first_instance, bs_U32 num_instances);
 typedef bs_Result(__stdcall* PFN_bs_barrier)(bs_U32 dependency_flags, bs_U32 src, bs_U32 dst, bs_U32 src_access, bs_U32 dst_access);
 typedef bs_Result(__stdcall* PFN_bs_rayTrace)(bs_RayTracer* ray_tracer, bs_Pipeline* pipeline, bs_U32 width, bs_U32 height, bs_U32 depth);
 typedef bs_Result(__stdcall* PFN_bs_rayTracer)(bs_Object* object, bs_U32 flags, ...);
@@ -98,7 +101,7 @@ typedef int(__stdcall* PFN_bs_bufferSwaps)(bs_Buffer* buffer);
 typedef bs_Result(__stdcall* PFN_bs_nameBuffer)(bs_Buffer* buffer, char* value, int value_length);
 typedef bs_Result(__stdcall* PFN_bs_buffer)(bs_Object* object, bs_U32 num_bytes, bs_BufferUsageFlags usage_flags, bs_MemoryPropertyFlags memory_flags, bs_BufferBits flags);
 typedef char*(__stdcall* PFN_bs_bufferMap)(bs_Buffer* buffer);
-typedef char*(__stdcall* PFN_bs_mapBuffer)(bs_Buffer* buffer, bs_U32 num_bytes);
+typedef bs_Result(__stdcall* PFN_bs_mapBuffer)(bs_Buffer* buffer, bs_U32 num_bytes);
 typedef bs_Result(__stdcall* PFN_bs_unmapBuffer)(bs_Buffer* buffer);
 typedef bs_Result(__stdcall* PFN_bs_stageNull)(bs_Buffer* buffer);
 typedef bs_Result(__stdcall* PFN_bs_stageList)(bs_Buffer* buffer, bs_List* list);
@@ -107,7 +110,7 @@ typedef bs_Result(__stdcall* PFN_bs_destroyBuffer)(bs_Buffer* buffer);
 typedef bs_Result(__stdcall* PFN_bs_copyAsync)(bs_Buffer* src, bs_Buffer* dst, bs_U32 src_offset, bs_U32 dst_offset, bs_U32 num_bytes);
 typedef bs_Result(__stdcall* PFN_bs_setBufferAsync)(bs_Buffer* buffer, bs_U32 offset, bs_U32 num_bytes, bs_U32 value);
 typedef bs_Result(__stdcall* PFN_bs_batch)(bs_Object* object, int index_size, bs_Shader* vertex_shader, bs_BatchBits flags);
-typedef bs_Attribute*(__stdcall* PFN_bs_queryAttribute)(bs_Batch* batch, char* value, int value_length);
+typedef bs_Attribute*(__stdcall* PFN_bs_queryAttribute)(bs_Batch* batch, bs_Batch* , char* value, int value_length);
 typedef bool(__stdcall* PFN_bs_batchIsPushed)(bs_Batch* batch);
 typedef bool(__stdcall* PFN_bs_batchIsIndexed)(bs_Batch* batch);
 typedef bs_Result(__stdcall* PFN_bs_minimizeBatch)(bs_Batch* batch);
@@ -116,6 +119,7 @@ typedef bs_Result(__stdcall* PFN_bs_unpushBatch)(bs_Batch* batch);
 typedef bs_Result(__stdcall* PFN_bs_destroyBatch)(bs_Batch* batch);
 typedef bs_Result(__stdcall* PFN_bs_recreateBatch)(bs_Batch* batch);
 typedef bs_Result(__stdcall* PFN_bs_ensureBatchSize)(bs_Batch* batch, bs_U32 num_indices, bs_U32 num_vertices);
+typedef void(__stdcall* PFN_bs_batchVertex)(bs_VertexDeclaration* declaration, const unsigned char* src);
 typedef bs_Range(__stdcall* PFN_bs_batchRange)(bs_Batch* batch, bs_U32 offset);
 typedef void(__stdcall* PFN_bs_pushIndex)(bs_Batch* batch, bs_U32 index);
 typedef void(__stdcall* PFN_bs_pushIndexV)(bs_Batch* batch, bs_U32 num_indices, ...);
@@ -481,6 +485,7 @@ typedef void(__stdcall* PFN_bs_deleteDirectoryContents)(char* value, int value_l
 typedef void(__stdcall* PFN_bs_deleteDirectory)(char* value, int value_length);
 
 typedef struct {
+    PFN_bs_v2 bs_v2;
     PFN_bs_v2Add bs_v2Add;
     PFN_bs_v2Sub bs_v2Sub;
     PFN_bs_v2Mul bs_v2Mul;
@@ -490,6 +495,7 @@ typedef struct {
     PFN_bs_v2Dot bs_v2Dot;
     PFN_bs_v2Normalize bs_v2Normalize;
     PFN_bs_v2NormalizeTo bs_v2NormalizeTo;
+    PFN_bs_v3 bs_v3;
     PFN_bs_v3Add bs_v3Add;
     PFN_bs_v3Sub bs_v3Sub;
     PFN_bs_v3Mul bs_v3Mul;
@@ -499,6 +505,7 @@ typedef struct {
     PFN_bs_v3Dot bs_v3Dot;
     PFN_bs_v3Normalize bs_v3Normalize;
     PFN_bs_v3NormalizeTo bs_v3NormalizeTo;
+    PFN_bs_v4 bs_v4;
     PFN_bs_v4Add bs_v4Add;
     PFN_bs_v4Sub bs_v4Sub;
     PFN_bs_v4Mul bs_v4Mul;
@@ -564,6 +571,7 @@ typedef struct {
     PFN_bs_destroyBatch bs_destroyBatch;
     PFN_bs_recreateBatch bs_recreateBatch;
     PFN_bs_ensureBatchSize bs_ensureBatchSize;
+    PFN_bs_batchVertex bs_batchVertex;
     PFN_bs_batchRange bs_batchRange;
     PFN_bs_pushIndex bs_pushIndex;
     PFN_bs_pushIndexV bs_pushIndexV;
@@ -938,6 +946,7 @@ bs_FunctionTable _bs_getFunctions() {
         &_bs_getFunctions,
         &module);
 
+    functions.bs_v2 = GetProcAddress(module, "_bs_v2");
     functions.bs_v2Add = GetProcAddress(module, "_bs_v2Add");
     functions.bs_v2Sub = GetProcAddress(module, "_bs_v2Sub");
     functions.bs_v2Mul = GetProcAddress(module, "_bs_v2Mul");
@@ -947,6 +956,7 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_v2Dot = GetProcAddress(module, "_bs_v2Dot");
     functions.bs_v2Normalize = GetProcAddress(module, "_bs_v2Normalize");
     functions.bs_v2NormalizeTo = GetProcAddress(module, "_bs_v2NormalizeTo");
+    functions.bs_v3 = GetProcAddress(module, "_bs_v3");
     functions.bs_v3Add = GetProcAddress(module, "_bs_v3Add");
     functions.bs_v3Sub = GetProcAddress(module, "_bs_v3Sub");
     functions.bs_v3Mul = GetProcAddress(module, "_bs_v3Mul");
@@ -956,6 +966,7 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_v3Dot = GetProcAddress(module, "_bs_v3Dot");
     functions.bs_v3Normalize = GetProcAddress(module, "_bs_v3Normalize");
     functions.bs_v3NormalizeTo = GetProcAddress(module, "_bs_v3NormalizeTo");
+    functions.bs_v4 = GetProcAddress(module, "_bs_v4");
     functions.bs_v4Add = GetProcAddress(module, "_bs_v4Add");
     functions.bs_v4Sub = GetProcAddress(module, "_bs_v4Sub");
     functions.bs_v4Mul = GetProcAddress(module, "_bs_v4Mul");
@@ -1027,6 +1038,7 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_destroyBatch = GetProcAddress(module, "_bs_destroyBatch");
     functions.bs_recreateBatch = GetProcAddress(module, "_bs_recreateBatch");
     functions.bs_ensureBatchSize = GetProcAddress(module, "_bs_ensureBatchSize");
+    functions.bs_batchVertex = GetProcAddress(module, "_bs_batchVertex");
     functions.bs_batchRange = GetProcAddress(module, "_bs_batchRange");
     functions.bs_pushIndex = GetProcAddress(module, "_bs_pushIndex");
     functions.bs_pushIndexV = GetProcAddress(module, "_bs_pushIndexV");

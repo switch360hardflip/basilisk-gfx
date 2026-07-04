@@ -9,7 +9,7 @@
 
 #include <time.h>
 
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bs_internal.h>
 #include <uxtheme.h>
 #include <vsstyle.h>
@@ -120,11 +120,11 @@ bs_ivec2 bs_queryResolution() {
 }
 
 bs_ivec2 bs_resolution() {
-	return _bs_swapchain->image->image->dim;
+	return _bs_swapchain_->image->image->dim;
 }
 
 bs_vec2 bs_cursorPosition() {
-	bs_vec2 dim = bs_v2(_bs_swapchain->image->image->dim.x, _bs_swapchain->image->image->dim.y);
+	bs_vec2 dim = bs_v2(_bs_swapchain_->image->image->dim.x, _bs_swapchain_->image->image->dim.y);
 	bs_vec2 pos = bs_v2Div(_bs_wnd.cursor, dim);
 	return bs_v2(pos.x, 1.0 - pos.y);
 }

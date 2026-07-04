@@ -1,4 +1,4 @@
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bs_internal.h>
 #include <mmreg.h>
 #include <tchar.h>
@@ -47,7 +47,7 @@ IXAudio2* px_audio_2 = NULL;
     #define XAUDIO2D_DLL XAUDIO2D_DLL_A
 #endif
 
-bs_Result bs_playSound(bs_Sound* sound, float volume) {
+bs_Result _bs_playSound(bs_Sound* sound, float volume) {
     IXAudio2SourceVoice* voice = sound->xaudio;
     if (voice == NULL)
         return BS_RESULT_GENERAL_ERROR;
@@ -69,7 +69,7 @@ bs_Result bs_playSound(bs_Sound* sound, float volume) {
     return BS_RESULT_OK;
 }
 
-static bs_Result bs_findAudioChunk(
+static bs_Result _bs_findAudioChunk(
     HANDLE file_handle, DWORD four_cc,
     DWORD* dw_chunk_size, DWORD* dw_chunk_data_position)
 {
@@ -120,7 +120,7 @@ static bs_Result bs_findAudioChunk(
     return BS_RESULT_OK;
 }
 
-static bs_Result bs_readAudioChunk(
+static bs_Result _bs_readAudioChunk(
     HANDLE file_handle, void* buffer,
     DWORD buffer_num_bytes, DWORD buffer_offset)
 {
@@ -135,7 +135,7 @@ static bs_Result bs_readAudioChunk(
     return BS_RESULT_OK;
 }
 
-bs_Result bs_sound(bs_Resource* resource, bs_U32 flags) {
+bs_Result _bs_sound(bs_Resource* resource, bs_U32 flags) {
     /*
     IXAudio2SourceVoice* src_voice = NULL;
     WAVEFORMATEXTENSIBLE wfx = { 0 };
@@ -184,7 +184,7 @@ bs_Result bs_sound(bs_Resource* resource, bs_U32 flags) {
     */
 }
 
-bs_Result bs_iniAudio() {
+bs_Result _bs_iniAudio() {
     HRESULT result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
     IXAudio2MasteringVoice* master_voice = NULL;
 

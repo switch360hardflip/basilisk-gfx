@@ -1,4 +1,4 @@
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bs_internal.h>
 #include <cglm/vec2.h>
 #include <cglm/vec3.h>

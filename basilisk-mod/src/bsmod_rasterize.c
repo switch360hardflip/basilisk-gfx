@@ -1,4 +1,4 @@
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bsgfx.h>
 #include <bsgfx_scene.h>
 #include <bsgfx_instance.h>

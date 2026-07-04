@@ -11,7 +11,7 @@
 #include <math.h>
 #include <direct.h>
 
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bs_internal.h>
 
 

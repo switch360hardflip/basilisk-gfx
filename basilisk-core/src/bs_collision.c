@@ -1,9 +1,9 @@
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bs_internal.h>
 #include <float.h>
 #include <assert.h>
 
-bool bs_rectangleVsPoint(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point) {
+BSAPI bool _bs_rectangleVsPoint(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point) {
     return
         position.x < point.x &&
         point.x < (position.x + dimensions.x) &&
@@ -11,34 +11,22 @@ bool bs_rectangleVsPoint(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point) {
         point.y < (position.y + dimensions.y);
 }
 
-bool bs_rectangleVsPointAbs(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point) {
-    float minX = (dimensions.x >= 0) ? position.x : position.x + dimensions.x;
-    float maxX = (dimensions.x >= 0) ? position.x + dimensions.x : position.x;
-    float minY = (dimensions.y >= 0) ? position.y : position.y + dimensions.y;
-    float maxY = (dimensions.y >= 0) ? position.y + dimensions.y : position.y;
+BSAPI bool _bs_rectangleVsPointAbs(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point) {
+    float min_x = (dimensions.x >= 0) ? position.x : position.x + dimensions.x;
+    float max_x = (dimensions.x >= 0) ? position.x + dimensions.x : position.x;
+    float min_y = (dimensions.y >= 0) ? position.y : position.y + dimensions.y;
+    float max_y = (dimensions.y >= 0) ? position.y + dimensions.y : position.y;
 
-    return point.x >= minX && point.x <= maxX &&
-        point.y >= minY && point.y <= maxY;
+    return point.x >= min_x && point.x <= max_x &&
+        point.y >= min_y && point.y <= max_y;
 }
 
-bs_Ray bs_ray(bs_vec3 start, bs_vec3 direction, float length) {
+BSAPI bs_Ray _bs_ray(bs_vec3 start, bs_vec3 direction, float length) {
     return (bs_Ray) {
         .origin = start,
         .direction = direction,
         .length = length,
     };
-}
-
-static inline bool bs_rayVsPlane(bs_vec3 ray_direction, bs_vec3 ray_origin, bs_vec3 normal, bs_vec3 origin, float* t) {
-    float denom = bs_v3Dot(&normal, &ray_direction);
-    if (denom > 1e-6) {
-        bs_vec3 p0l0;
-        bs_v3Sub(&origin, &ray_origin, &p0l0);
-        *t = bs_v3Dot(&p0l0, &normal) / denom;
-        return *t >= 0;
-    }
-
-    return false;
 }
 
 /*
@@ -47,7 +35,7 @@ static inline bool bs_rayVsPlane(bs_vec3 ray_direction, bs_vec3 ray_origin, bs_v
     from "Graphics Gems", Academic Press, 1990
 */
 
-bool bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_vec3* coordinate, bs_vec3* normal, int* plane) {
+BSAPI bool _bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_vec3* coordinate, bs_vec3* normal, int* plane) {
     char inside = true;
     char quadrant[3];
     register int i;
@@ -153,7 +141,7 @@ bool bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 
     return true;
 }
 
-bool bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point) {
+BSAPI bool _bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point) {
     int x1 = pow((point.x - center.x), 2);
     int y1 = pow((point.y - center.y), 2);
     int z1 = pow((point.z - center.z), 2);
@@ -165,7 +153,7 @@ bool bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point) {
     return false;
 }
 
-bool bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_vec3* point, bs_vec3* normal, float* penetration) {
+BSAPI bool _bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_vec3* point, bs_vec3* normal, float* penetration) {
     bs_mat4 transform = BS_MAT4_IDENTITY;
     bs_translateP(&transform, &position);
     bs_rotateP(&transform, &rotation);
@@ -209,7 +197,7 @@ bool bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_vec4 rota
     return true;
 }
 
-bool bs_sphereVsSphere(bs_Sphere* a, bs_Sphere* b, bs_Contact* result) {
+BSAPI bool _bs_sphereVsSphere(bs_Sphere* a, bs_Sphere* b, bs_Contact* result) {
     bs_vec3 mid = bs_v3Sub(a->center, b->center);
     float magnitude = bs_v3Magnitude(mid);
 
@@ -228,7 +216,7 @@ static inline double bs_determinate(float a, float b, float c, float d) {
     return a * d - b * c;
 }
 
-bool bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_vec2* out) {
+BSAPI bool _bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_vec2* out) {
     double detL1 = bs_determinate(l1_start.x, l1_start.y, l1_end.x, l1_end.y);
     double detL2 = bs_determinate(l2_start.x, l2_start.y, l2_end.x, l2_end.y);
     double x1mx2 = l1_start.x - l1_end.x;

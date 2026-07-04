@@ -6,7 +6,7 @@
 #include <winreg.h>
 #include <assert.h>
 
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bs_internal.h>
 #include <vulkan.h>
 
@@ -658,8 +658,8 @@ bs_Object* bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_SamplerBits f
 
 void bs_copyImageToBufferAsync(bs_Image* image, bs_Buffer* buffer, int image_index, bs_ImageLayout layout, bs_U64 buffer_offset, bs_ivec2 offset, bs_ivec2 dim) {
     VkCommandBuffer commands = bsi_fetchCommands();
-    int image_swap = (image->flags & BS_IMAGE_SWAPS_BIT) ? _bs_swapchain->frame : 0;
-    int buffer_swap = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain->frame : 0;
+    int image_swap = (image->flags & BS_IMAGE_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
+    int buffer_swap = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
 
     VkBufferImageCopy copy = {
         .bufferOffset = buffer_offset,
@@ -714,8 +714,8 @@ void bs_copyBufferToImage(bs_Buffer* buffer, bs_Image* image, int index, bs_Imag
 
     vkCmdCopyBufferToImage(
         commands,
-        buffer->flags & BSI_BUFFER_SWAPS_BIT ? buffer->_[_bs_swapchain->frame].vk_buffer : buffer->_->vk_buffer,
-        image->flags & BS_IMAGE_SWAPS_BIT ? image->_[_bs_swapchain->frame].vk_image : image->_->vk_image,
+        buffer->flags & BSI_BUFFER_SWAPS_BIT ? buffer->_[_bs_swapchain_->frame].vk_buffer : buffer->_->vk_buffer,
+        image->flags & BS_IMAGE_SWAPS_BIT ? image->_[_bs_swapchain_->frame].vk_image : image->_->vk_image,
         layout,
         1,
         &region);
@@ -762,9 +762,9 @@ void bs_blit(bs_BlitOperation operation)  {
 
     vkCmdBlitImage(
         commands,
-        operation.source->flags & BS_IMAGE_SWAPS_BIT ? operation.source->_[_bs_swapchain->frame].vk_image : operation.source->_->vk_image,
+        operation.source->flags & BS_IMAGE_SWAPS_BIT ? operation.source->_[_bs_swapchain_->frame].vk_image : operation.source->_->vk_image,
         operation.source_layout,
-        operation.destination->flags & BS_IMAGE_SWAPS_BIT ? operation.destination->_[_bs_swapchain->frame].vk_image : operation.destination->_->vk_image,
+        operation.destination->flags & BS_IMAGE_SWAPS_BIT ? operation.destination->_[_bs_swapchain_->frame].vk_image : operation.destination->_->vk_image,
         operation.destination_layout,
         1, &region,
         VK_FILTER_NEAREST

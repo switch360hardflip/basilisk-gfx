@@ -1,7 +1,7 @@
 #ifndef BSGFX_H
 #define BSGFX_H
 
-#include <basilisk.h>
+#include <basilisk-core.h>
 
 #include <../bsgfx_contracts.h>
 #include <bssteam_controller.h>

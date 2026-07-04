@@ -19,7 +19,7 @@
 
 #include <assert.h>
 
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bs_log.h>
 
 #ifdef _DEBUG

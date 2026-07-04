@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include <basilisk.h>
+#include <basilisk-core.h>
 #include <bs_internal.h>
 #include <yyjson.h>
 

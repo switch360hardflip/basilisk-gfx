@@ -14,7 +14,7 @@
 #include <unistd.h>
 #endif
 
-#include <basilisk.h>s
+#include <basilisk-core.h>s
 #include <bs_internal.h>
 #include <vulkan.h>
 
