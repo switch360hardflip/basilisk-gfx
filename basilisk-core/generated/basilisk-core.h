@@ -69,6 +69,7 @@ typedef struct bs_ResourceHeaderData bs_ResourceHeaderData;
 typedef struct bs_Package bs_Package;
 typedef struct bs_BlitOperation bs_BlitOperation;
 typedef struct bs_ImageIndex bs_ImageIndex;
+typedef struct bs_ImageIndex bs_ImageIndex;
 typedef struct bs_Image bs_Image;
 typedef struct bs_BiffHeader bs_BiffHeader;
 typedef struct bs_BiffPointer bs_BiffPointer;
@@ -209,6 +210,18 @@ typedef enum bs_CursorIcon bs_CursorIcon;
 typedef enum bs_ObjectType bs_ObjectType;
 typedef enum bs_SurfaceType bs_SurfaceType;
 typedef enum bs_SwapchainMode bs_SwapchainMode;
+
+#define BS_VALIDATE(condition, ret, format, ...)                     \
+    if (!(condition)) {                                              \
+        bs_warnF("Validation failed: %s\n" __VA_OPT__(format) "\n", #condition __VA_OPT__(,) __VA_ARGS__); \
+        return ret;                                                  \
+    }
+
+#define BS_PI                                                        \
+    3.14159265359
+
+#define BS_2PI                                                       \
+    (3.14159265359 * 2.0)
 
 #define BS_ENUM_GEN(ENUM)                                            \
     ENUM,
@@ -1153,11 +1166,11 @@ typedef enum bs_SwapchainMode bs_SwapchainMode;
 
 #define BS_ASSERT_TYPE(obj, t1)                                      \
     do {                                                             \
-        int t2 = _bs_instance->objects[obj->head.id].object.type;    \
+        int t2 = _bs_instance_->objects[obj->head.id].object.type;    \
         if (t1 != t2)                                                \
             bs_throwBasiliskF(BSX_ASSERTION, "%s != %s",             \
-            _bs_instance->object_types[t1].name,                     \
-            _bs_instance->object_types[t2].name                      \
+            _bs_instance_->object_types[t1].name,                     \
+            _bs_instance_->object_types[t2].name                      \
         );                                                           \
     } while (0)
 
@@ -1927,6 +1940,7 @@ struct bs_Object {
         bs_Renderer* renderer;
         bs_Sound* sound;
         bs_Queue* queue;
+        bs_RayTracer* ray_tracer;
     };
 };
 
@@ -1977,6 +1991,11 @@ struct bs_ImageIndex {
     bs_U64 name_hash;
 };
 
+struct bs_ImageIndex {
+    struct VkImage_T* image;
+    struct VkImageView_T* image_view;
+};
+
 struct bs_Image {
     bs_Header head;
     bs_ImageBits flags;
@@ -1985,6 +2004,8 @@ struct bs_Image {
     bs_ImageIndex* indices;
     int bind_set;
     int bind_point;
+    enum VkFormat_T* format;
+    bs_ImageSwaps _[];
 };
 
 struct bs_BiffHeader {
@@ -2175,12 +2196,14 @@ struct bs_Renderer {
     bs_RendererBits flags;
     bs_Input* inputs;
     bs_Output* outputs;
+    struct VkSubpassDependency* dependencies;
     int num_inputs;
     int num_outputs;
     int num_subpasses;
     int num_dependencies;
     bs_ivec2 dim;
     bs_ivec2 dim;
+    struct VkRenderPass_T* render_pass;
     bs_RendererSwaps _[];
 };
 
@@ -2199,6 +2222,8 @@ struct bs_Batch {
 
 struct bs_QueueSwaps {
     struct VkCommandBuffer_T* command_buffer;
+    struct VkSemaphore_T* semaphore;
+    struct VkFence_T* fence;
 };
 
 struct bs_Queue {
@@ -2219,6 +2244,9 @@ struct bs_RayTracer {
     bs_Buffer* TLAS_scratch_buffer;
     bs_U32 record_size;
     bs_U32 groups_count;
+    struct VkAccelerationStructureKHR_T* BLAS;
+    struct VkAccelerationStructureKHR_T* TLAS;
+    bs_ShaderGroup _[];
 };
 
 struct bs_ShaderGroup {
@@ -8925,17 +8953,17 @@ bs_deleteDirectoryF(
     char* format,
      ...);
 
-BSAPI extern bs_IO _bs_io;
-BSAPI extern bs_Window _bs_wnd;
-BSAPI extern bs_Instance* _bs_instance;
-BSAPI extern bs_Bindings _bs_bind;
-BSAPI extern bs_Swapchain* _bs_swapchain;
-BSAPI extern bs_Config _bs_config;
-BSAPI extern bs_Scope _bs_scope;
-BSAPI extern bs_Args _bs_args;
-BSAPI extern bs_Features _bs_features;
-BSAPI extern bs_Props _bs_props;
-BSAPI extern bs_Settings _bs_settings;
-BSAPI extern bs_Procs _bs_procs;
+BSAPI extern bs_IO _bs_io_;
+BSAPI extern bs_Window _bs_wnd_;
+BSAPI extern bs_Instance* _bs_instance_;
+BSAPI extern bs_Bindings _bs_bind_;
+BSAPI extern bs_Swapchain* _bs_swapchain_;
+BSAPI extern bs_Config _bs_config_;
+BSAPI extern bs_Scope _bs_scope_.;
+BSAPI extern bs_Args _bs_args_;
+BSAPI extern bs_Features _bs_features_;
+BSAPI extern bs_Props _bs_props_;
+BSAPI extern bs_Settings _bs_settings_;
+BSAPI extern bs_Procs _bs_procs_;
 
 #endif

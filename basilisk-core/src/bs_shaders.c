@@ -42,8 +42,8 @@ static VkDescriptorSetLayout bs_pushDescriptorLayout(bs_BindSet* bind_set) {
     };
     
     VkDescriptorSetLayout layout = VK_NULL_HANDLE;
-    bs_throwVulkan(vkCreateDescriptorSetLayout(_bs_instance->device, &layout_i, NULL, &layout));
-    _bs_instance->layouts[bind_set->slot] = layout;
+    bs_throwVulkan(vkCreateDescriptorSetLayout(_bs_instance_->device, &layout_i, NULL, &layout));
+    _bs_instance_->layouts[bind_set->slot] = layout;
 
     for (int i = 0; i < BS_PIPELINE_TYPE_COUNT; i++) {
         for (int j = 0; j < bs_pipelines[i].count; j++) {
@@ -66,8 +66,8 @@ static VkDescriptorSet bs_pushDescriptorSet(bs_BindSet* bind_set, VkDescriptorSe
     };
 
     VkDescriptorSet set = VK_NULL_HANDLE;
-    bs_throwVulkan(vkAllocateDescriptorSets(_bs_instance->device, &alloc_i, &set));
-    _bs_instance->sets[bind_set->slot] = set;
+    bs_throwVulkan(vkAllocateDescriptorSets(_bs_instance_->device, &alloc_i, &set));
+    _bs_instance_->sets[bind_set->slot] = set;
 
     bsi_nameHandleF(set, VK_OBJECT_TYPE_DESCRIPTOR_SET, "bind set %d", bind_set->slot);
 
@@ -128,22 +128,22 @@ void bs_pushDescriptorPools() {
     static VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
     if (descriptor_pool) {
         for (int i = 0; i < BS_MAX_NUM_BIND_SETS; i++) {
-            if (_bs_instance->sets[i])
-                vkFreeDescriptorSets(_bs_instance->device, descriptor_pool, 1, _bs_instance->sets + i); // @todo reuse
-            if (_bs_instance->layouts[i])
-                vkDestroyDescriptorSetLayout(_bs_instance->device, _bs_instance->layouts[i], NULL);
+            if (_bs_instance_->sets[i])
+                vkFreeDescriptorSets(_bs_instance_->device, descriptor_pool, 1, _bs_instance_->sets + i); // @todo reuse
+            if (_bs_instance_->layouts[i])
+                vkDestroyDescriptorSetLayout(_bs_instance_->device, _bs_instance_->layouts[i], NULL);
         }
 
-        vkDestroyDescriptorPool(_bs_instance->device, descriptor_pool, NULL);
+        vkDestroyDescriptorPool(_bs_instance_->device, descriptor_pool, NULL);
     }
 
     VkDescriptorPoolSize pool_sizes[BS_NUM_BIND_TYPES] = { 0 };
     VkDescriptorPoolSize pool_sizes_contiguous[BS_NUM_BIND_TYPES] = { 0 };
     bs_U32 num_pool_sizes = 0;
 
-    for(int i = 0; i < _bs_instance->bind_sets_count; i++) {
+    for(int i = 0; i < _bs_instance_->bind_sets_count; i++) {
         bs_except(BSX_FAILED_TO_QUERY);
-        bs_BindSet* bind_set = _bs_instance->bind_sets + i;
+        bs_BindSet* bind_set = _bs_instance_->bind_sets + i;
         bs_except(0);
         if (bind_set->bindings_count == 0) continue;
 
@@ -173,10 +173,10 @@ void bs_pushDescriptorPools() {
         .maxSets = BS_MAX_NUM_BIND_SETS,
     };
 
-    bs_throwVulkan(vkCreateDescriptorPool(_bs_instance->device, &pool_i, NULL, &descriptor_pool));
+    bs_throwVulkan(vkCreateDescriptorPool(_bs_instance_->device, &pool_i, NULL, &descriptor_pool));
 
-    for (int i = 0; i < _bs_instance->bind_sets_count; i++) {
-        bs_BindSet* bind_set = _bs_instance->bind_sets + i;
+    for (int i = 0; i < _bs_instance_->bind_sets_count; i++) {
+        bs_BindSet* bind_set = _bs_instance_->bind_sets + i;
         if (bind_set->bindings_count == 0) continue;
 
         bind_set->layout = bs_pushDescriptorLayout(bind_set);
@@ -185,12 +185,12 @@ void bs_pushDescriptorPools() {
 }
 
 void bs_pushDescriptors() {
-    for (int i = 0; i < _bs_instance->bind_sets_count; i++) {
-        bs_BindSet* bind_set = _bs_instance->bind_sets + i;
+    for (int i = 0; i < _bs_instance_->bind_sets_count; i++) {
+        bs_BindSet* bind_set = _bs_instance_->bind_sets + i;
         if (!bind_set->update_template) continue;
         if (!bind_set->needs_update) continue;
         bind_set->needs_update = false;
-        vkUpdateDescriptorSetWithTemplate(_bs_instance->device, bind_set->set, bind_set->update_template, bind_set->descriptors);
+        vkUpdateDescriptorSetWithTemplate(_bs_instance_->device, bind_set->set, bind_set->update_template, bind_set->descriptors);
     }
 }
 
@@ -206,7 +206,7 @@ static void bs_prepareDescriptorTemplate(bs_BindSet* bind_set) {
     bs_U32 num_entries = 0;
 
     if (bind_set->update_template)
-        vkDestroyDescriptorUpdateTemplate(_bs_instance->device, bind_set->update_template, NULL);
+        vkDestroyDescriptorUpdateTemplate(_bs_instance_->device, bind_set->update_template, NULL);
 
     for (bs_U32 i = 0; i < bind_set->bindings_count; i++) {
         bs_Binding* binding = bind_set->bindings + i;
@@ -236,12 +236,12 @@ static void bs_prepareDescriptorTemplate(bs_BindSet* bind_set) {
         .descriptorSetLayout = bind_set->layout,
     };
 
-    vkCreateDescriptorUpdateTemplate(_bs_instance->device, &ci, NULL, &bind_set->update_template);
+    vkCreateDescriptorUpdateTemplate(_bs_instance_->device, &ci, NULL, &bind_set->update_template);
 }
 
 void bs_pushBindings() {
-    for (bs_U32 i = 0; i < _bs_instance->bind_sets_count; i++) {
-        bs_BindSet* bind_set = _bs_instance->bind_sets + i;
+    for (bs_U32 i = 0; i < _bs_instance_->bind_sets_count; i++) {
+        bs_BindSet* bind_set = _bs_instance_->bind_sets + i;
         if (bind_set->bindings_count == 0) continue;
 
         bs_prepareDescriptorTemplate(bind_set);
@@ -383,19 +383,19 @@ void bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 slot, bs_RayTrace
 }
 
 bs_BindSet* bs_queryBindSet(bs_U32 id) {
-    assert(id <= _bs_instance->max_bind_set);
+    assert(id <= _bs_instance_->max_bind_set);
 
-    int bind_set = _bs_instance->descriptor_lookup[id].bind_set;
+    int bind_set = _bs_instance_->descriptor_lookup[id].bind_set;
     if (bind_set < 0) {
         bsi_throwBasiliskF(BSX_FAILED_TO_QUERY, "Bind set %d", id);
         return NULL;
     }
  
-    assert(_bs_instance->bind_sets[bind_set].slot == id);
-    return _bs_instance->bind_sets + bind_set;
+    assert(_bs_instance_->bind_sets[bind_set].slot == id);
+    return _bs_instance_->bind_sets + bind_set;
 
-    for (int i = 0; i < _bs_instance->bind_sets_count; i++) {
-        bs_BindSet* bind_set = _bs_instance->bind_sets + i;
+    for (int i = 0; i < _bs_instance_->bind_sets_count; i++) {
+        bs_BindSet* bind_set = _bs_instance_->bind_sets + i;
         if (bind_set->slot == id)
             return bind_set;
     }
@@ -407,14 +407,14 @@ bs_BindSet* bs_queryBindSet(bs_U32 id) {
 bs_Binding* bs_queryBinding(bs_BindSet* bind_set, bs_U32 id) {
     assert(id <= bind_set->max_binding);
 
-    int binding = _bs_instance->descriptor_lookup[bind_set->slot].bindings[id];
+    int binding = _bs_instance_->descriptor_lookup[bind_set->slot].bindings[id];
     if (binding < 0) {
         bsi_throwBasiliskF(BSX_FAILED_TO_QUERY, "Binding %d", id);
         return NULL;
     }
 
-    assert(_bs_instance->bindings[binding].slot == id);
-    return _bs_instance->bindings + binding;
+    assert(_bs_instance_->bindings[binding].slot == id);
+    return _bs_instance_->bindings + binding;
 
     for (int i = 0; i < bind_set->bindings_count; i++) {
         bs_Binding* binding = bind_set->bindings + i;
@@ -451,13 +451,13 @@ void bs_loadBindings(int package_id, const char* path) {
     const size_t bindings_size = bindings_count * sizeof(bs_Binding);
     const size_t descriptors_size = descriptors_count * sizeof(bs_Descriptor);
 
-    _bs_instance->bind_sets = bs_realloc(_bs_instance->bind_sets, bind_sets_size);
-    _bs_instance->bindings = bs_realloc(_bs_instance->bindings, bindings_size);
-    _bs_instance->descriptors = bs_realloc(_bs_instance->descriptors, descriptors_size);
-    memset(_bs_instance->bind_sets, 0, bind_sets_size);
-    memset(_bs_instance->bindings, 0, bindings_size);
-    memset(_bs_instance->descriptors, 0, descriptors_size);
-    _bs_instance->descriptor_pool_needs_update = true;
+    _bs_instance_->bind_sets = bs_realloc(_bs_instance_->bind_sets, bind_sets_size);
+    _bs_instance_->bindings = bs_realloc(_bs_instance_->bindings, bindings_size);
+    _bs_instance_->descriptors = bs_realloc(_bs_instance_->descriptors, descriptors_size);
+    memset(_bs_instance_->bind_sets, 0, bind_sets_size);
+    memset(_bs_instance_->bindings, 0, bindings_size);
+    memset(_bs_instance_->descriptors, 0, descriptors_size);
+    _bs_instance_->descriptor_pool_needs_update = true;
 
     int binding_offset = 0, descriptor_offset = 0;
     bs_foreachJson(&json, e) {
@@ -470,7 +470,7 @@ void bs_loadBindings(int package_id, const char* path) {
         if (bind_type == BS_BIND_TYPE_PUSH_CONSTANT)
             continue;
 
-        bs_Binding* binding = _bs_instance->bindings + binding_offset++;
+        bs_Binding* binding = _bs_instance_->bindings + binding_offset++;
         *binding = (bs_Binding) {
             .descriptors_count = bs_fetchJson(&root, BS_JSON_UNDEFINED, "count").as_number,
             .type = bind_type,
@@ -489,13 +489,13 @@ void bs_loadBindings(int package_id, const char* path) {
 
     bs_assert(bindings_count == binding_offset);
 
-    qsort(_bs_instance->bindings, bindings_count, sizeof(bs_Binding), bs_compareBindings);
+    qsort(_bs_instance_->bindings, bindings_count, sizeof(bs_Binding), bs_compareBindings);
 
     int current_set = -1;
-    _bs_instance->max_bind_set = 0;
+    _bs_instance_->max_bind_set = 0;
     for (int i = 0; i < bindings_count; i++) {
-        bs_Binding* binding = _bs_instance->bindings + i;
-        bs_BindSet* bind_set = _bs_instance->bind_sets + binding->set;
+        bs_Binding* binding = _bs_instance_->bindings + i;
+        bs_BindSet* bind_set = _bs_instance_->bind_sets + binding->set;
 
         bs_assert(binding->set < bind_sets_count);
 
@@ -505,23 +505,23 @@ void bs_loadBindings(int package_id, const char* path) {
             *bind_set = (bs_BindSet) {
                 .slot = current_set,
                 .bindings = binding,
-                .descriptors = _bs_instance->descriptors + descriptor_offset,
+                .descriptors = _bs_instance_->descriptors + descriptor_offset,
             };
         }
 
-        _bs_instance->max_bind_set = BS_MAX(_bs_instance->max_bind_set, bind_set->slot);
+        _bs_instance_->max_bind_set = BS_MAX(_bs_instance_->max_bind_set, bind_set->slot);
         bind_set->max_binding = BS_MAX(bind_set->max_binding, binding->slot);
 
         bind_set->bindings_count++;
         bind_set->descriptors_count += binding->descriptors_count;
         descriptor_offset += binding->descriptors_count;
     }
- //   qsort(_bs_instance->bind_sets, bind_sets_count, sizeof(bs_BindSet), bs_compareBindSets);
+ //   qsort(_bs_instance_->bind_sets, bind_sets_count, sizeof(bs_BindSet), bs_compareBindSets);
     assert(descriptors_count == descriptor_offset);
 
-    _bs_instance->bind_sets_count = bind_sets_count;
-    _bs_instance->bindings_count = bindings_count;
-    _bs_instance->descriptors_count = descriptors_count;
+    _bs_instance_->bind_sets_count = bind_sets_count;
+    _bs_instance_->bindings_count = bindings_count;
+    _bs_instance_->descriptors_count = descriptors_count;
 
     bs_destroyJson(&json);
     
@@ -530,25 +530,25 @@ void bs_loadBindings(int package_id, const char* path) {
     */
     int total_max_bindings = 0;
     for (int i = 0; i < bind_sets_count; i++)
-        total_max_bindings += _bs_instance->bind_sets[i].max_binding + 1;
+        total_max_bindings += _bs_instance_->bind_sets[i].max_binding + 1;
 
-    size_t bind_set_lookup_size = (_bs_instance->max_bind_set + 1) * sizeof(*_bs_instance->descriptor_lookup);
+    size_t bind_set_lookup_size = (_bs_instance_->max_bind_set + 1) * sizeof(*_bs_instance_->descriptor_lookup);
     size_t binding_lookup_size = total_max_bindings * sizeof(int);
     size_t lookup_size = bind_set_lookup_size + binding_lookup_size;
-    _bs_instance->descriptor_lookup = bs_realloc(_bs_instance->descriptor_lookup, lookup_size);
-    memset(_bs_instance->descriptor_lookup, -1, lookup_size);
-    unsigned char* binding_lookup_offset = ((unsigned char*)_bs_instance->descriptor_lookup) + bind_set_lookup_size;
+    _bs_instance_->descriptor_lookup = bs_realloc(_bs_instance_->descriptor_lookup, lookup_size);
+    memset(_bs_instance_->descriptor_lookup, -1, lookup_size);
+    unsigned char* binding_lookup_offset = ((unsigned char*)_bs_instance_->descriptor_lookup) + bind_set_lookup_size;
 
     for (int i = 0; i < bind_sets_count; i++) {
-        bs_BindSet* bind_set = _bs_instance->bind_sets + i;
+        bs_BindSet* bind_set = _bs_instance_->bind_sets + i;
 
-        _bs_instance->descriptor_lookup[bind_set->slot].bindings = bs_calloc(bind_set->max_binding + 1, sizeof(int));
-        memset(_bs_instance->descriptor_lookup[bind_set->slot].bindings, -1, (bind_set->max_binding + 1) * sizeof(int));
-        _bs_instance->descriptor_lookup[bind_set->slot].bind_set = i;
+        _bs_instance_->descriptor_lookup[bind_set->slot].bindings = bs_calloc(bind_set->max_binding + 1, sizeof(int));
+        memset(_bs_instance_->descriptor_lookup[bind_set->slot].bindings, -1, (bind_set->max_binding + 1) * sizeof(int));
+        _bs_instance_->descriptor_lookup[bind_set->slot].bind_set = i;
 
         for (int j = 0; j < bind_set->bindings_count; j++) {
             bs_Binding* binding = bind_set->bindings + j;
-            _bs_instance->descriptor_lookup[bind_set->slot].bindings[binding->slot] = (binding - _bs_instance->bindings);
+            _bs_instance_->descriptor_lookup[bind_set->slot].bindings[binding->slot] = (binding - _bs_instance_->bindings);
         }
         binding_lookup_offset += (bind_set->max_binding + 1) * sizeof(int);
     }
@@ -765,7 +765,7 @@ bs_Result bs_shader(int package_id, const char* name, bs_U32 flags, bs_Resource*
         .pCode = spirv,
     };
 
-    bs_throwVulkan(vkCreateShaderModule(_bs_instance->device, &shader_ci, NULL, &shader.module));
+    bs_throwVulkan(vkCreateShaderModule(_bs_instance_->device, &shader_ci, NULL, &shader.module));
 
     bs_destroyJson(&metadata);
     if (!(flags & BS_SHADER_KEEP_SPIRV)) {
@@ -818,7 +818,7 @@ void bs_destroyShader(bs_Shader* shader) {
     for (int i = 0; i < shader->num_attributes; i++)
         free(shader->attributes[i].name);
 
-    vkDestroyShaderModule(_bs_instance->device, shader->module, NULL);
+    vkDestroyShaderModule(_bs_instance_->device, shader->module, NULL);
 }
 
 
@@ -846,23 +846,23 @@ void bs_pushConstant(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 size, void* da
     if ((offset + size) > pipeline->constant_size)
         return bs_throwBasiliskF(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS, "Pipeline " BS_PRINT_COLOR("%" PRIx64, BS_PRINT_BLUE_BRIGHT) "\nPush Constant\n%d + %d > %d", pipeline->hash, offset, size, pipeline->constant_size);
     vkCmdPushConstants(command_buffer, pipeline->layout, pipeline->shader_stages, offset, size, data);
-    if (_bs_scope.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
-        bsi_pushQueue(_bs_scope.queue);
-        bs_throwVulkan(vkQueueWaitIdle(_bs_scope.queue->queue));
+    if (_bs_scope_.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
+        bsi_pushQueue(_bs_scope_.queue);
+        bs_throwVulkan(vkQueueWaitIdle(_bs_scope_.queue->queue));
     }
 }
 
 static bs_Result bs_createPipelineLayout(bs_Pipeline* pipeline, VkPipelineLayout* out) {
-    for (int i = _bs_instance->bind_sets_count - 1; i >= 0; i--) { // TODO: active bind sets only
-        if (!(pipeline->bind_sets & (1 << _bs_instance->bind_sets[i].slot))) 
+    for (int i = _bs_instance_->bind_sets_count - 1; i >= 0; i--) { // TODO: active bind sets only
+        if (!(pipeline->bind_sets & (1 << _bs_instance_->bind_sets[i].slot))) 
             continue;
 
-        pipeline->num_bind_sets = _bs_instance->bind_sets[i].slot + 1;
+        pipeline->num_bind_sets = _bs_instance_->bind_sets[i].slot + 1;
         break;
     }
 
     for (int i = 0; i < pipeline->num_bind_sets; i++) {
-        if (_bs_instance->layouts[i] == NULL) {
+        if (_bs_instance_->layouts[i] == NULL) {
             *out = NULL;
             //bs_throwBasiliskF(BSXI_INTERNAL | BSX_GENERAL, "Pipeline cannot be created with unordered bind sets (%d is not used by any shader)", i);
             return BS_RESULT_UNORDERED_BIND_SETS;
@@ -886,12 +886,12 @@ static bs_Result bs_createPipelineLayout(bs_Pipeline* pipeline, VkPipelineLayout
     VkPipelineLayoutCreateInfo pipeline_layout_i = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .setLayoutCount = pipeline->num_bind_sets,
-        .pSetLayouts = _bs_instance->layouts,
+        .pSetLayouts = _bs_instance_->layouts,
         .pPushConstantRanges = &range,
         .pushConstantRangeCount = range.size > 0 ? 1 : 0,
     };
 
-    bs_throwVulkan(vkCreatePipelineLayout(_bs_instance->device, &pipeline_layout_i, NULL, &pipeline->layout));
+    bs_throwVulkan(vkCreatePipelineLayout(_bs_instance_->device, &pipeline_layout_i, NULL, &pipeline->layout));
 
     *out = pipeline->layout;
 
@@ -918,8 +918,8 @@ static inline bool bs_pipelineNeedsUpdating(bs_Pipeline* pipeline) {
 }
 
 void bs_destroyComputePipeline(bs_Pipeline* pipeline) {
-    vkDestroyPipelineLayout(_bs_instance->device, pipeline->layout, NULL);
-    vkDestroyPipeline(_bs_instance->device, pipeline->pipeline, NULL);
+    vkDestroyPipelineLayout(_bs_instance_->device, pipeline->layout, NULL);
+    vkDestroyPipeline(_bs_instance_->device, pipeline->pipeline, NULL);
 }
 
 typedef struct {
@@ -972,7 +972,7 @@ bs_Pipeline* bs_computePipeline(bs_Shader* compute_shader, bs_PipelineFlags flag
         .layout = bs_createPipelineLayout(existing),
     };
 
-    bs_throwVulkan(vkCreateComputePipelines(_bs_instance->device, VK_NULL_HANDLE, 1, &pipeline_ci, NULL, &existing->pipeline));
+    bs_throwVulkan(vkCreateComputePipelines(_bs_instance_->device, VK_NULL_HANDLE, 1, &pipeline_ci, NULL, &existing->pipeline));
 
     const char* blue = (_bs_args.color_log ? BS_PRINT_BLUE_BRIGHT : "");
     const char* cyan = (_bs_args.color_log ? BS_PRINT_CYAN : "");
@@ -1009,8 +1009,8 @@ static inline int bs_defaultEnum(int value, int def) {
 
 void bs_destroyPipeline(bs_Pipeline* pipeline) {
     pipeline->name = bs_free(pipeline->name);
-    vkDestroyPipelineLayout(_bs_instance->device, pipeline->layout, NULL);
-    vkDestroyPipeline(_bs_instance->device, pipeline->pipeline, NULL);
+    vkDestroyPipelineLayout(_bs_instance_->device, pipeline->layout, NULL);
+    vkDestroyPipeline(_bs_instance_->device, pipeline->pipeline, NULL);
 }
 
 bs_U64 bs_pipelineHash(bs_PipelineHash* descriptor) {
@@ -1034,15 +1034,15 @@ bs_Pipeline* bs_pipeline(bs_PipelineHash* descriptor) {
     if (bs_pipelines[BS_PIPELINE_GRAPHICS].capacity == 0)
         bs_pipelines[BS_PIPELINE_GRAPHICS] = bs_list(sizeof(bs_Pipeline*), 64);
 
-    if (!_bs_scope.renderer) {
+    if (!_bs_scope_.renderer) {
         bs_throwBasiliskF(BSX_INVALID_STATE, "Pipelines must be created within a renderer");
         return NULL;
     }
 
-    bool is_dynamic_renderer = bs_rendererIsDynamic(_bs_scope.renderer);
+    bool is_dynamic_renderer = bs_rendererIsDynamic(_bs_scope_.renderer);
 
-    descriptor->subpass = _bs_scope.subpass;
-    descriptor->renderer = _bs_scope.renderer;
+    descriptor->subpass = _bs_scope_.subpass;
+    descriptor->renderer = _bs_scope_.renderer;
 
     bs_Shader* vs = descriptor->shaders[0];
     bs_Shader* fs = descriptor->shaders[1];
@@ -1089,17 +1089,17 @@ bs_Pipeline* bs_pipeline(bs_PipelineHash* descriptor) {
 
     int num_blend_states = 0;
     if (!is_dynamic_renderer) {
-        if (descriptor->subpass >= _bs_scope.renderer->num_subpasses)
+        if (descriptor->subpass >= _bs_scope_.renderer->num_subpasses)
             bs_throwBasiliskF(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS, "Pipeline subpass (%d) falls outside (%d) renderer %s(%s)%s's subpass count (%d)",
                 descriptor->subpass,
-                _bs_scope.renderer->head.id,
+                _bs_scope_.renderer->head.id,
                 (_bs_args.color_log ? BS_PRINT_CYAN : ""),
-                bs_idName(_bs_scope.renderer->head.source_id, _bs_scope.renderer->head.id),
+                bs_idName(_bs_scope_.renderer->head.source_id, _bs_scope_.renderer->head.id),
                 (_bs_args.color_log ? BS_PRINT_RESET : ""),
-                _bs_scope.renderer->num_subpasses);
+                _bs_scope_.renderer->num_subpasses);
 
-        for (int i = 0; i < _bs_scope.renderer->num_outputs; i++) {
-            bs_Output* output = _bs_scope.renderer->outputs + i;
+        for (int i = 0; i < _bs_scope_.renderer->num_outputs; i++) {
+            bs_Output* output = _bs_scope_.renderer->outputs + i;
             if (output->subpass != descriptor->subpass)
                 continue;
             if (bs_isDepthFormat(output->image->format))
@@ -1121,8 +1121,8 @@ bs_Pipeline* bs_pipeline(bs_PipelineHash* descriptor) {
         }
     }
     else {
-        for (int i = 0; i < _bs_scope.renderer->num_outputs; i++) {
-            bs_Output* output = _bs_scope.renderer->outputs + i;
+        for (int i = 0; i < _bs_scope_.renderer->num_outputs; i++) {
+            bs_Output* output = _bs_scope_.renderer->outputs + i;
             if (bs_isDepthFormat(output->image->format)) {
                 render_info.depthAttachmentFormat = output->image->format; // TODO: ensure only one?
             }
@@ -1276,7 +1276,7 @@ bs_Pipeline* bs_pipeline(bs_PipelineHash* descriptor) {
         pipeline_ci.pMultisampleState = &multisampling_ci;
         pipeline_ci.pColorBlendState = &color_blending_ci;
         if (!is_dynamic_renderer)
-            pipeline_ci.pDepthStencilState = BS_RENDERER_SUBPASS_HAS_DEPTH(_bs_scope.renderer->flags, 0) ? &depth_stencil_state : NULL; // todo should this be 0?
+            pipeline_ci.pDepthStencilState = BS_RENDERER_SUBPASS_HAS_DEPTH(_bs_scope_.renderer->flags, 0) ? &depth_stencil_state : NULL; // todo should this be 0?
         else
             pipeline_ci.pDepthStencilState = &depth_stencil_state;
     }
@@ -1285,13 +1285,13 @@ bs_Pipeline* bs_pipeline(bs_PipelineHash* descriptor) {
     pipeline_ci.pStages = shader_stages;
     pipeline_ci.layout = existing->layout;
     if (!is_dynamic_renderer)
-        pipeline_ci.renderPass = _bs_scope.renderer->render_pass;
+        pipeline_ci.renderPass = _bs_scope_.renderer->render_pass;
     else
         pipeline_ci.pNext = &render_info;
     pipeline_ci.basePipelineIndex = -1;
     pipeline_ci.subpass = descriptor->subpass;
 
-    bs_throwVulkan(vkCreateGraphicsPipelines(_bs_instance->device, VK_NULL_HANDLE, 1, &pipeline_ci, NULL, &existing->pipeline));
+    bs_throwVulkan(vkCreateGraphicsPipelines(_bs_instance_->device, VK_NULL_HANDLE, 1, &pipeline_ci, NULL, &existing->pipeline));
 
     existing->name = bs_stringF(existing->name, BS_PRINT_COLOR("%" PRIx64, BS_PRINT_BLUE_BRIGHT), pipeline.hash);
     bsi_nameHandle(existing->pipeline, VK_OBJECT_TYPE_PIPELINE, existing->name->value);
@@ -1396,7 +1396,7 @@ bs_Result bs_rayTracingPipeline(bs_RayTracePipelineHash* pipeline_hash, bs_Pipel
     };
 
     result = bs_convertVulkanResult(_bs_procs_.vkCreateRayTracingPipelinesKHR(
-        _bs_instance->device, 
+        _bs_instance_->device, 
         NULL, 
         NULL, 
         1, 
@@ -1425,7 +1425,7 @@ bs_Result bs_rayTracingPipeline(bs_RayTracePipelineHash* pipeline_hash, bs_Pipel
     bs_U32 buffer_size = tracer->groups_count * tracer->record_size;
 
     char* shader_handle_storage = bs_malloc(buffer_size);
-    _bs_procs_.vkGetRayTracingShaderGroupHandlesKHR(_bs_instance->device, existing->pipeline, 0, tracer->groups_count, buffer_size, shader_handle_storage);
+    _bs_procs_.vkGetRayTracingShaderGroupHandlesKHR(_bs_instance_->device, existing->pipeline, 0, tracer->groups_count, buffer_size, shader_handle_storage);
 
     existing->binding_table = BS_BUFFER(-1, 0, 0);
     bs_buffer(existing->binding_table, buffer_size,

@@ -899,9 +899,6 @@ static void _preval_bs_output(bs_Renderer* renderer, bs_Output output) {
     if (renderer == NULL)
         return;
 
-    if (!(renderer >= BS_MAX_NUM_ATTACHMENTS))
-        return;
-
     return next.bs_output(renderer, output);
 }
 

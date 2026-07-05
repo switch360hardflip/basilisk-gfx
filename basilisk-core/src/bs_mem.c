@@ -28,13 +28,13 @@ bs_Window _bs_wnd = {
 bs_Instance* _bs_instance;
 bs_IO _bs_io;
 bs_Swapchain* _bs_swapchain_;
-int bs_image_index = 0;
-bs_String* _bs_string_builder = NULL;
+int _bs_image_index_ = 0;
+bs_String* _bs_string_builder_ = NULL;
 
 bs_String* bs_stringBuilder() {
-    if (_bs_string_builder)
-        _bs_string_builder->len = 0;
-    return _bs_string_builder;
+    if (_bs_string_builder_)
+        _bs_string_builder_->len = 0;
+    return _bs_string_builder_;
 }
 
 
@@ -67,8 +67,8 @@ void bs_systemAsync(char* s) {
 }
 
 void bs_systemV(const char* format, va_list args) {
-    _bs_string_builder = bs_stringV(_bs_string_builder, format, args);
-    bs_system(_bs_string_builder->value);
+    _bs_string_builder_ = bs_stringV(_bs_string_builder_, format, args);
+    bs_system(_bs_string_builder_->value);
 }
 
 void bs_systemF(const char* format, ...) {
@@ -928,10 +928,10 @@ bs_String* bs_loadFile(const char* path) {
 bs_String* bs_loadFileF(const char* format, ...) {
     va_list args;
     va_start(args, format);
-    _bs_string_builder = bs_stringV(_bs_string_builder, format, args);
+    _bs_string_builder_ = bs_stringV(_bs_string_builder_, format, args);
     va_end(args);
 
-    return bs_loadFile(_bs_string_builder->value);
+    return bs_loadFile(_bs_string_builder_->value);
 }
 
 bs_String* bs_loadFileChunk(long offset, size_t size, const char* path) {

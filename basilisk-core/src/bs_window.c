@@ -87,17 +87,17 @@ void bs_minimize() {
 }
 
 void bs_exit() {
-	_bs_instance->alive = false;
+	_bs_instance_->alive = false;
 }
 
 void bs_pause() {
-	_bs_instance->paused = !_bs_instance->paused;
+	_bs_instance_->paused = !_bs_instance_->paused;
 }
 
 void bs_advance() {
-	if (!_bs_instance->paused)
+	if (!_bs_instance_->paused)
 		bs_throwBasiliskF(BSXI_INTERNAL | BSX_GENERAL, "Application must be paused to advance a frame");
-	_bs_instance->advance = true;
+	_bs_instance_->advance = true;
 }
 
 double bs_deltaTime() {
@@ -243,9 +243,9 @@ void bs_tick(bs_Callback tick, bs_Callback fixed_tick) {
     double last_fixed_time = _bs_wnd.time_old;
     double current_time = 0.0;
 
-    _bs_instance->alive = true;
+    _bs_instance_->alive = true;
 
-    while (_bs_instance->alive) {
+    while (_bs_instance_->alive) {
         bs_checkTimer(&timer);
         double frame_start = timer.seconds;
 
@@ -259,7 +259,7 @@ void bs_tick(bs_Callback tick, bs_Callback fixed_tick) {
 
 			switch (msg.message) {
 			case WM_QUIT: PostQuitMessage(0); 
-				_bs_instance->alive = false;
+				_bs_instance_->alive = false;
 				goto end;
 
 			case WM_LBUTTONDOWN: _bs_io.left_clicked = true; break;
@@ -319,14 +319,14 @@ void bs_tick(bs_Callback tick, bs_Callback fixed_tick) {
 
         if (fixed_tick) {
             _bs_wnd.in_fixed = true;
-            for (int i = 0; _bs_instance->advance || (current_time < _bs_wnd.time && i < 200 && !_bs_instance->paused); i++) {
+            for (int i = 0; _bs_instance_->advance || (current_time < _bs_wnd.time && i < 200 && !_bs_instance_->paused); i++) {
                 new_time_index = !new_time_index;
                 last_fixed_update_times[new_time_index] = _bs_wnd.fixed_time;
 
                 _bs_wnd.delta_time = _bs_wnd.fixed_time;
                 fixed_tick();
                 current_time += _bs_wnd.fixed_time;
-                _bs_instance->advance = false;
+                _bs_instance_->advance = false;
             }
         }
         float newer_time = last_fixed_update_times[new_time_index];

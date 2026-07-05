@@ -421,9 +421,9 @@ static inline const char* bs_objectName(int type) {
 void bs_logUnchangedObjects() {
     /*
     int last_id = -1;
-    for (int i = _bs_instance->objects_count - 1; i >= 0; i--) {
-        if (_bs_instance->objects[i].object.type != 0 &&
-            _bs_instance->objects[i].object.status == 0) {
+    for (int i = _bs_instance_->objects_count - 1; i >= 0; i--) {
+        if (_bs_instance_->objects[i].object.type != 0 &&
+            _bs_instance_->objects[i].object.status == 0) {
             last_id = i;
             break;
         }
@@ -431,7 +431,7 @@ void bs_logUnchangedObjects() {
 
     const int new_line_every = 3;
     for (int i = 0, is = 0; i < last_id - 1; i++) {
-        bs_Object* object = &_bs_instance->objects[i].object;
+        bs_Object* object = &_bs_instance_->objects[i].object;
         if (object->type == 0)
             continue;
 
@@ -447,15 +447,15 @@ void bs_logUnchangedObjects() {
     }
 
     if (last_id != -1)
-        bs_logF("(%d) %s%s\n", last_id, bs_idName(_bs_instance->objects[last_id].object.head->id), (_bs_args.color_log ? BS_PRINT_RESET : ""));
+        bs_logF("(%d) %s%s\n", last_id, bs_idName(_bs_instance_->objects[last_id].object.head->id), (_bs_args.color_log ? BS_PRINT_RESET : ""));
         */
 }
 
 void bs_logObjectDiff() {
     /*
     int size = 0;
-    for (int i = 0; i < _bs_instance->objects_count; i++) {
-        bs_Object* object = &_bs_instance->objects[i].object;
+    for (int i = 0; i < _bs_instance_->objects_count; i++) {
+        bs_Object* object = &_bs_instance_->objects[i].object;
         if (object->type == 0)
             continue;
 
@@ -486,8 +486,8 @@ void bs_logObjectDiff() {
 }
 
 void bs_logBindings() {
-    for (int i = 0; i < _bs_instance->bind_sets_count; i++) {
-        bs_BindSet* bind_set = _bs_instance->bind_sets + i;
+    for (int i = 0; i < _bs_instance_->bind_sets_count; i++) {
+        bs_BindSet* bind_set = _bs_instance_->bind_sets + i;
         if (bind_set->bindings_count == 0) continue;
 
         for (int j = 0; j < bind_set->bindings_count; j++) {

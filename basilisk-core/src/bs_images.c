@@ -12,7 +12,7 @@
 
 static inline bs_U32 bs_queryMemoryType(bs_U32 filter, VkMemoryPropertyFlags props) {
     VkPhysicalDeviceMemoryProperties mem_props;
-    vkGetPhysicalDeviceMemoryProperties(_bs_instance->physical_device, &mem_props);
+    vkGetPhysicalDeviceMemoryProperties(_bs_instance_->physical_device, &mem_props);
 
     for (bs_U32 i = 0; i < mem_props.memoryTypeCount; i++) {
         if ((filter & (1 << i)) && (mem_props.memoryTypes[i].propertyFlags & props) == props)
@@ -78,7 +78,7 @@ static inline const char* bs_layoutName(bs_ImageLayout layout) {
 }
 
 int bs_imageSwapsCount(bs_Image* image) {
-    return image->flags & BS_IMAGE_SWAPS_BIT ? _bs_settings.frames_in_flight : 1;
+    return image->flags & BS_IMAGE_SWAPS_BIT ? _bs_settings_.frames_in_flight : 1;
 }
 
 void bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout, bs_ImageLayout new_layout) {
@@ -224,9 +224,9 @@ void bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout, bs_Ima
         0, NULL,
         1, &barrier);
 
-    if (_bs_scope.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
-        bsi_pushQueue(_bs_scope.queue);
-        bs_throwVulkan(vkQueueWaitIdle(_bs_scope.queue->queue));
+    if (_bs_scope_.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
+        bsi_pushQueue(_bs_scope_.queue);
+        bs_throwVulkan(vkQueueWaitIdle(_bs_scope_.queue->queue));
     }
 }
 
@@ -262,14 +262,14 @@ static void bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, VkImag
 
     bs_throwVulkan(
         vkCreateImage(
-            _bs_instance->device, 
+            _bs_instance_->device, 
             &image_ci, 
             NULL, 
             &image->_->vk_image));
 
     VkMemoryRequirements mem_req;
     vkGetImageMemoryRequirements(
-        _bs_instance->device, 
+        _bs_instance_->device, 
         image->_->vk_image,
         &mem_req);
 
@@ -281,13 +281,13 @@ static void bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, VkImag
 
     bs_throwVulkan(
         vkAllocateMemory(
-            _bs_instance->device, 
+            _bs_instance_->device, 
             &alloc_i, 
             NULL, 
             &image->_->memory));
 
     vkBindImageMemory(
-        _bs_instance->device, 
+        _bs_instance_->device, 
         image->_->vk_image,
         image->_->memory,
         0);
@@ -314,7 +314,7 @@ static void bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, VkImag
 
     bs_throwVulkan(
         vkCreateImageView(
-            _bs_instance->device, 
+            _bs_instance_->device, 
             &image_view_ci,
             NULL, 
             &image->_->view));
@@ -326,7 +326,7 @@ static void bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, VkImag
 static bs_Result bs_depthImage(bs_Object* object, bs_ivec2 dim, int num_indices, bs_Format format, bs_U32 flags) {
     bs_Image* image = object->image;
 
-    bs_U32 num_swaps = flags & BS_IMAGE_SWAPS_BIT ? _bs_settings.frames_in_flight : 1;
+    bs_U32 num_swaps = flags & BS_IMAGE_SWAPS_BIT ? _bs_settings_.frames_in_flight : 1;
 
     bs_prepareImage(image->head.source_id, image->head.id, image,
         (flags & BS_IMAGE_ATTACHMENT_BIT       ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : 0) |
@@ -367,7 +367,7 @@ bs_Result bs_image(bs_Object* object, bs_ivec2 dim, int num_indices, bs_Format f
     if (bs_isDepthFormat(format)) 
         return bs_depthImage(object, dim, num_indices, format, flags);
 
-    int num_swaps = flags & BS_IMAGE_SWAPS_BIT ? _bs_settings.frames_in_flight : 1;
+    int num_swaps = flags & BS_IMAGE_SWAPS_BIT ? _bs_settings_.frames_in_flight : 1;
     bs_prepareImage(image->head.source_id, image->head.id, image,
         (flags & BS_IMAGE_ATTACHMENT_BIT            ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT : 0) |
         (flags & BS_IMAGE_INPUT_ATTACHMENT_BIT      ? VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT : 0) |
@@ -516,7 +516,7 @@ bs_Result bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs_ivec2 
     bs_Image* image = object->image;
     bs_destroyImage(image);
 
-    bs_U32 swaps_count = flags & BS_IMAGE_SWAPS_BIT ? _bs_settings.frames_in_flight : 1;
+    bs_U32 swaps_count = flags & BS_IMAGE_SWAPS_BIT ? _bs_settings_.frames_in_flight : 1;
 
     image->flags = flags;
     image->format = format;
@@ -563,11 +563,11 @@ bs_Result bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs_ivec2 
 }
 
 void bs_destroyImage(bs_Image* image) {
-    bs_U32 num_swaps = image->flags & BS_IMAGE_SWAPS_BIT ? _bs_settings.frames_in_flight : 1;
+    bs_U32 num_swaps = image->flags & BS_IMAGE_SWAPS_BIT ? _bs_settings_.frames_in_flight : 1;
     for (int i = 0; i < num_swaps; i++) {
-        vkDestroyImageView(_bs_instance->device, image->_[i].view, NULL);
-        vkDestroyImage(_bs_instance->device, image->_[i].vk_image, NULL);
-        vkFreeMemory(_bs_instance->device, image->_[i].memory, NULL);
+        vkDestroyImageView(_bs_instance_->device, image->_[i].view, NULL);
+        vkDestroyImage(_bs_instance_->device, image->_[i].vk_image, NULL);
+        vkFreeMemory(_bs_instance_->device, image->_[i].memory, NULL);
         image->_[i].view = image->_[i].vk_image = image->_[i].memory = 0;
     }
 
@@ -608,7 +608,7 @@ int bs_queryImageIndex(bs_Image* image, char* name) {
    *============================================================================*/
 
 void bs_destroySampler(bs_Sampler* sampler) {
-    vkDestroySampler(_bs_instance->device, sampler->_->vk_sampler, NULL);
+    vkDestroySampler(_bs_instance_->device, sampler->_->vk_sampler, NULL);
 
     // TODO: make generic
     int id = sampler->head.id;
@@ -630,7 +630,7 @@ bs_Object* bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_SamplerBits f
     sampler->flags = flags;
 
     VkPhysicalDeviceProperties properties = { 0 };
-    vkGetPhysicalDeviceProperties(_bs_instance->physical_device, &properties);
+    vkGetPhysicalDeviceProperties(_bs_instance_->physical_device, &properties);
 
     VkSamplerCreateInfo sampler_i = {
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
@@ -651,7 +651,7 @@ bs_Object* bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_SamplerBits f
         .maxLod = 0.0f,
     };
 
-    bs_throwVulkan(vkCreateSampler(_bs_instance->device, &sampler_i, NULL, &sampler->_->vk_sampler));
+    bs_throwVulkan(vkCreateSampler(_bs_instance_->device, &sampler_i, NULL, &sampler->_->vk_sampler));
 
     return object;
 }
@@ -720,9 +720,9 @@ void bs_copyBufferToImage(bs_Buffer* buffer, bs_Image* image, int index, bs_Imag
         1,
         &region);
 
-    if (_bs_scope.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
-        bsi_pushQueue(_bs_scope.queue);
-        bs_throwVulkan(vkQueueWaitIdle(_bs_scope.queue->queue));
+    if (_bs_scope_.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
+        bsi_pushQueue(_bs_scope_.queue);
+        bs_throwVulkan(vkQueueWaitIdle(_bs_scope_.queue->queue));
     }
 }
 

@@ -35,7 +35,7 @@ bs_Config* bs_config() { return &_bs_config; }
 
 void bsi_nameHandle(bs_U64 handle, bs_U32 type, const char* name) {
     PFN_vkSetDebugUtilsObjectNameEXT pfn_vkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)
-        vkGetDeviceProcAddr(_bs_instance->device, "vkSetDebugUtilsObjectNameEXT");
+        vkGetDeviceProcAddr(_bs_instance_->device, "vkSetDebugUtilsObjectNameEXT");
 
     const VkDebugUtilsObjectNameInfoEXT name_i = {
         .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
@@ -45,7 +45,7 @@ void bsi_nameHandle(bs_U64 handle, bs_U32 type, const char* name) {
         .pObjectName = name,
     };
 
-    pfn_vkSetDebugUtilsObjectNameEXT(_bs_instance->device, &name_i);
+    pfn_vkSetDebugUtilsObjectNameEXT(_bs_instance_->device, &name_i);
 }
 
 void bsi_nameHandleF(bs_U64 handle, bs_U32 type, const char* format, ...) {
@@ -141,9 +141,9 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL bs_reportCallback(
 }
 
 void bs_cleanup() {
-    vkDestroyDevice(_bs_instance->device, NULL);
-    vkDestroySurfaceKHR(_bs_instance->instance, _bs_instance->surface, NULL);
-    vkDestroyInstance(_bs_instance->instance, NULL);
+    vkDestroyDevice(_bs_instance_->device, NULL);
+    vkDestroySurfaceKHR(_bs_instance_->instance, _bs_instance_->surface, NULL);
+    vkDestroyInstance(_bs_instance_->instance, NULL);
 
     //glfwDestroyWindow(window);r
     //glfwTerminate();
@@ -207,16 +207,16 @@ static void bs_prepareInstance() {
 
 #ifdef _WIN32
     if (BS_ADD_INSTANCE_EXTENSION(VK_KHR_WIN32_SURFACE_EXTENSION_NAME))
-         _bs_instance->extensions.surface_type = BS_SURFACE_TYPE_WIN32;
+         _bs_instance_->extensions.surface_type = BS_SURFACE_TYPE_WIN32;
 #elif __linux__
     if (BS_ADD_INSTANCE_EXTENSION(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME))
-        _bs_instance->extensions.surface_type = BS_SURFACE_TYPE_WAYLAND;
+        _bs_instance_->extensions.surface_type = BS_SURFACE_TYPE_WAYLAND;
     else if (BS_ADD_INSTANCE_EXTENSION(VK_KHR_XLIB_SURFACE_EXTENSION_NAME))
-        _bs_instance->extensions.surface_type = BS_SURFACE_TYPE_X11;
+        _bs_instance_->extensions.surface_type = BS_SURFACE_TYPE_X11;
 #endif
     else if (BS_ADD_INSTANCE_EXTENSION(VK_EXT_HEADLESS_SURFACE_EXTENSION_NAME)) {
         bs_warnF("Only off-screen rendering is available\n");
-        _bs_instance->extensions.surface_type = BS_SURFACE_TYPE_HEADLESS;
+        _bs_instance_->extensions.surface_type = BS_SURFACE_TYPE_HEADLESS;
     }
     else
         return bs_throwBasiliskF(BSX_NOT_SUPPORTED, "No instance surface extension found");
@@ -257,7 +257,7 @@ static void bs_prepareInstance() {
      //  .pNext = &features,
     };
 
-    bs_throwVulkan(vkCreateInstance(&ci, NULL, &_bs_instance->instance));
+    bs_throwVulkan(vkCreateInstance(&ci, NULL, &_bs_instance_->instance));
     free(available_extensions);
 
     VkDebugUtilsMessengerEXT messenger = { 0 };
@@ -268,11 +268,11 @@ static void bs_prepareInstance() {
         .pfnUserCallback = bs_debugCallback,
     };
 
-    PFN_vkCreateDebugUtilsMessengerEXT create_messenger = vkGetInstanceProcAddr(_bs_instance->instance, "vkCreateDebugUtilsMessengerEXT");
-    PFN_vkCreateDebugUtilsMessengerEXT create_reporter = vkGetInstanceProcAddr(_bs_instance->instance, "vkCreateDebugReportCallbackEXT");
+    PFN_vkCreateDebugUtilsMessengerEXT create_messenger = vkGetInstanceProcAddr(_bs_instance_->instance, "vkCreateDebugUtilsMessengerEXT");
+    PFN_vkCreateDebugUtilsMessengerEXT create_reporter = vkGetInstanceProcAddr(_bs_instance_->instance, "vkCreateDebugReportCallbackEXT");
 
     if (create_messenger)
-        create_messenger(_bs_instance->instance, &debug_ci, NULL, &messenger);
+        create_messenger(_bs_instance_->instance, &debug_ci, NULL, &messenger);
 
     VkDebugReportCallbackCreateInfoEXT report_ci = {
         .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
@@ -282,31 +282,31 @@ static void bs_prepareInstance() {
 
     VkDebugReportCallbackEXT reporter = { 0 };
     if (create_reporter)
-        create_reporter(_bs_instance->instance, &report_ci, NULL, &reporter);
+        create_reporter(_bs_instance_->instance, &report_ci, NULL, &reporter);
 
 }
 
 static void bs_prepareSurface() {
     VkResult result = VK_SUCCESS;
 
-    if (_bs_instance->extensions.surface_type == BS_SURFACE_TYPE_WIN32) {
+    if (_bs_instance_->extensions.surface_type == BS_SURFACE_TYPE_WIN32) {
         VkWin32SurfaceCreateInfoKHR ci = {
             .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
             .hinstance = GetModuleHandle(0),
             .hwnd = _bs_wnd.hwnd,
         };
 
-        result = vkCreateWin32SurfaceKHR(_bs_instance->instance, &ci, NULL, &_bs_instance->surface);
+        result = vkCreateWin32SurfaceKHR(_bs_instance_->instance, &ci, NULL, &_bs_instance_->surface);
     }
-    else if (_bs_instance->extensions.surface_type == BS_SURFACE_TYPE_HEADLESS) {
+    else if (_bs_instance_->extensions.surface_type == BS_SURFACE_TYPE_HEADLESS) {
         VkHeadlessSurfaceCreateInfoEXT ci = {
             .sType = VK_STRUCTURE_TYPE_HEADLESS_SURFACE_CREATE_INFO_EXT,
         };
 
-        result = vkCreateHeadlessSurfaceEXT(_bs_instance->instance, &ci, NULL, &_bs_instance->surface);
+        result = vkCreateHeadlessSurfaceEXT(_bs_instance_->instance, &ci, NULL, &_bs_instance_->surface);
     }
     else
-        bs_throwBasiliskF(BSX_NOT_SUPPORTED, "Surface type %d", _bs_instance->extensions.surface_type);
+        bs_throwBasiliskF(BSX_NOT_SUPPORTED, "Surface type %d", _bs_instance_->extensions.surface_type);
 
     if (result != VK_SUCCESS)
         bs_throwVulkan(result);
@@ -341,26 +341,26 @@ static inline void bs_logPhysicalDeviceInfo(int i, VkPhysicalDevice device) {
 
 static void bs_preparePhysicalDevice() {
     bs_U32 num_devices = 0;
-    vkEnumeratePhysicalDevices(_bs_instance->instance, &num_devices, NULL);
+    vkEnumeratePhysicalDevices(_bs_instance_->instance, &num_devices, NULL);
     if (num_devices == 0)
 	    bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_QUERY, "No GPU with Vulkan support was found!\n");
 
     VkPhysicalDevice* devices = bs_calloc(num_devices, sizeof(VkPhysicalDevice));
-    vkEnumeratePhysicalDevices(_bs_instance->instance, &num_devices, devices);
+    vkEnumeratePhysicalDevices(_bs_instance_->instance, &num_devices, devices);
 
     int chosen = 0;
     for(int i = 0; i < num_devices; i++) {
         chosen = i;
         bs_logPhysicalDeviceInfo(i, devices[i]);
-        _bs_instance->physical_device = devices[i];
+        _bs_instance_->physical_device = devices[i];
         if (bs_queueFamily(BS_QUEUE_GRAPHICS_BIT) != -1)
             break;
-        _bs_instance->physical_device = VK_NULL_HANDLE;
+        _bs_instance_->physical_device = VK_NULL_HANDLE;
     }
 
     bs_free(devices);
 
-    if (_bs_instance->physical_device == VK_NULL_HANDLE)
+    if (_bs_instance_->physical_device == VK_NULL_HANDLE)
         bs_throwBasilisk(BSXI_INTERNAL | BSX_NO_GPU);
 
     bs_infoF("Physical device %d was picked\n", chosen);
@@ -379,7 +379,7 @@ static void bs_prepareLogicalDevice() {
     VkPhysicalDeviceVulkan12Features features12 = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, .pNext = &dynamic_rendering_features };
     VkPhysicalDeviceFeatures2 features2 = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &features12 };
     VkPhysicalDeviceFeatures* features = &features2.features;
-    vkGetPhysicalDeviceFeatures2(_bs_instance->physical_device, &features2);
+    vkGetPhysicalDeviceFeatures2(_bs_instance_->physical_device, &features2);
 
    /**
     NVIDIA Aftermath
@@ -422,9 +422,9 @@ static void bs_prepareLogicalDevice() {
     bool supported_extensions[sizeof(extensions) / sizeof(const char*)] = { 0 };
 
     bs_U32 total_extensions_count = 0;
-    bs_throwVulkan(vkEnumerateDeviceExtensionProperties(_bs_instance->physical_device, NULL, &total_extensions_count, NULL));
+    bs_throwVulkan(vkEnumerateDeviceExtensionProperties(_bs_instance_->physical_device, NULL, &total_extensions_count, NULL));
     VkExtensionProperties* props = bs_calloc(total_extensions_count, sizeof(VkExtensionProperties));
-    bs_throwVulkan(vkEnumerateDeviceExtensionProperties(_bs_instance->physical_device, NULL, &total_extensions_count, props));
+    bs_throwVulkan(vkEnumerateDeviceExtensionProperties(_bs_instance_->physical_device, NULL, &total_extensions_count, props));
 
     for (int i = 0; i < extensions_count; i++) {
         for (int j = 0; j < total_extensions_count; j++) {
@@ -466,7 +466,7 @@ static void bs_prepareLogicalDevice() {
        // .pNext = &ray_tracing_pipeline_properties
     };
 
-    vkGetPhysicalDeviceProperties2(_bs_instance->physical_device, &device_properties);
+    vkGetPhysicalDeviceProperties2(_bs_instance_->physical_device, &device_properties);
 
     _bs_props.shader_group_handle_size = ray_tracing_pipeline_properties.shaderGroupHandleSize;
     _bs_props.shader_group_base_alignment = ray_tracing_pipeline_properties.shaderGroupBaseAlignment;
@@ -494,7 +494,7 @@ static void bs_prepareLogicalDevice() {
         .enabledLayerCount = _bs_args.use_validation_layers ? sizeof(validation_layers) / sizeof(const char*) : 0,
     };
 
-    bs_throwVulkan(vkCreateDevice(_bs_instance->physical_device, &ci, NULL, &_bs_instance->device));
+    bs_throwVulkan(vkCreateDevice(_bs_instance_->physical_device, &ci, NULL, &_bs_instance_->device));
 
     //bs_nameHandlef((bs_U64)bs_instance->_.graphics_queue, VK_OBJECT_TYPE_QUEUE, "graphics queue");
     //bs_nameHandlef((bs_U64)bs_instance->_.compute_queue, VK_OBJECT_TYPE_QUEUE, "compute queue");
@@ -507,7 +507,7 @@ static void bs_prepareCommands() {
         .queueFamilyIndex = bs_queueFamily(BS_QUEUE_GRAPHICS_BIT),
     };
 
-    bs_throwVulkan(vkCreateCommandPool(_bs_instance->device, &pool_ci, NULL, &_bs_instance->command_pool));
+    bs_throwVulkan(vkCreateCommandPool(_bs_instance_->device, &pool_ci, NULL, &_bs_instance_->command_pool));
 }
 
 static VkSurfaceFormatKHR bs_querySwapchainFormat(bs_U32 num_candidates, ...) {
@@ -515,9 +515,9 @@ static VkSurfaceFormatKHR bs_querySwapchainFormat(bs_U32 num_candidates, ...) {
     va_start(args, num_candidates);
 
     bs_U32 num_formats = 0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(_bs_instance->physical_device, _bs_instance->surface, &num_formats, NULL);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(_bs_instance_->physical_device, _bs_instance_->surface, &num_formats, NULL);
     VkSurfaceFormatKHR* formats = bs_malloc(num_formats * sizeof(VkSurfaceFormatKHR));
-    vkGetPhysicalDeviceSurfaceFormatsKHR(_bs_instance->physical_device, _bs_instance->surface, &num_formats, formats);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(_bs_instance_->physical_device, _bs_instance_->surface, &num_formats, formats);
 
     for (int i = 0; i < num_candidates; i++) {
         VkFormat candidate = va_arg(args, VkFormat);
@@ -547,9 +547,9 @@ static VkPresentModeKHR bs_querySwapchainMode(bs_U32 num_candidates, ...) {
 
     bs_U32 num_modes = 0;
     VkPresentModeKHR result = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(_bs_instance->physical_device, _bs_instance->surface, &num_modes, NULL);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(_bs_instance_->physical_device, _bs_instance_->surface, &num_modes, NULL);
     VkPresentModeKHR* modes = bs_malloc(num_modes * sizeof(VkPresentModeKHR));
-    vkGetPhysicalDeviceSurfacePresentModesKHR(_bs_instance->physical_device, _bs_instance->surface, &num_modes, modes);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(_bs_instance_->physical_device, _bs_instance_->surface, &num_modes, modes);
 
     for (int i = 0; i < num_candidates; i++) {
         VkPresentModeKHR candidate = va_arg(args, VkPresentModeKHR);
@@ -573,7 +573,7 @@ void bs_prepareSwapchain() {
     VkSurfaceCapabilitiesKHR capabilities;
     VkSurfaceFormatKHR surface_format = bs_querySwapchainFormat(4, 
         VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_SRGB, VK_FORMAT_B8G8R8A8_SRGB);
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_bs_instance->physical_device, _bs_instance->surface, &capabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_bs_instance_->physical_device, _bs_instance_->surface, &capabilities);
 
     const bool same_family = true; // @todo
     // todo what? ofc i forgot this you fucking idiot
@@ -593,15 +593,15 @@ void bs_prepareSwapchain() {
 
     // todo frames in flight = 1
 
-    _bs_settings.buffer_count_min = capabilities.minImageCount;
-    _bs_settings.frames_in_flight_max = bs_iclamp(_bs_settings.frames_in_flight_max, capabilities.minImageCount, capabilities.maxImageCount);
+    _bs_settings_.buffer_count_min = capabilities.minImageCount;
+    _bs_settings_.frames_in_flight_max = bs_iclamp(_bs_settings_.frames_in_flight_max, capabilities.minImageCount, capabilities.maxImageCount);
 
     VkSwapchainCreateInfoKHR swapchain_ci = {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        .surface = _bs_instance->surface,
+        .surface = _bs_instance_->surface,
         .imageArrayLayers = 1,
         .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-        .minImageCount = bs_clamp(_bs_settings.frames_in_flight, _bs_settings.buffer_count_min, _bs_settings.frames_in_flight_max),
+        .minImageCount = bs_clamp(_bs_settings_.frames_in_flight, _bs_settings_.buffer_count_min, _bs_settings_.frames_in_flight_max),
         .imageExtent = { resolution.x, resolution.y },
         .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
         .imageSharingMode = same_family ? VK_SHARING_MODE_EXCLUSIVE : VK_SHARING_MODE_CONCURRENT,
@@ -617,16 +617,16 @@ void bs_prepareSwapchain() {
 
     if (swapchain_ci.imageFormat == VK_FORMAT_UNDEFINED)
         bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_TYPE);
-    bs_throwVulkan(vkCreateSwapchainKHR(_bs_instance->device, &swapchain_ci, NULL, &swapchain.swapchain));
+    bs_throwVulkan(vkCreateSwapchainKHR(_bs_instance_->device, &swapchain_ci, NULL, &swapchain.swapchain));
 
 
    /**
     Swapchain images
     */
-    int swapchain_image_count = BS_MAX(_bs_settings.frames_in_flight, _bs_settings.buffer_count_min);
+    int swapchain_image_count = BS_MAX(_bs_settings_.frames_in_flight, _bs_settings_.buffer_count_min);
     VkImage images[3];
-    vkGetSwapchainImagesKHR(_bs_instance->device, swapchain.swapchain, &swapchain_image_count, images);
-    bs_infoF("Swapchain\n  Format: %d\n  Mode: %d\n  Images: %d\n", swapchain_ci.imageFormat, swapchain_ci.presentMode, _bs_settings.frames_in_flight);
+    vkGetSwapchainImagesKHR(_bs_instance_->device, swapchain.swapchain, &swapchain_image_count, images);
+    bs_infoF("Swapchain\n  Format: %d\n  Mode: %d\n  Images: %d\n", swapchain_ci.imageFormat, swapchain_ci.presentMode, _bs_settings_.frames_in_flight);
 
     // TODO: use new object system
     if (!_bs_swapchain_) {
@@ -655,7 +655,7 @@ void bs_prepareSwapchain() {
             .subresourceRange.layerCount = 1,
         };
 
-        bs_throwVulkan(vkCreateImageView(_bs_instance->device, &image_view_ci, NULL, &_bs_swapchain_->image->image->_[i].view));
+        bs_throwVulkan(vkCreateImageView(_bs_instance_->device, &image_view_ci, NULL, &_bs_swapchain_->image->image->_[i].view));
     }
 
    /**
@@ -666,7 +666,7 @@ void bs_prepareSwapchain() {
     };
 
     for (int i = 0; i < swapchain_image_count; i++) {
-        bs_throwVulkan(vkCreateSemaphore(_bs_instance->device, &semaphore_ci, NULL, &_bs_swapchain_->_[i].semaphore));
+        bs_throwVulkan(vkCreateSemaphore(_bs_instance_->device, &semaphore_ci, NULL, &_bs_swapchain_->_[i].semaphore));
     }
 }
 
@@ -697,7 +697,7 @@ void bs_queryProcedures(bs_Procedure* procedures, int count, HMODULE dll_handle,
 
     for (int i = 0; i < count; i++) {
         void* data = dll_handle == 0 ?
-            vkGetDeviceProcAddr(_bs_instance->device, procedures[i].func) :
+            vkGetDeviceProcAddr(_bs_instance_->device, procedures[i].func) :
             GetProcAddress(dll_handle, procedures[i].func);
 
         if (data)
@@ -741,12 +741,12 @@ static int bs_compareInt(const int* a, const int* b) {
 void bs_load(
     bs_Callback load_resources)
 {
-    if (!_bs_instance->single_times_queue)
-        _bs_instance->single_times_queue = bs_queue(BS_QUEUE(-1, 0, 0), BS_QUEUE_TRANSFER_BIT | BS_QUEUE_COMPUTE_BIT | BS_QUEUE_SINGLE_TIMES_BIT)->queue;
-    _bs_scope.queue = _bs_instance->single_times_queue;
+    if (!_bs_instance_->single_times_queue)
+        _bs_instance_->single_times_queue = bs_queue(BS_QUEUE(-1, 0, 0), BS_QUEUE_TRANSFER_BIT | BS_QUEUE_COMPUTE_BIT | BS_QUEUE_SINGLE_TIMES_BIT)->queue;
+    _bs_scope_.queue = _bs_instance_->single_times_queue;
 
     if (load_resources)
         load_resources();
 
-    _bs_scope.queue = NULL;
+    _bs_scope_.queue = NULL;
 }
