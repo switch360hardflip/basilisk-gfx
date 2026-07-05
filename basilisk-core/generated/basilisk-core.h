@@ -69,7 +69,7 @@ typedef struct bs_ResourceHeaderData bs_ResourceHeaderData;
 typedef struct bs_Package bs_Package;
 typedef struct bs_BlitOperation bs_BlitOperation;
 typedef struct bs_ImageIndex bs_ImageIndex;
-typedef struct bs_ImageIndex bs_ImageIndex;
+typedef struct bs_ImageSwaps bs_ImageSwaps;
 typedef struct bs_Image bs_Image;
 typedef struct bs_BiffHeader bs_BiffHeader;
 typedef struct bs_BiffPointer bs_BiffPointer;
@@ -187,7 +187,6 @@ typedef enum bs_PolygonType bs_PolygonType;
 typedef enum bs_ColliderType bs_ColliderType;
 typedef enum bs_StoreOp bs_StoreOp;
 typedef enum bs_LoadOp bs_LoadOp;
-typedef enum bs_Result bs_Result;
 typedef enum bs_ObjectFlag bs_ObjectFlag;
 typedef enum bs_ResourceType bs_ResourceType;
 typedef enum bs_ImageBit bs_ImageBit;
@@ -213,7 +212,7 @@ typedef enum bs_SwapchainMode bs_SwapchainMode;
 
 #define BS_VALIDATE(condition, ret, format, ...)                     \
     if (!(condition)) {                                              \
-        bs_warnF("Validation failed: %s\n" __VA_OPT__(format) "\n", #condition __VA_OPT__(,) __VA_ARGS__); \
+        bs_warnF(BS_PRINT_COLOR("[VAL]", BS_PRINT_RED) " %s: %s\n" __VA_OPT__(format) "\n", __func__, #condition __VA_OPT__(,) __VA_ARGS__); \
         return ret;                                                  \
     }
 
@@ -1166,11 +1165,11 @@ typedef enum bs_SwapchainMode bs_SwapchainMode;
 
 #define BS_ASSERT_TYPE(obj, t1)                                      \
     do {                                                             \
-        int t2 = _bs_instance_->objects[obj->head.id].object.type;    \
+        int t2 = _bs_instance->objects[obj->head.id].object.type;    \
         if (t1 != t2)                                                \
             bs_throwBasiliskF(BSX_ASSERTION, "%s != %s",             \
-            _bs_instance_->object_types[t1].name,                     \
-            _bs_instance_->object_types[t2].name                      \
+            _bs_instance->object_types[t1].name,                     \
+            _bs_instance->object_types[t2].name                      \
         );                                                           \
     } while (0)
 
@@ -1991,7 +1990,7 @@ struct bs_ImageIndex {
     bs_U64 name_hash;
 };
 
-struct bs_ImageIndex {
+struct bs_ImageSwaps {
     struct VkImage_T* image;
     struct VkImageView_T* image_view;
 };
@@ -2842,6 +2841,7 @@ enum bs_Result {
     BS_RESULT_NOT_IMPLEMENTED,
     BS_RESULT_FAILED_TO_QUERY,
     BS_RESULT_OUT_OF_BOUNDS,
+    BS_RESULT_VALIDATION_ERROR,
 };
 
 enum bs_IniFlag {
@@ -3413,19 +3413,6 @@ enum bs_LoadOp {
     BS_LOAD_OP_NONE = 1000400000,
 };
 
-enum bs_Result {
-    BS_RESULT_OK = 0,
-    BS_RESULT_GENERAL_ERROR = 1,
-    BS_RESULT_INTEGER_OVERFLOW = 2,
-    BS_RESULT_INVALID_BASE64_PADDING = 3,
-    BS_RESULT_INVALID_PARAM = 4,
-    BS_RESULT_INVALID_TYPE = 5,
-    BS_RESULT_CORRUPTED = 6,
-    BS_RESULT_NOT_SUPPORTED = 7,
-    BS_RESULT_NOT_IMPLEMENTED = 8,
-    BS_RESULT_FAILED_TO_QUERY = 9,
-};
-
 enum bs_ObjectFlag {
     BS_OBJECT_SHOULD_LOAD = (1 << 0),
     BS_OBJECT_HAS_SWAPS_BIT = (1 << 1),
@@ -3584,6 +3571,18 @@ enum bs_SwapchainMode {
     BS_SWAPCHAIN_MODE_TRIPLE = 3,
     BS_SWAPCHAIN_MODE_MAX = 3,
 };
+
+ /**
+  @return bs_List*
+  */
+BSAPI bs_List*
+bs_packages();
+
+ /**
+  @return bs_List*
+  */
+BSAPI bs_List*
+bs_objectSources();
 
  /**
   @return bs_vec2
@@ -3902,6 +3901,26 @@ BSAPI float
 bs_v4NormalizeTo(
     const bs_vec4* v,
     bs_vec4* out);
+
+ /**
+  @param code
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_convertVulkanError(
+    int code);
+
+ /**
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_convertErrno();
+
+ /**
+  @return const char*
+  */
+BSAPI const char*
+bs_serializeErrno();
 
  /**
   @param sound
@@ -6450,192 +6469,12 @@ bs_warnF(
      ...);
 
  /**
-  @param value
-  @param value_length
-  @return void
-  */
-BSAPI void
-bs_throw(
-    char* value,
-    int value_length);
-
- /**
-  @param format
-  @param args
-  @return void
-  */
-BSAPI void
-bs_throwV(
-    char* format,
-    va_list args);
-
- /**
-  @param format
-  @param ...
-  @return void
-  */
-BSAPI void
-bs_throwF(
-    char* format,
-     ...);
-
- /**
-  @param code
-  @return void
-  */
-BSAPI void
-bs_throwBasilisk(
-    bs_U64 code);
-
- /**
-  @param exceptions
-  @return bs_U64
-  */
-BSAPI bs_U64
-bs_except(
-    bs_U64 exceptions);
-
- /**
-  @return bool
-  */
-BSAPI bool
-bs_caught();
-
- /**
-  @param code
-  @return const char*
-  */
-BSAPI const char*
-bs_exceptionName(
-    bs_U64 code);
-
- /**
   @param code
   @return void
   */
 BSAPI void
 bs_logBasilisk(
     bs_U64 code);
-
- /**
-  @param code
-  @param message
-  @param value
-  @param value_length
-  @return void
-  */
-BSAPI void
-bsi_throwBasilisk(
-    bs_U64 code,
-    char* message,
-    char* value,
-    int value_length);
-
- /**
-  @param code
-  @param message
-  @param format
-  @param args
-  @return void
-  */
-BSAPI void
-bsi_throwBasiliskV(
-    bs_U64 code,
-    char* message,
-    char* format,
-    va_list args);
-
- /**
-  @param code
-  @param message
-  @param format
-  @param ...
-  @return void
-  */
-BSAPI void
-bsi_throwBasiliskF(
-    bs_U64 code,
-    char* message,
-    char* format,
-     ...);
-
- /**
-  @param message
-  @return void
-  */
-BSAPI void
-bs_throwErrno(
-    const char* message);
-
- /**
-  @param result
-  @return void
-  */
-BSAPI void
-bs_throwVulkan(
-    int result);
-
- /**
-  @return void
-  */
-BSAPI void
-bs_throwNotImplemented();
-
- /**
-  @param buffer
-  @param num_bytes
-  @return void
-  */
-BSAPI void
-bs_throwIfBufferTooSmall(
-    bs_Buffer* buffer,
-    bs_U32 num_bytes);
-
- /**
-  @param buffer
-  @return void
-  */
-BSAPI void
-bs_throwIfNotMapped(
-    bs_Buffer* buffer);
-
- /**
-  @param orig
-  @param output
-  @return void
-  */
-BSAPI void
-bs_throwIfStringConversionFail(
-    char* orig,
-    char* output);
-
- /**
-  @param code
-  @param path
-  @return bool
-  */
-BSAPI bool
-bs_throwWin32Error(
-    bs_U64 code,
-    char* path);
-
- /**
-  @param path
-  @return bool
-  */
-BSAPI bool
-bs_throwLastWin32Error(
-    char* path);
-
- /**
-  @param code
-  @param str
-  @return void
-  */
-BSAPI void
-bs_throwHResult(
-    long code,
-    char* str);
 
  /**
   @return void
@@ -6670,12 +6509,6 @@ BSAPI bs_Instance*
 bs_instance();
 
  /**
-  @return bs_String*
-  */
-BSAPI bs_String*
-bs_stringBuilder();
-
- /**
   @return bs_Args*
   */
 BSAPI bs_Args*
@@ -6706,32 +6539,74 @@ BSAPI bs_Config*
 bs_config();
 
  /**
+  @param command
   @param value
   @param value_length
   @return void
   */
 BSAPI void
 bs_system(
+    char* command,
     char* value,
     int value_length);
 
  /**
+  @param command
   @param format
   @param args
   @return void
   */
 BSAPI void
 bs_systemV(
+    char* command,
     char* format,
     va_list args);
 
  /**
+  @param command
   @param format
   @param ...
   @return void
   */
 BSAPI void
 bs_systemF(
+    char* command,
+    char* format,
+     ...);
+
+ /**
+  @param command
+  @param value
+  @param value_length
+  @return void
+  */
+BSAPI void
+bs_systemAsync(
+    char* command,
+    char* value,
+    int value_length);
+
+ /**
+  @param command
+  @param format
+  @param args
+  @return void
+  */
+BSAPI void
+bs_systemAsyncV(
+    char* command,
+    char* format,
+    va_list args);
+
+ /**
+  @param command
+  @param format
+  @param ...
+  @return void
+  */
+BSAPI void
+bs_systemAsyncF(
+    char* command,
     char* format,
      ...);
 
@@ -7200,16 +7075,6 @@ bs_erase(
   */
 BSAPI void*
 bs_pushBack(
-    bs_List* list,
-    char* data);
-
- /**
-  @param list
-  @param data
-  @return void*
-  */
-BSAPI void*
-bs_pushBackUnsafe(
     bs_List* list,
     char* data);
 
@@ -7924,20 +7789,24 @@ bs_destroyResource(
  /**
   @param package_id
   @param name
-  @return bs_Resource*
+  @param out
+  @return bs_Result
   */
-BSAPI bs_Resource*
+BSAPI bs_Result
 bs_queryResource(
     int package_id,
-    const char* name);
+    const char* name,
+    bs_Resource** out);
 
  /**
   @param name
-  @return int
+  @param out
+  @return bs_Result
   */
-BSAPI int
+BSAPI bs_Result
 bs_queryPackage(
-    const char* name);
+    const char* name,
+    int* out);
 
  /**
   @param package_id
@@ -8792,104 +8661,140 @@ bs_numDirectoriesF(
      ...);
 
  /**
+  @param path
+  @param out
   @param value
   @param value_length
-  @return bs_String*
+  @return bs_Result
   */
-BSAPI bs_String*
+BSAPI bs_Result
 bs_loadFile(
+    const char* path,
+    bs_String** out,
     char* value,
     int value_length);
 
  /**
+  @param path
+  @param out
   @param format
   @param args
-  @return bs_String*
+  @return bs_Result
   */
-BSAPI bs_String*
+BSAPI bs_Result
 bs_loadFileV(
+    const char* path,
+    bs_String** out,
     char* format,
     va_list args);
 
  /**
+  @param path
+  @param out
   @param format
   @param ...
-  @return bs_String*
+  @return bs_Result
   */
-BSAPI bs_String*
+BSAPI bs_Result
 bs_loadFileF(
+    const char* path,
+    bs_String** out,
     char* format,
      ...);
 
  /**
+  @param path
   @param offset
   @param size
+  @param out
   @param value
   @param value_length
-  @return bs_String*
+  @return bs_Result
   */
-BSAPI bs_String*
+BSAPI bs_Result
 bs_loadFileChunk(
+    const char* path,
     long offset,
     size_t size,
+    bs_String** out,
     char* value,
     int value_length);
 
  /**
+  @param path
   @param offset
   @param size
+  @param out
   @param format
   @param args
-  @return bs_String*
+  @return bs_Result
   */
-BSAPI bs_String*
+BSAPI bs_Result
 bs_loadFileChunkV(
+    const char* path,
     long offset,
     size_t size,
+    bs_String** out,
     char* format,
     va_list args);
 
  /**
+  @param path
   @param offset
   @param size
+  @param out
   @param format
   @param ...
-  @return bs_String*
+  @return bs_Result
   */
-BSAPI bs_String*
+BSAPI bs_Result
 bs_loadFileChunkF(
+    const char* path,
     long offset,
     size_t size,
+    bs_String** out,
     char* format,
      ...);
 
  /**
+  @param path
+  @param out
   @param value
   @param value_length
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_deleteFile(
+    const char* path,
+    bs_String** out,
     char* value,
     int value_length);
 
  /**
+  @param path
+  @param out
   @param format
   @param args
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_deleteFileV(
+    const char* path,
+    bs_String** out,
     char* format,
     va_list args);
 
  /**
+  @param path
+  @param out
   @param format
   @param ...
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_deleteFileF(
+    const char* path,
+    bs_String** out,
     char* format,
      ...);
 
@@ -8954,12 +8859,10 @@ bs_deleteDirectoryF(
      ...);
 
 BSAPI extern bs_IO _bs_io_;
-BSAPI extern bs_Window _bs_wnd_;
 BSAPI extern bs_Instance* _bs_instance_;
 BSAPI extern bs_Bindings _bs_bind_;
 BSAPI extern bs_Swapchain* _bs_swapchain_;
 BSAPI extern bs_Config _bs_config_;
-BSAPI extern bs_Scope _bs_scope_.;
 BSAPI extern bs_Args _bs_args_;
 BSAPI extern bs_Features _bs_features_;
 BSAPI extern bs_Props _bs_props_;

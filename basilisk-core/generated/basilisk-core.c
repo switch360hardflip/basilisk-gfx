@@ -36,6 +36,16 @@
 #include <cglm/vec3.h>
 #include <cglm/vec4.h>
 
+bs_List* bs_packages()
+{
+    return next.bs_packages();
+}
+
+bs_List* bs_objectSources()
+{
+    return next.bs_objectSources();
+}
+
 bs_vec2 bs_v2()
 {
     return next.bs_v2();
@@ -253,6 +263,22 @@ float bs_v4NormalizeTo(
     bs_vec4* out)
 {
     glm_vec4_normalize_to(v->a, out->a);
+}
+
+bs_Result bs_convertVulkanError(
+    int code)
+{
+    return next.bs_convertVulkanError(code);
+}
+
+bs_Result bs_convertErrno()
+{
+    return next.bs_convertErrno();
+}
+
+const char* bs_serializeErrno()
+{
+    return next.bs_serializeErrno();
 }
 
 bs_Result bs_playSound(
@@ -2098,148 +2124,10 @@ void bs_warnF(
     va_end(args);
 }
 
-void bs_throw(
-    char* value, 
-    int value_length)
-{
-    return next.bs_throw(value, value_length);
-}
-
-void bs_throwV(
-    char* format, 
-    va_list args)
-{
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_throw(string->value, string->len);
-}
-
-void bs_throwF(
-    char* format, 
-    ...)
-{
-    va_list args;
-    va_start(args, format);
-    bs_throwV(format, args);
-    va_end(args);
-}
-
-void bs_throwBasilisk(
-    bs_U64 code)
-{
-    return next.bs_throwBasilisk(code);
-}
-
-bs_U64 bs_except(
-    bs_U64 exceptions)
-{
-    return next.bs_except(exceptions);
-}
-
-bool bs_caught()
-{
-    return next.bs_caught();
-}
-
-const char* bs_exceptionName(
-    bs_U64 code)
-{
-    return next.bs_exceptionName(code);
-}
-
 void bs_logBasilisk(
     bs_U64 code)
 {
     return next.bs_logBasilisk(code);
-}
-
-void bsi_throwBasilisk(
-    bs_U64 code, 
-    char* message, 
-    char* value, 
-    int value_length)
-{
-    return next.bsi_throwBasilisk(code, message, value, value_length);
-}
-
-void bsi_throwBasiliskV(
-    bs_U64 code, 
-    char* message, 
-    char* format, 
-    va_list args)
-{
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bsi_throwBasilisk(code, message, string->value, string->len);
-}
-
-void bsi_throwBasiliskF(
-    bs_U64 code, 
-    char* message, 
-    char* format, 
-    ...)
-{
-    va_list args;
-    va_start(args, format);
-    bsi_throwBasiliskV(code, message, format, args);
-    va_end(args);
-}
-
-void bs_throwErrno(
-    const char* message)
-{
-    return next.bs_throwErrno(message);
-}
-
-void bs_throwVulkan(
-    int result)
-{
-    return next.bs_throwVulkan(result);
-}
-
-void bs_throwNotImplemented()
-{
-    return next.bs_throwNotImplemented();
-}
-
-void bs_throwIfBufferTooSmall(
-    bs_Buffer* buffer, 
-    bs_U32 num_bytes)
-{
-    return next.bs_throwIfBufferTooSmall(buffer, num_bytes);
-}
-
-void bs_throwIfNotMapped(
-    bs_Buffer* buffer)
-{
-    return next.bs_throwIfNotMapped(buffer);
-}
-
-void bs_throwIfStringConversionFail(
-    char* orig, 
-    char* output)
-{
-    return next.bs_throwIfStringConversionFail(orig, output);
-}
-
-bool bs_throwWin32Error(
-    bs_U64 code, 
-    char* path)
-{
-    return next.bs_throwWin32Error(code, path);
-}
-
-bool bs_throwLastWin32Error(
-    char* path)
-{
-    return next.bs_throwLastWin32Error(path);
-}
-
-void bs_throwHResult(
-    long code, 
-    char* str)
-{
-    return next.bs_throwHResult(code, str);
 }
 
 void bs_logObjectDiff()
@@ -2268,11 +2156,6 @@ bs_Instance* bs_instance()
     return next.bs_instance();
 }
 
-bs_String* bs_stringBuilder()
-{
-    return next.bs_stringBuilder();
-}
-
 bs_Args* bs_args()
 {
     return next.bs_args();
@@ -2299,28 +2182,60 @@ bs_Config* bs_config()
 }
 
 void bs_system(
+    char* command, 
     char* value, 
     int value_length)
 {
-    return next.bs_system(value, value_length);
+    return next.bs_system(command, value, value_length);
 }
 
 void bs_systemV(
+    char* command, 
     char* format, 
     va_list args)
 {
     static bs_String* string;
     string = bs_stringV(string, format, args);
-    return bs_system(string->value, string->len);
+    return bs_system(command, string->value, string->len);
 }
 
 void bs_systemF(
+    char* command, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_systemV(format, args);
+    bs_systemV(command, format, args);
+    va_end(args);
+}
+
+void bs_systemAsync(
+    char* command, 
+    char* value, 
+    int value_length)
+{
+    return next.bs_systemAsync(command, value, value_length);
+}
+
+void bs_systemAsyncV(
+    char* command, 
+    char* format, 
+    va_list args)
+{
+    static bs_String* string;
+    string = bs_stringV(string, format, args);
+    return bs_systemAsync(command, string->value, string->len);
+}
+
+void bs_systemAsyncF(
+    char* command, 
+    char* format, 
+    ...)
+{
+    va_list args;
+    va_start(args, format);
+    bs_systemAsyncV(command, format, args);
     va_end(args);
 }
 
@@ -2656,13 +2571,6 @@ void* bs_pushBack(
     char* data)
 {
     return next.bs_pushBack(list, data);
-}
-
-void* bs_pushBackUnsafe(
-    bs_List* list, 
-    char* data)
-{
-    return next.bs_pushBackUnsafe(list, data);
 }
 
 void* bs_pushBackList(
@@ -3184,17 +3092,19 @@ void bs_destroyResource(
     return next.bs_destroyResource(resource);
 }
 
-bs_Resource* bs_queryResource(
+bs_Result bs_queryResource(
     int package_id, 
-    const char* name)
+    const char* name, 
+    bs_Resource** out)
 {
-    return next.bs_queryResource(package_id, name);
+    return next.bs_queryResource(package_id, name, out);
 }
 
-int bs_queryPackage(
-    const char* name)
+bs_Result bs_queryPackage(
+    const char* name, 
+    int* out)
 {
-    return next.bs_queryPackage(name);
+    return next.bs_queryPackage(name, out);
 }
 
 bs_Resource* bs_loadResource(
@@ -3848,90 +3758,109 @@ int bs_numDirectoriesF(
     return _return;
 }
 
-bs_String* bs_loadFile(
+bs_Result bs_loadFile(
+    const char* path, 
+    bs_String** out, 
     char* value, 
     int value_length)
 {
-    return next.bs_loadFile(value, value_length);
+    return next.bs_loadFile(path, out, value, value_length);
 }
 
-bs_String* bs_loadFileV(
+bs_Result bs_loadFileV(
+    const char* path, 
+    bs_String** out, 
     char* format, 
     va_list args)
 {
     static bs_String* string;
     string = bs_stringV(string, format, args);
-    return bs_loadFile(string->value, string->len);
+    return bs_loadFile(path, out, string->value, string->len);
 }
 
-bs_String* bs_loadFileF(
+bs_Result bs_loadFileF(
+    const char* path, 
+    bs_String** out, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_String* _return = bs_loadFileV(format, args);
+    bs_Result _return = bs_loadFileV(path, out, format, args);
     va_end(args);
     return _return;
 }
 
-bs_String* bs_loadFileChunk(
+bs_Result bs_loadFileChunk(
+    const char* path, 
     long offset, 
     size_t size, 
+    bs_String** out, 
     char* value, 
     int value_length)
 {
-    return next.bs_loadFileChunk(offset, size, value, value_length);
+    return next.bs_loadFileChunk(path, offset, size, out, value, value_length);
 }
 
-bs_String* bs_loadFileChunkV(
+bs_Result bs_loadFileChunkV(
+    const char* path, 
     long offset, 
     size_t size, 
+    bs_String** out, 
     char* format, 
     va_list args)
 {
     static bs_String* string;
     string = bs_stringV(string, format, args);
-    return bs_loadFileChunk(offset, size, string->value, string->len);
+    return bs_loadFileChunk(path, offset, size, out, string->value, string->len);
 }
 
-bs_String* bs_loadFileChunkF(
+bs_Result bs_loadFileChunkF(
+    const char* path, 
     long offset, 
     size_t size, 
+    bs_String** out, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_String* _return = bs_loadFileChunkV(offset, size, format, args);
+    bs_Result _return = bs_loadFileChunkV(path, offset, size, out, format, args);
     va_end(args);
     return _return;
 }
 
-void bs_deleteFile(
+bs_Result bs_deleteFile(
+    const char* path, 
+    bs_String** out, 
     char* value, 
     int value_length)
 {
-    return next.bs_deleteFile(value, value_length);
+    return next.bs_deleteFile(path, out, value, value_length);
 }
 
-void bs_deleteFileV(
+bs_Result bs_deleteFileV(
+    const char* path, 
+    bs_String** out, 
     char* format, 
     va_list args)
 {
     static bs_String* string;
     string = bs_stringV(string, format, args);
-    return bs_deleteFile(string->value, string->len);
+    return bs_deleteFile(path, out, string->value, string->len);
 }
 
-void bs_deleteFileF(
+bs_Result bs_deleteFileF(
+    const char* path, 
+    bs_String** out, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_deleteFileV(format, args);
+    bs_Result _return = bs_deleteFileV(path, out, format, args);
     va_end(args);
+    return _return;
 }
 
 void bs_deleteDirectoryContents(

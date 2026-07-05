@@ -36,6 +36,14 @@ void _preval_bs_setFunctions(bs_FunctionTable functions) {
     next = functions;
 }
 
+static bs_List* _preval_bs_packages() {
+    return next.bs_packages();
+}
+
+static bs_List* _preval_bs_objectSources() {
+    return next.bs_objectSources();
+}
+
 static bs_vec2 _preval_bs_v2() {
     return next.bs_v2();
 }
@@ -343,6 +351,18 @@ static float _preval_bs_v4NormalizeTo(const bs_vec4* v, bs_vec4* out) {
         return 0;
 
     return next.bs_v4NormalizeTo(v, out);
+}
+
+static bs_Result _preval_bs_convertVulkanError(int code) {
+    return next.bs_convertVulkanError(code);
+}
+
+static bs_Result _preval_bs_convertErrno() {
+    return next.bs_convertErrno();
+}
+
+static const char* _preval_bs_serializeErrno() {
+    return next.bs_serializeErrno();
 }
 
 static bs_Result _preval_bs_playSound(bs_Sound* sound, float volume) {
@@ -1894,101 +1914,8 @@ static void _preval_bs_warn(char* value, int value_length) {
     return next.bs_warn(value, value_length);
 }
 
-static void _preval_bs_throw(char* value, int value_length) {
-    if (value == NULL)
-        return;
-
-    return next.bs_throw(value, value_length);
-}
-
-static void _preval_bs_throwBasilisk(bs_U64 code) {
-    return next.bs_throwBasilisk(code);
-}
-
-static bs_U64 _preval_bs_except(bs_U64 exceptions) {
-    return next.bs_except(exceptions);
-}
-
-static bool _preval_bs_caught() {
-    return next.bs_caught();
-}
-
-static const char* _preval_bs_exceptionName(bs_U64 code) {
-    return next.bs_exceptionName(code);
-}
-
 static void _preval_bs_logBasilisk(bs_U64 code) {
     return next.bs_logBasilisk(code);
-}
-
-static void _preval_bsi_throwBasilisk(bs_U64 code, char* message, char* value, int value_length) {
-    if (message == NULL)
-        return;
-
-    if (value == NULL)
-        return;
-
-    return next.bsi_throwBasilisk(code, message, value, value_length);
-}
-
-static void _preval_bs_throwErrno(const char* message) {
-    if (message == NULL)
-        return;
-
-    return next.bs_throwErrno(message);
-}
-
-static void _preval_bs_throwVulkan(int result) {
-    return next.bs_throwVulkan(result);
-}
-
-static void _preval_bs_throwNotImplemented() {
-    return next.bs_throwNotImplemented();
-}
-
-static void _preval_bs_throwIfBufferTooSmall(bs_Buffer* buffer, bs_U32 num_bytes) {
-    if (buffer == NULL)
-        return;
-
-    return next.bs_throwIfBufferTooSmall(buffer, num_bytes);
-}
-
-static void _preval_bs_throwIfNotMapped(bs_Buffer* buffer) {
-    if (buffer == NULL)
-        return;
-
-    return next.bs_throwIfNotMapped(buffer);
-}
-
-static void _preval_bs_throwIfStringConversionFail(char* orig, char* output) {
-    if (orig == NULL)
-        return;
-
-    if (output == NULL)
-        return;
-
-    return next.bs_throwIfStringConversionFail(orig, output);
-}
-
-static bool _preval_bs_throwWin32Error(bs_U64 code, char* path) {
-    if (path == NULL)
-        return false;
-
-    return next.bs_throwWin32Error(code, path);
-}
-
-static bool _preval_bs_throwLastWin32Error(char* path) {
-    if (path == NULL)
-        return false;
-
-    return next.bs_throwLastWin32Error(path);
-}
-
-static void _preval_bs_throwHResult(long code, char* str) {
-    if (str == NULL)
-        return;
-
-    return next.bs_throwHResult(code, str);
 }
 
 static void _preval_bs_logObjectDiff() {
@@ -2014,10 +1941,6 @@ static bs_Instance* _preval_bs_instance() {
     return next.bs_instance();
 }
 
-static bs_String* _preval_bs_stringBuilder() {
-    return next.bs_stringBuilder();
-}
-
 static bs_Args* _preval_bs_args() {
     return next.bs_args();
 }
@@ -2038,11 +1961,24 @@ static bs_Config* _preval_bs_config() {
     return next.bs_config();
 }
 
-static void _preval_bs_system(char* value, int value_length) {
+static void _preval_bs_system(char* command, char* value, int value_length) {
+    if (command == NULL)
+        return;
+
     if (value == NULL)
         return;
 
-    return next.bs_system(value, value_length);
+    return next.bs_system(command, value, value_length);
+}
+
+static void _preval_bs_systemAsync(char* command, char* value, int value_length) {
+    if (command == NULL)
+        return;
+
+    if (value == NULL)
+        return;
+
+    return next.bs_systemAsync(command, value, value_length);
 }
 
 static const char* _preval_bs_checkStringPool(bs_List* pool, char* string) {
@@ -2412,16 +2348,6 @@ static void* _preval_bs_pushBack(bs_List* list, char* data) {
         return NULL;
 
     return next.bs_pushBack(list, data);
-}
-
-static void* _preval_bs_pushBackUnsafe(bs_List* list, char* data) {
-    if (list == NULL)
-        return NULL;
-
-    if (data == NULL)
-        return NULL;
-
-    return next.bs_pushBackUnsafe(list, data);
 }
 
 static void* _preval_bs_pushBackList(bs_List* destination, bs_List* source) {
@@ -2885,18 +2811,24 @@ static void _preval_bs_destroyResource(bs_Resource* resource) {
     return next.bs_destroyResource(resource);
 }
 
-static bs_Resource* _preval_bs_queryResource(int package_id, const char* name) {
+static bs_Result _preval_bs_queryResource(int package_id, const char* name, bs_Resource** out) {
     if (name == NULL)
-        return NULL;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_queryResource(package_id, name);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_queryResource(package_id, name, out);
 }
 
-static int _preval_bs_queryPackage(const char* name) {
+static bs_Result _preval_bs_queryPackage(const char* name, int* out) {
     if (name == NULL)
-        return 0;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_queryPackage(name);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_queryPackage(name, out);
 }
 
 static bs_Resource* _preval_bs_loadResource(int package_id, const char* resource_name, bs_U32 flags) {
@@ -3355,25 +3287,43 @@ static int _preval_bs_numDirectories(char* value, int value_length) {
     return next.bs_numDirectories(value, value_length);
 }
 
-static bs_String* _preval_bs_loadFile(char* value, int value_length) {
-    if (value == NULL)
-        return NULL;
+static bs_Result _preval_bs_loadFile(const char* path, bs_String** out, char* value, int value_length) {
+    if (path == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_loadFile(value, value_length);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (value == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_loadFile(path, out, value, value_length);
 }
 
-static bs_String* _preval_bs_loadFileChunk(long offset, size_t size, char* value, int value_length) {
-    if (value == NULL)
-        return NULL;
+static bs_Result _preval_bs_loadFileChunk(const char* path, long offset, size_t size, bs_String** out, char* value, int value_length) {
+    if (path == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_loadFileChunk(offset, size, value, value_length);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (value == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_loadFileChunk(path, offset, size, out, value, value_length);
 }
 
-static void _preval_bs_deleteFile(char* value, int value_length) {
-    if (value == NULL)
-        return;
+static bs_Result _preval_bs_deleteFile(const char* path, bs_String** out, char* value, int value_length) {
+    if (path == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_deleteFile(value, value_length);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (value == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_deleteFile(path, out, value, value_length);
 }
 
 static void _preval_bs_deleteDirectoryContents(char* value, int value_length) {
@@ -3393,6 +3343,8 @@ static void _preval_bs_deleteDirectory(char* value, int value_length) {
 bs_FunctionTable _preval_bs_getFunctionTable() {
     bs_FunctionTable functions;
 
+    functions.bs_packages = _preval_bs_packages;
+    functions.bs_objectSources = _preval_bs_objectSources;
     functions.bs_v2 = _preval_bs_v2;
     functions.bs_v2Add = _preval_bs_v2Add;
     functions.bs_v2Sub = _preval_bs_v2Sub;
@@ -3423,6 +3375,9 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v4Dot = _preval_bs_v4Dot;
     functions.bs_v4Normalize = _preval_bs_v4Normalize;
     functions.bs_v4NormalizeTo = _preval_bs_v4NormalizeTo;
+    functions.bs_convertVulkanError = _preval_bs_convertVulkanError;
+    functions.bs_convertErrno = _preval_bs_convertErrno;
+    functions.bs_serializeErrno = _preval_bs_serializeErrno;
     functions.bs_playSound = _preval_bs_playSound;
     functions.bs_sound = _preval_bs_sound;
     functions.bs_iniAudio = _preval_bs_iniAudio;
@@ -3619,34 +3574,19 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_log = _preval_bs_log;
     functions.bs_info = _preval_bs_info;
     functions.bs_warn = _preval_bs_warn;
-    functions.bs_throw = _preval_bs_throw;
-    functions.bs_throwBasilisk = _preval_bs_throwBasilisk;
-    functions.bs_except = _preval_bs_except;
-    functions.bs_caught = _preval_bs_caught;
-    functions.bs_exceptionName = _preval_bs_exceptionName;
     functions.bs_logBasilisk = _preval_bs_logBasilisk;
-    functions.bsi_throwBasilisk = _preval_bsi_throwBasilisk;
-    functions.bs_throwErrno = _preval_bs_throwErrno;
-    functions.bs_throwVulkan = _preval_bs_throwVulkan;
-    functions.bs_throwNotImplemented = _preval_bs_throwNotImplemented;
-    functions.bs_throwIfBufferTooSmall = _preval_bs_throwIfBufferTooSmall;
-    functions.bs_throwIfNotMapped = _preval_bs_throwIfNotMapped;
-    functions.bs_throwIfStringConversionFail = _preval_bs_throwIfStringConversionFail;
-    functions.bs_throwWin32Error = _preval_bs_throwWin32Error;
-    functions.bs_throwLastWin32Error = _preval_bs_throwLastWin32Error;
-    functions.bs_throwHResult = _preval_bs_throwHResult;
     functions.bs_logObjectDiff = _preval_bs_logObjectDiff;
     functions.bs_logUnchangedObjects = _preval_bs_logUnchangedObjects;
     functions.bs_logBindings = _preval_bs_logBindings;
     functions.bs_infoF4 = _preval_bs_infoF4;
     functions.bs_instance = _preval_bs_instance;
-    functions.bs_stringBuilder = _preval_bs_stringBuilder;
     functions.bs_args = _preval_bs_args;
     functions.bs_features = _preval_bs_features;
     functions.bs_props = _preval_bs_props;
     functions.bs_settings = _preval_bs_settings;
     functions.bs_config = _preval_bs_config;
     functions.bs_system = _preval_bs_system;
+    functions.bs_systemAsync = _preval_bs_systemAsync;
     functions.bs_checkStringPool = _preval_bs_checkStringPool;
     functions.bs_stringAlloc = _preval_bs_stringAlloc;
     functions.bs_string = _preval_bs_string;
@@ -3692,7 +3632,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_ensureSize = _preval_bs_ensureSize;
     functions.bs_erase = _preval_bs_erase;
     functions.bs_pushBack = _preval_bs_pushBack;
-    functions.bs_pushBackUnsafe = _preval_bs_pushBackUnsafe;
     functions.bs_pushBackList = _preval_bs_pushBackList;
     functions.bs_destroyList = _preval_bs_destroyList;
     functions.bs_seekList = _preval_bs_seekList;

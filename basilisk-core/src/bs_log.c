@@ -17,7 +17,7 @@
 #define BS_SECTION_END BS_PRINT_DARK_GREEN "\n  ==============================================================================\n\n" BS_PRINT_RESET
 
 char* bs_logSectionV(const char* format, va_list args) {
-    if (_bs_args.skip_log)
+    if (_bs_args_.skip_log)
         return "";
 
     int len = _bs_io.log->len;
@@ -25,7 +25,7 @@ char* bs_logSectionV(const char* format, va_list args) {
     _bs_io.log = bs_appendStringV(_bs_io.log, format, args);
     _bs_io.log = bs_appendString(_bs_io.log, BS_SECTION_HEADER_END, sizeof(BS_SECTION_HEADER_END) - 1);
 
-    if (_bs_args.cmd_log)
+    if (_bs_args_.cmd_log)
         printf("%s", _bs_io.log->value + len);
 
     return _bs_io.log->value;
@@ -40,18 +40,18 @@ char* bs_logSectionF(const char* format, ...) {
 }
 
 char* bs_logEndOfSection() {
-    if (_bs_args.cmd_log)
+    if (_bs_args_.cmd_log)
         printf("%s", BS_SECTION_END);
     _bs_io.log = bs_appendString(_bs_io.log, BS_SECTION_END, sizeof(BS_SECTION_END) - 1);
     return _bs_io.log->value;
 }
 
 char* bs_logV(const char* format, va_list args) {
-    if (_bs_args.skip_log)
+    if (_bs_args_.skip_log)
         return "";
 
     bs_DateTime dt = bs_dateTime();
-    if (_bs_args.cmd_log) {
+    if (_bs_args_.cmd_log) {
         vprintf(format, args);
     }
 
@@ -61,7 +61,7 @@ char* bs_logV(const char* format, va_list args) {
 }
 
 char* bs_logWithTimestampV(const char* type, int type_len, const char* format, va_list args) {
-    if (_bs_args.skip_log)
+    if (_bs_args_.skip_log)
         return "";
 
     bs_DateTime dt = bs_dateTime();
@@ -71,7 +71,7 @@ char* bs_logWithTimestampV(const char* type, int type_len, const char* format, v
     _bs_io.log = bs_appendString(_bs_io.log, type, type_len);
     _bs_io.log = bs_appendStringV(_bs_io.log, format, args);
 
-    if (_bs_args.cmd_log)
+    if (_bs_args_.cmd_log)
         printf("%s", _bs_io.log->value + len);
 
     return _bs_io.log->value;
@@ -88,7 +88,7 @@ void bs_throwV(const char* format, va_list args) {
         bs_saveFile("basilisk.log", result, strlen(result));
 
 #ifdef _DEBUG
-    if (_bs_args.send_bugs)
+    if (_bs_args_.send_bugs)
 #endif
     {
         int report_bug = MessageBox(
@@ -436,7 +436,7 @@ void bs_logUnchangedObjects() {
             continue;
 
         if (object->status == 0) {
-            if (_bs_args.color_log)
+            if (_bs_args_.color_log)
                 bs_logF(BS_PRINT_GRAY "(%d) %s, ", object->head->id, bs_idName(object->head->id));
             else
                 bs_logF("(%d) %s, ", object->head->id, bs_idName(object->head->id));
@@ -447,7 +447,7 @@ void bs_logUnchangedObjects() {
     }
 
     if (last_id != -1)
-        bs_logF("(%d) %s%s\n", last_id, bs_idName(_bs_instance_->objects[last_id].object.head->id), (_bs_args.color_log ? BS_PRINT_RESET : ""));
+        bs_logF("(%d) %s%s\n", last_id, bs_idName(_bs_instance_->objects[last_id].object.head->id), (_bs_args_.color_log ? BS_PRINT_RESET : ""));
         */
 }
 
@@ -460,19 +460,19 @@ void bs_logObjectDiff() {
             continue;
 
         if (object->strikes == BS_NUM_STRIKES_RULE) {
-            if (_bs_args.color_log)
+            if (_bs_args_.color_log)
                 bs_infoF(BS_PRINT_RED "-" BS_PRINT_RESET  " (%d) ", object->head->id);
             else
                 bs_infoF("- (%d) ", object->head->id);
         }
         else if (object->status == BS_OBJECT_WAS_CREATED) {
-            if (_bs_args.color_log)
+            if (_bs_args_.color_log)
                 bs_infoF(BS_PRINT_GREEN "+" BS_PRINT_RESET  " (%d) ", object->head->id);
             else
                 bs_infoF("+ (%d) ", object->head->id);
         }
         else if (object->status == BS_OBJECT_WAS_ALTERED) {
-            if (_bs_args.color_log)
+            if (_bs_args_.color_log)
                 bs_infoF(BS_PRINT_YELLOW "/" BS_PRINT_RESET  " (%d) ", object->head->id);
             else
                 bs_infoF("/ (%d) ", object->head->id);
@@ -498,7 +498,7 @@ void bs_logBindings() {
             if (binding->object.type == BS_BUFFER)
                 suffix = binding->object.buffer->_->data ? " (mapped)" : NULL;
 
-            if (_bs_args.color_log) {
+            if (_bs_args_.color_log) {
                 int id = binding->object.head ? binding->object.head->id : -1;
                 bs_infoF("(%d, %d) binding" BS_PRINT_MAGENTA " %s " BS_PRINT_RESET "(%d)" BS_PRINT_CYAN " %s\n" BS_PRINT_RESET,
                     bind_set->slot, 

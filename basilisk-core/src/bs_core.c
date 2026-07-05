@@ -116,7 +116,6 @@ static inline bs_U32 bs_queryMemoryType(bs_U32 filter, VkMemoryPropertyFlags pro
         }
     }
 
-    bs_throwBasilisk(BSXI_INTERNAL | BSX_FAILED_TO_QUERY);
     return 0;
 }
 
@@ -202,14 +201,13 @@ BSAPI void _bs_nameBuffer(bs_Buffer* buffer, const char* name) {
         bsi_nameHandle(buffer->_[i].vk_buffer, VK_OBJECT_TYPE_BUFFER, name, strlen(name));
 }
 
+BSAPI bs_Result _val_bs_buffer(bs_Object* object, bs_U32 num_bytes, bs_BufferUsageFlags usage_flags, bs_MemoryPropertyFlags memory_flags, bs_BufferBits flags) {
+    if (num_bytes == 0)
+        return BS_RESULT_VALIDATION_ERROR;
+}
+
 BSAPI bs_Result _bs_buffer(bs_Object* object, bs_U32 num_bytes, bs_BufferUsageFlags usage_flags, bs_MemoryPropertyFlags memory_flags, bs_BufferBits flags) {
     VkResult result;
-
-    if (num_bytes == 0)
-        return BS_RESULT_INVALID_PARAM;
-
-    if (!object)
-        return BS_RESULT_INVALID_PARAM;
 
     if (!object->buffer)
         return BS_RESULT_OK;
@@ -1881,7 +1879,7 @@ static bs_Result bs_buildBLAS(bs_RayTracer* tracer, bs_Buffer* staging_buffer) {
         return result;
     }
 
-    bs_nameBuffer(aabb_buffer->buffer, "AABB Buffer");
+    bs_nameBuffer(aabb_buffer->buffer, "AABB Buffer", sizeof("AABB Buffer") - 1);
     bs_copyAsync(staging_buffer, aabb_buffer->buffer, 0, 0, BS_U32_MAX);
 
     bsi_fetchCommands();

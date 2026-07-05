@@ -191,8 +191,8 @@ static inline bool bs_addInstanceExtension(const char** extensions, bs_U32* exte
 
 static void bs_prepareInstance() {
 
-    if (_bs_args.use_validation_layers)
-        _bs_args.use_validation_layers = bs_checkValidationLayerSupport();
+    if (_bs_args_.use_validation_layers)
+        _bs_args_.use_validation_layers = bs_checkValidationLayerSupport();
 
     const char* extensions[16];
     bs_U32 extensions_count = 0;
@@ -253,7 +253,7 @@ static void bs_prepareInstance() {
         .enabledExtensionCount = extensions_count,
         .ppEnabledExtensionNames = extensions,
         .ppEnabledLayerNames = validation_layers,
-        .enabledLayerCount = _bs_args.use_validation_layers ? sizeof(validation_layers) / sizeof(const char*) : 0,
+        .enabledLayerCount = _bs_args_.use_validation_layers ? sizeof(validation_layers) / sizeof(const char*) : 0,
      //  .pNext = &features,
     };
 
@@ -491,7 +491,7 @@ static void bs_prepareLogicalDevice() {
         .enabledExtensionCount = extensions_count,
         .ppEnabledExtensionNames = extensions,
         .ppEnabledLayerNames = validation_layers,
-        .enabledLayerCount = _bs_args.use_validation_layers ? sizeof(validation_layers) / sizeof(const char*) : 0,
+        .enabledLayerCount = _bs_args_.use_validation_layers ? sizeof(validation_layers) / sizeof(const char*) : 0,
     };
 
     bs_throwVulkan(vkCreateDevice(_bs_instance_->physical_device, &ci, NULL, &_bs_instance_->device));
@@ -677,13 +677,13 @@ bs_Args* bs_arguments() {
 
 void bs_parseArgs(int argc, char* argv[]) {
     for (int i = 0; i < argc; i++) {
-        if      (strcmp(argv[i], "--cmd-log") == 0) _bs_args.cmd_log = true;
-        else if (strcmp(argv[i], "--color-log") == 0) _bs_args.color_log = true;
-        else if (strcmp(argv[i], "--use-lisk") == 0) _bs_args.use_lisk = true;
-        else if (strcmp(argv[i], "--use-validation-layers") == 0) _bs_args.use_validation_layers = true;
-        else if (strcmp(argv[i], "--skip-log-info") == 0) _bs_args.skip_log_info = true;
-        else if (strcmp(argv[i], "--send-bugs") == 0) _bs_args.send_bugs = true;
-        else if (strcmp(argv[i], "--track-changes") == 0) _bs_args.track_changes = true;
+        if      (strcmp(argv[i], "--cmd-log") == 0) _bs_args_.cmd_log = true;
+        else if (strcmp(argv[i], "--color-log") == 0) _bs_args_.color_log = true;
+        else if (strcmp(argv[i], "--use-lisk") == 0) _bs_args_.use_lisk = true;
+        else if (strcmp(argv[i], "--use-validation-layers") == 0) _bs_args_.use_validation_layers = true;
+        else if (strcmp(argv[i], "--skip-log-info") == 0) _bs_args_.skip_log_info = true;
+        else if (strcmp(argv[i], "--send-bugs") == 0) _bs_args_.send_bugs = true;
+        else if (strcmp(argv[i], "--track-changes") == 0) _bs_args_.track_changes = true;
     }
 }
 

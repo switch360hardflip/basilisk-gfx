@@ -42,6 +42,8 @@ bs_FunctionTable _val_bs_getFunctions() {
         &_val_bs_getFunctions,
         &module);
 
+    functions.bs_packages = GetProcAddress(module, "_val_bs_packages");
+    functions.bs_objectSources = GetProcAddress(module, "_val_bs_objectSources");
     functions.bs_v2 = GetProcAddress(module, "_val_bs_v2");
     functions.bs_v2Add = GetProcAddress(module, "_val_bs_v2Add");
     functions.bs_v2Sub = GetProcAddress(module, "_val_bs_v2Sub");
@@ -72,6 +74,9 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_v4Dot = GetProcAddress(module, "_val_bs_v4Dot");
     functions.bs_v4Normalize = GetProcAddress(module, "_val_bs_v4Normalize");
     functions.bs_v4NormalizeTo = GetProcAddress(module, "_val_bs_v4NormalizeTo");
+    functions.bs_convertVulkanError = GetProcAddress(module, "_val_bs_convertVulkanError");
+    functions.bs_convertErrno = GetProcAddress(module, "_val_bs_convertErrno");
+    functions.bs_serializeErrno = GetProcAddress(module, "_val_bs_serializeErrno");
     functions.bs_playSound = GetProcAddress(module, "_val_bs_playSound");
     functions.bs_sound = GetProcAddress(module, "_val_bs_sound");
     functions.bs_iniAudio = GetProcAddress(module, "_val_bs_iniAudio");
@@ -304,32 +309,12 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_warn = GetProcAddress(module, "_val_bs_warn");
     functions.bs_warnV = GetProcAddress(module, "_val_bs_warnV");
     functions.bs_warnF = GetProcAddress(module, "_val_bs_warnF");
-    functions.bs_throw = GetProcAddress(module, "_val_bs_throw");
-    functions.bs_throwV = GetProcAddress(module, "_val_bs_throwV");
-    functions.bs_throwF = GetProcAddress(module, "_val_bs_throwF");
-    functions.bs_throwBasilisk = GetProcAddress(module, "_val_bs_throwBasilisk");
-    functions.bs_except = GetProcAddress(module, "_val_bs_except");
-    functions.bs_caught = GetProcAddress(module, "_val_bs_caught");
-    functions.bs_exceptionName = GetProcAddress(module, "_val_bs_exceptionName");
     functions.bs_logBasilisk = GetProcAddress(module, "_val_bs_logBasilisk");
-    functions.bsi_throwBasilisk = GetProcAddress(module, "_val_bsi_throwBasilisk");
-    functions.bsi_throwBasiliskV = GetProcAddress(module, "_val_bsi_throwBasiliskV");
-    functions.bsi_throwBasiliskF = GetProcAddress(module, "_val_bsi_throwBasiliskF");
-    functions.bs_throwErrno = GetProcAddress(module, "_val_bs_throwErrno");
-    functions.bs_throwVulkan = GetProcAddress(module, "_val_bs_throwVulkan");
-    functions.bs_throwNotImplemented = GetProcAddress(module, "_val_bs_throwNotImplemented");
-    functions.bs_throwIfBufferTooSmall = GetProcAddress(module, "_val_bs_throwIfBufferTooSmall");
-    functions.bs_throwIfNotMapped = GetProcAddress(module, "_val_bs_throwIfNotMapped");
-    functions.bs_throwIfStringConversionFail = GetProcAddress(module, "_val_bs_throwIfStringConversionFail");
-    functions.bs_throwWin32Error = GetProcAddress(module, "_val_bs_throwWin32Error");
-    functions.bs_throwLastWin32Error = GetProcAddress(module, "_val_bs_throwLastWin32Error");
-    functions.bs_throwHResult = GetProcAddress(module, "_val_bs_throwHResult");
     functions.bs_logObjectDiff = GetProcAddress(module, "_val_bs_logObjectDiff");
     functions.bs_logUnchangedObjects = GetProcAddress(module, "_val_bs_logUnchangedObjects");
     functions.bs_logBindings = GetProcAddress(module, "_val_bs_logBindings");
     functions.bs_infoF4 = GetProcAddress(module, "_val_bs_infoF4");
     functions.bs_instance = GetProcAddress(module, "_val_bs_instance");
-    functions.bs_stringBuilder = GetProcAddress(module, "_val_bs_stringBuilder");
     functions.bs_args = GetProcAddress(module, "_val_bs_args");
     functions.bs_features = GetProcAddress(module, "_val_bs_features");
     functions.bs_props = GetProcAddress(module, "_val_bs_props");
@@ -338,6 +323,9 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_system = GetProcAddress(module, "_val_bs_system");
     functions.bs_systemV = GetProcAddress(module, "_val_bs_systemV");
     functions.bs_systemF = GetProcAddress(module, "_val_bs_systemF");
+    functions.bs_systemAsync = GetProcAddress(module, "_val_bs_systemAsync");
+    functions.bs_systemAsyncV = GetProcAddress(module, "_val_bs_systemAsyncV");
+    functions.bs_systemAsyncF = GetProcAddress(module, "_val_bs_systemAsyncF");
     functions.bs_checkStringPool = GetProcAddress(module, "_val_bs_checkStringPool");
     functions.bs_stringAlloc = GetProcAddress(module, "_val_bs_stringAlloc");
     functions.bs_string = GetProcAddress(module, "_val_bs_string");
@@ -385,7 +373,6 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_ensureSize = GetProcAddress(module, "_val_bs_ensureSize");
     functions.bs_erase = GetProcAddress(module, "_val_bs_erase");
     functions.bs_pushBack = GetProcAddress(module, "_val_bs_pushBack");
-    functions.bs_pushBackUnsafe = GetProcAddress(module, "_val_bs_pushBackUnsafe");
     functions.bs_pushBackList = GetProcAddress(module, "_val_bs_pushBackList");
     functions.bs_destroyList = GetProcAddress(module, "_val_bs_destroyList");
     functions.bs_seekList = GetProcAddress(module, "_val_bs_seekList");

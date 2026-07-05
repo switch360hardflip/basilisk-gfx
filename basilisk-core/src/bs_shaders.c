@@ -974,9 +974,9 @@ bs_Pipeline* bs_computePipeline(bs_Shader* compute_shader, bs_PipelineFlags flag
 
     bs_throwVulkan(vkCreateComputePipelines(_bs_instance_->device, VK_NULL_HANDLE, 1, &pipeline_ci, NULL, &existing->pipeline));
 
-    const char* blue = (_bs_args.color_log ? BS_PRINT_BLUE_BRIGHT : "");
-    const char* cyan = (_bs_args.color_log ? BS_PRINT_CYAN : "");
-    const char* reset = (_bs_args.color_log ? BS_PRINT_RESET : "");
+    const char* blue = (_bs_args_.color_log ? BS_PRINT_BLUE_BRIGHT : "");
+    const char* cyan = (_bs_args_.color_log ? BS_PRINT_CYAN : "");
+    const char* reset = (_bs_args_.color_log ? BS_PRINT_RESET : "");
 
     bs_infoF("%s%" PRIx64 "%s (%d) %s%s%s %s\n",
         blue, pipeline.hash, reset,
@@ -1093,9 +1093,9 @@ bs_Pipeline* bs_pipeline(bs_PipelineHash* descriptor) {
             bs_throwBasiliskF(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS, "Pipeline subpass (%d) falls outside (%d) renderer %s(%s)%s's subpass count (%d)",
                 descriptor->subpass,
                 _bs_scope_.renderer->head.id,
-                (_bs_args.color_log ? BS_PRINT_CYAN : ""),
+                (_bs_args_.color_log ? BS_PRINT_CYAN : ""),
                 bs_idName(_bs_scope_.renderer->head.source_id, _bs_scope_.renderer->head.id),
-                (_bs_args.color_log ? BS_PRINT_RESET : ""),
+                (_bs_args_.color_log ? BS_PRINT_RESET : ""),
                 _bs_scope_.renderer->num_subpasses);
 
         for (int i = 0; i < _bs_scope_.renderer->num_outputs; i++) {
@@ -1410,9 +1410,9 @@ bs_Result bs_rayTracingPipeline(bs_RayTracePipelineHash* pipeline_hash, bs_Pipel
         return result;
     }
 
-    const char* blue = (_bs_args.color_log ? BS_PRINT_BLUE_BRIGHT : "");
-    const char* cyan = (_bs_args.color_log ? BS_PRINT_CYAN : "");
-    const char* reset = (_bs_args.color_log ? BS_PRINT_RESET : "");
+    const char* blue = (_bs_args_.color_log ? BS_PRINT_BLUE_BRIGHT : "");
+    const char* cyan = (_bs_args_.color_log ? BS_PRINT_CYAN : "");
+    const char* reset = (_bs_args_.color_log ? BS_PRINT_RESET : "");
 
     bs_infoF("%s%" PRIx64 "%s\n", blue, pipeline.hash, reset);
 

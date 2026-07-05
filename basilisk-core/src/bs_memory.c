@@ -17,25 +17,10 @@
 #include <bs_internal.h>
 #include <vulkan.h>
 
-bs_Scope bs_scope;
-bs_Window _bs_wnd = {
-    .cursor_icons = {
-        [BS_CURSOR_DEFAULT] .id = IDC_ARROW,
-        [BS_CURSOR_TEXT].id = IDC_IBEAM,
-    },
-};
-
 bs_Instance* _bs_instance;
 bs_IO _bs_io;
 bs_Swapchain* _bs_swapchain_;
 int _bs_image_index_ = 0;
-bs_String* _bs_string_builder_ = NULL;
-
-bs_String* bs_stringBuilder() {
-    if (_bs_string_builder_)
-        _bs_string_builder_->len = 0;
-    return _bs_string_builder_;
-}
 
 
 
@@ -58,49 +43,37 @@ static DWORD WINAPI bs_systemCallback(char* input) {
     return 0;
 }
 
-void bs_system(char* s) {
+BSAPI void _bs_system(char* s) {
     bs_systemCallback(s);
 }
 
-void bs_systemAsync(char* s) {
+BSAPI void _bs_systemAsync(char* s) {
     CreateThread(NULL, 0, bs_systemCallback, s, 0, NULL);
-}
-
-void bs_systemV(const char* format, va_list args) {
-    _bs_string_builder_ = bs_stringV(_bs_string_builder_, format, args);
-    bs_system(_bs_string_builder_->value);
-}
-
-void bs_systemF(const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    bs_systemV(format, args);
-    va_end(args);
 }
 
 
 
   /*==============================================================================
-   * Memory
+   * Cross-Platform/Wrapper C Standard Functions
    *============================================================================*/
 
-bs_U32 bs_alignUp(bs_U32 value, bs_U32 alignment) {
+BSAPI bs_U32 _bs_alignUp(bs_U32 value, bs_U32 alignment) {
     return (value + alignment - 1) & ~(alignment - 1);
 }
 
-void bs_widen(char* src, wchar_t* dst, bs_U32 dst_size) {
+BSAPI void _bs_widen(char* src, wchar_t* dst, bs_U32 dst_size) {
     int result = MultiByteToWideChar(CP_UTF8, 0, src, -1, dst, dst_size);
     if (result == 0)
         bs_throwBasiliskF(BSX_FAILED_TO_CONVERT, "%s", src);
 }
 
-void bs_unwiden(wchar_t* src, char* dst, bs_U32 dst_size) {
+BSAPI void bs_unwiden(wchar_t* src, char* dst, bs_U32 dst_size) {
     int result = WideCharToMultiByte(CP_UTF8, 0, src, -1, dst, dst_size, NULL, NULL);
     if (result == 0)
         bs_throwBasiliskF(BSX_FAILED_TO_CONVERT, "%ls (%d)", src, GetLastError());
 }
 
-char* bs_strsep(char** stringp, const char* delim) {
+BSAPI char* _bs_strsep(char** stringp, const char* delim) {
 #ifdef _WIN32
     if (*stringp == NULL) { return NULL; }
     char* token_start = *stringp;
@@ -115,14 +88,14 @@ char* bs_strsep(char** stringp, const char* delim) {
 #endif
 }
 
-size_t bs_strnlen(const char* src, size_t n) {
+BSAPI size_t _bs_strnlen(const char* src, size_t n) {
     size_t len = 0;
     while (len < n && src[len])
         len++;
     return len;
 }
 
-char* bs_strndup(const char* s, size_t n) {
+BSAPI char* _bs_strndup(const char* s, size_t n) {
     size_t len = bs_strnlen(s, n);
     char* p = malloc(len + 1);
     if (p) {
@@ -132,7 +105,7 @@ char* bs_strndup(const char* s, size_t n) {
     return p;
 }
 
-void* bs_memmem(
+BSAPI void* _bs_memmem(
     const void* haystack, bs_U32 haystack_len,
     const void* const needle, const bs_U32 needle_len) 
 {
@@ -144,13 +117,14 @@ void* bs_memmem(
     for (const char *h = haystack; haystack_len >= needle_len;
        ++h, --haystack_len) 
     {
-        if (memcmp(h, needle, needle_len) == 0) return (void *)h;
+        if (memcmp(h, needle, needle_len) == 0) 
+            return (void *)h;
     }
 
     return NULL;
 }
 
-void* bs_free(void* p) {
+BSAPI void* _bs_free(void* p) {
     free(p);
     return NULL;
 }
@@ -163,58 +137,78 @@ void* bs_free(void* p) {
  ... wait so what was the problem again? am i retarded?
  */
 
-void* bs_malloc(bs_U64 size) {
-    if (size == 0) {
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_ALLOCATE, "Cannot allocate 0 bytes\n");
-        return NULL;
-    }
+ /**
+  malloc
+  */
+BSAPI void* _val_bs_malloc(bs_U64 size) {
+    BS_VALIDATE(size != 0, NULL,);
+    return bs_malloc(size);
+}
+
+BSAPI void* _bs_malloc(bs_U64 size) {
     void* p = malloc(size);
+
     if (!p) {
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_ALLOCATE, "alloc(%lld)", size);
+        bs_warnF("malloc(%lld) returned NULL\n", size);
         return NULL;
     }
+
     return p;
 }
 
-void* bs_calloc(bs_U64 num_units, bs_U64 unit_size) {
-    if (num_units == 0 || unit_size == 0) {
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_ALLOCATE, "Cannot allocate 0 bytes\n");
-        return NULL;
-    }
+ /**
+  calloc
+  */
+BSAPI void* _val_bs_calloc(bs_U64 num_units, bs_U64 unit_size) {
+    BS_VALIDATE(num_units > 0, NULL,);
+    BS_VALIDATE(unit_size > 0, NULL,);
 
+    return bs_calloc(num_units, unit_size);
+}
+
+BSAPI void* _bs_calloc(bs_U64 num_units, bs_U64 unit_size) {
     void* p = calloc(num_units, unit_size);
+
     if (!p) {
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_ALLOCATE, "calloc(%d, %lld)", num_units, unit_size);
+        bs_warnF("calloc(%lld, %lld) returned NULL\n", num_units, unit_size);
         return NULL;
     }
+
     return p;
 }
 
-void* bs_realloc(void* p, bs_U64 size) {
-    if (size == 0) {
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_ALLOCATE, "Cannot reallocate 0 bytes\n");
-        return NULL;
-    }
+/**
+ realloc
+ */
+BSAPI void* _val_bs_realloc(void* p, bs_U64 size) {
+    BS_VALIDATE(size != 0, NULL, );
+    return bs_realloc(p, size);
+}
 
+BSAPI void* _bs_realloc(void* p, bs_U64 size) {
     p = realloc(p, size);
+
     if (!p) {
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_ALLOCATE, "realloc(%lld)", size);
+        bs_warnF("realloc(%lld) returned NULL\n", size);
         return NULL;
     }
 
     return p;
 }
 
-void* bs_fetchUnitUnsafe(bs_List* list, bs_U32 offset) {
+BSAPI void* _bs_fetchUnitUnsafe(bs_List* list, bs_U32 offset) {
     return ((bs_U8*)list->data) + offset * list->unit_size;
 }
+
 
 
   /*==============================================================================
    * Strings
    *============================================================================*/
 
-const char* bs_checkStringPool(bs_List* pool, char* string) {
+#define BS_STRING_OVERHEAD (128)
+
+BSAPI const char* _bs_checkStringPool(bs_List* pool, char* string) {
     bs_U64 hash = bs_stringHash(string);
 
     for (int i = 0; i < pool->count; i++) {
@@ -230,8 +224,7 @@ const char* bs_checkStringPool(bs_List* pool, char* string) {
     return entry->string;
 }
 
-#define BS_STRING_OVERHEAD (1024)
-bs_String* bs_stringAlloc(bs_String* old, int len) {
+BSAPI bs_String* _bs_stringAlloc(bs_String* old, int len) {
     bs_String* data;
 
     if (old) {
@@ -251,7 +244,7 @@ bs_String* bs_stringAlloc(bs_String* old, int len) {
     return data;
 }
 
-bs_String* bs_string(bs_String* old, char* str, int len) {
+BSAPI bs_String* _bs_string(bs_String* old, char* str, int len) {
     if (len < 0)
         len = strlen(str);
     bs_String* data = bs_stringAlloc(old, len);
@@ -901,6 +894,7 @@ void bs_setWorkingDirectory(char* path) {
     Loading documents
     */
 
+ /** TODO: More checks needed in here */
 static bs_String* bs_loadFileFromHandle(FILE* file) {
     fseek(file, 0, SEEK_END);
     long len = ftell(file) + 1;
@@ -916,36 +910,28 @@ static bs_String* bs_loadFileFromHandle(FILE* file) {
     return string;
 }
 
-bs_String* bs_loadFile(const char* path) {
+BSAPI bs_Result _bs_loadFile(const char* path, bs_String** out) {
     FILE* file = fopen(path, "rb");
     if (!file) {
-        bs_throwErrno(path);
-        return NULL;
+        bs_warnF("bs_loadFile(%s, ...) -> fopen(...) -> errno %d (%s)\n", path, errno, bs_serializeErrno());
+        return bs_convertErrno();
     }
-    return bs_loadFileFromHandle(file);
+
+    *out = bs_loadFileFromHandle(file);
+    return BS_RESULT_OK;
 }
 
-bs_String* bs_loadFileF(const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    _bs_string_builder_ = bs_stringV(_bs_string_builder_, format, args);
-    va_end(args);
-
-    return bs_loadFile(_bs_string_builder_->value);
-}
-
-bs_String* bs_loadFileChunk(long offset, size_t size, const char* path) {
+BSAPI bs_Result _bs_loadFileChunk(long offset, size_t size, const char* path, bs_String** out) {
     FILE* file = fopen(path, "rb");
 
     if (!file) {
-        bs_throwErrno(path);
-        return NULL;
+        bs_warnF("bs_loadFileChunk(%s, ...) -> fopen(...) -> errno %d (%s)\n", path, errno, bs_serializeErrno());
+        return bs_convertErrno();
     }
     
     if (fseek(file, offset, SEEK_SET) != 0) {
         fclose(file);
-        bs_throwErrno(path);
-        return NULL;
+        return bs_convertErrno();
     }
 
     bs_String* buffer = bs_stringAlloc(NULL, size);
@@ -963,16 +949,6 @@ bs_String* bs_loadFileChunk(long offset, size_t size, const char* path) {
     return buffer;
 }
 
-bs_String* bs_loadFileChunkF(long offset, size_t size, const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    static bs_String* formatted;
-    formatted = bs_stringV(formatted, format, args);
-    va_end(args);
-
-    return bs_loadFileChunk(offset, size, formatted->value);
-}
-
    /**
     Deleting documents
     */
@@ -985,14 +961,6 @@ void bs_deleteFile(const char* path) {
 #else
     bs_throwBasilisk(BSX_INTERNAL | BSX_NOT_IMPLEMENTED);
 #endif
-}
-
-void bs_deleteFileF(const char* format, ...) {
-    char path[256];
-    int path_len = 0;
-    BS_PARSE_FORMAT(format, path, path_len);
-
-    return bs_deleteFile(path);
 }
 
 static int bs_doDeleteFile(char* path, void* param) {
@@ -1008,14 +976,6 @@ void bs_deleteDirectoryContents(const char* path) {
 #endif
 }
 
-void bs_deleteDirectoryContentsF(const char* format, ...) {
-    char path[256];
-    int path_len = 0;
-    BS_PARSE_FORMAT(format, path, path_len);
-
-    return bs_deleteDirectoryContents(path);
-}
-
 void bs_deleteDirectory(const char* path) {
 #ifdef _WIN32
     bs_deleteDirectoryContents(path);
@@ -1023,14 +983,6 @@ void bs_deleteDirectory(const char* path) {
 #else
     bs_throwBasilisk(BSX_INTERNAL | BSX_NOT_IMPLEMENTED);
 #endif
-}
-
-void bs_deleteDirectoryF(const char* format, ...) {
-    char path[256];
-    int path_len = 0;
-    BS_PARSE_FORMAT(format, path, path_len);
-
-    return bs_deleteDirectoryF(path);
 }
 
 bool bs_directoryExists(const char* path) {
@@ -1063,25 +1015,8 @@ void bs_saveFile(const char* path, char* data, bs_U32 data_len) {
         fwrite(data, data_len, 1, file);
     fclose(file);
 
-    if (!_bs_args.skip_log_info)
+    if (!_bs_args_.skip_log_info)
         bs_infoF("Saved %d bytes to %s\n", data_len, path);
-}
-
-void bs_saveFileF(char* data, bs_U32 data_len, char* format, ...) {
-    char path[256];// todo path format rework
-    va_list args;
-    va_start(args, format);
-    int num = vsnprintf(NULL, 0, format, args);
-    va_end(args);
-     
-    if (num >= 256)
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS, "bs_saveFileF has a limit of 256 characters");
-
-    va_start(args, format);
-    vsprintf(path, format, args);
-    va_end(args);
-
-    bs_saveFile(path, data, data_len);
 }
 
 bs_String* bs_fullPath(bs_String* old, const char* path, int path_len) {
