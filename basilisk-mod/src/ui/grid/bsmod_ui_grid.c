@@ -213,7 +213,7 @@ static void bsmod_instanceDirectoryMenu(bs_vec3 center, bs_vec2 dimensions) {
     }
 
     for (int i = 0; i < tabs.count; i++) {
-        bsgfx_MenuTab* tab = bs_fetchUnitUnsafe(&tabs, i);
+        bsgfx_MenuTab* tab = bs_fetchUnit(&tabs, i);
         if (active_tab == i) {
             tab->material_id = $bsmod_grey_120()->id;
             tab->shadow_material_id = $bsmod_grey_61()->id;

@@ -265,10 +265,22 @@ float bs_v4NormalizeTo(
     glm_vec4_normalize_to(v->a, out->a);
 }
 
-bs_Result bs_convertVulkanError(
+bs_Quad bs_quad(
+    bs_vec3 position, 
+    bs_vec2 dimensions)
+{
+    return next.bs_quad(position, dimensions);
+}
+
+bs_Result bs_convertVulkanResult(
     int code)
 {
-    return next.bs_convertVulkanError(code);
+    return next.bs_convertVulkanResult(code);
+}
+
+bs_Result bs_convertLastError()
+{
+    return next.bs_convertLastError();
 }
 
 bs_Result bs_convertErrno()
@@ -794,11 +806,30 @@ void bs_pushIndexV(
     return next.bs_pushIndexV(batch, num_indices, ...);
 }
 
+bs_Range bs_batchCube(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_RGBA color)
+{
+    return next.bs_batchCube(batch, offset, color);
+}
+
 bs_Range bs_pushCube(
     bs_Batch* batch, 
     bs_RGBA color)
 {
     return next.bs_pushCube(batch, color);
+}
+
+bs_Range bs_batchCone(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    int segments, 
+    float height, 
+    float radius, 
+    bs_RGBA color)
+{
+    return next.bs_batchCone(batch, offset, segments, height, radius, color);
 }
 
 bs_Range bs_pushCone(
@@ -809,6 +840,18 @@ bs_Range bs_pushCone(
     bs_RGBA color)
 {
     return next.bs_pushCone(batch, segments, height, radius, color);
+}
+
+bs_Range bs_batchRectangle(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_vec3 position, 
+    bs_vec2 dimensions, 
+    bs_vec2 texture_offset, 
+    bs_vec2 texture_coords, 
+    bs_RGBA color)
+{
+    return next.bs_batchRectangle(batch, offset, position, dimensions, texture_offset, texture_coords, color);
 }
 
 bs_Range bs_pushRectangle(
@@ -822,12 +865,32 @@ bs_Range bs_pushRectangle(
     return next.bs_pushRectangle(batch, position, dimensions, texture_offset, texture_coords, color);
 }
 
+bs_Range bs_batchQuad(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_Quad quad, 
+    bs_RGBA color)
+{
+    return next.bs_batchQuad(batch, offset, quad, color);
+}
+
 bs_Range bs_pushQuad(
     bs_Batch* batch, 
     bs_Quad quad, 
     bs_RGBA color)
 {
     return next.bs_pushQuad(batch, quad, color);
+}
+
+bs_Range bs_batchTriangle(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_vec3 a, 
+    bs_vec3 b, 
+    bs_vec3 c, 
+    bs_RGBA color)
+{
+    return next.bs_batchTriangle(batch, offset, a, b, c, color);
 }
 
 bs_Range bs_pushTriangle(
@@ -840,6 +903,16 @@ bs_Range bs_pushTriangle(
     return next.bs_pushTriangle(batch, a, b, c, color);
 }
 
+bs_Range bs_batchLine(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_vec3 start, 
+    bs_vec3 end, 
+    bs_RGBA color)
+{
+    return next.bs_batchLine(batch, offset, start, end, color);
+}
+
 bs_Range bs_pushLine(
     bs_Batch* batch, 
     bs_vec3 start, 
@@ -847,6 +920,15 @@ bs_Range bs_pushLine(
     bs_RGBA color)
 {
     return next.bs_pushLine(batch, start, end, color);
+}
+
+bs_Range bs_batchRay(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_Ray* ray, 
+    bs_RGBA color)
+{
+    return next.bs_batchRay(batch, offset, ray, color);
 }
 
 bs_Range bs_pushRay(
@@ -857,6 +939,15 @@ bs_Range bs_pushRay(
     return next.bs_pushRay(batch, ray, color);
 }
 
+bs_Range bs_batchPoint(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_vec3 position, 
+    bs_RGBA color)
+{
+    return next.bs_batchPoint(batch, offset, position, color);
+}
+
 bs_Range bs_pushPoint(
     bs_Batch* batch, 
     bs_vec3 position, 
@@ -865,12 +956,33 @@ bs_Range bs_pushPoint(
     return next.bs_pushPoint(batch, position, color);
 }
 
+bs_Range bs_batchAabb(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_Aabb* aabb, 
+    bs_RGBA color)
+{
+    return next.bs_batchAabb(batch, offset, aabb, color);
+}
+
 bs_Range bs_pushAabb(
     bs_Batch* batch, 
     bs_Aabb* aabb, 
     bs_RGBA color)
 {
     return next.bs_pushAabb(batch, aabb, color);
+}
+
+bs_Range bs_batchSphere(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_vec3 position, 
+    float radius, 
+    bs_U32 lats, 
+    bs_U32 longs, 
+    bs_RGBA color)
+{
+    return next.bs_batchSphere(batch, offset, position, radius, lats, longs, color);
 }
 
 bs_Range bs_pushSphere(
@@ -884,6 +996,17 @@ bs_Range bs_pushSphere(
     return next.bs_pushSphere(batch, position, radius, lats, longs, color);
 }
 
+bs_Range bs_batchPyramid(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_vec3 pos, 
+    float width, 
+    float height, 
+    bs_RGBA color)
+{
+    return next.bs_batchPyramid(batch, offset, pos, width, height, color);
+}
+
 bs_Range bs_pushPyramid(
     bs_Batch* batch, 
     bs_vec3 pos, 
@@ -892,6 +1015,17 @@ bs_Range bs_pushPyramid(
     bs_RGBA color)
 {
     return next.bs_pushPyramid(batch, pos, width, height, color);
+}
+
+bs_Range bs_batchBipyramid(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_vec3 pos, 
+    float width, 
+    float height, 
+    bs_RGBA color)
+{
+    return next.bs_batchBipyramid(batch, offset, pos, width, height, color);
 }
 
 bs_Range bs_pushBipyramid(
@@ -904,6 +1038,14 @@ bs_Range bs_pushBipyramid(
     return next.bs_pushBipyramid(batch, pos, width, height, color);
 }
 
+bs_Range bs_batchPrimitive(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_Primitive* primitive)
+{
+    return next.bs_batchPrimitive(batch, offset, primitive);
+}
+
 bs_Range bs_pushPrimitive(
     bs_Batch* batch, 
     bs_Primitive* primitive)
@@ -911,11 +1053,27 @@ bs_Range bs_pushPrimitive(
     return next.bs_pushPrimitive(batch, primitive);
 }
 
+bs_Range bs_batchMesh(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_Mesh* mesh)
+{
+    return next.bs_batchMesh(batch, offset, mesh);
+}
+
 bs_Range bs_pushMesh(
     bs_Batch* batch, 
     bs_Mesh* mesh)
 {
     return next.bs_pushMesh(batch, mesh);
+}
+
+bs_Range bs_batchModel(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_Model* model)
+{
+    return next.bs_batchModel(batch, offset, model);
 }
 
 bs_Range bs_pushModel(
@@ -2098,14 +2256,14 @@ char* bs_infoF(
     return _return;
 }
 
-void bs_warn(
+char* bs_warn(
     char* value, 
     int value_length)
 {
     return next.bs_warn(value, value_length);
 }
 
-void bs_warnV(
+char* bs_warnV(
     char* format, 
     va_list args)
 {
@@ -2114,20 +2272,41 @@ void bs_warnV(
     return bs_warn(string->value, string->len);
 }
 
-void bs_warnF(
+char* bs_warnF(
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_warnV(format, args);
+    char* _return = bs_warnV(format, args);
     va_end(args);
+    return _return;
 }
 
-void bs_logBasilisk(
-    bs_U64 code)
+void bs_critical(
+    char* value, 
+    int value_length)
 {
-    return next.bs_logBasilisk(code);
+    return next.bs_critical(value, value_length);
+}
+
+void bs_criticalV(
+    char* format, 
+    va_list args)
+{
+    static bs_String* string;
+    string = bs_stringV(string, format, args);
+    return bs_critical(string->value, string->len);
+}
+
+void bs_criticalF(
+    char* format, 
+    ...)
+{
+    va_list args;
+    va_start(args, format);
+    bs_criticalV(format, args);
+    va_end(args);
 }
 
 void bs_logObjectDiff()

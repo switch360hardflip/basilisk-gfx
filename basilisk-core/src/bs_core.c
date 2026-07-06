@@ -292,8 +292,10 @@ BSAPI bs_Result _bs_buffer(bs_Object* object, bs_U32 num_bytes, bs_BufferUsageFl
             return bs_convertVulkanResult(result);
     }
 
-    if (buffer->head.id)
-        bs_nameBuffer(object->buffer, bs_idName(buffer->head.source_id, buffer->head.id));
+    if (buffer->head.id) {
+        char* name = bs_idName(buffer->head.source_id, buffer->head.id);
+        bs_nameBuffer(object->buffer, name, strlen(name));
+    }
 
     if (flags & BS_BUFFER_PRE_MAP)
         bs_mapBuffer(object->buffer, BS_U32_MAX);
@@ -842,7 +844,9 @@ void bs_batchSphere(bs_Batch* batch, bs_U32* offset, bs_vec3 position, float rad
    * Batch Pushes
    *============================================================================*/
 
-bs_Range bs_pushRectangle(bs_Batch* batch, bs_vec3 position, bs_vec2 dimensions, bs_vec2 texture_offset, bs_vec2 texture_coords, bs_RGBA color) {
+BSAPI bs_Range _bs_pushRectangle(
+    bs_Batch* batch, bs_vec3 position, bs_vec2 dimensions, bs_vec2 texture_offset, bs_vec2 texture_coords, bs_RGBA color
+) {
     int index_offset = batch->indices.count;
 
     bs_Quad quad = bs_quad(position, dimensions);
@@ -855,7 +859,9 @@ bs_Range bs_pushRectangle(bs_Batch* batch, bs_vec3 position, bs_vec2 dimensions,
     return bs_batchRange(batch, index_offset);
 }
 
-bs_Range bs_pushQuad(bs_Batch* batch, bs_Quad quad, bs_RGBA color) {
+BSAPI bs_Range _bs_pushQuad(
+    bs_Batch* batch, bs_Quad quad, bs_RGBA color
+) {
     int index_offset = batch->indices.count;
 
     bs_ensureBatchSize(batch, 6, 4);
@@ -865,7 +871,9 @@ bs_Range bs_pushQuad(bs_Batch* batch, bs_Quad quad, bs_RGBA color) {
     return bs_batchRange(batch, index_offset);
 }
 
-bs_Range bs_pushTriangle(bs_Batch* batch, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color) {
+BSAPI bs_Range _bs_pushTriangle(
+    bs_Batch* batch, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color
+) {
     int index_offset = batch->indices.count;
 
     bs_ensureBatchSize(batch, 3, 3);
@@ -875,7 +883,9 @@ bs_Range bs_pushTriangle(bs_Batch* batch, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RG
     return bs_batchRange(batch, index_offset);
 }
 
-bs_Range bs_pushLine(bs_Batch* batch, bs_vec3 a, bs_vec3 b, bs_RGBA color) {
+BSAPI bs_Range _bs_pushLine(
+    bs_Batch* batch, bs_vec3 a, bs_vec3 b, bs_RGBA color
+) {
     int index_offset = batch->indices.count;
 
     bs_ensureBatchSize(batch, 2, 2);
@@ -885,14 +895,18 @@ bs_Range bs_pushLine(bs_Batch* batch, bs_vec3 a, bs_vec3 b, bs_RGBA color) {
     return bs_batchRange(batch, index_offset);
 }
 
-bs_Range bs_pushRay(bs_Batch* batch, bs_Ray* ray, bs_RGBA color) {
+BSAPI bs_Range _bs_pushRay(
+    bs_Batch* batch, bs_Ray* ray, bs_RGBA color
+) {
     bs_vec3 end;
     bs_v3MulV1(&ray->direction, ray->length, &end);
     bs_v3Add(&ray->origin, &end, &end);
     return bs_pushLine(batch, ray->origin, end, color);
 }
 
-bs_Range bs_pushPoint(bs_Batch* batch, bs_vec3 pos, bs_RGBA color) {
+BSAPI bs_Range _bs_pushPoint(
+    bs_Batch* batch, bs_vec3 pos, bs_RGBA color
+) {
     int index_offset = batch->indices.count;
 
     bs_ensureBatchSize(batch, 1, 1);
@@ -902,7 +916,9 @@ bs_Range bs_pushPoint(bs_Batch* batch, bs_vec3 pos, bs_RGBA color) {
     return bs_batchRange(batch, index_offset);
 }
 
-bs_Range bs_pushAabb(bs_Batch* batch, bs_Aabb* aabb, bs_RGBA color) {
+BSAPI bs_Range _bs_pushAabb(
+    bs_Batch* batch, bs_Aabb* aabb, bs_RGBA color
+) {
     int index_offset = batch->indices.count;
 
     bs_ensureBatchSize(batch, 24, 24);
@@ -913,7 +929,9 @@ bs_Range bs_pushAabb(bs_Batch* batch, bs_Aabb* aabb, bs_RGBA color) {
     return bs_batchRange(batch, index_offset);
 }
 
-bs_Range bs_pushSphere(bs_Batch* batch, bs_vec3 position, float radius, bs_U32 lats, bs_U32 longs, bs_RGBA color) {
+BSAPI bs_Range _bs_pushSphere(
+    bs_Batch* batch, bs_vec3 position, float radius, bs_U32 lats, bs_U32 longs, bs_RGBA color
+) {
     int index_offset = batch->indices.count;
 
     bs_ensureBatchSize(batch, lats * longs * 3 * 2, (lats + 1) * (longs + 1));
@@ -936,7 +954,7 @@ bs_Range bs_pushSphere(bs_Batch* batch, bs_vec3 position, float radius, bs_U32 l
     return bs_batchRange(batch, index_offset);
 }
 
-bs_Range bs_pushPyramid(
+BSAPI bs_Range _bs_pushPyramid(
     bs_Batch* batch, bs_vec3 pos, float width, float height, bs_RGBA color
 ) {
     int index_offset = batch->indices.count;
@@ -958,7 +976,7 @@ bs_Range bs_pushPyramid(
     return bs_batchRange(batch, index_offset);
 }
 
-bs_Range bs_pushBipyramid(
+BSAPI bs_Range _bs_pushBipyramid(
     bs_Batch* batch, bs_vec3 pos, float width, float height, bs_RGBA color
 ) {
     int index_offset = batch->indices.count;
@@ -982,7 +1000,9 @@ bs_Range bs_pushBipyramid(
     return bs_batchRange(batch, index_offset);
 }
 
-bs_Range bs_pushCone(bs_Batch* batch, int segments, float height, float radius, bs_RGBA color) {
+BSAPI bs_Range _bs_pushCone(
+    bs_Batch* batch, int segments, float height, float radius, bs_RGBA color
+) {
     int index_offset = batch->indices.count;
     int num_indices = (segments * 1) * 3;
     int num_vertices = segments + 2;
@@ -995,12 +1015,14 @@ bs_Range bs_pushCone(bs_Batch* batch, int segments, float height, float radius, 
     for (int i = 0, n = segments - 1; i < n; i++)
         bs_pushIndexV(batch, 3, i + 1, segments + 1, i + 2);
 
-    bs_batchCone(batch, &batch->vertices.count, color, segments, height, radius);
+    bs_batchCone(batch, &batch->vertices.count, segments, height, radius, color);
 
     return bs_batchRange(batch, index_offset);
 }
 
-bs_Range bs_pushPrimitive(bs_Batch* batch, bs_Primitive* primitive) {
+BSAPI bs_Range _bs_pushPrimitive(
+    bs_Batch* batch, bs_Primitive* primitive
+) {
     bs_U32* increment = &batch->vertices.count;
     int index_offset = batch->indices.count;
 
@@ -1032,7 +1054,7 @@ bs_Range bs_pushPrimitive(bs_Batch* batch, bs_Primitive* primitive) {
     return bs_batchRange(batch, index_offset);
 }
 
-bs_Range bs_pushMesh(bs_Batch* batch, bs_Mesh* mesh) {
+BSAPI bs_Range _bs_pushMesh(bs_Batch* batch, bs_Mesh* mesh) {
     int index_offset = batch->indices.count;
 
     for(int i = 0; i < mesh->primitives_count; i++)
@@ -1041,7 +1063,7 @@ bs_Range bs_pushMesh(bs_Batch* batch, bs_Mesh* mesh) {
     return bs_batchRange(batch, index_offset);
 }
 
-bs_Range bs_pushModel(bs_Batch* batch, bs_Model* model) {
+BSAPI bs_Range _bs_pushModel(bs_Batch* batch, bs_Model* model) {
     int index_offset = batch->indices.count;
 
     for(int i = 0; i < model->meshes_count; i++)
@@ -1134,14 +1156,10 @@ BSAPI bs_Result _bs_batch(bs_Object* object, int index_size, bs_Shader* shader, 
 }
 
 BSAPI bool _bs_batchIsPushed(bs_Batch* batch) {
-    if (!batch)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
     return batch->flags & BS_BATCH_IS_PUSHED;
 }
 
 BSAPI bool _bs_batchIsIndexed(bs_Batch* batch) {
-    if (!batch)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
     return batch->indices.unit_size > 0;
 }
 
@@ -1588,6 +1606,7 @@ BSAPI void _bs_beginRender(bs_Renderer* renderer) {
         vkCmdBeginRenderPass(command_buffer, &render_pass_i, VK_SUBPASS_CONTENTS_INLINE);
     }
     else {
+         /** TOOD: Check this after renderer creation and put this in _val */
         if (!_bs_procs_.vkCmdBeginRenderingKHR || !_bs_procs_.vkCmdEndRenderingKHR)
             bs_throwBasiliskF(BSX_NOT_SUPPORTED, "Dynamic rendering (vkCmdBeginRenderingKHR)");
 
@@ -1712,9 +1731,6 @@ static void bs_destroyFramebuffer(bs_Renderer* renderer) {
 }
 
 BSAPI void _bs_destroyRenderer(bs_Renderer* renderer) {
-    if (!renderer)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
-
     bs_free(renderer->inputs);
     bs_free(renderer->outputs);
 
@@ -1732,9 +1748,6 @@ BSAPI void _bs_destroyRenderer(bs_Renderer* renderer) {
 }
 
 BSAPI void _bs_resizeRenderer(bs_Renderer* renderer, bs_ivec2 dim) {
-    if (!renderer)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
-
     renderer->dim = dim;
 
     bs_destroyFramebuffer(renderer);
@@ -1748,9 +1761,6 @@ BSAPI void _bs_resizeRenderer(bs_Renderer* renderer, bs_ivec2 dim) {
    *============================================================================*/
 
 BSAPI void _bs_dispatchAsync(bs_Pipeline* pipeline, bs_U32 x, bs_U32 y, bs_U32 z) {
-    if (!pipeline)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
-
     VkCommandBuffer command_buffer = bsi_fetchCommands();
 
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline->pipeline);

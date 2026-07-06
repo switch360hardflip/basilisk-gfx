@@ -97,7 +97,7 @@ void bsmod_endRasterize() {
     bs_pushDescriptors();
 
     for (int i = 0; i < bsmod_rasterizations.count; i++) {
-        bsmod_Rasterization* rasterization = bs_fetchUnitUnsafe(&bsmod_rasterizations, i);
+        bsmod_Rasterization* rasterization = bs_fetchUnit(&bsmod_rasterizations, i);
 
         assert(rasterization->subtype >= 0);
 
@@ -164,7 +164,7 @@ void bsmod_pollRasterizer() {
         bsmod_AtlasPacker packer = bsmod_createAtlasPacker();
 
         for (int i = 0; i < bsmod_rasterizations.count; i++) {
-            bsmod_Rasterization* rasterization = bs_fetchUnitUnsafe(&bsmod_rasterizations, i);
+            bsmod_Rasterization* rasterization = bs_fetchUnit(&bsmod_rasterizations, i);
 
             char* map = bs_mapBuffer(rasterization->buffer, BS_U32_MAX);
             // bs_savePngF(map, bs_iv2(rasterization->scaled_image->dim.x, rasterization->scaled_image->dim.y), BS_PNG_RGBA, "test%d.png", i);

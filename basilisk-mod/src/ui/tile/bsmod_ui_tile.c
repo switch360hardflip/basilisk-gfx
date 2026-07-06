@@ -135,10 +135,10 @@ void bsmod_onDragTile(bsmod_DraggingParams params) {
     if (bsmod_leftClickUpOnce()) {
         if (bsmod_isSelected(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, bsmod.hovering.tile)) {
             for (int i = 0; i < bsmod.selected_tiles.count; i++) {
-                int id = *(int*)bs_fetchUnitUnsafe(&bsmod.selected_tiles, i);
+                int id = *(int*)bs_fetchUnit(&bsmod.selected_tiles, i);
 
                 for (int j = 0; j < bsmod.selected_ids.count; j++) {
-                    int existing_id = *(int*)bs_fetchUnitUnsafe(&bsmod.selected_ids, j);
+                    int existing_id = *(int*)bs_fetchUnit(&bsmod.selected_ids, j);
                     bsgfx_Tile* tile = bsgfx_get(BSGFX_TYPE_TILE, existing_id);
                     if (id == tile->index) {
                         bsgfx_RawTile* raw_tile = bsgfx_getRaw(BSGFX_TYPE_TILE, existing_id);

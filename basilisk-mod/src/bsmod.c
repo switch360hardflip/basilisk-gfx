@@ -158,7 +158,7 @@ void bsmod_onTick() {
             bs_unpushBatch(batch);
 
             for (int i = 0; i < bsmod.selected_tiles.count; i++) {
-                int* this = bs_fetchUnitUnsafe(&bsmod.selected_tiles, i);
+                int* this = bs_fetchUnit(&bsmod.selected_tiles, i);
                 bs_ivec2 coord = bsgfx_tileCoordinate(primitive, bsmod.selected_tile_axis, *this);
                 if (coord.x == BS_I32_MAX)
                     continue;
@@ -177,7 +177,7 @@ void bsmod_onTick() {
                 bsgfx_Tile* tile = bsgfx_get(BSGFX_TYPE_TILE, i);
 
                 for (int j = 0; j < bsmod.selected_tiles.count; j++) {
-                    int id = *(int*)bs_fetchUnitUnsafe(&bsmod.selected_tiles, j);
+                    int id = *(int*)bs_fetchUnit(&bsmod.selected_tiles, j);
                     if (tile->index == id) {
                         bsmod_select(&bsmod.selected_ids, BSGFX_TYPE_TILE, i);
                     }
@@ -197,7 +197,7 @@ void bsmod_onTick() {
     } return;
     case BSGFX_TYPE_PRIMITIVE: {
         for (int i = 0; i < bsmod.selected_ids.count; i++) {
-            int* this = bs_fetchUnitUnsafe(&bsmod.selected_ids, i);
+            int* this = bs_fetchUnit(&bsmod.selected_ids, i);
             bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, *this);
 
             bs_mat4 transform = bs_transform(primitive->position, primitive->rotation, primitive->scale);
@@ -207,7 +207,7 @@ void bsmod_onTick() {
     } break;
     case BSGFX_TYPE_PREFAB: {
         for (int i = 0; i < bsmod.selected_ids.count; i++) {
-            int* this = bs_fetchUnitUnsafe(&bsmod.selected_ids, i);
+            int* this = bs_fetchUnit(&bsmod.selected_ids, i);
             bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, *this);
 
             bs_mat4 transform = bs_transform(prefab->position, prefab->rotation, prefab->scale);

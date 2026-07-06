@@ -20,7 +20,7 @@ bsmod_Package* bsmod_queryPackage(const char* name) {
 	bs_U64 hash = bs_stringHash(name);
 
 	for (int i = 0; i < _bsmod_packages.count; i++) {
-		bsmod_Package* package = bs_fetchUnitUnsafe(&_bsmod_packages, i);
+		bsmod_Package* package = bs_fetchUnit(&_bsmod_packages, i);
 
 		if (hash == package->name_hash)
 			return package;
@@ -47,7 +47,7 @@ static bsmod_Resource* bsmod_ensureResource(bsmod_Package* package, char* name) 
 	bs_U64 hash = bs_stringHash(name);
 
 	for (int i = 0; i < package->resources.count; i++) {
-		bsmod_Resource* resource = bs_fetchUnitUnsafe(&package->resources, i);
+		bsmod_Resource* resource = bs_fetchUnit(&package->resources, i);
 		if (hash == resource->header.name_hash)
 			return resource;
 	}
@@ -120,7 +120,7 @@ void bsmod_iniPackage(const char* package_name) {
 static bsmod_Chunk* bsmod_ensureChunk(bsmod_Package* package, int size) {
 	bsmod_Chunk* chunk;
 	for (int i = 0; i < package->chunks.count; i++) {
-		chunk = bs_fetchUnitUnsafe(&package->chunks, i);
+		chunk = bs_fetchUnit(&package->chunks, i);
 		if (chunk->bin.count == 0 || (chunk->bin.count + size) < BSMOD_BPAK_CHUNK_SIZE) {
 			bs_ensureSize(&chunk->bin, size);
 			return chunk;
@@ -161,7 +161,7 @@ void bsmod_packResource(bs_ResourceType type, unsigned char* data, size_t data_s
 			chunk->has_changes = true;
 
 			for (int i = 0; i < package->resources.count; i++) {
-				bsmod_Resource* r = bs_fetchUnitUnsafe(&package->resources, i);
+				bsmod_Resource* r = bs_fetchUnit(&package->resources, i);
 				if (r != resource && r->header.chunk == resource->header.chunk && r->header.offset > resource->header.offset) {
 					bs_infoF("  Adjusted offset for resource \"%s\"\n", r->name);
 					r->header.offset -= resource->header.size;
@@ -227,7 +227,7 @@ static void bsmod_loadResource(bs_ResourceType type, int package_id, char* name)
 		bs_Image* existing_image = NULL;
 		if (resource && resource->image) {
 			for (int i = 0; i < sources->count; i++ ){
-				bs_ObjectSource* source = bs_fetchUnitUnsafe(sources, i);
+				bs_ObjectSource* source = bs_fetchUnit(sources, i);
 				if (source->type == BS_OBJECT_IMAGE) {
 					for (int j = 0; j < source->ids_count; j++) {
 						bs_Object* image = source->ids[j].object;
@@ -292,7 +292,7 @@ static void bsmod_loadResource(bs_ResourceType type, int package_id, char* name)
 		bs_Atlas* existing_atlas = NULL;
 		if (resource && resource->atlas) {
 			for (int i = 0; i < sources->count; i++ ){
-				bs_ObjectSource* source = bs_fetchUnitUnsafe(sources, i);
+				bs_ObjectSource* source = bs_fetchUnit(sources, i);
 				if (source->type == BS_OBJECT_IMAGE) {
 					for (int j = 0; j < source->ids_count; j++) {
 						bs_Object* o = source->ids[j].object;
@@ -358,7 +358,7 @@ void bsmod_savePackage(const char* name) {
 	 Binary
 	 */
 	for (int i = 0; i < package->chunks.count; i++) {
-		bsmod_Chunk* chunk = bs_fetchUnitUnsafe(&package->chunks, i);
+		bsmod_Chunk* chunk = bs_fetchUnit(&package->chunks, i);
 		if (!chunk->has_changes)
 			continue;
 
@@ -371,7 +371,7 @@ void bsmod_savePackage(const char* name) {
 	 */
 	int name_lengths = 0;
 	for (int i = 0; i < package->resources.count; i++) {
-		bsmod_Resource* resource = bs_fetchUnitUnsafe(&package->resources, i);
+		bsmod_Resource* resource = bs_fetchUnit(&package->resources, i);
 		name_lengths += strlen(resource->name);
 	}
 
@@ -383,7 +383,7 @@ void bsmod_savePackage(const char* name) {
 
 	size_t offset = 0;
 	for (int i = 0; i < package->resources.count; i++) {
-		bsmod_Resource* resource = bs_fetchUnitUnsafe(&package->resources, i);
+		bsmod_Resource* resource = bs_fetchUnit(&package->resources, i);
 
 		memcpy(data + offset, &resource->header, header_size);
 		offset += header_size;
@@ -403,7 +403,7 @@ void bsmod_savePackage(const char* name) {
 	int package_id = bs_loadPackage(name);
 
 	for (int i = 0; i < package->resources.count; i++) {
-		bsmod_Resource* resource = bs_fetchUnitUnsafe(&package->resources, i);
+		bsmod_Resource* resource = bs_fetchUnit(&package->resources, i);
 		if (resource->has_changes) {
 			bsmod_loadResource(resource->type, package_id, resource->name);
 			resource->has_changes = false;

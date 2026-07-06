@@ -87,7 +87,7 @@ void bsmod_packImageDirectory(char* directory_name, char* package_name, char* re
 	size_t binary_offset = total_size_excluding_binary;
 
 	for (int i = 0; i < images.count; i++) {
-		bsmod_BiffInfo* image = bs_fetchUnitUnsafe(&images, i);
+		bsmod_BiffInfo* image = bs_fetchUnit(&images, i);
 
 		// image header
 		memcpy(biff + pointer_offset, &(bs_BiffPointer) {

@@ -454,11 +454,11 @@ static void bsmod_findLastModifiedDirectory(bs_FileInfo info, struct { bs_DateTi
 
 static void bsmod_trackDirectoryDifferences(const bs_List* changed, const bs_List* a, const bs_List* b, bs_List* out_differences) {
 	for (int i = 0; i < a->count; i++) {
-		char* new_entry = *(char**)bs_fetchUnitUnsafe(a, i);
+		char* new_entry = *(char**)bs_fetchUnit(a, i);
 
 		bool found = false;
 		for (int j = 0; j < b->count; j++) {
-			char* old_entry = *(char**)bs_fetchUnitUnsafe(b, j);
+			char* old_entry = *(char**)bs_fetchUnit(b, j);
 
 			if (new_entry == old_entry) {
 				found = true;
@@ -600,20 +600,20 @@ void bsmod_onTrack() {
 					}
 
 					for (int j = 0; j < added_count; j++) {
-						params.path = *(char**)bs_fetchUnitUnsafe(&added_entries, j);
+						params.path = *(char**)bs_fetchUnit(&added_entries, j);
 						function(params);
 					}
 
 					for (int j = 0; j < removed_count; j++) {
-						params.path = *(char**)bs_fetchUnitUnsafe(&removed_entries, j);
+						params.path = *(char**)bs_fetchUnit(&removed_entries, j);
 						function(params);
 					}
 				}
 
 				bs_ensureSize(&dir->entries, dir->entries.count = result.entries->count);
 				for (int j = 0; j < result.entries->count; j++) {
-					char* path = *(char**)bs_fetchUnitUnsafe(result.entries, j);
-					char** result = bs_fetchUnitUnsafe(&dir->entries, j);
+					char* path = *(char**)bs_fetchUnit(result.entries, j);
+					char** result = bs_fetchUnit(&dir->entries, j);
 					*result = path;
 				}
 

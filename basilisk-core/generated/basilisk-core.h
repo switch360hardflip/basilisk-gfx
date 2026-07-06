@@ -1001,168 +1001,6 @@ typedef enum bs_SwapchainMode bs_SwapchainMode;
 #define bs_throwBasiliskF(code, format, ...)                         \
         bsi_throwBasiliskF(code, (format "\n%s:%d:%s(): "), __VA_ARGS__ __VA_OPT__(,) __FILE__, __LINE__, __func__)
 
-#define BSX(x)                                                       \
-    ((uint64_t)1 << (x))
-
-#define BSX_UNKNOWN                                                  \
-    BSX(0)
-
-#define BSX_GENERAL                                                  \
-    BSX(1)
-
-#define BSXI_INTERNAL                                                \
-    BSX(2)
-
-#define BSX_NO_GPU                                                   \
-    BSX(3)
-
-#define BSX_TIMEOUT                                                  \
-    BSX(4)
-
-#define BSX_NOT_IMPLEMENTED                                          \
-    BSX(5)
-
-#define BSX_FAILED_TO_CONVERT                                        \
-    BSX(6)
-
-#define BSX_CORRUPTED                                                \
-    BSX(7)
-
-#define BSX_INVALID_TYPE                                             \
-    BSX(8)
-
-#define BSX_UNKNOWN_TYPE_SIZE                                        \
-    BSX(9)
-
-#define BSX_FAILED_TO_QUERY                                          \
-    BSX(10)
-
-#define BSX_FAILED_TO_CREATE                                         \
-    BSX(11)
-
-#define BSX_NOT_FOUND                                                \
-    BSX(12)
-
-#define BSX_INVALID_PARAM                                            \
-    BSX(13)
-
-#define BSX_INVALID_FORMAT                                           \
-    BSX(14)
-
-#define BSX_ENSURE_RETURN                                            \
-    BSX(15)
-
-#define BSX_DEVICE_LOST                                              \
-    BSX(16)
-
-#define BSX_FAILED_TO_ACQUIRE                                        \
-    BSX(17)
-
-#define BSX_DUPLICATE                                                \
-    BSX(18)
-
-#define BSX_UNMAPPED_BUFFER                                          \
-    BSX(19)
-
-#define BSX_INVALID_VERTEX_ATTRIBUTE                                 \
-    BSX(20)
-
-#define BSX_UNKNOWN_LAYOUT_TRANSITION                                \
-    BSX(21)
-
-#define BSX_NO_DATA                                                  \
-    BSX(22)
-
-#define BSX_NO_SHADER_STAGES                                         \
-    BSX(23)
-
-#define BSX_TOO_MANY_OPEN_FILES                                      \
-    BSX(24)
-
-#define BSX_PERMISSION_DENIED                                        \
-    BSX(25)
-
-#define BSX_BAD_PATH_NAME                                            \
-    BSX(26)
-
-#define BSX_INVALID_NAME                                             \
-    BSX(27)
-
-#define BSX_ALREADY_EXISTS                                           \
-    BSX(28)
-
-#define BSX_INVALID_FILE_TYPE                                        \
-    BSX(29)
-
-#define BSX_INVALID_FILE_EXTENSION                                   \
-    BSX(30)
-
-#define BSX_FAILED_TO_WRITE                                          \
-    BSX(31)
-
-#define BSX_INVALID_HANDLE                                           \
-    BSX(32)
-
-#define BSX_FAILED_TO_ALLOCATE                                       \
-    BSX(33)
-
-#define BSX_OUT_OF_BOUNDS                                            \
-    BSX(34)
-
-#define BSX_EXPECTED_UNSIGNED                                        \
-    BSX(35)
-
-#define BSX_UNINITIALIZED                                            \
-    BSX(36)
-
-#define BSX_MISMATCH                                                 \
-    BSX(37)
-
-#define BSX_VALIDATION                                               \
-    BSX(38)
-
-#define BSX_INTEGER_OVERFLOW                                         \
-    BSX(39)
-
-#define BSX_OUT_OF_ORDER                                             \
-    BSX(40)
-
-#define BSX_IMMUTABLE                                                \
-    BSX(41)
-
-#define BSX_EXPECTED_END                                             \
-    BSX(42)
-
-#define BSX_CANT_CONNECT                                             \
-    BSX(43)
-
-#define BSX_INVALID_URL                                              \
-    BSX(44)
-
-#define BSX_INVALID_CONNECTION                                       \
-    BSX(45)
-
-#define BSXI_STEAM                                                   \
-    BSX(46)
-
-#define BSX_NOT_A_NUMBER                                             \
-    BSX(47)
-
-#define BSX_FAILED_TO_INVOKE                                         \
-    BSX(48)
-
-#define BSXI_LOG_CAUGHT                                              \
-    BSX(49)
-
-#define BSX_ASSERTION                                                \
-    BSX(50)
-
-#define BSX_NOT_SUPPORTED                                            \
-    BSX(51)
-
-#define BSX_INVALID_STATE                                            \
-    BSX(52)
-
 #define BS_ASSERT_TYPE(obj, t1)                                      \
     do {                                                             \
         int t2 = _bs_instance->objects[obj->head.id].object.type;    \
@@ -1992,7 +1830,7 @@ struct bs_ImageIndex {
 
 struct bs_ImageSwaps {
     struct VkImage_T* image;
-    struct VkImageView_T* image_view;
+    struct VkImageView_T* view;
 };
 
 struct bs_Image {
@@ -2691,12 +2529,9 @@ struct bs_Scope {
 
 struct bs_Args {
     bool send_bugs;
-    bool cmd_log;
-    bool skip_log;
     bool color_log;
     bool use_lisk;
     bool use_validation_layers;
-    bool skip_log_info;
     bool track_changes;
 };
 
@@ -3903,12 +3738,28 @@ bs_v4NormalizeTo(
     bs_vec4* out);
 
  /**
+  @param position
+  @param dimensions
+  @return bs_Quad
+  */
+BSAPI bs_Quad
+bs_quad(
+    bs_vec3 position,
+    bs_vec2 dimensions);
+
+ /**
   @param code
   @return bs_Result
   */
 BSAPI bs_Result
-bs_convertVulkanError(
+bs_convertVulkanResult(
     int code);
+
+ /**
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_convertLastError();
 
  /**
   @return bs_Result
@@ -4650,12 +4501,42 @@ bs_pushIndexV(
 
  /**
   @param batch
+  @param offset
+  @param color
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchCube(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_RGBA color);
+
+ /**
+  @param batch
   @param color
   @return bs_Range
   */
 BSAPI bs_Range
 bs_pushCube(
     bs_Batch* batch,
+    bs_RGBA color);
+
+ /**
+  @param batch
+  @param offset
+  @param segments
+  @param height
+  @param radius
+  @param color
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchCone(
+    bs_Batch* batch,
+    bs_U32* offset,
+    int segments,
+    float height,
+    float radius,
     bs_RGBA color);
 
  /**
@@ -4672,6 +4553,26 @@ bs_pushCone(
     int segments,
     float height,
     float radius,
+    bs_RGBA color);
+
+ /**
+  @param batch
+  @param offset
+  @param position
+  @param dimensions
+  @param texture_offset
+  @param texture_coords
+  @param color
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchRectangle(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_vec3 position,
+    bs_vec2 dimensions,
+    bs_vec2 texture_offset,
+    bs_vec2 texture_coords,
     bs_RGBA color);
 
  /**
@@ -4694,6 +4595,20 @@ bs_pushRectangle(
 
  /**
   @param batch
+  @param offset
+  @param quad
+  @param color
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchQuad(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_Quad quad,
+    bs_RGBA color);
+
+ /**
+  @param batch
   @param quad
   @param color
   @return bs_Range
@@ -4702,6 +4617,24 @@ BSAPI bs_Range
 bs_pushQuad(
     bs_Batch* batch,
     bs_Quad quad,
+    bs_RGBA color);
+
+ /**
+  @param batch
+  @param offset
+  @param a
+  @param b
+  @param c
+  @param color
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchTriangle(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_vec3 a,
+    bs_vec3 b,
+    bs_vec3 c,
     bs_RGBA color);
 
  /**
@@ -4722,6 +4655,22 @@ bs_pushTriangle(
 
  /**
   @param batch
+  @param offset
+  @param start
+  @param end
+  @param color
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchLine(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_vec3 start,
+    bs_vec3 end,
+    bs_RGBA color);
+
+ /**
+  @param batch
   @param start
   @param end
   @param color
@@ -4732,6 +4681,20 @@ bs_pushLine(
     bs_Batch* batch,
     bs_vec3 start,
     bs_vec3 end,
+    bs_RGBA color);
+
+ /**
+  @param batch
+  @param offset
+  @param ray
+  @param color
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchRay(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_Ray* ray,
     bs_RGBA color);
 
  /**
@@ -4748,6 +4711,20 @@ bs_pushRay(
 
  /**
   @param batch
+  @param offset
+  @param position
+  @param color
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchPoint(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_vec3 position,
+    bs_RGBA color);
+
+ /**
+  @param batch
   @param position
   @param color
   @return bs_Range
@@ -4760,6 +4737,20 @@ bs_pushPoint(
 
  /**
   @param batch
+  @param offset
+  @param aabb
+  @param color
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchAabb(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_Aabb* aabb,
+    bs_RGBA color);
+
+ /**
+  @param batch
   @param aabb
   @param color
   @return bs_Range
@@ -4768,6 +4759,26 @@ BSAPI bs_Range
 bs_pushAabb(
     bs_Batch* batch,
     bs_Aabb* aabb,
+    bs_RGBA color);
+
+ /**
+  @param batch
+  @param offset
+  @param position
+  @param radius
+  @param lats
+  @param longs
+  @param color
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchSphere(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_vec3 position,
+    float radius,
+    bs_U32 lats,
+    bs_U32 longs,
     bs_RGBA color);
 
  /**
@@ -4790,6 +4801,24 @@ bs_pushSphere(
 
  /**
   @param batch
+  @param offset
+  @param pos
+  @param width
+  @param height
+  @param color
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchPyramid(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_vec3 pos,
+    float width,
+    float height,
+    bs_RGBA color);
+
+ /**
+  @param batch
   @param pos
   @param width
   @param height
@@ -4799,6 +4828,24 @@ bs_pushSphere(
 BSAPI bs_Range
 bs_pushPyramid(
     bs_Batch* batch,
+    bs_vec3 pos,
+    float width,
+    float height,
+    bs_RGBA color);
+
+ /**
+  @param batch
+  @param offset
+  @param pos
+  @param width
+  @param height
+  @param color
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchBipyramid(
+    bs_Batch* batch,
+    bs_U32* offset,
     bs_vec3 pos,
     float width,
     float height,
@@ -4822,6 +4869,18 @@ bs_pushBipyramid(
 
  /**
   @param batch
+  @param offset
+  @param primitive
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchPrimitive(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_Primitive* primitive);
+
+ /**
+  @param batch
   @param primitive
   @return bs_Range
   */
@@ -4832,6 +4891,18 @@ bs_pushPrimitive(
 
  /**
   @param batch
+  @param offset
+  @param mesh
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchMesh(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_Mesh* mesh);
+
+ /**
+  @param batch
   @param mesh
   @return bs_Range
   */
@@ -4839,6 +4910,18 @@ BSAPI bs_Range
 bs_pushMesh(
     bs_Batch* batch,
     bs_Mesh* mesh);
+
+ /**
+  @param batch
+  @param offset
+  @param model
+  @return bs_Range
+  */
+BSAPI bs_Range
+bs_batchModel(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_Model* model);
 
  /**
   @param batch
@@ -6441,10 +6524,40 @@ bs_infoF(
  /**
   @param value
   @param value_length
+  @return char*
+  */
+BSAPI char*
+bs_warn(
+    char* value,
+    int value_length);
+
+ /**
+  @param format
+  @param args
+  @return char*
+  */
+BSAPI char*
+bs_warnV(
+    char* format,
+    va_list args);
+
+ /**
+  @param format
+  @param ...
+  @return char*
+  */
+BSAPI char*
+bs_warnF(
+    char* format,
+     ...);
+
+ /**
+  @param value
+  @param value_length
   @return void
   */
 BSAPI void
-bs_warn(
+bs_critical(
     char* value,
     int value_length);
 
@@ -6454,7 +6567,7 @@ bs_warn(
   @return void
   */
 BSAPI void
-bs_warnV(
+bs_criticalV(
     char* format,
     va_list args);
 
@@ -6464,17 +6577,9 @@ bs_warnV(
   @return void
   */
 BSAPI void
-bs_warnF(
+bs_criticalF(
     char* format,
      ...);
-
- /**
-  @param code
-  @return void
-  */
-BSAPI void
-bs_logBasilisk(
-    bs_U64 code);
 
  /**
   @return void

@@ -353,8 +353,16 @@ static float _preval_bs_v4NormalizeTo(const bs_vec4* v, bs_vec4* out) {
     return next.bs_v4NormalizeTo(v, out);
 }
 
-static bs_Result _preval_bs_convertVulkanError(int code) {
-    return next.bs_convertVulkanError(code);
+static bs_Quad _preval_bs_quad(bs_vec3 position, bs_vec2 dimensions) {
+    return next.bs_quad(position, dimensions);
+}
+
+static bs_Result _preval_bs_convertVulkanResult(int code) {
+    return next.bs_convertVulkanResult(code);
+}
+
+static bs_Result _preval_bs_convertLastError() {
+    return next.bs_convertLastError();
 }
 
 static bs_Result _preval_bs_convertErrno() {
@@ -788,11 +796,31 @@ static void _preval_bs_pushIndexV(bs_Batch* batch, bs_U32 num_indices,  ...) {
     return next.bs_pushIndexV(batch, num_indices, ...);
 }
 
+static bs_Range _preval_bs_batchCube(bs_Batch* batch, bs_U32* offset, bs_RGBA color) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    return next.bs_batchCube(batch, offset, color);
+}
+
 static bs_Range _preval_bs_pushCube(bs_Batch* batch, bs_RGBA color) {
     if (batch == NULL)
         return 0;
 
     return next.bs_pushCube(batch, color);
+}
+
+static bs_Range _preval_bs_batchCone(bs_Batch* batch, bs_U32* offset, int segments, float height, float radius, bs_RGBA color) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    return next.bs_batchCone(batch, offset, segments, height, radius, color);
 }
 
 static bs_Range _preval_bs_pushCone(bs_Batch* batch, int segments, float height, float radius, bs_RGBA color) {
@@ -802,11 +830,31 @@ static bs_Range _preval_bs_pushCone(bs_Batch* batch, int segments, float height,
     return next.bs_pushCone(batch, segments, height, radius, color);
 }
 
+static bs_Range _preval_bs_batchRectangle(bs_Batch* batch, bs_U32* offset, bs_vec3 position, bs_vec2 dimensions, bs_vec2 texture_offset, bs_vec2 texture_coords, bs_RGBA color) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    return next.bs_batchRectangle(batch, offset, position, dimensions, texture_offset, texture_coords, color);
+}
+
 static bs_Range _preval_bs_pushRectangle(bs_Batch* batch, bs_vec3 position, bs_vec2 dimensions, bs_vec2 texture_offset, bs_vec2 texture_coords, bs_RGBA color) {
     if (batch == NULL)
         return 0;
 
     return next.bs_pushRectangle(batch, position, dimensions, texture_offset, texture_coords, color);
+}
+
+static bs_Range _preval_bs_batchQuad(bs_Batch* batch, bs_U32* offset, bs_Quad quad, bs_RGBA color) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    return next.bs_batchQuad(batch, offset, quad, color);
 }
 
 static bs_Range _preval_bs_pushQuad(bs_Batch* batch, bs_Quad quad, bs_RGBA color) {
@@ -816,6 +864,16 @@ static bs_Range _preval_bs_pushQuad(bs_Batch* batch, bs_Quad quad, bs_RGBA color
     return next.bs_pushQuad(batch, quad, color);
 }
 
+static bs_Range _preval_bs_batchTriangle(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    return next.bs_batchTriangle(batch, offset, a, b, c, color);
+}
+
 static bs_Range _preval_bs_pushTriangle(bs_Batch* batch, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color) {
     if (batch == NULL)
         return 0;
@@ -823,11 +881,34 @@ static bs_Range _preval_bs_pushTriangle(bs_Batch* batch, bs_vec3 a, bs_vec3 b, b
     return next.bs_pushTriangle(batch, a, b, c, color);
 }
 
+static bs_Range _preval_bs_batchLine(bs_Batch* batch, bs_U32* offset, bs_vec3 start, bs_vec3 end, bs_RGBA color) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    return next.bs_batchLine(batch, offset, start, end, color);
+}
+
 static bs_Range _preval_bs_pushLine(bs_Batch* batch, bs_vec3 start, bs_vec3 end, bs_RGBA color) {
     if (batch == NULL)
         return 0;
 
     return next.bs_pushLine(batch, start, end, color);
+}
+
+static bs_Range _preval_bs_batchRay(bs_Batch* batch, bs_U32* offset, bs_Ray* ray, bs_RGBA color) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    if (ray == NULL)
+        return 0;
+
+    return next.bs_batchRay(batch, offset, ray, color);
 }
 
 static bs_Range _preval_bs_pushRay(bs_Batch* batch, bs_Ray* ray, bs_RGBA color) {
@@ -840,11 +921,34 @@ static bs_Range _preval_bs_pushRay(bs_Batch* batch, bs_Ray* ray, bs_RGBA color) 
     return next.bs_pushRay(batch, ray, color);
 }
 
+static bs_Range _preval_bs_batchPoint(bs_Batch* batch, bs_U32* offset, bs_vec3 position, bs_RGBA color) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    return next.bs_batchPoint(batch, offset, position, color);
+}
+
 static bs_Range _preval_bs_pushPoint(bs_Batch* batch, bs_vec3 position, bs_RGBA color) {
     if (batch == NULL)
         return 0;
 
     return next.bs_pushPoint(batch, position, color);
+}
+
+static bs_Range _preval_bs_batchAabb(bs_Batch* batch, bs_U32* offset, bs_Aabb* aabb, bs_RGBA color) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    if (aabb == NULL)
+        return 0;
+
+    return next.bs_batchAabb(batch, offset, aabb, color);
 }
 
 static bs_Range _preval_bs_pushAabb(bs_Batch* batch, bs_Aabb* aabb, bs_RGBA color) {
@@ -857,11 +961,31 @@ static bs_Range _preval_bs_pushAabb(bs_Batch* batch, bs_Aabb* aabb, bs_RGBA colo
     return next.bs_pushAabb(batch, aabb, color);
 }
 
+static bs_Range _preval_bs_batchSphere(bs_Batch* batch, bs_U32* offset, bs_vec3 position, float radius, bs_U32 lats, bs_U32 longs, bs_RGBA color) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    return next.bs_batchSphere(batch, offset, position, radius, lats, longs, color);
+}
+
 static bs_Range _preval_bs_pushSphere(bs_Batch* batch, bs_vec3 position, float radius, bs_U32 lats, bs_U32 longs, bs_RGBA color) {
     if (batch == NULL)
         return 0;
 
     return next.bs_pushSphere(batch, position, radius, lats, longs, color);
+}
+
+static bs_Range _preval_bs_batchPyramid(bs_Batch* batch, bs_U32* offset, bs_vec3 pos, float width, float height, bs_RGBA color) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    return next.bs_batchPyramid(batch, offset, pos, width, height, color);
 }
 
 static bs_Range _preval_bs_pushPyramid(bs_Batch* batch, bs_vec3 pos, float width, float height, bs_RGBA color) {
@@ -871,11 +995,34 @@ static bs_Range _preval_bs_pushPyramid(bs_Batch* batch, bs_vec3 pos, float width
     return next.bs_pushPyramid(batch, pos, width, height, color);
 }
 
+static bs_Range _preval_bs_batchBipyramid(bs_Batch* batch, bs_U32* offset, bs_vec3 pos, float width, float height, bs_RGBA color) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    return next.bs_batchBipyramid(batch, offset, pos, width, height, color);
+}
+
 static bs_Range _preval_bs_pushBipyramid(bs_Batch* batch, bs_vec3 pos, float width, float height, bs_RGBA color) {
     if (batch == NULL)
         return 0;
 
     return next.bs_pushBipyramid(batch, pos, width, height, color);
+}
+
+static bs_Range _preval_bs_batchPrimitive(bs_Batch* batch, bs_U32* offset, bs_Primitive* primitive) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    if (primitive == NULL)
+        return 0;
+
+    return next.bs_batchPrimitive(batch, offset, primitive);
 }
 
 static bs_Range _preval_bs_pushPrimitive(bs_Batch* batch, bs_Primitive* primitive) {
@@ -888,6 +1035,19 @@ static bs_Range _preval_bs_pushPrimitive(bs_Batch* batch, bs_Primitive* primitiv
     return next.bs_pushPrimitive(batch, primitive);
 }
 
+static bs_Range _preval_bs_batchMesh(bs_Batch* batch, bs_U32* offset, bs_Mesh* mesh) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    if (mesh == NULL)
+        return 0;
+
+    return next.bs_batchMesh(batch, offset, mesh);
+}
+
 static bs_Range _preval_bs_pushMesh(bs_Batch* batch, bs_Mesh* mesh) {
     if (batch == NULL)
         return 0;
@@ -896,6 +1056,19 @@ static bs_Range _preval_bs_pushMesh(bs_Batch* batch, bs_Mesh* mesh) {
         return 0;
 
     return next.bs_pushMesh(batch, mesh);
+}
+
+static bs_Range _preval_bs_batchModel(bs_Batch* batch, bs_U32* offset, bs_Model* model) {
+    if (batch == NULL)
+        return 0;
+
+    if (offset == NULL)
+        return 0;
+
+    if (model == NULL)
+        return 0;
+
+    return next.bs_batchModel(batch, offset, model);
 }
 
 static bs_Range _preval_bs_pushModel(bs_Batch* batch, bs_Model* model) {
@@ -1907,15 +2080,18 @@ static char* _preval_bs_info(char* value, int value_length) {
     return next.bs_info(value, value_length);
 }
 
-static void _preval_bs_warn(char* value, int value_length) {
+static char* _preval_bs_warn(char* value, int value_length) {
     if (value == NULL)
-        return;
+        return NULL;
 
     return next.bs_warn(value, value_length);
 }
 
-static void _preval_bs_logBasilisk(bs_U64 code) {
-    return next.bs_logBasilisk(code);
+static void _preval_bs_critical(char* value, int value_length) {
+    if (value == NULL)
+        return;
+
+    return next.bs_critical(value, value_length);
 }
 
 static void _preval_bs_logObjectDiff() {
@@ -3375,7 +3551,9 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v4Dot = _preval_bs_v4Dot;
     functions.bs_v4Normalize = _preval_bs_v4Normalize;
     functions.bs_v4NormalizeTo = _preval_bs_v4NormalizeTo;
-    functions.bs_convertVulkanError = _preval_bs_convertVulkanError;
+    functions.bs_quad = _preval_bs_quad;
+    functions.bs_convertVulkanResult = _preval_bs_convertVulkanResult;
+    functions.bs_convertLastError = _preval_bs_convertLastError;
     functions.bs_convertErrno = _preval_bs_convertErrno;
     functions.bs_serializeErrno = _preval_bs_serializeErrno;
     functions.bs_playSound = _preval_bs_playSound;
@@ -3438,20 +3616,35 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_batchRange = _preval_bs_batchRange;
     functions.bs_pushIndex = _preval_bs_pushIndex;
     functions.bs_pushIndexV = _preval_bs_pushIndexV;
+    functions.bs_batchCube = _preval_bs_batchCube;
     functions.bs_pushCube = _preval_bs_pushCube;
+    functions.bs_batchCone = _preval_bs_batchCone;
     functions.bs_pushCone = _preval_bs_pushCone;
+    functions.bs_batchRectangle = _preval_bs_batchRectangle;
     functions.bs_pushRectangle = _preval_bs_pushRectangle;
+    functions.bs_batchQuad = _preval_bs_batchQuad;
     functions.bs_pushQuad = _preval_bs_pushQuad;
+    functions.bs_batchTriangle = _preval_bs_batchTriangle;
     functions.bs_pushTriangle = _preval_bs_pushTriangle;
+    functions.bs_batchLine = _preval_bs_batchLine;
     functions.bs_pushLine = _preval_bs_pushLine;
+    functions.bs_batchRay = _preval_bs_batchRay;
     functions.bs_pushRay = _preval_bs_pushRay;
+    functions.bs_batchPoint = _preval_bs_batchPoint;
     functions.bs_pushPoint = _preval_bs_pushPoint;
+    functions.bs_batchAabb = _preval_bs_batchAabb;
     functions.bs_pushAabb = _preval_bs_pushAabb;
+    functions.bs_batchSphere = _preval_bs_batchSphere;
     functions.bs_pushSphere = _preval_bs_pushSphere;
+    functions.bs_batchPyramid = _preval_bs_batchPyramid;
     functions.bs_pushPyramid = _preval_bs_pushPyramid;
+    functions.bs_batchBipyramid = _preval_bs_batchBipyramid;
     functions.bs_pushBipyramid = _preval_bs_pushBipyramid;
+    functions.bs_batchPrimitive = _preval_bs_batchPrimitive;
     functions.bs_pushPrimitive = _preval_bs_pushPrimitive;
+    functions.bs_batchMesh = _preval_bs_batchMesh;
     functions.bs_pushMesh = _preval_bs_pushMesh;
+    functions.bs_batchModel = _preval_bs_batchModel;
     functions.bs_pushModel = _preval_bs_pushModel;
     functions.bs_renderer = _preval_bs_renderer;
     functions.bs_output = _preval_bs_output;
@@ -3574,7 +3767,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_log = _preval_bs_log;
     functions.bs_info = _preval_bs_info;
     functions.bs_warn = _preval_bs_warn;
-    functions.bs_logBasilisk = _preval_bs_logBasilisk;
+    functions.bs_critical = _preval_bs_critical;
     functions.bs_logObjectDiff = _preval_bs_logObjectDiff;
     functions.bs_logUnchangedObjects = _preval_bs_logUnchangedObjects;
     functions.bs_logBindings = _preval_bs_logBindings;

@@ -188,7 +188,7 @@ void bsmod_instanceTransform() {
 	}
 
 	for (int i = 0; i < bsmod.selected_ids.count; i++) {
-		int* id = bs_fetchUnitUnsafe(&bsmod.selected_ids, i);
+		int* id = bs_fetchUnit(&bsmod.selected_ids, i);
 		unsigned char* data = bsgfx_getRaw(type, *id);
 
 		bs_vec3* p = data + position_offset;
@@ -338,7 +338,7 @@ void bsmod_instanceTransform() {
 			last_angle += 360.0;
 
 		for (int i = 0; i < bsmod.selected_ids.count; i++) {
-			int* id = bs_fetchUnitUnsafe(&bsmod.selected_ids, i);
+			int* id = bs_fetchUnit(&bsmod.selected_ids, i);
 			unsigned char* data = bsgfx_getRaw(type, *id);
 
 			bs_vec3* r = data + rotation_offset;
@@ -379,7 +379,7 @@ void bsmod_instanceTransform() {
 			float delta_angle = current_angle - last_angle;
 
 			for (int i = 0; i < bsmod.selected_ids.count; i++) {
-				int* id = bs_fetchUnitUnsafe(&bsmod.selected_ids, i);
+				int* id = bs_fetchUnit(&bsmod.selected_ids, i);
 				unsigned char* data = bsgfx_getRaw(type, *id);
 
 				bs_vec3* r = data + rotation_offset;
@@ -420,7 +420,7 @@ void bsmod_instanceTransform() {
 				for (int j = 0; j < 3; j++) {
 					float move_tiles = (directions[bsmod.axis].a[j] * -d / scales[j]) / 2.0f;
 					for (int i = 0; i < bsmod.selected_ids.count; i++) {
-						int* id = bs_fetchUnitUnsafe(&bsmod.selected_ids, i);
+						int* id = bs_fetchUnit(&bsmod.selected_ids, i);
 						unsigned char* data = bsgfx_getRaw(type, *id);
 						bs_vec3* p = data + position_offset;
 
@@ -439,7 +439,7 @@ void bsmod_instanceTransform() {
 						int half_tile_steps = (int)round(tile_remainder[bsmod.axis] * 1.0f);
 
 						for (int i = 0; i < bsmod.selected_ids.count; i++) {
-							int* id = bs_fetchUnitUnsafe(&bsmod.selected_ids, i);
+							int* id = bs_fetchUnit(&bsmod.selected_ids, i);
 							unsigned char* data = bsgfx_getRaw(type, *id);
 							bs_vec3* s = data + scale_offset;
 
@@ -459,7 +459,7 @@ void bsmod_instanceTransform() {
 						if (fabs(tile_remainder[j]) >= 0.5f) {
 							int half_tile_steps = (int)round(tile_remainder[j] * 2.0f);
 							for (int i = 0; i < bsmod.selected_ids.count; i++) {
-								int* id = bs_fetchUnitUnsafe(&bsmod.selected_ids, i);
+								int* id = bs_fetchUnit(&bsmod.selected_ids, i);
 								unsigned char* data = bsgfx_getRaw(type, *id);
 								bs_vec3* p = data + position_offset;
 

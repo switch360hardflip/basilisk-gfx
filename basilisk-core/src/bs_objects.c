@@ -55,7 +55,7 @@ BSAPI bs_Result _bs_queryResource(int package_id, const char* name, bs_Resource*
     bs_U64 hash = bs_stringHash(name);
 
     for (int i = 0; i < package->resource_headers.count; i++) {
-        bs_ResourceHeader* resource = bs_fetchUnitUnsafe(&package->resource_headers, i);
+        bs_ResourceHeader* resource = bs_fetchUnit(&package->resource_headers, i);
         if (resource->header.name_hash == hash) {
             *out = resource->resource;
             return BS_RESULT_OK;
@@ -91,7 +91,7 @@ BSAPI bs_Result _bs_queryPackage(const char* name, int* out) {
 
     bs_ResourceHeader* existing = NULL;
     for (int i = 0; i < package->resource_headers.count; i++) {
-        bs_ResourceHeader* resource = bs_fetchUnitUnsafe(&package->resource_headers, i);
+        bs_ResourceHeader* resource = bs_fetchUnit(&package->resource_headers, i);
         if (resource->header.name_hash == hash) {
             existing = resource;
             break;
@@ -124,7 +124,7 @@ int bs_loadPackage(const char* path) {
     bs_Package* existing = NULL, * old = NULL;
     int id = -1;
     for (int i = 0; i < _bs_packages()->count; i++) {
-        bs_Package* package = bs_fetchUnitUnsafe(_bs_packages(), i);
+        bs_Package* package = bs_fetchUnit(_bs_packages(), i);
         if (package->path_hash == hash) {
             old = package;
             id = i;
@@ -181,7 +181,7 @@ int bs_loadPackage(const char* path) {
 
         if (old) {
             for (int j = 0; j < old->resource_headers.count; j++) {
-                bs_ResourceHeader* existing_header = bs_fetchUnitUnsafe(&old->resource_headers, j);
+                bs_ResourceHeader* existing_header = bs_fetchUnit(&old->resource_headers, j);
                 if (existing_header->header.name_hash == header->header.name_hash) {
                     added->resource = existing_header->resource;
                     break;
@@ -222,7 +222,7 @@ BSAPI int _bs_configureSource(bs_ObjectType type, int count, const char** names)
 
 BSAPI bool _bs_exists(bs_U32 source_id, bs_U32 id) {
     assert(source_id < _bs_object_sources.count);
-    bs_ObjectSource* source = bs_fetchUnitUnsafe(&_bs_object_sources, source_id);
+    bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
     assert(id < source->ids_count);
     bs_Object* object = source->ids[id].object;
 
@@ -235,7 +235,7 @@ BSAPI bool _bs_exists(bs_U32 source_id, bs_U32 id) {
 
 BSAPI bs_Object* _bs_fetch(bs_U32 source_id, bs_U32 id) {
     assert(source_id < _bs_object_sources.count);
-    bs_ObjectSource* source = bs_fetchUnitUnsafe(&_bs_object_sources, source_id);
+    bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
     assert(id < source->ids_count);
     bs_Object* object = source->ids[id].object;
 #ifdef _DEBUG
@@ -252,7 +252,7 @@ BSAPI bool _bs_shouldLoadId(bs_U32 source_id, bs_U32 id) {
     return true;
 
     assert(source_id < _bs_object_sources.count);
-    bs_ObjectSource* source = bs_fetchUnitUnsafe(&_bs_object_sources, source_id);
+    bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
     assert(id < source->ids_count);
     bs_Object* object = source->ids[id].object;
 
@@ -281,7 +281,7 @@ BSAPI void _bs_assertSourceIsType(int source_id, bs_ObjectType object_type) {
 }
 
 static inline void bs_logObjectCreated(bs_U32 source_id, bs_U32 id) {
-    bs_ObjectSource* source = bs_fetchUnitUnsafe(&_bs_object_sources, source_id);
+    bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
     bs_Object* object = source->ids[id].object;
     const char* object_type_name = bs_objectTypeName(source->type);
 
@@ -292,7 +292,7 @@ static inline void bs_logObjectCreated(bs_U32 source_id, bs_U32 id) {
 }
 
 static inline void bs_logObjectUpdated(bs_U32 source_id, bs_U32 id) {
-    bs_ObjectSource* source = bs_fetchUnitUnsafe(&_bs_object_sources, source_id);
+    bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
     bs_Object* object = source->ids[id].object;
     const char* object_type_name = bs_objectTypeName(source->type);
 
@@ -310,7 +310,7 @@ static inline void bs_logObjectUnchanged(bs_U32 source_id, bs_U32 id) {
 }
 
 static inline bs_ObjectSource* bs_fetchObjectSource(bs_U32 source_id) {
-    bs_ObjectSource* source = bs_fetchUnitUnsafe(&_bs_object_sources, source_id);
+    bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
     return source;
 }
 

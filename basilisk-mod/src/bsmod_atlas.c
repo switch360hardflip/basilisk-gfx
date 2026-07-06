@@ -46,8 +46,8 @@ void bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* pac
 	bs_ensureJsonMutable(&json);
 
 	for (int i = 0; i < packer->rects.count; i++) {
-		bsmod_TextureInfo* texture = bs_fetchUnitUnsafe(&packer->info, i);
-		stbrp_rect* rect = bs_fetchUnitUnsafe(&packer->rects, i);
+		bsmod_TextureInfo* texture = bs_fetchUnit(&packer->info, i);
+		stbrp_rect* rect = bs_fetchUnit(&packer->rects, i);
 
 		const int pixels_count = rect->w * rect->h;
 		bool has_alpha = false, is_solid = true;
@@ -131,7 +131,7 @@ void bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* pac
 
 	size_t total_name_lengths = 0;
 	for (int i = 0; i < packer->info.count; i++) {
-		bsmod_TextureInfo* info = bs_fetchUnitUnsafe(&packer->info, i);
+		bsmod_TextureInfo* info = bs_fetchUnit(&packer->info, i);
 		total_name_lengths += info->name_length;
 	}
 
@@ -154,8 +154,8 @@ void bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* pac
 
 	const int padding = 0;
 	for (int i = 0; i < packer->info.count; i++) {
-		bsmod_TextureInfo* image = bs_fetchUnitUnsafe(&packer->info, i);
-		stbrp_rect* rect = bs_fetchUnitUnsafe(&packer->rects, i);
+		bsmod_TextureInfo* image = bs_fetchUnit(&packer->info, i);
+		stbrp_rect* rect = bs_fetchUnit(&packer->rects, i);
 
 		// image header
 		memcpy(batl + pointer_offset, &(bs_BatlPointer) {

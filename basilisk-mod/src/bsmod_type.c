@@ -288,7 +288,7 @@ bool bsmod_isSelected(bs_List* list, bsgfx_TypeId type, int id) {
 		return false;
 
 	for (int i = 0; i < list->count; i++) {
-		int* this = bs_fetchUnitUnsafe(list, i);
+		int* this = bs_fetchUnit(list, i);
 		if (*this == id)
 			return true;
 	}
@@ -343,8 +343,8 @@ void bsmod_deselectRange(bs_List* list, int first, int count) {
 		bs_infoF("Deselected %s %d-%d\n", bsgfx_getType(bsmod.selected_type)->plural, first, (first + count));
 
 	for (int i = first; i + count < list->count; i++) {
-		int* this = bs_fetchUnitUnsafe(list, i);
-		int* next = bs_fetchUnitUnsafe(list, i + count);
+		int* this = bs_fetchUnit(list, i);
+		int* next = bs_fetchUnit(list, i + count);
 		*this = *next;
 	}
 
@@ -359,8 +359,8 @@ void bsmod_deselectIndex(bs_List* list, int id) {
 		return;
 
 	for (int i = id; i < list->count; i++) {
-		int* this = bs_fetchUnitUnsafe(list, i);
-		int* next = bs_fetchUnitUnsafe(list, i + 1);
+		int* this = bs_fetchUnit(list, i);
+		int* next = bs_fetchUnit(list, i + 1);
 		*this = *next;
 	}
 
@@ -372,7 +372,7 @@ void bsmod_deselectIndex(bs_List* list, int id) {
 void bsmod_deselect(bs_List* list, int id) {
 	int start = -1;
 	for (int i = 0; i < list->count; i++) {
-		int* this = bs_fetchUnitUnsafe(list, i);
+		int* this = bs_fetchUnit(list, i);
 		if (*this == id) {
 			start = i;
 			break;
@@ -727,7 +727,7 @@ void bsmod_selectHoveringTypes() {
 			bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
 
 			for (int j = 0; j < bsmod.selected_tiles.count; j++) {
-				int tile_id = *(int*)bs_fetchUnitUnsafe(&bsmod.selected_tiles, j);
+				int tile_id = *(int*)bs_fetchUnit(&bsmod.selected_tiles, j);
 
 				if (tile_id >= primitive->first_tile && tile_id <= primitive->last_tile) {
 					bs_pushBack(&primitives_to_select, &i);
@@ -737,7 +737,7 @@ void bsmod_selectHoveringTypes() {
 		}
 
 		for (int i = 0; i < primitives_to_select.count; i++) {
-			int primitive_id = *(int*)bs_fetchUnitUnsafe(&primitives_to_select, i);
+			int primitive_id = *(int*)bs_fetchUnit(&primitives_to_select, i);
 			bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, primitive_id);
 
 			for (int j = primitive->first_tile; j <= primitive->last_tile; j++) {

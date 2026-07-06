@@ -186,7 +186,7 @@ void bsmod_rasterizeMaterialIcons() {
     bs_mat4x3 transform = bs_m4x3(bs_transform(bs_v3(render_size.x / 2, render_size.y / 2, 0.0), BS_QUAT_IDENTITY, bs_v3V1(render_size.x / 2.0 - 4.0)));
 
     for (int i = 0; i < materials->count; i++) {
-        bsgfx_Material* material = bs_fetchUnitUnsafe(materials, i);
+        bsgfx_Material* material = bs_fetchUnit(materials, i);
         push_const.color = material->contract->color;
         push_const.material_texture_size = material->contract->image_binding;
         push_const.material_texture_id = material->contract->image;

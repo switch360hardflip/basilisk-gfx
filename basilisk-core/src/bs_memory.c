@@ -61,18 +61,6 @@ BSAPI bs_U32 _bs_alignUp(bs_U32 value, bs_U32 alignment) {
     return (value + alignment - 1) & ~(alignment - 1);
 }
 
-BSAPI void _bs_widen(char* src, wchar_t* dst, bs_U32 dst_size) {
-    int result = MultiByteToWideChar(CP_UTF8, 0, src, -1, dst, dst_size);
-    if (result == 0)
-        bs_throwBasiliskF(BSX_FAILED_TO_CONVERT, "%s", src);
-}
-
-BSAPI void bs_unwiden(wchar_t* src, char* dst, bs_U32 dst_size) {
-    int result = WideCharToMultiByte(CP_UTF8, 0, src, -1, dst, dst_size, NULL, NULL);
-    if (result == 0)
-        bs_throwBasiliskF(BSX_FAILED_TO_CONVERT, "%ls (%d)", src, GetLastError());
-}
-
 BSAPI char* _bs_strsep(char** stringp, const char* delim) {
 #ifdef _WIN32
     if (*stringp == NULL) { return NULL; }
@@ -149,7 +137,7 @@ BSAPI void* _bs_malloc(bs_U64 size) {
     void* p = malloc(size);
 
     if (!p) {
-        bs_warnF("malloc(%lld) returned NULL\n", size);
+        bs_criticalF("malloc(%lld) returned NULL\n", size);
         return NULL;
     }
 
@@ -170,7 +158,7 @@ BSAPI void* _bs_calloc(bs_U64 num_units, bs_U64 unit_size) {
     void* p = calloc(num_units, unit_size);
 
     if (!p) {
-        bs_warnF("calloc(%lld, %lld) returned NULL\n", num_units, unit_size);
+        bs_criticalF("calloc(%lld, %lld) returned NULL\n", num_units, unit_size);
         return NULL;
     }
 
@@ -196,7 +184,7 @@ BSAPI void* _bs_realloc(void* p, bs_U64 size) {
     return p;
 }
 
-BSAPI void* _bs_fetchUnitUnsafe(bs_List* list, bs_U32 offset) {
+BSAPI void* _bs_fetchUnit(bs_List* list, bs_U32 offset) {
     return ((bs_U8*)list->data) + offset * list->unit_size;
 }
 
@@ -212,7 +200,7 @@ BSAPI const char* _bs_checkStringPool(bs_List* pool, char* string) {
     bs_U64 hash = bs_stringHash(string);
 
     for (int i = 0; i < pool->count; i++) {
-        bs_StringPoolEntry* entry = bs_fetchUnitUnsafe(pool, i);
+        bs_StringPoolEntry* entry = bs_fetchUnit(pool, i);
         if (hash == entry->hash)
             return entry->string;
     }
@@ -255,16 +243,16 @@ BSAPI bs_String* _bs_string(bs_String* old, char* str, int len) {
     return data;
 }
 
-bs_String* bs_emptyString(bs_String* old) {
+BSAPI bs_String* _bs_emptyString(bs_String* old) {
     return bs_string(old, "", 0);
 }
 
-void bs_shortenString(bs_String* string, int len) {
+BSAPI void _bs_shortenString(bs_String* string, int len) {
     string->len -= len;
     string->value[string->len] = '\0';
 }
 
-bs_String* bs_appendString(bs_String* string, char* append, int len) {
+BSAPI bs_String* _bs_appendString(bs_String* string, char* append, int len) {
     if (!string)
         string = bs_stringAlloc(NULL, len + BS_STRING_OVERHEAD);
     else if ((string->capacity - string->len) < len + 1) {
@@ -277,22 +265,7 @@ bs_String* bs_appendString(bs_String* string, char* append, int len) {
     return string;
 }
 
-bs_String* bs_appendStringV(bs_String* string, const char* format, va_list args) {
-    static bs_String* formatted;
-    formatted = bs_stringV(formatted, format, args);
-
-    return bs_appendString(string, formatted->value, formatted->len);
-}
-
-bs_String* bs_appendStringF(bs_String* string, const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    bs_String* result = bs_appendStringV(string, format, args);
-    va_end(args);
-    return result;
-}
-
-bs_String* bs_appendChar(bs_String* string, char c) {
+BSAPI bs_String* _bs_appendChar(bs_String* string, char c) {
     if (!string)
         string = bs_stringAlloc(NULL, BS_STRING_OVERHEAD);
     else if ((string->capacity - string->len) < 1) {
@@ -305,22 +278,30 @@ bs_String* bs_appendChar(bs_String* string, char c) {
     return string;
 }
 
-void bs_removeLastNChars(bs_String* string, int n) {
-    if (!string)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
-    if (string->len < n)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
+ /**
+  Remove last N chars
+  */
+BSAPI void _val_bs_removeLastNChars(bs_String* string, int n) {
+    BS_VALIDATE(string->len >= n,,);
+}
+
+BSAPI void _bs_removeLastNChars(bs_String* string, int n) {
     string->len -= n;
     string->value[string->len] = '\0';
 }
 
-void bs_removeCharRange(bs_String* string, int start, int count) {
-    if (!string)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
+ /**
+  Remove char range
+  */
+BSAPI void _val_bs_removeCharRange(bs_String* string, int start, int count) {
+    BS_VALIDATE(start >= 0,,);
+    BS_VALIDATE(count >= 0,,);
+    BS_VALIDATE(start < string->len,,);
 
-    if (start < 0 || count < 0 || start >= string->len)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
+    return bs_removeCharRange(string, start, count);
+}
 
+BSAPI void _bs_removeCharRange(bs_String* string, int start, int count) {
     if (start + count > string->len)
         count = string->len - start;
 
@@ -332,12 +313,19 @@ void bs_removeCharRange(bs_String* string, int start, int count) {
     string->len -= count;
 }
 
-bs_String* bs_insertChar(bs_String* string, int index, char c) {
+ /**
+  Insert char
+  */
+BSAPI bs_String* _val_bs_insertChar(bs_String* string, int index, char c) {
+    BS_VALIDATE(index >= 0, NULL,,);
+    BS_VALIDATE(index <= string->len, NULL,,);
+
+    return bs_insertChar(string, index, c);
+}
+
+BSAPI bs_String* _bs_insertChar(bs_String* string, int index, char c) {
     if (!string)
         string = bs_stringAlloc(NULL, BS_STRING_OVERHEAD);
-
-    if (index < 0 || index > string->len)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
 
     if ((string->capacity - string->len) < 1) {
         string->capacity += BS_STRING_OVERHEAD;
@@ -356,15 +344,17 @@ bs_String* bs_insertChar(bs_String* string, int index, char c) {
     return string;
 }
 
-bs_String* bs_appendPath(bs_String* string, char* path, int path_len) {
+BSAPI bs_String* _bs_appendPath(bs_String* string, char* path, int path_len) {
     if (path_len == 0 || string->value[string->len - 1] != '/')
         string = bs_appendChar(string, '/');
     return bs_appendString(string, path, path_len);
 }
 
-void bs_replaceCharOccurrences(char* string, int string_len, char a, char b) {
-    for (int i = 0; i < string_len; i++)
-        if (string[i] == a) string[i] = b;
+BSAPI void _bs_replaceCharOccurrences(char* string, int string_len, char a, char b) {
+    for (int i = 0; i < string_len; i++) {
+        if (string[i] == a) 
+            string[i] = b;
+    }
 }
 
 bs_String* bs_stringV(bs_String* old, const char* format, va_list args) {
@@ -395,23 +385,32 @@ bs_String* bs_stringF(bs_String* old, const char* format, ...) {
     return string;
 }
 
-void bs_toLower(char* string, int len) {
-    if (string == NULL || len <= 0)
-        return bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
+ /**
+  To lowercase
+  */
+BSAPI void _val_bs_toLower(char* string, int len) {
+    BS_VALIDATE(len <= 0,,);
+    return bs_toLower(string, len);
+}
 
+BSAPI void _bs_toLower(char* string, int len) {
     for (int i = 0; i < len; i++)
         string[i] = (char)tolower((unsigned char)string[i]);
 }
 
-void bs_toUpper(char* string, int len) {
-    if (string == NULL || len <= 0)
-        return bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
-
+ /**
+  To uppercase
+  */
+BSAPI void _val_bs_toUpper(char* string, int len) {
+    BS_VALIDATE(len <= 0,,);
+    return bs_toUpper(string, len);
+}
+BSAPI void _bs_toUpper(char* string, int len) {
     for (int i = 0; i < len; i++)
         string[i] = (char)toupper((unsigned char)string[i]);
 }
 
-bs_U64 bs_hash(unsigned char* data, size_t size) {
+BSAPI bs_U64 _bs_hash(unsigned char* data, size_t size) {
     bs_U64 hash = 0xcbf29ce484222325;
 
     for (int i = 0; i < size; i++) {
@@ -422,12 +421,7 @@ bs_U64 bs_hash(unsigned char* data, size_t size) {
     return hash;
 }
 
-bs_U64 bs_stringHash(char* string) {
-    if (!string) {
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
-        return 0;
-    }
-
+BSAPI bs_U64 _bs_stringHash(char* string) {
     bs_U64 hash = 0xcbf29ce484222325;
 
     for (int i = 0; i < strlen(string); i++) {
@@ -438,49 +432,58 @@ bs_U64 bs_stringHash(char* string) {
     return hash;
 }
 
-bool bs_startsWith(char* string, const char* prefix) {
+BSAPI bool _bs_startsWith(char* string, const char* prefix) {
     while (*prefix && *string == *prefix) ++string, ++prefix;
     return *prefix == 0;
 }
 
-bool bs_endsWith(const char* string, const char* suffix) {
-    if (!string || !suffix)
-        return false;
-
+BSAPI bool _bs_endsWith(const char* string, const char* suffix) {
     size_t string_len = strlen(string);
     size_t suffix_len = strlen(suffix);
+
     if (suffix_len > string_len)
         return false;
 
     return strncmp(string + string_len - suffix_len, suffix, suffix_len) == 0;
 }
 
-char bs_lastChar(char* string, int len) {
-    if (len <= 0)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
+BSAPI char _val_bs_lastChar(char* string, int len) {
+    BS_VALIDATE(len > 0, '\0',,);
+    return bs_lastChar(string, len);
+}
+
+BSAPI char _bs_lastChar(char* string, int len) {
     return string[len - 1];
 }
 
-bool bs_stringContainsChar(char* string, char c) {
+BSAPI bool _bs_stringContainsChar(char* string, char c) {
     return strchr(string, c);
 }
 
-char* bs_charStringV(const char* format, va_list args) {
-    int len = vsnprintf(NULL, 0, format, args);
-    if (len < 0)
-        bs_throwErrno(format);
-    char* buffer = bs_malloc(len + 1);
-    vsnprintf(buffer, len + 1, format, args);
-    return buffer;
+ /**
+  Wide strings
+  */
+#ifdef _WIN32
+BSAPI bs_Result _bs_widen(char* src, wchar_t* dst, bs_U32 dst_size) {
+    int result = MultiByteToWideChar(CP_UTF8, 0, src, -1, dst, dst_size);
+    if (result == 0) {
+        bs_warnF("Failed to widen string \"%s\"\n", src);
+        return bs_convertLastError();
+    }
+
+    return BS_RESULT_OK;
 }
 
-char* bs_charStringF(const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    char* buffer = bs_charStringV(format, args);
-    va_end(args);
-    return buffer;
+BSAPI bs_Result _bs_unwiden(wchar_t* src, char* dst, bs_U32 dst_size) {
+    int result = WideCharToMultiByte(CP_UTF8, 0, src, -1, dst, dst_size, NULL, NULL);
+    if (result == 0) {
+        bs_warnF("Failed to unwiden string \"%s\"\n", src);
+        return bs_convertLastError();
+    }
+
+    return BS_RESULT_OK;
 }
+#endif
 
 
 
@@ -488,9 +491,9 @@ char* bs_charStringF(const char* format, ...) {
    * List
    *============================================================================*/
 
-bool bs_listContains(bs_List* list, void* data) {
+BSAPI bool _bs_listContains(bs_List* list, void* data) {
     for (int i = 0; i < list->count; i++) {
-        void* compare = bs_fetchUnitUnsafe(list, i);
+        void* compare = bs_fetchUnit(list, i);
 
         if (memcmp(compare, data, list->unit_size) == 0)
             return true;
@@ -499,49 +502,38 @@ bool bs_listContains(bs_List* list, void* data) {
     return false;
 }
 
-void* bs_fetchUnit(bs_List* list, bs_U32 offset) {
-    if (!list->data) {
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_UNINITIALIZED);
-        return NULL;
-    }
+BSAPI void* _val_bs_fetchUnit(bs_List* list, bs_U32 offset) {
+    BS_VALIDATE(list->data != NULL, NULL,);
+    BS_VALIDATE(offset < list->count, NULL, );
 
-    if (offset >= list->count) {
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
-        return NULL;
-    }
-
-    return bs_fetchUnitUnsafe(list, offset);
+    return bs_fetchUnit(list, offset);
 }
 
-// what
-void* bs_fetchUnitUnassigned(bs_List* list, bs_U32 offset) {
-    if (!list->data) {
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_UNINITIALIZED);
-        return NULL;
-    }
-
-    if (offset >= list->capacity) {
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
-        return NULL;
-    }
-
+BSAPI void* _bs_fetchUnit(bs_List* list, bs_U32 offset) {
     return ((bs_U8*)list->data) + offset * list->unit_size;
 }
 
-void* bs_fetchLast(bs_List* list) {
-    if (list->count == 0) {
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_UNINITIALIZED);
-        return NULL;
-    }
+BSAPI void* _val_bs_seekList(bs_List* list, bs_U32 offset) {
+    BS_VALIDATE(list->data != NULL, NULL, );
+    BS_VALIDATE(offset < list->capacity, NULL, );
+
+    return bs_fetchUnit(list, offset);
+}
+
+BSAPI void* _bs_seekList(bs_List* list, bs_U32 offset) {
+    return _bs_fetchUnit(list, offset);
+}
+
+BSAPI void* _val_bs_fetchLast(bs_List* list) {
+    BS_VALIDATE(list->count > 0, NULL, );
+    return bs_fetchLast(list);
+}
+
+BSAPI void* _bs_fetchLast(bs_List* list) {
     return bs_fetchUnit(list, list->count - 1);
 }
 
-void* bs_fetchLastNull(bs_List* list) {
-    if (list->count == 0) return NULL;
-    return bs_fetchUnit(list, list->count - 1);
-}
-
-void bs_ensureSize(bs_List* list, bs_U32 num_units) {
+BSAPI void bs_ensureSize(bs_List* list, bs_U32 num_units) {
     if ((list->count + num_units) < list->capacity)
         return;
 
@@ -586,7 +578,7 @@ void* bs_pushBackList(bs_List* destination, bs_List* source) {
 
     bs_U8* dest = bs_fetchUnitUnassigned(destination, destination->count);
     for (int i = 0; i < source->count; i++) {
-        void* data = bs_fetchUnitUnsafe(source, i);
+        void* data = bs_fetchUnit(source, i);
         memcpy(dest + i * destination->unit_size, data, destination->unit_size);
     }
 
