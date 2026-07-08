@@ -1382,6 +1382,7 @@ struct bs_PngData {
     int width;
     int height;
     int channels_count;
+    unsigned char* data;
 };
 
 struct bs_Procedure {
@@ -1479,7 +1480,7 @@ struct bs_Header {
 struct bs_Object {
     bs_Header* head;
     bs_U32 flags;
-    union  {
+    union {
         bs_Batch* batch;
         bs_Buffer* buffer;
         bs_Image* image;
@@ -1503,6 +1504,14 @@ struct bs_Resource {
     bs_U64 hash;
     char* name;
     bs_String* data;
+    union {
+        bs_Model* model;
+        bs_Shader* shader;
+        bs_Sound* sound;
+        bs_Atlas* atlas;
+        bs_Font* font;
+        bs_Image* image;
+    };
 };
 
 struct bs_ResourceHeader {
@@ -1610,10 +1619,15 @@ struct bs_AtlasTexture {
 struct bs_Atlas {
     bs_Header head;
     int count;
+    struct {
+        char* name;
+        bs_U64 name_hash;
+        int category;
+    }* unmapped;
     bs_AtlasTexture* mapped;
     bs_Image* image;
     bs_Buffer* buffer;
-    struct  {
+    struct {
         void* unused;
     }_[];
 };
@@ -1622,6 +1636,9 @@ struct bs_Sampler {
     bs_Header head;
     bs_SamplerBits flags;
     bs_ImageFilter filter;
+    struct {
+        struct VkSampler_T* vk_sampler;
+    }_[];
 };
 
 struct bs_StencilOperation {
@@ -1962,7 +1979,7 @@ struct bs_Glyph {
     bs_U16 pairs_count;
     bs_U16 pairs_offset;
     bs_LongHorMetric long_hor_metric;
-    union  {
+    union {
         bs_U16 code;
         char ascii;
     };
@@ -2076,11 +2093,11 @@ struct bs_Font {
     int height;
     float spacing;
     int pairs_count;
-    struct  {
+    struct {
         int right;
         float value;
     }* pairs;
-    struct  {
+    struct {
         int y_offset;
         float advance_width;
         float left_side_bearing;
@@ -2088,7 +2105,7 @@ struct bs_Font {
         int kerning_pair_count;
     }* glyphs;
     char table[256];
-    struct  {
+    struct {
         void* unused;
     }_[];
 };
@@ -2253,7 +2270,7 @@ struct bs_Swapchain {
     bool image_acquired;
     bs_Object* image;
     struct VkSwapchainKHR_T* swapchain;
-    struct  {
+    struct {
         struct VkSemaphore_T* semaphore;
     }_[];
 };
@@ -2305,7 +2322,7 @@ union bs_vec2 {
 
 union bs_vec3 {
     float a[3];
-    struct  {
+    struct {
         float x;
         float y;
         float z;
@@ -2316,7 +2333,7 @@ union bs_vec3 {
 
 union bs_vec4 {
     float a[4];
-    struct  {
+    struct {
         float x;
         float y;
         float z;
@@ -2329,7 +2346,7 @@ union bs_vec4 {
 
 union bs_ivec2 {
     int a[2];
-    struct  {
+    struct {
         int x;
         int y;
     };
@@ -2337,7 +2354,7 @@ union bs_ivec2 {
 
 union bs_ivec3 {
     int a[3];
-    struct  {
+    struct {
         int x;
         int y;
         int z;
@@ -2348,7 +2365,7 @@ union bs_ivec3 {
 
 union bs_ivec4 {
     int a[4];
-    struct  {
+    struct {
         int x;
         int y;
         int z;
@@ -2384,7 +2401,7 @@ union bs_mat4x3 {
 };
 
 union bs_RGBA {
-    struct  {
+    struct {
         unsigned char r;
         unsigned char g;
         unsigned char b;
@@ -2395,7 +2412,7 @@ union bs_RGBA {
 };
 
 union bs_RGB {
-    struct  {
+    struct {
         unsigned char r;
         unsigned char g;
         unsigned char b;
@@ -2421,6 +2438,10 @@ enum bs_Result {
     BS_RESULT_NOT_SUPPORTED,
     BS_RESULT_NOT_IMPLEMENTED,
     BS_RESULT_FAILED_TO_QUERY,
+    BS_RESULT_FAILED_TO_WRITE,
+    BS_RESULT_FAILED_TO_ENCODE,
+    BS_RESULT_FAILED_TO_READ,
+    BS_RESULT_FAILED_TO_INSPECT,
     BS_RESULT_OUT_OF_BOUNDS,
     BS_RESULT_VALIDATION_ERROR,
 };
@@ -3975,6 +3996,14 @@ bs_buffer(
 
  /**
   @param buffer
+  @return bool
+  */
+BSAPI bool
+bs_bufferIsMapped(
+    bs_Buffer* buffer);
+
+ /**
+  @param buffer
   @return char*
   */
 BSAPI char*
@@ -4001,18 +4030,18 @@ bs_unmapBuffer(
 
  /**
   @param buffer
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_stageNull(
     bs_Buffer* buffer);
 
  /**
   @param buffer
   @param list
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_stageList(
     bs_Buffer* buffer,
     bs_List* list);
@@ -4022,9 +4051,9 @@ bs_stageList(
   @param format
   @param dim
   @param data
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_stageImage(
     bs_Buffer* buffer,
     bs_Format format,
@@ -4033,9 +4062,9 @@ bs_stageImage(
 
  /**
   @param buffer
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_destroyBuffer(
     bs_Buffer* buffer);
 
@@ -4045,9 +4074,9 @@ bs_destroyBuffer(
   @param src_offset
   @param dst_offset
   @param num_bytes
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_copyAsync(
     bs_Buffer* src,
     bs_Buffer* dst,
@@ -4060,9 +4089,9 @@ bs_copyAsync(
   @param offset
   @param num_bytes
   @param value
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_setBufferAsync(
     bs_Buffer* buffer,
     bs_U32 offset,
@@ -5099,7 +5128,7 @@ bs_inspectPng(
   @return unsigned char*
   */
 BSAPI unsigned char*
-bs_loadPngMemory(
+bs_loadPngData(
     char* data,
     size_t size,
     int channels_count,
@@ -5285,9 +5314,9 @@ bs_savePngF(
 
  /**
   @param image
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_destroyImage(
     bs_Image* image);
 
@@ -5306,24 +5335,26 @@ bs_resizeImage(
  /**
   @param image
   @param name_hash
-  @param name
+  @param out
   @return bs_Result
   */
 BSAPI bs_Result
 bs_queryImageIndexHash(
     bs_Image* image,
     bs_U64 name_hash,
-    char* name);
+    int* out);
 
  /**
   @param image
   @param name
+  @param out
   @return bs_Result
   */
 BSAPI bs_Result
 bs_queryImageIndex(
     bs_Image* image,
-    char* name);
+    char* name,
+    int* out);
 
  /**
   @param image
@@ -5520,14 +5551,12 @@ bs_loadAtlasF(
  /**
   @param atlas
   @param texture_id
-  @param frame
   @return bs_vec4
   */
 BSAPI bs_vec4
 bs_atlasCoordinates(
     bs_Atlas* atlas,
-    int texture_id,
-    int frame);
+    int texture_id);
 
  /**
   @param uv
@@ -5559,23 +5588,27 @@ bs_atlasSize(
   @param atlas
   @param hash
   @param name
-  @return int
+  @param out
+  @return bs_Result
   */
-BSAPI int
+BSAPI bs_Result
 bs_queryAtlasHash(
     bs_Atlas* atlas,
     bs_U64 hash,
-    const char* name);
+    const char* name,
+    int* out);
 
  /**
   @param atlas
   @param name
-  @return int
+  @param out
+  @return bs_Result
   */
-BSAPI int
+BSAPI bs_Result
 bs_queryAtlas(
     bs_Atlas* atlas,
-    const char* name);
+    const char* name,
+    int* out);
 
  /**
   @param atlas
@@ -5584,18 +5617,6 @@ bs_queryAtlas(
 BSAPI bs_Result
 bs_destroyAtlas(
     bs_Atlas* atlas);
-
- /**
-  @param atlas
-  @param name
-  @param split
-  @return void
-  */
-BSAPI void
-bs_splitAtlasTexture(
-    bs_Atlas* atlas,
-    char* name,
-    int split);
 
  /**
   @param object
@@ -7577,16 +7598,6 @@ bs_queryMaterial(
 
  /**
   @param source_id
-  @param object_type
-  @return void
-  */
-BSAPI void
-bs_assertSourceIsType(
-    int source_id,
-    bs_ObjectType object_type);
-
- /**
-  @param source_id
   @param id
   @return const char*
   */
@@ -7659,21 +7670,25 @@ bs_queryPackage(
   @param package_id
   @param resource_name
   @param flags
-  @return bs_Resource*
+  @param out
+  @return bs_Result
   */
-BSAPI bs_Resource*
+BSAPI bs_Result
 bs_loadResource(
     int package_id,
     const char* resource_name,
-    bs_U32 flags);
+    bs_U32 flags,
+    bs_Resource** out);
 
  /**
   @param path
-  @return int
+  @param out
+  @return bs_Result
   */
-BSAPI int
+BSAPI bs_Result
 bs_loadPackage(
-    const char* path);
+    const char* path,
+    int* out);
 
  /**
   @param type
@@ -8508,7 +8523,6 @@ bs_numDirectoriesF(
      ...);
 
  /**
-  @param path
   @param out
   @param value
   @param value_length
@@ -8516,13 +8530,11 @@ bs_numDirectoriesF(
   */
 BSAPI bs_Result
 bs_loadFile(
-    const char* path,
     bs_String** out,
     char* value,
     int value_length);
 
  /**
-  @param path
   @param out
   @param format
   @param args
@@ -8530,13 +8542,11 @@ bs_loadFile(
   */
 BSAPI bs_Result
 bs_loadFileV(
-    const char* path,
     bs_String** out,
     char* format,
     va_list args);
 
  /**
-  @param path
   @param out
   @param format
   @param ...
@@ -8544,7 +8554,6 @@ bs_loadFileV(
   */
 BSAPI bs_Result
 bs_loadFileF(
-    const char* path,
     bs_String** out,
     char* format,
      ...);

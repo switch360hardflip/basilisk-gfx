@@ -24,7 +24,7 @@
    * Package Format (.bpak)
    *============================================================================*/
 
-bs_List* _bs_packages() {
+BSAPI bs_List* _bs_packages() {
     static bs_List _bs_packages_ = {
         .unit_size = sizeof(bs_Package),
         .increment = 4
@@ -33,7 +33,7 @@ bs_List* _bs_packages() {
     return &_bs_packages_;
 }
 
-bs_List* _bs_objectSources() {
+BSAPI bs_List* _bs_objectSources() {
     static bs_List _bs_object_sources_ = {
         .unit_size = sizeof(bs_Object),
         .increment = 32,
@@ -42,7 +42,7 @@ bs_List* _bs_objectSources() {
     return &_bs_object_sources_;
 }
 
-void bs_destroyResource(bs_Resource* resource) {
+BSAPI void _bs_destroyResource(bs_Resource* resource) {
     bs_free(resource->data);
     bs_free(resource);
 }
@@ -84,7 +84,7 @@ BSAPI bs_Result _bs_queryPackage(const char* name, int* out) {
     return BS_RESULT_FAILED_TO_QUERY;
 }
 
- bs_Result bs_loadResource(int package_id, const char* resource_name, bs_U32 flags) {
+ BSAPI bs_Result _bs_loadResource(int package_id, const char* resource_name, bs_U32 flags, bs_Resource** out) {
     bs_Package* package = bs_fetchUnit(_bs_packages(), package_id);
 
     bs_U64 hash = bs_stringHash(resource_name);
@@ -99,25 +99,36 @@ BSAPI bs_Result _bs_queryPackage(const char* name, int* out) {
     }
 
     if (!existing) {
-        bs_throwBasiliskF(BSX_FAILED_TO_QUERY, "Resource \"%s\" in package \"%s\"", resource_name, package->path);
-        return NULL;
+        bs_warnF("Failed to query resource \"%s\" in package \"%s\"\n", resource_name, package->path);
+        return BS_RESULT_FAILED_TO_QUERY;
     }
 
     if (!existing->resource) {
-        existing->resource = bs_calloc(1, sizeof(bs_Resource)); // todo fix
+        existing->resource = bs_calloc(1, sizeof(bs_Resource)); // TODO: don't allocate each resource individually
         existing->resource->hash = hash;
         existing->resource->name = resource_name;
     }
     //else
     //    bs_free(existing->resource->data);
-    existing->resource->data = bs_loadFileChunkF(existing->header.offset, existing->header.size, "%s_%03d.bpak", package->path, (existing->header.chunk + 1));
+    bs_Result result = bs_loadFileChunkF(
+        existing->header.offset, 
+        existing->header.size, 
+        &existing->resource->data, 
+        "%s_%03d.bpak", 
+        package->path, (existing->header.chunk + 1)
+    );
 
-    bs_infoF("Loaded resource \"%s\"\n", resource_name);
+    if (result == BS_RESULT_OK) {
+        bs_infoF("Loaded resource \"%s\"\n", resource_name);
+        *out = existing->resource;
+    }
 
-    return existing->resource;
+    return BS_RESULT_OK;
 }
 
-int bs_loadPackage(const char* path) {
+BSAPI bs_Result _bs_loadPackage(const char* path, int* out) {
+    bs_Result result;
+
     char* path_dup = strdup(path);
     bs_U64 hash = bs_stringHash(path_dup);
 
@@ -134,9 +145,10 @@ int bs_loadPackage(const char* path) {
         }
     }
 
-    bs_String* raw = bs_loadFileF("%s.bpak", path_dup);
+    bs_String* raw;
+    result = bs_loadFileF(&raw, "%s.bpak", path_dup);
     if (!raw)
-        return -1;
+        return result;
 
     existing = old;
 
@@ -156,21 +168,18 @@ int bs_loadPackage(const char* path) {
         bs_ResourceHeader* header = raw->value + i;
         i += sizeof(header->header);
         if (i >= raw->len) {
-            bs_throwBasilisk(BSX_CORRUPTED);
-            return -1;
+            return BS_RESULT_CORRUPTED;
         }
 
         char* name = raw->value + i;
         i += header->header.name_length + 1;
         if (i >= raw->len) {
-            bs_throwBasilisk(BSX_CORRUPTED);
-            return -1;
+            return BS_RESULT_CORRUPTED;
         }
 
         char* end = strchr(name, '\n');
         if (!end) {
-            bs_throwBasilisk(BSX_CORRUPTED);
-            return -1;
+            return BS_RESULT_CORRUPTED;
         }
         end[0] = '\0';
 
@@ -194,7 +203,8 @@ int bs_loadPackage(const char* path) {
 
     existing->resource_headers = new_resources;
 
-    return id;
+    *out = id;
+    return BS_RESULT_OK;
 }
 
 
@@ -202,6 +212,12 @@ int bs_loadPackage(const char* path) {
   /*==============================================================================
    * Objects
    *============================================================================*/
+
+#define BS_VALIDATE_SOURCE(source_id, _return) \
+    BS_VALIDATE(source_id < bs_objectSources()->count, _return,)
+
+#define BS_VALIDATE_ID(id, _return) \
+    BS_VALIDATE(id < ((bs_ObjectSource*)bs_fetchUnit(bs_objectSources(), source_id))->ids_count, _return,)
 
 BSAPI int _bs_configureSource(bs_ObjectType type, int count, const char** names) {
     bs_ObjectSource source = {
@@ -215,15 +231,26 @@ BSAPI int _bs_configureSource(bs_ObjectType type, int count, const char** names)
         source.ids[i].name_hash = bs_stringHash(source.ids[i].name);
     }
 
-    bs_pushBack(&_bs_object_sources, &source);
+    bs_List* object_sources = bs_objectSources();
+    bs_pushBack(object_sources, &source);
 
-    return _bs_object_sources.count - 1;
+    return object_sources->count - 1;
+}
+
+ /**
+  bs_exists
+  */
+BSAPI bool _val_bs_exists(bs_U32 source_id, bs_U32 id) {
+    BS_VALIDATE_SOURCE(source_id, false);
+    BS_VALIDATE_ID(id, false);
+
+    return bs_exists(source_id, id);
 }
 
 BSAPI bool _bs_exists(bs_U32 source_id, bs_U32 id) {
-    assert(source_id < _bs_object_sources.count);
-    bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
-    assert(id < source->ids_count);
+    bs_List* object_sources = bs_objectSources();
+    bs_ObjectSource* source = bs_fetchUnit(object_sources, source_id);
+
     bs_Object* object = source->ids[id].object;
 
     return
@@ -233,30 +260,43 @@ BSAPI bool _bs_exists(bs_U32 source_id, bs_U32 id) {
         object->head->id >= 0;
 }
 
-BSAPI bs_Object* _bs_fetch(bs_U32 source_id, bs_U32 id) {
-    assert(source_id < _bs_object_sources.count);
-    bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
-    assert(id < source->ids_count);
-    bs_Object* object = source->ids[id].object;
-#ifdef _DEBUG
-    if (!object || !object->head || object->head->id == -1) {
-        bs_except(0); // force throw
-        bs_throwBasiliskF(BSX_NOT_FOUND, "id = %d %s", id, bs_idName(source_id, id));
-        return NULL;
-    }
-#endif
+ /**
+  bs_fetch
+  */
+BSAPI bs_Object* _val_bs_fetch(bs_U32 source_id, bs_U32 id) {
+    BS_VALIDATE_SOURCE(source_id, NULL);
+    BS_VALIDATE_ID(id, NULL);
+
+    return bs_fetch(source_id, id);
+}
+
+BSAPI bs_Object* _postval_bs_fetch(bs_U32 source_id, bs_U32 id, bs_Object* object) {
+    BS_VALIDATE(object != NULL, NULL, "Object (%d, %d) has not been created yet", source_id, id);
+    BS_VALIDATE(object->head != NULL, NULL, "Object (%d, %d)", source_id, id); // TODO: what does this mean
+    BS_VALIDATE(object->head->id >= 0, NULL, "Object (%d, %d)", source_id, id); // TODO: what does this mean
+
     return object;
 }
 
+BSAPI bs_Object* _bs_fetch(bs_U32 source_id, bs_U32 id) {
+    bs_List* object_sources = bs_objectSources();
+    bs_ObjectSource* source = bs_fetchUnit(object_sources, source_id);
+    bs_Object* object = source->ids[id].object;
+
+    return object;
+}
+
+ /**
+  */
 BSAPI bool _bs_shouldLoadId(bs_U32 source_id, bs_U32 id) {
     return true;
 
-    assert(source_id < _bs_object_sources.count);
-    bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
-    assert(id < source->ids_count);
-    bs_Object* object = source->ids[id].object;
+   // assert(source_id < _bs_object_sources.count);
+   // bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
+   // assert(id < source->ids_count);
+   // bs_Object* object = source->ids[id].object;
 
-    return object->flags & BS_OBJECT_SHOULD_LOAD;
+   // return object->flags & BS_OBJECT_SHOULD_LOAD;
 }
 
 static inline const char* bs_objectTypeName(bs_ObjectType type) {
@@ -271,17 +311,9 @@ static inline const char* bs_objectTypeName(bs_ObjectType type) {
     }
 }
 
-BSAPI void _bs_assertSourceIsType(int source_id, bs_ObjectType object_type) {
-    bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
-
-    if (source->type != object_type) {
-        bs_except(0);
-        bs_throwBasiliskF(BSX_ASSERTION, "Expected source %d to be of type \"%s\"", source_id, bs_objectTypeName(object_type));
-    }
-}
-
 static inline void bs_logObjectCreated(bs_U32 source_id, bs_U32 id) {
-    bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
+    bs_List* object_sources = bs_objectSources();
+    bs_ObjectSource* source = bs_fetchUnit(object_sources, source_id);
     bs_Object* object = source->ids[id].object;
     const char* object_type_name = bs_objectTypeName(source->type);
 
@@ -292,7 +324,8 @@ static inline void bs_logObjectCreated(bs_U32 source_id, bs_U32 id) {
 }
 
 static inline void bs_logObjectUpdated(bs_U32 source_id, bs_U32 id) {
-    bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
+    bs_List* object_sources = bs_objectSources();
+    bs_ObjectSource* source = bs_fetchUnit(object_sources, source_id);
     bs_Object* object = source->ids[id].object;
     const char* object_type_name = bs_objectTypeName(source->type);
 
@@ -310,20 +343,19 @@ static inline void bs_logObjectUnchanged(bs_U32 source_id, bs_U32 id) {
 }
 
 static inline bs_ObjectSource* bs_fetchObjectSource(bs_U32 source_id) {
-    bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
+    bs_List* object_sources = bs_objectSources();
+    bs_ObjectSource* source = bs_fetchUnit(object_sources, source_id);
     return source;
 }
 
 BSAPI const char* _val_bs_idName(bs_U32 source_id, bs_U32 id) {
-    BS_VALIDATE(source_id < _bs_object_sources.count, NULL,,);
-    bs_ObjectSource* source = bs_fetchObjectSource(source_id);
-    BS_VALIDATE(id < source->ids_count, NULL,,);
+    BS_VALIDATE_SOURCE(source_id, NULL);
+    BS_VALIDATE_ID(id, NULL);
 
     return bs_idName(source_id, id);
 }
 
 BSAPI const char* _bs_idName(bs_U32 source_id, bs_U32 id) {
-    assert(source_id < _bs_object_sources.count);
     bs_ObjectSource* source = bs_fetchObjectSource(source_id);
     return source->ids[id].name;
 }
@@ -375,11 +407,10 @@ static bs_Object* bs_update(bs_U32 source_id, bs_U32 id, int size, int swap_size
 }
 
 BSAPI bs_Object* _val_bs_object(bs_U32 source_id, bs_U32 id, size_t size, size_t flexible_array_size, int flexible_count, bs_U32 flags) {
-    BS_VALIDATE(source_id < _bs_object_sources.count, NULL,);
+    BS_VALIDATE_SOURCE(source_id, NULL);
+    BS_VALIDATE_ID(id, NULL);
 
-    bs_ObjectSource* source = bs_fetchObjectSource(source_id);
-
-    BS_VALIDATE(id < source->ids_count, NULL, );
+    return bs_object(source_id, id, size, flexible_array_size, flexible_count, flags);
 }
 
 BSAPI bs_Object* _bs_object(bs_U32 source_id, bs_U32 id, size_t size, size_t flexible_array_size, int flexible_count, bs_U32 flags) {

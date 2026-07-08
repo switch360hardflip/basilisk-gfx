@@ -932,8 +932,8 @@ BSAPI bs_Result _bs_loadFileChunk(long offset, size_t size, const char* path, bs
     buffer->len = bytes_read;
 
     if (bytes_read != size) {
-        bs_throwBasiliskF(BSX_GENERAL, "Read %lld/%lld bytes from \"%s\" at offset %lld\n", bytes_read, size, path, offset);
-        return buffer;
+        bs_warnF("Read %lld/%lld bytes from \"%s\" at offset %lld\n", bytes_read, size, path, offset);
+        return BS_RESULT_FAILED_TO_READ;
     }
 
     fclose(file);

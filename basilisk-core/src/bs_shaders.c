@@ -847,7 +847,7 @@ void bs_pushConstant(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 size, void* da
         return bs_throwBasiliskF(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS, "Pipeline " BS_PRINT_COLOR("%" PRIx64, BS_PRINT_BLUE_BRIGHT) "\nPush Constant\n%d + %d > %d", pipeline->hash, offset, size, pipeline->constant_size);
     vkCmdPushConstants(command_buffer, pipeline->layout, pipeline->shader_stages, offset, size, data);
     if (_bs_scope_.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
-        bsi_pushQueue(_bs_scope_.queue);
+        bs_pushQueue(_bs_scope_.queue);
         bs_throwVulkan(vkQueueWaitIdle(_bs_scope_.queue->queue));
     }
 }

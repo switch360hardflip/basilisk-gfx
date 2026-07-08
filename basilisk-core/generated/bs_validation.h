@@ -119,6 +119,7 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_nameBufferV = GetProcAddress(module, "_val_bs_nameBufferV");
     functions.bs_nameBufferF = GetProcAddress(module, "_val_bs_nameBufferF");
     functions.bs_buffer = GetProcAddress(module, "_val_bs_buffer");
+    functions.bs_bufferIsMapped = GetProcAddress(module, "_val_bs_bufferIsMapped");
     functions.bs_bufferMap = GetProcAddress(module, "_val_bs_bufferMap");
     functions.bs_mapBuffer = GetProcAddress(module, "_val_bs_mapBuffer");
     functions.bs_unmapBuffer = GetProcAddress(module, "_val_bs_unmapBuffer");
@@ -218,7 +219,7 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_imageSwapsCount = GetProcAddress(module, "_val_bs_imageSwapsCount");
     functions.bs_transition = GetProcAddress(module, "_val_bs_transition");
     functions.bs_inspectPng = GetProcAddress(module, "_val_bs_inspectPng");
-    functions.bs_loadPngMemory = GetProcAddress(module, "_val_bs_loadPngMemory");
+    functions.bs_loadPngData = GetProcAddress(module, "_val_bs_loadPngData");
     functions.bs_loadPng = GetProcAddress(module, "_val_bs_loadPng");
     functions.bs_bitmapImage = GetProcAddress(module, "_val_bs_bitmapImage");
     functions.bs_savePng = GetProcAddress(module, "_val_bs_savePng");
@@ -256,7 +257,6 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_queryAtlasHash = GetProcAddress(module, "_val_bs_queryAtlasHash");
     functions.bs_queryAtlas = GetProcAddress(module, "_val_bs_queryAtlas");
     functions.bs_destroyAtlas = GetProcAddress(module, "_val_bs_destroyAtlas");
-    functions.bs_splitAtlasTexture = GetProcAddress(module, "_val_bs_splitAtlasTexture");
     functions.bs_loadAtlasMemory = GetProcAddress(module, "_val_bs_loadAtlasMemory");
     functions.bs_loadAtlas = GetProcAddress(module, "_val_bs_loadAtlas");
     functions.bs_parseArgs = GetProcAddress(module, "_val_bs_parseArgs");
@@ -455,7 +455,6 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_queryMesh = GetProcAddress(module, "_val_bs_queryMesh");
     functions.bs_queryMeshHash = GetProcAddress(module, "_val_bs_queryMeshHash");
     functions.bs_queryMaterial = GetProcAddress(module, "_val_bs_queryMaterial");
-    functions.bs_assertSourceIsType = GetProcAddress(module, "_val_bs_assertSourceIsType");
     functions.bs_idName = GetProcAddress(module, "_val_bs_idName");
     functions.bs_object = GetProcAddress(module, "_val_bs_object");
     functions.bs_packages = GetProcAddress(module, "_val_bs_packages");

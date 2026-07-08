@@ -640,6 +640,16 @@ static bs_Result _preval_bs_buffer(bs_Object* object, bs_U32 num_bytes, bs_Buffe
     return next.bs_buffer(object, num_bytes, usage_flags, memory_flags, flags);
 }
 
+static bool _preval_bs_bufferIsMapped(bs_Buffer* buffer) {
+    if (buffer == NULL)
+        return false;
+
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
+        return false;
+
+    return next.bs_bufferIsMapped(buffer);
+}
+
 static char* _preval_bs_bufferMap(bs_Buffer* buffer) {
     if (buffer == NULL)
         return NULL;
@@ -670,74 +680,74 @@ static bs_Result _preval_bs_unmapBuffer(bs_Buffer* buffer) {
     return next.bs_unmapBuffer(buffer);
 }
 
-static bs_Result _preval_bs_stageNull(bs_Buffer* buffer) {
+static void _preval_bs_stageNull(bs_Buffer* buffer) {
     if (buffer == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (buffer->head.source_id != BS_OBJECT_BUFFER)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_stageNull(buffer);
 }
 
-static bs_Result _preval_bs_stageList(bs_Buffer* buffer, bs_List* list) {
+static void _preval_bs_stageList(bs_Buffer* buffer, bs_List* list) {
     if (buffer == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (buffer->head.source_id != BS_OBJECT_BUFFER)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (list == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_stageList(buffer, list);
 }
 
-static bs_Result _preval_bs_stageImage(bs_Buffer* buffer, bs_Format format, bs_ivec2 dim, const char* data) {
+static void _preval_bs_stageImage(bs_Buffer* buffer, bs_Format format, bs_ivec2 dim, const char* data) {
     if (buffer == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (buffer->head.source_id != BS_OBJECT_BUFFER)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (data == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_stageImage(buffer, format, dim, data);
 }
 
-static bs_Result _preval_bs_destroyBuffer(bs_Buffer* buffer) {
+static void _preval_bs_destroyBuffer(bs_Buffer* buffer) {
     if (buffer == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (buffer->head.source_id != BS_OBJECT_BUFFER)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_destroyBuffer(buffer);
 }
 
-static bs_Result _preval_bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 src_offset, bs_U32 dst_offset, bs_U32 num_bytes) {
+static void _preval_bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 src_offset, bs_U32 dst_offset, bs_U32 num_bytes) {
     if (src == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (src->head.source_id != BS_OBJECT_BUFFER)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (dst == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (dst->head.source_id != BS_OBJECT_BUFFER)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_copyAsync(src, dst, src_offset, dst_offset, num_bytes);
 }
 
-static bs_Result _preval_bs_setBufferAsync(bs_Buffer* buffer, bs_U32 offset, bs_U32 num_bytes, bs_U32 value) {
+static void _preval_bs_setBufferAsync(bs_Buffer* buffer, bs_U32 offset, bs_U32 num_bytes, bs_U32 value) {
     if (buffer == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (buffer->head.source_id != BS_OBJECT_BUFFER)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_setBufferAsync(buffer, offset, num_bytes, value);
 }
@@ -1676,7 +1686,7 @@ static unsigned char* _preval_bs_inspectPng(const char* path, bs_PngData* out_pn
     return next.bs_inspectPng(path, out_png_data);
 }
 
-static unsigned char* _preval_bs_loadPngMemory(char* data, size_t size, int channels_count, bs_PngData* out_png_data) {
+static unsigned char* _preval_bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out_png_data) {
     if (data == NULL)
         return NULL;
 
@@ -1689,7 +1699,7 @@ static unsigned char* _preval_bs_loadPngMemory(char* data, size_t size, int chan
     if (!(channels_count > 0))
         return NULL;
 
-    return next.bs_loadPngMemory(data, size, channels_count, out_png_data);
+    return next.bs_loadPngData(data, size, channels_count, out_png_data);
 }
 
 static unsigned char* _preval_bs_loadPng(const char* path, int channels_count, bs_PngData* out_png_data) {
@@ -1778,12 +1788,12 @@ static bs_Result _preval_bs_savePng(char* data, bs_ivec2 resolution, bs_PngType 
     return next.bs_savePng(data, resolution, type, value, value_length);
 }
 
-static bs_Result _preval_bs_destroyImage(bs_Image* image) {
+static void _preval_bs_destroyImage(bs_Image* image) {
     if (image == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (image->head.source_id != BS_OBJECT_IMAGE)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_destroyImage(image);
 }
@@ -1801,20 +1811,20 @@ static bs_Result _preval_bs_resizeImage(bs_Image* image, bs_ivec2 resolution, in
     return next.bs_resizeImage(image, resolution, num_indices);
 }
 
-static bs_Result _preval_bs_queryImageIndexHash(bs_Image* image, bs_U64 name_hash, char* name) {
+static bs_Result _preval_bs_queryImageIndexHash(bs_Image* image, bs_U64 name_hash, int* out) {
     if (image == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (image->head.source_id != BS_OBJECT_IMAGE)
         return BS_RESULT_VALIDATION_ERROR;
 
-    if (name == NULL)
+    if (out == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_queryImageIndexHash(image, name_hash, name);
+    return next.bs_queryImageIndexHash(image, name_hash, out);
 }
 
-static bs_Result _preval_bs_queryImageIndex(bs_Image* image, char* name) {
+static bs_Result _preval_bs_queryImageIndex(bs_Image* image, char* name, int* out) {
     if (image == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
@@ -1824,7 +1834,10 @@ static bs_Result _preval_bs_queryImageIndex(bs_Image* image, char* name) {
     if (name == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_queryImageIndex(image, name);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_queryImageIndex(image, name, out);
 }
 
 static bs_Result _preval_bs_copyImageToBufferAsync(bs_Image* image, bs_Buffer* buffer, int image_index, bs_ImageLayout layout, bs_U64 buffer_offset, bs_ivec2 offset, bs_ivec2 resolution) {
@@ -1930,9 +1943,6 @@ static bs_Result _preval_bs_sampler(bs_Object* object, bs_ImageFilter filter, bs
     if (object == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    if (!(_bs_validateObject(object)))
-        return BS_RESULT_VALIDATION_ERROR;
-
     return next.bs_sampler(object, filter, flags);
 }
 
@@ -1943,29 +1953,17 @@ static bs_Result _preval_bs_loadAtlas(bs_Object* object, int package_id, bs_U32 
     if (value == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    if (!(_bs_validateObject(object)))
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(package_id >= 0))
-        return BS_RESULT_VALIDATION_ERROR;
-
     return next.bs_loadAtlas(object, package_id, flags, value, value_length);
 }
 
-static bs_vec4 _preval_bs_atlasCoordinates(bs_Atlas* atlas, int texture_id, int frame) {
+static bs_vec4 _preval_bs_atlasCoordinates(bs_Atlas* atlas, int texture_id) {
     if (atlas == NULL)
         return (bs_vec4) { 0 };
 
     if (atlas->head.source_id != BS_OBJECT_ATLAS)
         return (bs_vec4) { 0 };
 
-    if (!(texture_id >= 0))
-        return (bs_vec4) { 0 };
-
-    if (!(frame >= 0))
-        return (bs_vec4) { 0 };
-
-    return next.bs_atlasCoordinates(atlas, texture_id, frame);
+    return next.bs_atlasCoordinates(atlas, texture_id);
 }
 
 static bs_vec4 _preval_bs_mirrorUV(bs_vec4 uv) {
@@ -1983,36 +1981,39 @@ static bs_vec2 _preval_bs_atlasSize(bs_Atlas* atlas, int texture) {
     if (atlas->head.source_id != BS_OBJECT_ATLAS)
         return (bs_vec2) { 0 };
 
-    if (!(texture >= 0))
-        return (bs_vec2) { 0 };
-
     return next.bs_atlasSize(atlas, texture);
 }
 
-static int _preval_bs_queryAtlasHash(bs_Atlas* atlas, bs_U64 hash, const char* name) {
+static bs_Result _preval_bs_queryAtlasHash(bs_Atlas* atlas, bs_U64 hash, const char* name, int* out) {
     if (atlas == NULL)
-        return 0;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (atlas->head.source_id != BS_OBJECT_ATLAS)
-        return 0;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (name == NULL)
-        return 0;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_queryAtlasHash(atlas, hash, name);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_queryAtlasHash(atlas, hash, name, out);
 }
 
-static int _preval_bs_queryAtlas(bs_Atlas* atlas, const char* name) {
+static bs_Result _preval_bs_queryAtlas(bs_Atlas* atlas, const char* name, int* out) {
     if (atlas == NULL)
-        return 0;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (atlas->head.source_id != BS_OBJECT_ATLAS)
-        return 0;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (name == NULL)
-        return 0;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_queryAtlas(atlas, name);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_queryAtlas(atlas, name, out);
 }
 
 static bs_Result _preval_bs_destroyAtlas(bs_Atlas* atlas) {
@@ -2023,22 +2024,6 @@ static bs_Result _preval_bs_destroyAtlas(bs_Atlas* atlas) {
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_destroyAtlas(atlas);
-}
-
-static void _preval_bs_splitAtlasTexture(bs_Atlas* atlas, char* name, int split) {
-    if (atlas == NULL)
-        return;
-
-    if (atlas->head.source_id != BS_OBJECT_ATLAS)
-        return;
-
-    if (name == NULL)
-        return;
-
-    if (!(split > 0))
-        return;
-
-    return next.bs_splitAtlasTexture(atlas, name, split);
 }
 
 static bs_Result _preval_bs_loadAtlasMemory(bs_Object* object, int package_id, char* resource_name, char* data, bs_U32 flags) {
@@ -3275,10 +3260,6 @@ static bs_Material* _preval_bs_queryMaterial(bs_Model* model, const char* name) 
     return next.bs_queryMaterial(model, name);
 }
 
-static void _preval_bs_assertSourceIsType(int source_id, bs_ObjectType object_type) {
-    return next.bs_assertSourceIsType(source_id, object_type);
-}
-
 static const char* _preval_bs_idName(bs_U32 source_id, bs_U32 id) {
     return next.bs_idName(source_id, id);
 }
@@ -3322,18 +3303,24 @@ static bs_Result _preval_bs_queryPackage(const char* name, int* out) {
     return next.bs_queryPackage(name, out);
 }
 
-static bs_Resource* _preval_bs_loadResource(int package_id, const char* resource_name, bs_U32 flags) {
+static bs_Result _preval_bs_loadResource(int package_id, const char* resource_name, bs_U32 flags, bs_Resource** out) {
     if (resource_name == NULL)
-        return NULL;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_loadResource(package_id, resource_name, flags);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_loadResource(package_id, resource_name, flags, out);
 }
 
-static int _preval_bs_loadPackage(const char* path) {
+static bs_Result _preval_bs_loadPackage(const char* path, int* out) {
     if (path == NULL)
-        return 0;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_loadPackage(path);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_loadPackage(path, out);
 }
 
 static int _preval_bs_configureSource(bs_ObjectType type, int count, const char** names) {
@@ -3790,17 +3777,14 @@ static int _preval_bs_numDirectories(char* value, int value_length) {
     return next.bs_numDirectories(value, value_length);
 }
 
-static bs_Result _preval_bs_loadFile(const char* path, bs_String** out, char* value, int value_length) {
-    if (path == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
+static bs_Result _preval_bs_loadFile(bs_String** out, char* value, int value_length) {
     if (out == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (value == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_loadFile(path, out, value, value_length);
+    return next.bs_loadFile(out, value, value_length);
 }
 
 static bs_Result _preval_bs_loadFileChunk(const char* path, long offset, size_t size, bs_String** out, char* value, int value_length) {
@@ -3919,6 +3903,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_bufferSwaps = _preval_bs_bufferSwaps;
     functions.bs_nameBuffer = _preval_bs_nameBuffer;
     functions.bs_buffer = _preval_bs_buffer;
+    functions.bs_bufferIsMapped = _preval_bs_bufferIsMapped;
     functions.bs_bufferMap = _preval_bs_bufferMap;
     functions.bs_mapBuffer = _preval_bs_mapBuffer;
     functions.bs_unmapBuffer = _preval_bs_unmapBuffer;
@@ -4016,7 +4001,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_imageSwapsCount = _preval_bs_imageSwapsCount;
     functions.bs_transition = _preval_bs_transition;
     functions.bs_inspectPng = _preval_bs_inspectPng;
-    functions.bs_loadPngMemory = _preval_bs_loadPngMemory;
+    functions.bs_loadPngData = _preval_bs_loadPngData;
     functions.bs_loadPng = _preval_bs_loadPng;
     functions.bs_bitmapImage = _preval_bs_bitmapImage;
     functions.bs_savePng = _preval_bs_savePng;
@@ -4044,7 +4029,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_queryAtlasHash = _preval_bs_queryAtlasHash;
     functions.bs_queryAtlas = _preval_bs_queryAtlas;
     functions.bs_destroyAtlas = _preval_bs_destroyAtlas;
-    functions.bs_splitAtlasTexture = _preval_bs_splitAtlasTexture;
     functions.bs_loadAtlasMemory = _preval_bs_loadAtlasMemory;
     functions.bs_loadAtlas = _preval_bs_loadAtlas;
     functions.bs_parseArgs = _preval_bs_parseArgs;
@@ -4205,7 +4189,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_queryMesh = _preval_bs_queryMesh;
     functions.bs_queryMeshHash = _preval_bs_queryMeshHash;
     functions.bs_queryMaterial = _preval_bs_queryMaterial;
-    functions.bs_assertSourceIsType = _preval_bs_assertSourceIsType;
     functions.bs_idName = _preval_bs_idName;
     functions.bs_object = _preval_bs_object;
     functions.bs_packages = _preval_bs_packages;

@@ -71,16 +71,14 @@ BSAPI int _bs_imageSwapsCount(bs_Image* image) {
 }
 
 BSAPI void _val_bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout, bs_ImageLayout new_layout) {
+    BS_VALIDATE(old_layout != new_layout,,);
     BS_VALIDATE(index == 0 || index < image->num_indices,,);
     return bs_transition(image, index, old_layout, new_layout);
 }
 
 BSAPI void _bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout, bs_ImageLayout new_layout) {
+    VkResult result;
     VkCommandBuffer commands = bsi_fetchCommands();
-
-    if (old_layout == new_layout) {
-        return;
-    }
 
     VkPipelineStageFlags src_stage;
     VkPipelineStageFlags dst_stage;
@@ -102,9 +100,9 @@ BSAPI void _bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout,
 
     if (bs_isDepthFormat(image->format)) {
         barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
-        if (bs_isStencilFormat(image->format)) {
+
+        if (bs_isStencilFormat(image->format))
             barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-        }
     }
     else {
         barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -221,8 +219,8 @@ BSAPI void _bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout,
         1, &barrier);
 
     if (_bs_scope_.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
-        bsi_pushQueue(_bs_scope_.queue);
-        bs_throwVulkan(vkQueueWaitIdle(_bs_scope_.queue->queue));
+        bs_pushQueue(_bs_scope_.queue);
+        result = vkQueueWaitIdle(_bs_scope_.queue->queue);
     }
 }
 
@@ -361,7 +359,7 @@ static bs_Result bs_depthImage(bs_Object* object, bs_ivec2 dim, int num_indices,
     return BS_RESULT_OK;
 }
 
-bs_Result bs_image(bs_Object* object, bs_ivec2 dim, int num_indices, bs_Format format, bs_U32 flags) {
+BSAPI bs_Result _bs_image(bs_Object* object, bs_ivec2 dim, int num_indices, bs_Format format, bs_U32 flags) {
     if (!object)
         return BS_RESULT_INVALID_PARAM;
 
@@ -409,7 +407,7 @@ bs_Result bs_image(bs_Object* object, bs_ivec2 dim, int num_indices, bs_Format f
    *============================================================================*/
 
  // lodepng_error_text(error)
-unsigned bs_Result bs_encodePng(size_t* out_size, const unsigned char* data, bs_ivec2 size, bs_PngType type, unsigned char** out) {
+BSAPI bs_Result _bs_encodePng(size_t* out_size, const unsigned char* data, bs_ivec2 size, bs_PngType type, unsigned char** out) {
     int result = 0;
 
     switch (type) {
@@ -426,92 +424,93 @@ unsigned bs_Result bs_encodePng(size_t* out_size, const unsigned char* data, bs_
     return out;
 }
 
-void bs_savePng(char* data, bs_ivec2 dim, bs_PngType type, char* name) {
-    int result = 0;
+BSAPI bs_Result _bs_savePng(char* data, bs_ivec2 dim, bs_PngType type, char* name) {
+    int error = 0;
 
     switch (type) {
-    case BS_PNG_GREY: result = lodepng_encode_file(name, data, dim.x, dim.y, LCT_GREY, 8); break;
-    case BS_PNG_RGB: result = lodepng_encode_file(name, data, dim.x, dim.y, LCT_RGB, 8); break;
-    case BS_PNG_GREY_ALPHA: result = lodepng_encode_file(name, data, dim.x, dim.y, LCT_GREY_ALPHA, 8); break;
-    case BS_PNG_RGBA: result = lodepng_encode_file(name, data, dim.x, dim.y, LCT_RGBA, 8); break;
+    case BS_PNG_GREY: error = lodepng_encode_file(name, data, dim.x, dim.y, LCT_GREY, 8); break;
+    case BS_PNG_RGB: error = lodepng_encode_file(name, data, dim.x, dim.y, LCT_RGB, 8); break;
+    case BS_PNG_GREY_ALPHA: error = lodepng_encode_file(name, data, dim.x, dim.y, LCT_GREY_ALPHA, 8); break;
+    case BS_PNG_RGBA: error = lodepng_encode_file(name, data, dim.x, dim.y, LCT_RGBA, 8); break;
     default:
-        bs_throwBasilisk(BSX_INVALID_TYPE);
+        bs_warnF("Unsupported bs_PngType %d for png \"%s\"\n", type, name);
     };
 
-    if (result != 0)
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_GENERAL, "%s\n%s", name, lodepng_error_text(result));
+    if (error != 0) {
+        bs_warnF("Failed to save png \"%s\", lodepng error:\n%s\n", name, lodepng_error_text(error));
+        return BS_RESULT_FAILED_TO_WRITE;
+    }
 
     bs_infoF("Saved a PNG of size %d x %d to %s\n", dim.x, dim.y, name);
+
+    return BS_RESULT_OK;
 }
 
-void bs_savePngF(char* data, bs_ivec2 dim, bs_PngType type, const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-    bs_String* formatted = bs_stringV(bs_stringBuilder(), format, args);
-    va_end(args);
-
-    return bs_savePng(data, dim, type, formatted->value);
-}
-
-unsigned char* bs_inspectPng(const char* path, int* width, int* height, size_t* out_size) {
+BSAPI bs_Result _bs_inspectPng(const char* path, int* width, int* height, size_t* out_size) {
+    unsigned error;
     unsigned char* data = NULL;
 
     LodePNGState state;
     lodepng_state_init(&state);
 
-    unsigned error;
     error = lodepng_load_file(&data, out_size, path);
     if (error) {
-        bs_throwLodepng(path, error);
-        return NULL;
+        bs_warnF("Failed to read png file \"%s\", lodepng error:\n%s\n", path, lodepng_error_text(error));
+        return BS_RESULT_FAILED_TO_READ;
     }
 
     error = lodepng_inspect(width, height, &state, data, *out_size);
     if (error) {
-        bs_throwLodepng(path, error);
+        bs_warnF("Failed to inspect png \"%s\", lodepng error:\n%s\n", path, lodepng_error_text(error));
         free(data);
-        return NULL;
+        return BS_RESULT_FAILED_TO_INSPECT;
     }
 
     return data;
 }
 
-unsigned char* bs_loadPngMemory(char* data, size_t size, int* width, int* height, int channels_count) {
-    int temp_w, temp_h;
-    if (!width) width = &temp_w;
-    if (!height) height = &temp_h;
-
-    unsigned char* image_data = NULL;
-    int error = 0;
-    switch (channels_count) {
-    case 3: error = lodepng_decode24(&image_data, width, height, data, size); break;
-    case 4: error = lodepng_decode32(&image_data, width, height, data, size); break;
-    default: bs_throwBasiliskF(BSXI_INTERNAL | BSX_INVALID_TYPE, ""); // todo
-    }
-
-    if (error) {
-        bs_throwLodepng(NULL, error);
-        return NULL;
-    }
-
-    return image_data;
+BSAPI bs_Result _val_bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out) {
+    BS_VALIDATE(channels_count == 3 || channels_count == 4, BS_RESULT_VALIDATION_ERROR,);
+    return _bs_loadPngData(data, size, channels_count, out);
 }
 
-unsigned char* bs_loadPng(const char* path, int* width, int* height, int channels_count) {
-    unsigned char* image_data = NULL;
+BSAPI bs_Result _bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out) {
     int error = 0;
     switch (channels_count) {
-    case 3: error = lodepng_decode24_file(&image_data, width, height, path); break;
-    case 4: error = lodepng_decode32_file(&image_data, width, height, path); break;
-    default: bs_throwBasiliskF(BSXI_INTERNAL | BSX_INVALID_TYPE, "%s", path); // todo
+    case 3: error = lodepng_decode24(&out->data, &out->width, &out->height, data, size); break;
+    case 4: error = lodepng_decode32(&out->data, &out->width, &out->height, data, size); break;
+    default: 
+        bs_warnF("Failed to load png data, unsupported channels_count %d\n", channels_count);
+        return BS_RESULT_INVALID_PARAM;
     }
 
     if (error) {
-        bs_throwLodepng(path, error);
-        return NULL;
+        bs_warnF("Failed to load png data, lodepng error:\n%s\n", lodepng_error_text(error));
+        free(data);
+        return BS_RESULT_FAILED_TO_INSPECT;
     }
 
-    return image_data;
+    return BS_RESULT_OK;
+}
+
+BSAPI bs_Result _bs_loadPng(const char* path, int channels_count, bs_PngData* out) {
+    unsigned char* image_data = NULL;
+    int error = 0;
+
+    switch (channels_count) {
+    case 3: error = lodepng_decode24_file(&out->data, &out->width, &out->height, path); break;
+    case 4: error = lodepng_decode32_file(&out->data, &out->width, &out->height, path); break;
+    default: 
+        bs_warnF("Failed to load png file \"%s\", unsupported channels_count %d\n", path, channels_count);
+        return BS_RESULT_INVALID_PARAM;
+    }
+
+    if (error) {
+        bs_warnF("Failed to load png file \"%s\", lodepng error:\n%s\n", path, lodepng_error_text(error));
+        return BS_RESULT_FAILED_TO_READ;
+    }
+
+    return BS_RESULT_OK;
 }
 
 
@@ -520,11 +519,16 @@ unsigned char* bs_loadPng(const char* path, int* width, int* height, int channel
    * Image Creation
    *============================================================================*/
 
-bs_Result bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs_ivec2 dim, bs_Format format, bs_ImageBits flags) {
-    bs_Result result;
+BSAPI bs_Result _val_bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs_ivec2 dim, bs_Format format, bs_ImageBits flags) {
+    if (object->image) {
+        BS_VALIDATE_OBJECT_TYPE(object, BS_OBJECT_IMAGE, BS_RESULT_VALIDATION_ERROR);
+    }
 
-    if (!object)
-        return BS_RESULT_INVALID_PARAM;
+    return bs_bitmapImage(object, image_data, dim, format, flags);
+}
+
+BSAPI bs_Result _bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs_ivec2 dim, bs_Format format, bs_ImageBits flags) {
+    bs_Result result;
 
     if (!object->image)
         return BS_RESULT_OK;
@@ -554,11 +558,13 @@ bs_Result bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs_ivec2 
         0);
 
     if (result != BS_RESULT_OK) {
+        bs_warnF("Failed to create staging buffer for bitmap image (Vulkan result %d)\n", result);
         bs_destroyImage(image);
         return result;
     }
 
-    bs_mapBuffer(staging_buffer, size);
+    result = bs_mapBuffer(staging_buffer, size);
+
     bs_stageImage(staging_buffer, format, image->dim, image_data);
     bs_unmapBuffer(staging_buffer);
 
@@ -581,13 +587,13 @@ bs_Result bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs_ivec2 
     return BS_RESULT_OK;
 }
 
-void bs_destroyImage(bs_Image* image) {
+BSAPI void _bs_destroyImage(bs_Image* image) {
     bs_U32 num_swaps = image->flags & BS_IMAGE_SWAPS_BIT ? _bs_settings_.frames_in_flight : 1;
     for (int i = 0; i < num_swaps; i++) {
-        vkDestroyImageView(_bs_instance_->device, image->_[i].view, NULL);
+        vkDestroyImageView(_bs_instance_->device, image->_[i].vk_view, NULL);
         vkDestroyImage(_bs_instance_->device, image->_[i].vk_image, NULL);
-        vkFreeMemory(_bs_instance_->device, image->_[i].memory, NULL);
-        image->_[i].view = image->_[i].vk_image = image->_[i].memory = 0;
+        vkFreeMemory(_bs_instance_->device, image->_[i].vk_memory, NULL);
+        image->_[i].vk_view = image->_[i].vk_image = image->_[i].vk_memory = 0;
     }
 
     // TODO: make generic
@@ -598,26 +604,28 @@ void bs_destroyImage(bs_Image* image) {
     image->head.id = id;
 }
 
-void bs_resizeImage(bs_Image* image, bs_ivec2 dim, int num_indices) {
+BSAPI bs_Result _bs_resizeImage(bs_Image* image, bs_ivec2 dim, int num_indices) {
     bs_destroyImage(image);
+
     image->dim = dim;
     image->num_indices = num_indices;
-    bs_prepareImage(image->head.source_id, image->head.id, image, image->_->usage_flags, image->_->aspect_flags); // todo id
+    return bs_prepareImage(image->head.source_id, image->head.id, image, image->usage_flags, image->aspect_flags);
 }
 
-int bs_queryImageIndexHash(bs_Image* image, bs_U64 name_hash, char* name) {
+BSAPI bs_Result _bs_queryImageIndexHash(bs_Image* image, bs_U64 name_hash, int* out) {
     for (int i = 0; i < image->num_indices; i++) {
         bs_ImageIndex* index = image->indices + i;
-        if (index->name_hash == name_hash)
-            return i;
+        if (index->name_hash == name_hash) {
+            *out = i;
+            return BS_RESULT_OK;
+        }
     }
 
-    bs_throwBasiliskF(BSX_FAILED_TO_QUERY, "Image \"%s\" index \"%s\"", bs_idName(image->head.source_id, image->head.id), name);
-    return -1;
+    return BS_RESULT_FAILED_TO_QUERY;
 }
 
-int bs_queryImageIndex(bs_Image* image, char* name) {
-    return bs_queryImageIndexHash(image, bs_stringHash(name), name);
+BSAPI bs_Result _bs_queryImageIndex(bs_Image* image, char* name, int* out) {
+    return bs_queryImageIndexHash(image, bs_stringHash(name), out);
 }
 
 
@@ -626,7 +634,7 @@ int bs_queryImageIndex(bs_Image* image, char* name) {
    * Sampler
    *============================================================================*/
 
-void bs_destroySampler(bs_Sampler* sampler) {
+BSAPI void _bs_destroySampler(bs_Sampler* sampler) {
     vkDestroySampler(_bs_instance_->device, sampler->_->vk_sampler, NULL);
 
     // TODO: make generic
@@ -637,11 +645,20 @@ void bs_destroySampler(bs_Sampler* sampler) {
     sampler->head.source_id = source_id;
 }
 
-bs_Object* bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_SamplerBits flags) {
+BSAPI bs_Result _val_bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_SamplerBits flags) {
+    BS_VALIDATE_OBJECT_TYPE(object, BS_OBJECT_SAMPLER, BS_RESULT_VALIDATION_ERROR);
+    return bs_sampler(object, filter, flags);
+}
+
+BSAPI bs_Result _bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_SamplerBits flags) {
+    VkResult result;
     bs_Sampler* sampler = object->sampler;
 
-    if (!sampler) return NULL;
-    if (object->flags & BS_OBJECT_ALREADY_EXISTS && !(object->flags & BS_OBJECT_FORCE_DESTROY)) return NULL;
+    if (!sampler) 
+        return BS_RESULT_OK;
+
+    if (object->flags & BS_OBJECT_ALREADY_EXISTS && !(object->flags & BS_OBJECT_FORCE_DESTROY)) 
+        return BS_RESULT_OK;
 
     bs_destroySampler(sampler);
 
@@ -670,12 +687,23 @@ bs_Object* bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_SamplerBits f
         .maxLod = 0.0f,
     };
 
-    bs_throwVulkan(vkCreateSampler(_bs_instance_->device, &sampler_i, NULL, &sampler->_->vk_sampler));
+    result = vkCreateSampler(_bs_instance_->device, &sampler_i, NULL, &sampler->_->vk_sampler);
+    if (result != VK_SUCCESS) {
+        bs_warnF("Failed to create sampler (Vulkan result %d)\n", result);
+        return bs_convertVulkanResult(result);
+    }
 
-    return object;
+    return BS_RESULT_OK;
 }
 
-void bs_copyImageToBufferAsync(bs_Image* image, bs_Buffer* buffer, int image_index, bs_ImageLayout layout, bs_U64 buffer_offset, bs_ivec2 offset, bs_ivec2 dim) {
+BSAPI void _val_bs_copyImageToBufferAsync(bs_Image* image, bs_Buffer* buffer, int image_index, bs_ImageLayout layout, bs_U64 buffer_offset, bs_ivec2 offset, bs_ivec2 dim) {
+    int channels_count = bs_hasAlpha(image->format) ? 4 : 3;
+    BS_VALIDATE((dim.x * dim.y * channels_count) <= (buffer->num_bytes - buffer_offset),,);
+
+    return bs_copyImageToBufferAsync(image, buffer, image_index, layout, buffer_offset, offset, dim);
+}
+
+BSAPI void _bs_copyImageToBufferAsync(bs_Image* image, bs_Buffer* buffer, int image_index, bs_ImageLayout layout, bs_U64 buffer_offset, bs_ivec2 offset, bs_ivec2 dim) {
     VkCommandBuffer commands = bsi_fetchCommands();
     int image_swap = (image->flags & BS_IMAGE_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
     int buffer_swap = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
@@ -698,25 +726,17 @@ void bs_copyImageToBufferAsync(bs_Image* image, bs_Buffer* buffer, int image_ind
         },
     };
 
-    if (copy.imageOffset.y < 0 || (copy.imageExtent.height + copy.imageOffset.y) > image->dim.y ||
-        copy.imageOffset.x < 0 || (copy.imageExtent.width + copy.imageOffset.x) > image->dim.x) {
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
-        return;
-    }
-
-    int num_comps = bs_hasAlpha(image->format) ? 4 : 3;
-    int image_size = dim.x * dim.y * num_comps;
-    int buffer_size = buffer->num_bytes - buffer_offset;
-    if (image_size > buffer_size) {
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS, "image size (%d) > buffer size (%d)", image_size, buffer_size);
-        return;
-    }
+//    if (copy.imageOffset.y < 0 || (copy.imageExtent.height + copy.imageOffset.y) > image->dim.y ||
+//        copy.imageOffset.x < 0 || (copy.imageExtent.width + copy.imageOffset.x) > image->dim.x) 
+//    {
+//        bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
+//        return;
+//    }
 
     vkCmdCopyImageToBuffer(commands, image->_[image_swap].vk_image, layout, buffer->_[buffer_swap].vk_buffer, 1, &copy);
-    return;
 }
 
-void bs_copyBufferToImage(bs_Buffer* buffer, bs_Image* image, int index, bs_ImageLayout layout) {
+BSAPI void _bs_copyBufferToImage(bs_Buffer* buffer, bs_Image* image, int index, bs_ImageLayout layout) {
     VkCommandBuffer commands = bsi_fetchCommands();
 
     VkBufferImageCopy region = {
@@ -740,8 +760,8 @@ void bs_copyBufferToImage(bs_Buffer* buffer, bs_Image* image, int index, bs_Imag
         &region);
 
     if (_bs_scope_.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
-        bsi_pushQueue(_bs_scope_.queue);
-        bs_throwVulkan(vkQueueWaitIdle(_bs_scope_.queue->queue));
+        bs_pushQueue(_bs_scope_.queue);
+        vkQueueWaitIdle(_bs_scope_.queue->queue);
     }
 }
 
@@ -796,22 +816,22 @@ void bs_blit(bs_BlitOperation operation)  {
    * Image File Format
    *============================================================================*/
 
-bs_Result bs_loadImage(bs_Object* object, int package_id, char* resource_name, bs_ImageBits flags) {
-    bs_Result result;
+BSAPI bs_Result _val_bs_loadImage(bs_Object* object, int package_id, bs_ImageBits flags, char* resource_name, char* resource_name_length) {
+    BS_VALIDATE_OBJECT_TYPE(object, BS_OBJECT_IMAGE, BS_RESULT_OK);
 
-    if (!object)
-        return BS_RESULT_INVALID_PARAM;
+    return bs_loadImage(object, package_id, flags, resource_name, resource_name_length);
+}
+
+BSAPI bs_Result _bs_loadImage(bs_Object* object, int package_id, bs_ImageBits flags, char* resource_name, char* resource_name_length) {
+    bs_Result result;
 
     if (!object->image)
         return BS_RESULT_OK;
 
-    if (bs_objectType(object) != BS_OBJECT_IMAGE)
-        return BS_RESULT_INVALID_TYPE;
-
-    bs_Resource* resource = bs_loadResource(package_id, resource_name, 0);
-
-    if (!resource) 
-        return NULL;
+    bs_Resource* resource;
+    result = bs_loadResource(package_id, resource_name, 0, &resource);
+    if (result != BS_RESULT_OK)
+        return result;
 
     bs_BiffHeader* header = resource->data->value;
     if (header->magic != 0x66666962) {
@@ -829,9 +849,11 @@ bs_Result bs_loadImage(bs_Object* object, int package_id, char* resource_name, b
         return BS_RESULT_NOT_IMPLEMENTED;
     }
 
-    object = bs_image(object, bs_iv2(header->width, header->height), header->images_count, BS_FORMAT_R8G8B8A8_UNORM, flags);
-    if (!object)
-        return NULL;
+    result = bs_image(object, (bs_ivec2) { header->width, header->height }, header->images_count, BS_FORMAT_R8G8B8A8_UNORM, flags);
+    if (result != BS_RESULT_OK) {
+       // bs_destroyResource(resource); // TODO: try uncomment
+        return result;
+    }
 
     unsigned char* data = resource->data->value + sizeof(bs_BiffHeader);
 
@@ -842,11 +864,19 @@ bs_Result bs_loadImage(bs_Object* object, int package_id, char* resource_name, b
         0);
 
     if (result != BS_RESULT_OK) {
-
+        // TODO: try uncomment
+        // bs_destroyResource(resource);
+        // bs_destroyImage(object->image);
         return result;
     }
 
-    bs_mapBuffer(buffer, BS_U32_MAX);
+    result = bs_mapBuffer(buffer, BS_U32_MAX);
+    if (result != BS_RESULT_OK) {
+        // TODO: try uncomment
+        // bs_destroyResource(resource);
+        // bs_destroyImage(object->image);
+        return result;
+    }
 
     for (int i = 0; i < header->images_count; i++) {
         bs_BiffPointer* pointer = data;
@@ -873,7 +903,7 @@ bs_Result bs_loadImage(bs_Object* object, int package_id, char* resource_name, b
 
     resource->image = object->image;
 
-    return object;
+    return BS_RESULT_OK;
 }
 
 
@@ -895,45 +925,66 @@ static bs_vec4 bs_calculateAtlasCoordinates(bs_Atlas* atlas, int texture_id, int
         (float)mapped->h / (float)atlas->image->dim.y);
 }
 
-bs_vec4 bs_atlasCoordinates(bs_Atlas* atlas, int texture_id, int frame) {
-    if (texture_id < 0 || texture_id >= atlas->count)
-        bs_throwBasiliskF(BSX_OUT_OF_BOUNDS, "Atlas image %d is outside of bounds", texture_id);
+ /**
+  Atlas coordinates
+  */
+BSAPI bs_vec4 _bs_atlasCoordinates(bs_Atlas* atlas, int texture_id) {
+    BS_VALIDATE(texture_id >= 0, (bs_vec4) { 0 },);
+    BS_VALIDATE(texture_id < atlas->count, (bs_vec4) { 0 },);
 
+    return bs_atlasCoordinates(atlas, texture_id);
+}
+
+BSAPI bs_vec4 _bs_atlasCoordinates(bs_Atlas* atlas, int texture_id) {
     bs_AtlasTexture* mapped = atlas->mapped + texture_id;
     return mapped->coords;
 }
 
-bs_vec4 bs_mirrorUV(bs_vec4 uv) {
+ /**
+  Mirror UV coordinates (horizontal)
+  */
+BSAPI bs_vec4 _bs_mirrorUV(bs_vec4 uv) {
     return bs_v4(uv.x + uv.z, uv.y, -uv.z, uv.w);
 }
 
-bs_vec4 bs_flipUV(bs_vec4 uv) {
+ /**
+  Flip UV coordinates (vertical)
+  */
+BSAPI bs_vec4 _bs_flipUV(bs_vec4 uv) {
 #define EPSILON 0.00001f // scuffed
     return bs_v4(uv.x, uv.y + uv.w + EPSILON, uv.z, -uv.w);
 }
 
-bs_vec2 bs_atlasSize(bs_Atlas* atlas, int texture) {
-    if (texture < 0 || texture >= atlas->count)
-        bs_throwBasilisk(BSX_OUT_OF_BOUNDS);
+ /**
+  Atlas size
+  */
+BSAPI bs_vec2 _val_bs_atlasSize(bs_Atlas* atlas, int texture) {
+    BS_VALIDATE(texture >= 0, (bs_vec2) { 0 },);
+    BS_VALIDATE(texture < atlas->count, (bs_vec2) { 0 },);
 
+    return bs_atlasSize(atlas, texture);
+}
+
+BSAPI bs_vec2 _bs_atlasSize(bs_Atlas* atlas, int texture) {
     return bs_v2(atlas->mapped[texture].w / atlas->mapped[texture].split, atlas->mapped[texture].h);
 }
 
-int bs_queryAtlasHash(bs_Atlas* atlas, bs_U64 hash, const char* name) {
+BSAPI bs_Result _bs_queryAtlasHash(bs_Atlas* atlas, bs_U64 hash, const char* name, int* out) {
     for (int i = 0; i < atlas->count; i++) {
-        if (atlas->unmapped[i].name_hash == hash)
-            return i;
+        if (atlas->unmapped[i].name_hash == hash) {
+            *out = i;
+            return BS_RESULT_OK;
+        }
     }
 
-    bs_throwBasiliskF(BSX_FAILED_TO_QUERY, "%s\n@ %s", name, bs_idName(atlas->head.source_id, atlas->head.id));
-    return -1;
+    return BS_RESULT_FAILED_TO_QUERY;
 }
 
-int bs_queryAtlas(bs_Atlas* atlas, const char* name) {
-    return bs_queryAtlasHash(atlas, bs_stringHash(name), name);
+BSAPI bs_Result _bs_queryAtlas(bs_Atlas* atlas, const char* name, int* out) {
+    return bs_queryAtlasHash(atlas, bs_stringHash(name), name, out);
 }
 
-void bs_destroyAtlas(bs_Atlas* atlas) {
+BSAPI void _bs_destroyAtlas(bs_Atlas* atlas) {
     if (atlas->image)
         bs_destroyImage(atlas->image);
 
@@ -948,17 +999,14 @@ void bs_destroyAtlas(bs_Atlas* atlas) {
     //	bs_destroyBuffer(atlas->buffer);
 }
 
-void bs_splitAtlasTexture(bs_Atlas* atlas, char* name, int split) {
-    int id = bs_queryAtlas(atlas, name);
-    atlas->mapped[id].split = split;
-    atlas->mapped[id].coords = bs_calculateAtlasCoordinates(atlas, id, 0);
+BSAPI bs_Result _val_bs_loadAtlasMemory(bs_Object* object, int package_id, char* resource_name, char* data, bs_U32 flags) {
+    BS_VALIDATE_OBJECT_TYPE(object, BS_OBJECT_ATLAS, BS_RESULT_VALIDATION_ERROR);
+
+    return bs_loadAtlasMemory(object, package_id, resource_name, data, flags);
 }
 
-bs_Result bs_loadAtlasMemory(bs_Object* object, int package_id, char* resource_name, char* data, bs_U32 flags) {
+BSAPI bs_Result _bs_loadAtlasMemory(bs_Object* object, int package_id, char* resource_name, char* data, bs_U32 flags) {
     bs_Result result;
-
-    if (!object)
-        return BS_RESULT_INVALID_PARAM;
 
     if (!object->atlas) 
         return BS_RESULT_OK;
@@ -975,21 +1023,27 @@ bs_Result bs_loadAtlasMemory(bs_Object* object, int package_id, char* resource_n
     bs_destroyAtlas(object->atlas);
 
     bs_BatlHeader* header = data;
-    if (header->magic != 0x6C746162)
+    if (header->magic != 0x6C746162) {
+        bs_warnF("Atlas resource \"%s\" is corrupted, invalid magic number\n", resource_name);
         return BS_RESULT_CORRUPTED;
+    }
 
-    if (header->version != 1)
+    if (header->version != 1) {
+        bs_warnF("Atlas resource \"%s\" has an unsupported version (%d)\n", resource_name, header->version);
         return BS_RESULT_NOT_SUPPORTED;
+    }
 
-    if (header->channels_count != 4)
-        return BS_RESULT_NOT_IMPLEMENTED;
+    if (header->channels_count != 4) {
+        bs_warnF("Atlas resource \"%s\" has an unsupported amount of channels (%d)\n", resource_name, header->channels_count);
+        return BS_RESULT_NOT_SUPPORTED;
+    }
 
     bs_Object* image_object = BS_IMAGE(-1, 0, flags & BS_ATLAS_FORCE_CREATE);
 
     atlas->image = image_object->image;
 
     unsigned char* bmp = data + header->binary_offset;
-    result = bs_bitmapImage(image_object, bmp, bs_iv2(header->width, header->height), BS_FORMAT_R8G8B8A8_UNORM, 0);
+    result = bs_bitmapImage(image_object, bmp, (bs_ivec2) { header->width, header->height }, BS_FORMAT_R8G8B8A8_UNORM, 0);
     if (result != BS_RESULT_OK) {
         bs_destroyAtlas(object->atlas);
         return result;
@@ -1016,7 +1070,6 @@ bs_Result bs_loadAtlasMemory(bs_Object* object, int package_id, char* resource_n
         atlas->buffer = old_buffer;
     }
 
-
     unsigned char* offset = data + sizeof(bs_BatlHeader);
     for (int i = 0; i < atlas->count; i++) {
         bs_BatlPointer* pointer = offset;
@@ -1040,12 +1093,18 @@ bs_Result bs_loadAtlasMemory(bs_Object* object, int package_id, char* resource_n
     return BS_RESULT_OK;
 }
 
-bs_Object* bs_loadAtlas(bs_Object* object, int package_id, const char* resource_name, bs_U32 flags) {
-    bs_Resource* resource = bs_loadResource(package_id, resource_name, 0);
-    if (!resource)
-        return NULL;
-    object = bs_loadAtlasMemory(object, package_id, resource_name, resource->data->value, flags);
-    if (object)
-        resource->atlas = object->atlas;
-    return object;
+BSAPI bs_Result _bs_loadAtlas(bs_Object* object, int package_id, const char* resource_name, bs_U32 flags) {
+    bs_Result result;
+
+    bs_Resource* resource;
+    result = bs_loadResource(package_id, resource_name, 0, &resource);
+    if (result != BS_RESULT_OK)
+        return result;
+
+    result = bs_loadAtlasMemory(object, package_id, resource_name, resource->data->value, flags);
+    if (result != BS_RESULT_OK)
+        return result;
+
+    resource->atlas = object->atlas;
+    return result;
 }

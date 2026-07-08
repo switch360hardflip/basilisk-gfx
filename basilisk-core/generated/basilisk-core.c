@@ -611,6 +611,12 @@ bs_Result bs_buffer(
     return next.bs_buffer(object, num_bytes, usage_flags, memory_flags, flags);
 }
 
+bool bs_bufferIsMapped(
+    bs_Buffer* buffer)
+{
+    return next.bs_bufferIsMapped(buffer);
+}
+
 char* bs_bufferMap(
     bs_Buffer* buffer)
 {
@@ -630,20 +636,20 @@ bs_Result bs_unmapBuffer(
     return next.bs_unmapBuffer(buffer);
 }
 
-bs_Result bs_stageNull(
+void bs_stageNull(
     bs_Buffer* buffer)
 {
     return next.bs_stageNull(buffer);
 }
 
-bs_Result bs_stageList(
+void bs_stageList(
     bs_Buffer* buffer, 
     bs_List* list)
 {
     return next.bs_stageList(buffer, list);
 }
 
-bs_Result bs_stageImage(
+void bs_stageImage(
     bs_Buffer* buffer, 
     bs_Format format, 
     bs_ivec2 dim, 
@@ -652,13 +658,13 @@ bs_Result bs_stageImage(
     return next.bs_stageImage(buffer, format, dim, data);
 }
 
-bs_Result bs_destroyBuffer(
+void bs_destroyBuffer(
     bs_Buffer* buffer)
 {
     return next.bs_destroyBuffer(buffer);
 }
 
-bs_Result bs_copyAsync(
+void bs_copyAsync(
     bs_Buffer* src, 
     bs_Buffer* dst, 
     bs_U32 src_offset, 
@@ -668,7 +674,7 @@ bs_Result bs_copyAsync(
     return next.bs_copyAsync(src, dst, src_offset, dst_offset, num_bytes);
 }
 
-bs_Result bs_setBufferAsync(
+void bs_setBufferAsync(
     bs_Buffer* buffer, 
     bs_U32 offset, 
     bs_U32 num_bytes, 
@@ -1374,13 +1380,13 @@ unsigned char* bs_inspectPng(
     return next.bs_inspectPng(path, out_png_data);
 }
 
-unsigned char* bs_loadPngMemory(
+unsigned char* bs_loadPngData(
     char* data, 
     size_t size, 
     int channels_count, 
     bs_PngData* out_png_data)
 {
-    return next.bs_loadPngMemory(data, size, channels_count, out_png_data);
+    return next.bs_loadPngData(data, size, channels_count, out_png_data);
 }
 
 unsigned char* bs_loadPng(
@@ -1512,7 +1518,7 @@ bs_Result bs_savePngF(
     return _return;
 }
 
-bs_Result bs_destroyImage(
+void bs_destroyImage(
     bs_Image* image)
 {
     return next.bs_destroyImage(image);
@@ -1529,16 +1535,17 @@ bs_Result bs_resizeImage(
 bs_Result bs_queryImageIndexHash(
     bs_Image* image, 
     bs_U64 name_hash, 
-    char* name)
+    int* out)
 {
-    return next.bs_queryImageIndexHash(image, name_hash, name);
+    return next.bs_queryImageIndexHash(image, name_hash, out);
 }
 
 bs_Result bs_queryImageIndex(
     bs_Image* image, 
-    char* name)
+    char* name, 
+    int* out)
 {
-    return next.bs_queryImageIndex(image, name);
+    return next.bs_queryImageIndex(image, name, out);
 }
 
 bs_Result bs_copyImageToBufferAsync(
@@ -1681,10 +1688,9 @@ bs_Result bs_loadAtlasF(
 
 bs_vec4 bs_atlasCoordinates(
     bs_Atlas* atlas, 
-    int texture_id, 
-    int frame)
+    int texture_id)
 {
-    return next.bs_atlasCoordinates(atlas, texture_id, frame);
+    return next.bs_atlasCoordinates(atlas, texture_id);
 }
 
 bs_vec4 bs_mirrorUV(
@@ -1706,33 +1712,27 @@ bs_vec2 bs_atlasSize(
     return next.bs_atlasSize(atlas, texture);
 }
 
-int bs_queryAtlasHash(
+bs_Result bs_queryAtlasHash(
     bs_Atlas* atlas, 
     bs_U64 hash, 
-    const char* name)
+    const char* name, 
+    int* out)
 {
-    return next.bs_queryAtlasHash(atlas, hash, name);
+    return next.bs_queryAtlasHash(atlas, hash, name, out);
 }
 
-int bs_queryAtlas(
+bs_Result bs_queryAtlas(
     bs_Atlas* atlas, 
-    const char* name)
+    const char* name, 
+    int* out)
 {
-    return next.bs_queryAtlas(atlas, name);
+    return next.bs_queryAtlas(atlas, name, out);
 }
 
 bs_Result bs_destroyAtlas(
     bs_Atlas* atlas)
 {
     return next.bs_destroyAtlas(atlas);
-}
-
-void bs_splitAtlasTexture(
-    bs_Atlas* atlas, 
-    char* name, 
-    int split)
-{
-    return next.bs_splitAtlasTexture(atlas, name, split);
 }
 
 bs_Result bs_loadAtlasMemory(
@@ -3227,13 +3227,6 @@ bs_Material* bs_queryMaterial(
     return next.bs_queryMaterial(model, name);
 }
 
-void bs_assertSourceIsType(
-    int source_id, 
-    bs_ObjectType object_type)
-{
-    return next.bs_assertSourceIsType(source_id, object_type);
-}
-
 const char* bs_idName(
     bs_U32 source_id, 
     bs_U32 id)
@@ -3283,18 +3276,20 @@ bs_Result bs_queryPackage(
     return next.bs_queryPackage(name, out);
 }
 
-bs_Resource* bs_loadResource(
+bs_Result bs_loadResource(
     int package_id, 
     const char* resource_name, 
-    bs_U32 flags)
+    bs_U32 flags, 
+    bs_Resource** out)
 {
-    return next.bs_loadResource(package_id, resource_name, flags);
+    return next.bs_loadResource(package_id, resource_name, flags, out);
 }
 
-int bs_loadPackage(
-    const char* path)
+bs_Result bs_loadPackage(
+    const char* path, 
+    int* out)
 {
-    return next.bs_loadPackage(path);
+    return next.bs_loadPackage(path, out);
 }
 
 int bs_configureSource(
@@ -3935,34 +3930,31 @@ int bs_numDirectoriesF(
 }
 
 bs_Result bs_loadFile(
-    const char* path, 
     bs_String** out, 
     char* value, 
     int value_length)
 {
-    return next.bs_loadFile(path, out, value, value_length);
+    return next.bs_loadFile(out, value, value_length);
 }
 
 bs_Result bs_loadFileV(
-    const char* path, 
     bs_String** out, 
     char* format, 
     va_list args)
 {
     static bs_String* string;
     string = bs_stringV(string, format, args);
-    return bs_loadFile(path, out, string->value, string->len);
+    return bs_loadFile(out, string->value, string->len);
 }
 
 bs_Result bs_loadFileF(
-    const char* path, 
     bs_String** out, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_loadFileV(path, out, format, args);
+    bs_Result _return = bs_loadFileV(out, format, args);
     va_end(args);
     return _return;
 }
