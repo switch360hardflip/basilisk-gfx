@@ -30,6 +30,9 @@
   the code is regenerated.
   */
         
+#include <basilisk-core.h>
+#include <bs_internal.h>
+
 static bs_FunctionTable next = { 0 };
 
 void _preval_bs_setFunctions(bs_FunctionTable functions) {
@@ -464,19 +467,15 @@ static int _preval_bs_currentSwap() {
     return next.bs_currentSwap();
 }
 
-static bs_Result _preval_bs_beginComment(char* value, int value_length) {
+static void _preval_bs_beginComment(char* value, int value_length) {
     if (value == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_beginComment(value, value_length);
 }
 
-static bs_Result _preval_bs_endComment() {
+static void _preval_bs_endComment() {
     return next.bs_endComment();
-}
-
-static int _preval_bs_swapCount() {
-    return next.bs_swapCount();
 }
 
 static bs_Image* _preval_bs_swapchainImage() {
@@ -515,11 +514,17 @@ static int _preval_bs_batchSize(bs_Batch* batch) {
     if (batch == NULL)
         return 0;
 
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return 0;
+
     return next.bs_batchSize(batch);
 }
 
 static void _preval_bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offset, bs_U32 vertex_count, bs_U32 first_instance, bs_U32 num_instances) {
     if (batch == NULL)
+        return;
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
         return;
 
     if (pipeline == NULL)
@@ -534,6 +539,9 @@ static bs_Result _preval_bs_barrier(bs_U32 dependency_flags, bs_U32 src, bs_U32 
 
 static bs_Result _preval_bs_rayTrace(bs_RayTracer* ray_tracer, bs_Pipeline* pipeline, bs_U32 width, bs_U32 height, bs_U32 depth) {
     if (ray_tracer == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (ray_tracer->head.source_id != BS_OBJECT_RAY_TRACER)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (pipeline == NULL)
@@ -553,6 +561,9 @@ static bs_Result _preval_bs_accelerateAabb(bs_RayTracer* ray_tracer, bs_Aabb aab
     if (ray_tracer == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (ray_tracer->head.source_id != BS_OBJECT_RAY_TRACER)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_accelerateAabb(ray_tracer, aabb);
 }
 
@@ -560,7 +571,13 @@ static bs_Result _preval_bs_accelerateBatch(bs_RayTracer* ray_tracer, bs_Batch* 
     if (ray_tracer == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (ray_tracer->head.source_id != BS_OBJECT_RAY_TRACER)
+        return BS_RESULT_VALIDATION_ERROR;
+
     if (batch == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_accelerateBatch(ray_tracer, batch);
@@ -570,11 +587,17 @@ static bs_Result _preval_bs_build(bs_RayTracer* ray_tracer) {
     if (ray_tracer == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (ray_tracer->head.source_id != BS_OBJECT_RAY_TRACER)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_build(ray_tracer);
 }
 
 static bs_Result _preval_bs_destroyRayTracer(bs_RayTracer* ray_tracer) {
     if (ray_tracer == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (ray_tracer->head.source_id != BS_OBJECT_RAY_TRACER)
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_destroyRayTracer(ray_tracer);
@@ -591,11 +614,17 @@ static int _preval_bs_bufferSwaps(bs_Buffer* buffer) {
     if (buffer == NULL)
         return 0;
 
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
+        return 0;
+
     return next.bs_bufferSwaps(buffer);
 }
 
 static bs_Result _preval_bs_nameBuffer(bs_Buffer* buffer, char* value, int value_length) {
     if (buffer == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (value == NULL)
@@ -615,11 +644,17 @@ static char* _preval_bs_bufferMap(bs_Buffer* buffer) {
     if (buffer == NULL)
         return NULL;
 
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
+        return NULL;
+
     return next.bs_bufferMap(buffer);
 }
 
 static bs_Result _preval_bs_mapBuffer(bs_Buffer* buffer, bs_U32 num_bytes) {
     if (buffer == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_mapBuffer(buffer, num_bytes);
@@ -629,6 +664,9 @@ static bs_Result _preval_bs_unmapBuffer(bs_Buffer* buffer) {
     if (buffer == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_unmapBuffer(buffer);
 }
 
@@ -636,11 +674,17 @@ static bs_Result _preval_bs_stageNull(bs_Buffer* buffer) {
     if (buffer == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_stageNull(buffer);
 }
 
 static bs_Result _preval_bs_stageList(bs_Buffer* buffer, bs_List* list) {
     if (buffer == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (list == NULL)
@@ -653,6 +697,9 @@ static bs_Result _preval_bs_stageImage(bs_Buffer* buffer, bs_Format format, bs_i
     if (buffer == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
+        return BS_RESULT_VALIDATION_ERROR;
+
     if (data == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
@@ -663,6 +710,9 @@ static bs_Result _preval_bs_destroyBuffer(bs_Buffer* buffer) {
     if (buffer == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_destroyBuffer(buffer);
 }
 
@@ -670,7 +720,13 @@ static bs_Result _preval_bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 src
     if (src == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (src->head.source_id != BS_OBJECT_BUFFER)
+        return BS_RESULT_VALIDATION_ERROR;
+
     if (dst == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (dst->head.source_id != BS_OBJECT_BUFFER)
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_copyAsync(src, dst, src_offset, dst_offset, num_bytes);
@@ -678,6 +734,9 @@ static bs_Result _preval_bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 src
 
 static bs_Result _preval_bs_setBufferAsync(bs_Buffer* buffer, bs_U32 offset, bs_U32 num_bytes, bs_U32 value) {
     if (buffer == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_setBufferAsync(buffer, offset, num_bytes, value);
@@ -696,21 +755,24 @@ static bs_Result _preval_bs_batch(bs_Object* object, int index_size, bs_Shader* 
     return next.bs_batch(object, index_size, vertex_shader, flags);
 }
 
-static bs_Attribute* _preval_bs_queryAttribute(bs_Batch* batch, bs_Batch* , char* value, int value_length) {
+static bs_Attribute* _preval_bs_queryAttribute(bs_Batch* batch, char* value, int value_length) {
     if (batch == NULL)
         return NULL;
 
-    if ( == NULL)
+    if (batch->head.source_id != BS_OBJECT_BATCH)
         return NULL;
 
     if (value == NULL)
         return NULL;
 
-    return next.bs_queryAttribute(batch, , value, value_length);
+    return next.bs_queryAttribute(batch, value, value_length);
 }
 
 static bool _preval_bs_batchIsPushed(bs_Batch* batch) {
     if (batch == NULL)
+        return false;
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
         return false;
 
     return next.bs_batchIsPushed(batch);
@@ -720,11 +782,17 @@ static bool _preval_bs_batchIsIndexed(bs_Batch* batch) {
     if (batch == NULL)
         return false;
 
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return false;
+
     return next.bs_batchIsIndexed(batch);
 }
 
 static bs_Result _preval_bs_minimizeBatch(bs_Batch* batch) {
     if (batch == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_minimizeBatch(batch);
@@ -734,11 +802,17 @@ static bs_Result _preval_bs_pushBatch(bs_Batch* batch, bs_U32 num_index_bytes, b
     if (batch == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_pushBatch(batch, num_index_bytes, num_vertex_bytes);
 }
 
 static bs_Result _preval_bs_unpushBatch(bs_Batch* batch) {
     if (batch == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_unpushBatch(batch);
@@ -748,6 +822,9 @@ static bs_Result _preval_bs_destroyBatch(bs_Batch* batch) {
     if (batch == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_destroyBatch(batch);
 }
 
@@ -755,11 +832,17 @@ static bs_Result _preval_bs_recreateBatch(bs_Batch* batch) {
     if (batch == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_recreateBatch(batch);
 }
 
 static bs_Result _preval_bs_ensureBatchSize(bs_Batch* batch, bs_U32 num_indices, bs_U32 num_vertices) {
     if (batch == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_ensureBatchSize(batch, num_indices, num_vertices);
@@ -777,13 +860,19 @@ static void _preval_bs_batchVertex(bs_VertexDeclaration* declaration, const unsi
 
 static bs_Range _preval_bs_batchRange(bs_Batch* batch, bs_U32 offset) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     return next.bs_batchRange(batch, offset);
 }
 
 static void _preval_bs_pushIndex(bs_Batch* batch, bs_U32 index) {
     if (batch == NULL)
+        return;
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
         return;
 
     return next.bs_pushIndex(batch, index);
@@ -793,290 +882,383 @@ static void _preval_bs_pushIndexV(bs_Batch* batch, bs_U32 num_indices,  ...) {
     if (batch == NULL)
         return;
 
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return;
+
     return next.bs_pushIndexV(batch, num_indices, ...);
 }
 
 static bs_Range _preval_bs_batchCube(bs_Batch* batch, bs_U32* offset, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchCube(batch, offset, color);
 }
 
 static bs_Range _preval_bs_pushCube(bs_Batch* batch, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     return next.bs_pushCube(batch, color);
 }
 
 static bs_Range _preval_bs_batchCone(bs_Batch* batch, bs_U32* offset, int segments, float height, float radius, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchCone(batch, offset, segments, height, radius, color);
 }
 
 static bs_Range _preval_bs_pushCone(bs_Batch* batch, int segments, float height, float radius, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     return next.bs_pushCone(batch, segments, height, radius, color);
 }
 
 static bs_Range _preval_bs_batchRectangle(bs_Batch* batch, bs_U32* offset, bs_vec3 position, bs_vec2 dimensions, bs_vec2 texture_offset, bs_vec2 texture_coords, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchRectangle(batch, offset, position, dimensions, texture_offset, texture_coords, color);
 }
 
 static bs_Range _preval_bs_pushRectangle(bs_Batch* batch, bs_vec3 position, bs_vec2 dimensions, bs_vec2 texture_offset, bs_vec2 texture_coords, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     return next.bs_pushRectangle(batch, position, dimensions, texture_offset, texture_coords, color);
 }
 
 static bs_Range _preval_bs_batchQuad(bs_Batch* batch, bs_U32* offset, bs_Quad quad, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchQuad(batch, offset, quad, color);
 }
 
 static bs_Range _preval_bs_pushQuad(bs_Batch* batch, bs_Quad quad, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     return next.bs_pushQuad(batch, quad, color);
 }
 
 static bs_Range _preval_bs_batchTriangle(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchTriangle(batch, offset, a, b, c, color);
 }
 
 static bs_Range _preval_bs_pushTriangle(bs_Batch* batch, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     return next.bs_pushTriangle(batch, a, b, c, color);
 }
 
 static bs_Range _preval_bs_batchLine(bs_Batch* batch, bs_U32* offset, bs_vec3 start, bs_vec3 end, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchLine(batch, offset, start, end, color);
 }
 
 static bs_Range _preval_bs_pushLine(bs_Batch* batch, bs_vec3 start, bs_vec3 end, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     return next.bs_pushLine(batch, start, end, color);
 }
 
 static bs_Range _preval_bs_batchRay(bs_Batch* batch, bs_U32* offset, bs_Ray* ray, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     if (ray == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchRay(batch, offset, ray, color);
 }
 
 static bs_Range _preval_bs_pushRay(bs_Batch* batch, bs_Ray* ray, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (ray == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_pushRay(batch, ray, color);
 }
 
 static bs_Range _preval_bs_batchPoint(bs_Batch* batch, bs_U32* offset, bs_vec3 position, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchPoint(batch, offset, position, color);
 }
 
 static bs_Range _preval_bs_pushPoint(bs_Batch* batch, bs_vec3 position, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     return next.bs_pushPoint(batch, position, color);
 }
 
 static bs_Range _preval_bs_batchAabb(bs_Batch* batch, bs_U32* offset, bs_Aabb* aabb, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     if (aabb == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchAabb(batch, offset, aabb, color);
 }
 
 static bs_Range _preval_bs_pushAabb(bs_Batch* batch, bs_Aabb* aabb, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (aabb == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_pushAabb(batch, aabb, color);
 }
 
 static bs_Range _preval_bs_batchSphere(bs_Batch* batch, bs_U32* offset, bs_vec3 position, float radius, bs_U32 lats, bs_U32 longs, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchSphere(batch, offset, position, radius, lats, longs, color);
 }
 
 static bs_Range _preval_bs_pushSphere(bs_Batch* batch, bs_vec3 position, float radius, bs_U32 lats, bs_U32 longs, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     return next.bs_pushSphere(batch, position, radius, lats, longs, color);
 }
 
 static bs_Range _preval_bs_batchPyramid(bs_Batch* batch, bs_U32* offset, bs_vec3 pos, float width, float height, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchPyramid(batch, offset, pos, width, height, color);
 }
 
 static bs_Range _preval_bs_pushPyramid(bs_Batch* batch, bs_vec3 pos, float width, float height, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     return next.bs_pushPyramid(batch, pos, width, height, color);
 }
 
 static bs_Range _preval_bs_batchBipyramid(bs_Batch* batch, bs_U32* offset, bs_vec3 pos, float width, float height, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchBipyramid(batch, offset, pos, width, height, color);
 }
 
 static bs_Range _preval_bs_pushBipyramid(bs_Batch* batch, bs_vec3 pos, float width, float height, bs_RGBA color) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     return next.bs_pushBipyramid(batch, pos, width, height, color);
 }
 
 static bs_Range _preval_bs_batchPrimitive(bs_Batch* batch, bs_U32* offset, bs_Primitive* primitive) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     if (primitive == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchPrimitive(batch, offset, primitive);
 }
 
 static bs_Range _preval_bs_pushPrimitive(bs_Batch* batch, bs_Primitive* primitive) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (primitive == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_pushPrimitive(batch, primitive);
 }
 
 static bs_Range _preval_bs_batchMesh(bs_Batch* batch, bs_U32* offset, bs_Mesh* mesh) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     if (mesh == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchMesh(batch, offset, mesh);
 }
 
 static bs_Range _preval_bs_pushMesh(bs_Batch* batch, bs_Mesh* mesh) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (mesh == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_pushMesh(batch, mesh);
 }
 
 static bs_Range _preval_bs_batchModel(bs_Batch* batch, bs_U32* offset, bs_Model* model) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (offset == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     if (model == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_batchModel(batch, offset, model);
 }
 
 static bs_Range _preval_bs_pushModel(bs_Batch* batch, bs_Model* model) {
     if (batch == NULL)
-        return 0;
+        return (bs_Range) { 0 };
+
+    if (batch->head.source_id != BS_OBJECT_BATCH)
+        return (bs_Range) { 0 };
 
     if (model == NULL)
-        return 0;
+        return (bs_Range) { 0 };
 
     return next.bs_pushModel(batch, model);
 }
@@ -1092,11 +1274,17 @@ static void _preval_bs_output(bs_Renderer* renderer, bs_Output output) {
     if (renderer == NULL)
         return;
 
+    if (renderer->head.source_id != BS_OBJECT_RENDERER)
+        return;
+
     return next.bs_output(renderer, output);
 }
 
 static void _preval_bs_input(bs_Renderer* renderer, bs_Input input) {
     if (renderer == NULL)
+        return;
+
+    if (renderer->head.source_id != BS_OBJECT_RENDERER)
         return;
 
     return next.bs_input(renderer, input);
@@ -1106,11 +1294,17 @@ static void _preval_bs_dependency(bs_Renderer* renderer, bs_U32 src_subpass, bs_
     if (renderer == NULL)
         return;
 
+    if (renderer->head.source_id != BS_OBJECT_RENDERER)
+        return;
+
     return next.bs_dependency(renderer, src_subpass, dst_subpass, flags, src_stage, dst_stage, src_access, dst_access);
 }
 
 static void _preval_bs_renderPass(bs_Renderer* renderer) {
     if (renderer == NULL)
+        return;
+
+    if (renderer->head.source_id != BS_OBJECT_RENDERER)
         return;
 
     return next.bs_renderPass(renderer);
@@ -1120,11 +1314,17 @@ static void _preval_bs_framebuffer(bs_Renderer* renderer, bs_ivec2 resolution) {
     if (renderer == NULL)
         return;
 
+    if (renderer->head.source_id != BS_OBJECT_RENDERER)
+        return;
+
     return next.bs_framebuffer(renderer, resolution);
 }
 
 static void _preval_bs_runPass(bs_Renderer* renderer,  ...) {
     if (renderer == NULL)
+        return;
+
+    if (renderer->head.source_id != BS_OBJECT_RENDERER)
         return;
 
     return next.bs_runPass(renderer, ...);
@@ -1134,11 +1334,17 @@ static bool _preval_bs_rendererIsDynamic(bs_Renderer* renderer) {
     if (renderer == NULL)
         return false;
 
+    if (renderer->head.source_id != BS_OBJECT_RENDERER)
+        return false;
+
     return next.bs_rendererIsDynamic(renderer);
 }
 
 static void _preval_bs_beginRender(bs_Renderer* renderer) {
     if (renderer == NULL)
+        return;
+
+    if (renderer->head.source_id != BS_OBJECT_RENDERER)
         return;
 
     return next.bs_beginRender(renderer);
@@ -1148,6 +1354,9 @@ static void _preval_bs_endRender(bs_Renderer* renderer) {
     if (renderer == NULL)
         return;
 
+    if (renderer->head.source_id != BS_OBJECT_RENDERER)
+        return;
+
     return next.bs_endRender(renderer);
 }
 
@@ -1155,11 +1364,17 @@ static void _preval_bs_destroyRenderer(bs_Renderer* renderer) {
     if (renderer == NULL)
         return;
 
+    if (renderer->head.source_id != BS_OBJECT_RENDERER)
+        return;
+
     return next.bs_destroyRenderer(renderer);
 }
 
 static void _preval_bs_resizeRenderer(bs_Renderer* renderer, bs_ivec2 resolution) {
     if (renderer == NULL)
+        return;
+
+    if (renderer->head.source_id != BS_OBJECT_RENDERER)
         return;
 
     if (!(resolution.y > 0))
@@ -1183,6 +1398,9 @@ static bs_Result _preval_bs_present(bs_Queue* queue,  ...) {
     if (queue == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (queue->head.source_id != BS_OBJECT_QUEUE)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_present(queue, ...);
 }
 
@@ -1192,6 +1410,9 @@ static bs_Result _preval_bs_acquire() {
 
 static void _preval_bs_awaitQueue(bs_Queue* queue, bs_PipelineStage stage) {
     if (queue == NULL)
+        return;
+
+    if (queue->head.source_id != BS_OBJECT_QUEUE)
         return;
 
     return next.bs_awaitQueue(queue, stage);
@@ -1205,6 +1426,9 @@ static bs_Result _preval_bs_enqueue(bs_Queue* queue, bs_Callback function) {
     if (queue == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (queue->head.source_id != BS_OBJECT_QUEUE)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_enqueue(queue, function);
 }
 
@@ -1214,6 +1438,9 @@ static int _preval_bs_imageIndex() {
 
 static int _preval_bs_queueSwapsCount(bs_Queue* queue) {
     if (queue == NULL)
+        return 0;
+
+    if (queue->head.source_id != BS_OBJECT_QUEUE)
         return 0;
 
     return next.bs_queueSwapsCount(queue);
@@ -1233,6 +1460,9 @@ static bs_Result _preval_bs_destroyQueue(bs_Queue* queue) {
     if (queue == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (queue->head.source_id != BS_OBJECT_QUEUE)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_destroyQueue(queue);
 }
 
@@ -1244,6 +1474,9 @@ static void _preval_bs_stallQueue(bs_Queue* queue) {
     if (queue == NULL)
         return;
 
+    if (queue->head.source_id != BS_OBJECT_QUEUE)
+        return;
+
     return next.bs_stallQueue(queue);
 }
 
@@ -1251,11 +1484,17 @@ static bs_Result _preval_bs_stall(bs_Queue* queue) {
     if (queue == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (queue->head.source_id != BS_OBJECT_QUEUE)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_stall(queue);
 }
 
 static bool _preval_bs_poll(bs_Queue* queue) {
     if (queue == NULL)
+        return false;
+
+    if (queue->head.source_id != BS_OBJECT_QUEUE)
         return false;
 
     return next.bs_poll(queue);
@@ -1333,11 +1572,24 @@ static void _preval_bs_kern(bs_TTF* ttf) {
     return next.bs_kern(ttf);
 }
 
+static void _preval_bs_kern(bs_TTF* ttf) {
+    if (ttf == NULL)
+        return;
+
+    return next.bs_kern(ttf);
+}
+
 static void _preval_bs_bindFont(bs_Font* font, bs_Sampler* sampler, int bind_set, int bind_point) {
     if (font == NULL)
         return;
 
+    if (font->head.source_id != BS_OBJECT_FONT)
+        return;
+
     if (sampler == NULL)
+        return;
+
+    if (sampler->head.source_id != BS_OBJECT_SAMPLER)
         return;
 
     if (!(bind_set >= 0))
@@ -1348,10 +1600,13 @@ static void _preval_bs_bindFont(bs_Font* font, bs_Sampler* sampler, int bind_set
 
 static bs_vec2 _preval_bs_textDimensions(bs_Font* font, char* name, int length) {
     if (font == NULL)
-        return 0;
+        return (bs_vec2) { 0 };
+
+    if (font->head.source_id != BS_OBJECT_FONT)
+        return (bs_vec2) { 0 };
 
     if (name == NULL)
-        return 0;
+        return (bs_vec2) { 0 };
 
     return next.bs_textDimensions(font, name, length);
 }
@@ -1392,11 +1647,17 @@ static int _preval_bs_imageSwapsCount(bs_Image* image) {
     if (image == NULL)
         return 0;
 
+    if (image->head.source_id != BS_OBJECT_IMAGE)
+        return 0;
+
     return next.bs_imageSwapsCount(image);
 }
 
 static void _preval_bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout, bs_ImageLayout new_layout) {
     if (image == NULL)
+        return;
+
+    if (image->head.source_id != BS_OBJECT_IMAGE)
         return;
 
     if (!(index >= 0))
@@ -1521,11 +1782,17 @@ static bs_Result _preval_bs_destroyImage(bs_Image* image) {
     if (image == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (image->head.source_id != BS_OBJECT_IMAGE)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_destroyImage(image);
 }
 
 static bs_Result _preval_bs_resizeImage(bs_Image* image, bs_ivec2 resolution, int num_indices) {
     if (image == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (image->head.source_id != BS_OBJECT_IMAGE)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (!(_bs_validateImageBounds(image, resolution)))
@@ -1538,6 +1805,9 @@ static bs_Result _preval_bs_queryImageIndexHash(bs_Image* image, bs_U64 name_has
     if (image == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (image->head.source_id != BS_OBJECT_IMAGE)
+        return BS_RESULT_VALIDATION_ERROR;
+
     if (name == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
@@ -1546,6 +1816,9 @@ static bs_Result _preval_bs_queryImageIndexHash(bs_Image* image, bs_U64 name_has
 
 static bs_Result _preval_bs_queryImageIndex(bs_Image* image, char* name) {
     if (image == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (image->head.source_id != BS_OBJECT_IMAGE)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (name == NULL)
@@ -1558,7 +1831,13 @@ static bs_Result _preval_bs_copyImageToBufferAsync(bs_Image* image, bs_Buffer* b
     if (image == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (image->head.source_id != BS_OBJECT_IMAGE)
+        return BS_RESULT_VALIDATION_ERROR;
+
     if (buffer == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (!(image_index >= 0))
@@ -1577,7 +1856,13 @@ static bs_Result _preval_bs_copyBufferToImage(bs_Buffer* buffer, bs_Image* image
     if (buffer == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
+        return BS_RESULT_VALIDATION_ERROR;
+
     if (image == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (image->head.source_id != BS_OBJECT_IMAGE)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (!(index >= 0))
@@ -1622,6 +1907,9 @@ static bs_Result _preval_bs_nameImage(bs_Image* image, const char* name) {
     if (image == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (image->head.source_id != BS_OBJECT_IMAGE)
+        return BS_RESULT_VALIDATION_ERROR;
+
     if (name == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
@@ -1630,6 +1918,9 @@ static bs_Result _preval_bs_nameImage(bs_Image* image, const char* name) {
 
 static bs_Result _preval_bs_destroySampler(bs_Sampler* sampler) {
     if (sampler == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (sampler->head.source_id != BS_OBJECT_SAMPLER)
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_destroySampler(sampler);
@@ -1663,13 +1954,16 @@ static bs_Result _preval_bs_loadAtlas(bs_Object* object, int package_id, bs_U32 
 
 static bs_vec4 _preval_bs_atlasCoordinates(bs_Atlas* atlas, int texture_id, int frame) {
     if (atlas == NULL)
-        return 0;
+        return (bs_vec4) { 0 };
+
+    if (atlas->head.source_id != BS_OBJECT_ATLAS)
+        return (bs_vec4) { 0 };
 
     if (!(texture_id >= 0))
-        return 0;
+        return (bs_vec4) { 0 };
 
     if (!(frame >= 0))
-        return 0;
+        return (bs_vec4) { 0 };
 
     return next.bs_atlasCoordinates(atlas, texture_id, frame);
 }
@@ -1684,16 +1978,22 @@ static bs_vec4 _preval_bs_flipUV(bs_vec4 uv) {
 
 static bs_vec2 _preval_bs_atlasSize(bs_Atlas* atlas, int texture) {
     if (atlas == NULL)
-        return 0;
+        return (bs_vec2) { 0 };
+
+    if (atlas->head.source_id != BS_OBJECT_ATLAS)
+        return (bs_vec2) { 0 };
 
     if (!(texture >= 0))
-        return 0;
+        return (bs_vec2) { 0 };
 
     return next.bs_atlasSize(atlas, texture);
 }
 
 static int _preval_bs_queryAtlasHash(bs_Atlas* atlas, bs_U64 hash, const char* name) {
     if (atlas == NULL)
+        return 0;
+
+    if (atlas->head.source_id != BS_OBJECT_ATLAS)
         return 0;
 
     if (name == NULL)
@@ -1706,6 +2006,9 @@ static int _preval_bs_queryAtlas(bs_Atlas* atlas, const char* name) {
     if (atlas == NULL)
         return 0;
 
+    if (atlas->head.source_id != BS_OBJECT_ATLAS)
+        return 0;
+
     if (name == NULL)
         return 0;
 
@@ -1716,11 +2019,17 @@ static bs_Result _preval_bs_destroyAtlas(bs_Atlas* atlas) {
     if (atlas == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
+    if (atlas->head.source_id != BS_OBJECT_ATLAS)
+        return BS_RESULT_VALIDATION_ERROR;
+
     return next.bs_destroyAtlas(atlas);
 }
 
 static void _preval_bs_splitAtlasTexture(bs_Atlas* atlas, char* name, int split) {
     if (atlas == NULL)
+        return;
+
+    if (atlas->head.source_id != BS_OBJECT_ATLAS)
         return;
 
     if (name == NULL)
@@ -1767,11 +2076,11 @@ static bs_Result _preval_bs_loadAtlas(bs_Object* object, int package_id, const c
     return next.bs_loadAtlas(object, package_id, resource_name, flags);
 }
 
-static void _preval_bs_parseArgs(int argc, char* argv[]) {
-    if (argv[] == NULL)
+static void _preval_bs_parseArgs(int argc, char* argv) {
+    if (argv == NULL)
         return;
 
-    return next.bs_parseArgs(argc, argv[]);
+    return next.bs_parseArgs(argc, argv);
 }
 
 static bs_Args* _preval_bs_arguments() {
@@ -1811,18 +2120,24 @@ static void _preval_bsi_resizeObjects() {
     return next.bsi_resizeObjects();
 }
 
-static void _preval_bsi_resetQueue(bs_Queue* queue) {
+static bs_Result _preval_bs_resetQueue(bs_Queue* queue) {
     if (queue == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bsi_resetQueue(queue);
+    if (queue->head.source_id != BS_OBJECT_QUEUE)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_resetQueue(queue);
 }
 
-static void _preval_bsi_pushQueue(bs_Queue* queue) {
+static bs_Result _preval_bs_pushQueue(bs_Queue* queue) {
     if (queue == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bsi_pushQueue(queue);
+    if (queue->head.source_id != BS_OBJECT_QUEUE)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_pushQueue(queue);
 }
 
 static bs_Result _preval_bsi_nameHandle(bs_U64 handle, bs_U32 type, char* value, int value_length) {
@@ -1835,13 +2150,13 @@ static bs_Result _preval_bsi_nameHandle(bs_U64 handle, bs_U32 type, char* value,
     return next.bsi_nameHandle(handle, type, value, value_length);
 }
 
-static bs_Procedures* _preval_bs_procedures() {
-    return next.bs_procedures();
+static bs_Procs* _preval_bs_procs() {
+    return next.bs_procs();
 }
 
 static bs_JsonEnumeration _preval_bs_beginEnumeration(bs_Json* json) {
     if (json == NULL)
-        return 0;
+        return (bs_JsonEnumeration) { 0 };
 
     return next.bs_beginEnumeration(json);
 }
@@ -1858,7 +2173,7 @@ static void _preval_bs_enumerateJson(bs_Json* json, bs_JsonEnumeration* e) {
 
 static bs_Json _preval_bs_jsonRoot(bs_Json* json, bs_JsonObject object) {
     if (json == NULL)
-        return 0;
+        return (bs_Json) { 0 };
 
     return next.bs_jsonRoot(json, object);
 }
@@ -1872,7 +2187,7 @@ static void _preval_bs_ensureJsonMutable(bs_Json* root) {
 
 static bs_Json _preval_bs_jsonCopy(const bs_Json* root) {
     if (root == NULL)
-        return 0;
+        return (bs_Json) { 0 };
 
     return next.bs_jsonCopy(root);
 }
@@ -1927,17 +2242,17 @@ static bs_Result _preval_bs_destroyJson(bs_Json* json) {
 
 static bs_JsonValue _preval_bs_parseJsonValue(char* raw) {
     if (raw == NULL)
-        return 0;
+        return (bs_JsonValue) { 0 };
 
     return next.bs_parseJsonValue(raw);
 }
 
 static bs_JsonValue _preval_bs_fetchJson(bs_Json* root, bs_JsonType expect, char* value, int value_length) {
     if (root == NULL)
-        return 0;
+        return (bs_JsonValue) { 0 };
 
     if (value == NULL)
-        return 0;
+        return (bs_JsonValue) { 0 };
 
     return next.bs_fetchJson(root, expect, value, value_length);
 }
@@ -1984,14 +2299,14 @@ static bs_JsonValue _preval_bs_jsonValueFromFloat(double x) {
 
 static bs_JsonValue _preval_bs_jsonValueFromString(char* x) {
     if (x == NULL)
-        return 0;
+        return (bs_JsonValue) { 0 };
 
     return next.bs_jsonValueFromString(x);
 }
 
 static bs_JsonValue _preval_bs_jsonValueFromStringPointer(char* x) {
     if (x == NULL)
-        return 0;
+        return (bs_JsonValue) { 0 };
 
     return next.bs_jsonValueFromStringPointer(x);
 }
@@ -2002,38 +2317,38 @@ static bs_JsonValue _preval_bs_jsonValueFromDateTime(bs_DateTime x) {
 
 static bs_JsonValue _preval_bs_jsonObject(bs_Json* json) {
     if (json == NULL)
-        return 0;
+        return (bs_JsonValue) { 0 };
 
     return next.bs_jsonObject(json);
 }
 
 static bs_JsonValue _preval_bs_jsonArray(bs_JsonType type, char* data, int count) {
     if (data == NULL)
-        return 0;
+        return (bs_JsonValue) { 0 };
 
     if (!(count >= 0))
-        return 0;
+        return (bs_JsonValue) { 0 };
 
     return next.bs_jsonArray(type, data, count);
 }
 
 static bs_JsonValue _preval_bs_jsonVec2(bs_vec2* vector) {
     if (vector == NULL)
-        return 0;
+        return (bs_JsonValue) { 0 };
 
     return next.bs_jsonVec2(vector);
 }
 
 static bs_JsonValue _preval_bs_jsonVec3(bs_vec3* vector) {
     if (vector == NULL)
-        return 0;
+        return (bs_JsonValue) { 0 };
 
     return next.bs_jsonVec3(vector);
 }
 
 static bs_JsonValue _preval_bs_jsonVec4(bs_vec4* vector) {
     if (vector == NULL)
-        return 0;
+        return (bs_JsonValue) { 0 };
 
     return next.bs_jsonVec4(vector);
 }
@@ -2561,16 +2876,16 @@ static bs_List _preval_bs_list(int unit_size, int increment) {
     return next.bs_list(unit_size, increment);
 }
 
-static void _preval_bs_guidToString(bs_GUID* guid,  char out[37]) {
+static void _preval_bs_guidToString(bs_GUID* guid,  char out) {
     if (guid == NULL)
         return;
 
-    return next.bs_guidToString(guid, char out[37]);
+    return next.bs_guidToString(guid, char out);
 }
 
 static bs_GUID _preval_bs_stringToGuid(const char* str) {
     if (str == NULL)
-        return 0;
+        return (bs_GUID) { 0 };
 
     return next.bs_stringToGuid(str);
 }
@@ -2684,7 +2999,7 @@ static void _preval_bs_setFileModifiedDate(const char* path, bs_DateTime* date_t
 
 static bs_DateTime _preval_bs_fileModifiedDate(char* value, int value_length) {
     if (value == NULL)
-        return 0;
+        return (bs_DateTime) { 0 };
 
     return next.bs_fileModifiedDate(value, value_length);
 }
@@ -2780,41 +3095,41 @@ static void _preval_bs_destroyModel(bs_Model* model) {
 
 static bs_vec4 _preval_bs_interpolateRotation(bs_AnimationBone* animation_joint, float time) {
     if (animation_joint == NULL)
-        return 0;
+        return (bs_vec4) { 0 };
 
     return next.bs_interpolateRotation(animation_joint, time);
 }
 
 static bs_vec3 _preval_bs_interpolateTranslation(bs_AnimationBone* animation_joint, float time) {
     if (animation_joint == NULL)
-        return 0;
+        return (bs_vec3) { 0 };
 
     return next.bs_interpolateTranslation(animation_joint, time);
 }
 
 static bs_vec3 _preval_bs_interpolateScale(bs_AnimationBone* animation_joint, float time) {
     if (animation_joint == NULL)
-        return 0;
+        return (bs_vec3) { 0 };
 
     return next.bs_interpolateScale(animation_joint, time);
 }
 
 static bs_mat4 _preval_bs_boneTransform(bs_Armature* armature, bs_Bone* bone) {
     if (armature == NULL)
-        return 0;
+        return (bs_mat4) { 0 };
 
     if (bone == NULL)
-        return 0;
+        return (bs_mat4) { 0 };
 
     return next.bs_boneTransform(armature, bone);
 }
 
 static bs_vec3 _preval_bs_bonePosition(bs_Armature* armature, bs_Bone* bone) {
     if (armature == NULL)
-        return 0;
+        return (bs_vec3) { 0 };
 
     if (bone == NULL)
-        return 0;
+        return (bs_vec3) { 0 };
 
     return next.bs_bonePosition(armature, bone);
 }
@@ -2892,10 +3207,10 @@ static void _preval_bs_keyframeScale(bs_AnimationBone* bone, float timestamp, bs
 
 static bs_Animation _preval_bs_loadAnimation(bs_Model* model, const char* name) {
     if (model == NULL)
-        return 0;
+        return (bs_Animation) { 0 };
 
     if (name == NULL)
-        return 0;
+        return (bs_Animation) { 0 };
 
     return next.bs_loadAnimation(model, name);
 }
@@ -3146,7 +3461,13 @@ static void _preval_bs_bindImage(bs_U32 bind_set_slot, bs_U32 binding_slot, bs_I
     if (image == NULL)
         return;
 
+    if (image->head.source_id != BS_OBJECT_IMAGE)
+        return;
+
     if (sampler == NULL)
+        return;
+
+    if (sampler->head.source_id != BS_OBJECT_SAMPLER)
         return;
 
     return next.bs_bindImage(bind_set_slot, binding_slot, image, sampler, layout);
@@ -3163,11 +3484,17 @@ static void _preval_bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 binding_slot, bs_
     if (buffer == NULL)
         return;
 
+    if (buffer->head.source_id != BS_OBJECT_BUFFER)
+        return;
+
     return next.bs_bindBuffer(bind_set_slot, binding_slot, buffer);
 }
 
 static void _preval_bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 slot, bs_RayTracer* ray_tracer) {
     if (ray_tracer == NULL)
+        return;
+
+    if (ray_tracer->head.source_id != BS_OBJECT_RAY_TRACER)
         return;
 
     return next.bs_bindAccelerationStructure(bind_set_slot, slot, ray_tracer);
@@ -3571,7 +3898,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_currentSwap = _preval_bs_currentSwap;
     functions.bs_beginComment = _preval_bs_beginComment;
     functions.bs_endComment = _preval_bs_endComment;
-    functions.bs_swapCount = _preval_bs_swapCount;
     functions.bs_swapchainImage = _preval_bs_swapchainImage;
     functions.bs_clearStencil = _preval_bs_clearStencil;
     functions.bs_clearDepth = _preval_bs_clearDepth;
@@ -3682,6 +4008,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_ttf = _preval_bs_ttf;
     functions.bs_rasterizeGlyph = _preval_bs_rasterizeGlyph;
     functions.bs_kern = _preval_bs_kern;
+    functions.bs_kern = _preval_bs_kern;
     functions.bs_bindFont = _preval_bs_bindFont;
     functions.bs_textDimensions = _preval_bs_textDimensions;
     functions.bs_loadFont = _preval_bs_loadFont;
@@ -3728,10 +4055,10 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bsi_fetchCommands = _preval_bsi_fetchCommands;
     functions.bsi_fetchDevice = _preval_bsi_fetchDevice;
     functions.bsi_resizeObjects = _preval_bsi_resizeObjects;
-    functions.bsi_resetQueue = _preval_bsi_resetQueue;
-    functions.bsi_pushQueue = _preval_bsi_pushQueue;
+    functions.bs_resetQueue = _preval_bs_resetQueue;
+    functions.bs_pushQueue = _preval_bs_pushQueue;
     functions.bsi_nameHandle = _preval_bsi_nameHandle;
-    functions.bs_procedures = _preval_bs_procedures;
+    functions.bs_procs = _preval_bs_procs;
     functions.bs_beginEnumeration = _preval_bs_beginEnumeration;
     functions.bs_enumerateJson = _preval_bs_enumerateJson;
     functions.bs_jsonRoot = _preval_bs_jsonRoot;

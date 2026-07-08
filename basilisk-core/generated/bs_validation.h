@@ -96,7 +96,6 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_beginCommentV = GetProcAddress(module, "_val_bs_beginCommentV");
     functions.bs_beginCommentF = GetProcAddress(module, "_val_bs_beginCommentF");
     functions.bs_endComment = GetProcAddress(module, "_val_bs_endComment");
-    functions.bs_swapCount = GetProcAddress(module, "_val_bs_swapCount");
     functions.bs_swapchainImage = GetProcAddress(module, "_val_bs_swapchainImage");
     functions.bs_clearStencil = GetProcAddress(module, "_val_bs_clearStencil");
     functions.bs_clearDepth = GetProcAddress(module, "_val_bs_clearDepth");
@@ -211,6 +210,7 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_ttf = GetProcAddress(module, "_val_bs_ttf");
     functions.bs_rasterizeGlyph = GetProcAddress(module, "_val_bs_rasterizeGlyph");
     functions.bs_kern = GetProcAddress(module, "_val_bs_kern");
+    functions.bs_kern = GetProcAddress(module, "_val_bs_kern");
     functions.bs_bindFont = GetProcAddress(module, "_val_bs_bindFont");
     functions.bs_textDimensions = GetProcAddress(module, "_val_bs_textDimensions");
     functions.bs_loadFont = GetProcAddress(module, "_val_bs_loadFont");
@@ -267,12 +267,12 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bsi_fetchCommands = GetProcAddress(module, "_val_bsi_fetchCommands");
     functions.bsi_fetchDevice = GetProcAddress(module, "_val_bsi_fetchDevice");
     functions.bsi_resizeObjects = GetProcAddress(module, "_val_bsi_resizeObjects");
-    functions.bsi_resetQueue = GetProcAddress(module, "_val_bsi_resetQueue");
-    functions.bsi_pushQueue = GetProcAddress(module, "_val_bsi_pushQueue");
+    functions.bs_resetQueue = GetProcAddress(module, "_val_bs_resetQueue");
+    functions.bs_pushQueue = GetProcAddress(module, "_val_bs_pushQueue");
     functions.bsi_nameHandle = GetProcAddress(module, "_val_bsi_nameHandle");
     functions.bsi_nameHandleV = GetProcAddress(module, "_val_bsi_nameHandleV");
     functions.bsi_nameHandleF = GetProcAddress(module, "_val_bsi_nameHandleF");
-    functions.bs_procedures = GetProcAddress(module, "_val_bs_procedures");
+    functions.bs_procs = GetProcAddress(module, "_val_bs_procs");
     functions.bs_beginEnumeration = GetProcAddress(module, "_val_bs_beginEnumeration");
     functions.bs_enumerateJson = GetProcAddress(module, "_val_bs_enumerateJson");
     functions.bs_jsonRoot = GetProcAddress(module, "_val_bs_jsonRoot");

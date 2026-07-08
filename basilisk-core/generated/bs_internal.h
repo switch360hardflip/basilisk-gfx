@@ -33,6 +33,30 @@
 #ifndef BS_INTERNAL_H
 #define BS_INTERNAL_H
 
+#include <vulkan.h>
+
+#define BS_FOREACH_PROC(X) \
+    X(PFN_vkCmdInsertDebugUtilsLabelEXT, vkCmdInsertDebugUtilsLabelEXT) \
+    X(PFN_vkCmdBeginDebugUtilsLabelEXT, vkCmdBeginDebugUtilsLabelEXT) \
+    X(PFN_vkCmdEndDebugUtilsLabelEXT, vkCmdEndDebugUtilsLabelEXT) \
+    X(PFN_vkCmdBeginRenderingKHR, vkCmdBeginRenderingKHR) \
+    X(PFN_vkCmdEndRenderingKHR, vkCmdEndRenderingKHR) \
+    X(PFN_vkCmdTraceRaysKHR, vkCmdTraceRaysKHR) \
+    X(PFN_vkGetAccelerationStructureBuildSizesKHR, vkGetAccelerationStructureBuildSizesKHR) \
+    X(PFN_vkCreateAccelerationStructureKHR, vkCreateAccelerationStructureKHR) \
+    X(PFN_vkCmdBuildAccelerationStructuresKHR, vkCmdBuildAccelerationStructuresKHR) \
+    X(PFN_vkGetAccelerationStructureDeviceAddressKHR, vkGetAccelerationStructureDeviceAddressKHR) \
+    X(PFN_vkGetRayTracingShaderGroupHandlesKHR, vkGetRayTracingShaderGroupHandlesKHR) \
+    X(PFN_vkDestroyAccelerationStructureKHR, vkDestroyAccelerationStructureKHR) \
+    X(PFN_vkCreateRayTracingPipelinesKHR, vkCreateRayTracingPipelinesKHR) \
+
+#define BS_STRUCT_GEN(TYPE, FUNC, ...) TYPE FUNC;
+
+typedef struct bs_Procs bs_Procs;
+extern struct bs_Procs {
+    BS_FOREACH_PROC(BS_STRUCT_GEN)
+} _bs_procs_;
+
 typedef bs_List*(__stdcall* PFN_bs_packages)();
 typedef bs_List*(__stdcall* PFN_bs_objectSources)();
 typedef bs_vec2(__stdcall* PFN_bs_v2)();
@@ -83,9 +107,8 @@ typedef bs_Result(__stdcall* PFN_bs_lineVsLine)(bs_vec2 l1_start, bs_vec2 l1_end
 typedef void(__stdcall* PFN_bs_populateVertexDeclaration)(bs_VertexDeclaration* declaration, bs_Attribute* attributes, int attributes_count);
 typedef bs_Swapchain*(__stdcall* PFN_bs_swapchain)();
 typedef int(__stdcall* PFN_bs_currentSwap)();
-typedef bs_Result(__stdcall* PFN_bs_beginComment)(char* value, int value_length);
-typedef bs_Result(__stdcall* PFN_bs_endComment)();
-typedef int(__stdcall* PFN_bs_swapCount)();
+typedef void(__stdcall* PFN_bs_beginComment)(char* value, int value_length);
+typedef void(__stdcall* PFN_bs_endComment)();
 typedef bs_Image*(__stdcall* PFN_bs_swapchainImage)();
 typedef bs_Result(__stdcall* PFN_bs_clearStencil)(bs_U32 index, bs_ivec2 resolution, bs_U32 value);
 typedef bs_Result(__stdcall* PFN_bs_clearDepth)(bs_U32 index, bs_ivec2 dim, float value);
@@ -117,7 +140,7 @@ typedef bs_Result(__stdcall* PFN_bs_destroyBuffer)(bs_Buffer* buffer);
 typedef bs_Result(__stdcall* PFN_bs_copyAsync)(bs_Buffer* src, bs_Buffer* dst, bs_U32 src_offset, bs_U32 dst_offset, bs_U32 num_bytes);
 typedef bs_Result(__stdcall* PFN_bs_setBufferAsync)(bs_Buffer* buffer, bs_U32 offset, bs_U32 num_bytes, bs_U32 value);
 typedef bs_Result(__stdcall* PFN_bs_batch)(bs_Object* object, int index_size, bs_Shader* vertex_shader, bs_BatchBits flags);
-typedef bs_Attribute*(__stdcall* PFN_bs_queryAttribute)(bs_Batch* batch, bs_Batch* , char* value, int value_length);
+typedef bs_Attribute*(__stdcall* PFN_bs_queryAttribute)(bs_Batch* batch, char* value, int value_length);
 typedef bool(__stdcall* PFN_bs_batchIsPushed)(bs_Batch* batch);
 typedef bool(__stdcall* PFN_bs_batchIsIndexed)(bs_Batch* batch);
 typedef bs_Result(__stdcall* PFN_bs_minimizeBatch)(bs_Batch* batch);
@@ -196,6 +219,7 @@ typedef void(__stdcall* PFN_bs_glyph)(bs_TTF* ttf, bs_U16 code);
 typedef void(__stdcall* PFN_bs_ttf)(bs_TTF* existing, const char* path, bs_U32 flags);
 typedef void(__stdcall* PFN_bs_rasterizeGlyph)(bs_TTF* font, bs_Glyph* glyph, int width, int height, char* out_bmp, float scale);
 typedef void(__stdcall* PFN_bs_kern)(bs_TTF* ttf);
+typedef void(__stdcall* PFN_bs_kern)(bs_TTF* ttf);
 typedef void(__stdcall* PFN_bs_bindFont)(bs_Font* font, bs_Sampler* sampler, int bind_set, int bind_point);
 typedef bs_vec2(__stdcall* PFN_bs_textDimensions)(bs_Font* font, char* name, int length);
 typedef bs_Result(__stdcall* PFN_bs_loadFont)(bs_Object* object, int package_id, const char* resource_name, const char* alphabet, float spacing, bs_U32 flags);
@@ -234,7 +258,7 @@ typedef bs_Result(__stdcall* PFN_bs_destroyAtlas)(bs_Atlas* atlas);
 typedef void(__stdcall* PFN_bs_splitAtlasTexture)(bs_Atlas* atlas, char* name, int split);
 typedef bs_Result(__stdcall* PFN_bs_loadAtlasMemory)(bs_Object* object, int package_id, char* resource_name, char* data, bs_U32 flags);
 typedef bs_Result(__stdcall* PFN_bs_loadAtlas)(bs_Object* object, int package_id, const char* resource_name, bs_U32 flags);
-typedef void(__stdcall* PFN_bs_parseArgs)(int argc, char* argv[]);
+typedef void(__stdcall* PFN_bs_parseArgs)(int argc, char* argv);
 typedef bs_Args*(__stdcall* PFN_bs_arguments)();
 typedef void(__stdcall* PFN_bs_ini)();
 typedef void(__stdcall* PFN_bs_load)(bs_Callback load_resources);
@@ -242,10 +266,10 @@ typedef void(__stdcall* PFN_bs_queryProcedures)(bs_Procedure* procedures, int co
 typedef struct VkCommandBuffer_T*(__stdcall* PFN_bsi_fetchCommands)();
 typedef struct VkDevice_T*(__stdcall* PFN_bsi_fetchDevice)();
 typedef void(__stdcall* PFN_bsi_resizeObjects)();
-typedef void(__stdcall* PFN_bsi_resetQueue)(bs_Queue* queue);
-typedef void(__stdcall* PFN_bsi_pushQueue)(bs_Queue* queue);
+typedef bs_Result(__stdcall* PFN_bs_resetQueue)(bs_Queue* queue);
+typedef bs_Result(__stdcall* PFN_bs_pushQueue)(bs_Queue* queue);
 typedef bs_Result(__stdcall* PFN_bsi_nameHandle)(bs_U64 handle, bs_U32 type, char* value, int value_length);
-typedef bs_Procedures*(__stdcall* PFN_bs_procedures)();
+typedef bs_Procs*(__stdcall* PFN_bs_procs)();
 typedef bs_JsonEnumeration(__stdcall* PFN_bs_beginEnumeration)(bs_Json* json);
 typedef void(__stdcall* PFN_bs_enumerateJson)(bs_Json* json, bs_JsonEnumeration* e);
 typedef bs_Json(__stdcall* PFN_bs_jsonRoot)(bs_Json* json, bs_JsonObject object);
@@ -344,7 +368,7 @@ typedef void(__stdcall* PFN_bs_destroyList)(bs_List* list);
 typedef void(__stdcall* PFN_bs_seekList)(bs_List* list, bs_U32 unit_index);
 typedef void(__stdcall* PFN_bs_minimizeList)(bs_List* list);
 typedef bs_List(__stdcall* PFN_bs_list)(int unit_size, int increment);
-typedef void(__stdcall* PFN_bs_guidToString)(bs_GUID* guid, char out[37]);
+typedef void(__stdcall* PFN_bs_guidToString)(bs_GUID* guid, char out);
 typedef bs_GUID(__stdcall* PFN_bs_stringToGuid)(const char* str);
 typedef bool(__stdcall* PFN_bs_sameGuid)(bs_GUID* a, bs_GUID* b);
 typedef bs_GUID(__stdcall* PFN_bs_guid)();
@@ -543,7 +567,6 @@ typedef struct {
     PFN_bs_currentSwap bs_currentSwap;
     PFN_bs_beginComment bs_beginComment;
     PFN_bs_endComment bs_endComment;
-    PFN_bs_swapCount bs_swapCount;
     PFN_bs_swapchainImage bs_swapchainImage;
     PFN_bs_clearStencil bs_clearStencil;
     PFN_bs_clearDepth bs_clearDepth;
@@ -654,6 +677,7 @@ typedef struct {
     PFN_bs_ttf bs_ttf;
     PFN_bs_rasterizeGlyph bs_rasterizeGlyph;
     PFN_bs_kern bs_kern;
+    PFN_bs_kern bs_kern;
     PFN_bs_bindFont bs_bindFont;
     PFN_bs_textDimensions bs_textDimensions;
     PFN_bs_loadFont bs_loadFont;
@@ -700,10 +724,10 @@ typedef struct {
     PFN_bsi_fetchCommands bsi_fetchCommands;
     PFN_bsi_fetchDevice bsi_fetchDevice;
     PFN_bsi_resizeObjects bsi_resizeObjects;
-    PFN_bsi_resetQueue bsi_resetQueue;
-    PFN_bsi_pushQueue bsi_pushQueue;
+    PFN_bs_resetQueue bs_resetQueue;
+    PFN_bs_pushQueue bs_pushQueue;
     PFN_bsi_nameHandle bsi_nameHandle;
-    PFN_bs_procedures bs_procedures;
+    PFN_bs_procs bs_procs;
     PFN_bs_beginEnumeration bs_beginEnumeration;
     PFN_bs_enumerateJson bs_enumerateJson;
     PFN_bs_jsonRoot bs_jsonRoot;
@@ -1012,7 +1036,6 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_beginCommentV = GetProcAddress(module, "_bs_beginCommentV");
     functions.bs_beginCommentF = GetProcAddress(module, "_bs_beginCommentF");
     functions.bs_endComment = GetProcAddress(module, "_bs_endComment");
-    functions.bs_swapCount = GetProcAddress(module, "_bs_swapCount");
     functions.bs_swapchainImage = GetProcAddress(module, "_bs_swapchainImage");
     functions.bs_clearStencil = GetProcAddress(module, "_bs_clearStencil");
     functions.bs_clearDepth = GetProcAddress(module, "_bs_clearDepth");
@@ -1127,6 +1150,7 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_ttf = GetProcAddress(module, "_bs_ttf");
     functions.bs_rasterizeGlyph = GetProcAddress(module, "_bs_rasterizeGlyph");
     functions.bs_kern = GetProcAddress(module, "_bs_kern");
+    functions.bs_kern = GetProcAddress(module, "_bs_kern");
     functions.bs_bindFont = GetProcAddress(module, "_bs_bindFont");
     functions.bs_textDimensions = GetProcAddress(module, "_bs_textDimensions");
     functions.bs_loadFont = GetProcAddress(module, "_bs_loadFont");
@@ -1183,12 +1207,12 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bsi_fetchCommands = GetProcAddress(module, "_bsi_fetchCommands");
     functions.bsi_fetchDevice = GetProcAddress(module, "_bsi_fetchDevice");
     functions.bsi_resizeObjects = GetProcAddress(module, "_bsi_resizeObjects");
-    functions.bsi_resetQueue = GetProcAddress(module, "_bsi_resetQueue");
-    functions.bsi_pushQueue = GetProcAddress(module, "_bsi_pushQueue");
+    functions.bs_resetQueue = GetProcAddress(module, "_bs_resetQueue");
+    functions.bs_pushQueue = GetProcAddress(module, "_bs_pushQueue");
     functions.bsi_nameHandle = GetProcAddress(module, "_bsi_nameHandle");
     functions.bsi_nameHandleV = GetProcAddress(module, "_bsi_nameHandleV");
     functions.bsi_nameHandleF = GetProcAddress(module, "_bsi_nameHandleF");
-    functions.bs_procedures = GetProcAddress(module, "_bs_procedures");
+    functions.bs_procs = GetProcAddress(module, "_bs_procs");
     functions.bs_beginEnumeration = GetProcAddress(module, "_bs_beginEnumeration");
     functions.bs_enumerateJson = GetProcAddress(module, "_bs_enumerateJson");
     functions.bs_jsonRoot = GetProcAddress(module, "_bs_jsonRoot");

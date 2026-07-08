@@ -10,6 +10,191 @@
 
 #define BS_FLAGSET(flag, cmp) ((flag >> cmp) & 0x01)
 
+
+
+ /*==============================================================================
+  * HEAD table offsets
+  *============================================================================*/
+
+#define HEAD_VERSION                    0   // 4 | fixed
+#define HEAD_FONT_REVISION              4   // 4 | fixed
+#define HEAD_CHECK_SUM_ADJUSTMENT       8   // 4 | uint32
+#define HEAD_MAGIC_NUMBER               12  // 4 | uint32
+#define HEAD_FLAGS                      16  // 2 | uint16
+#define HEAD_UNITS_PER_EM               18  // 2 | uint16
+#define HEAD_CREATED                    20  // 8 | longDateTime
+#define HEAD_MODIFIED                   28  // 8 | longDateTime
+#define HEAD_X_MIN                      36  // 2 | fWord
+#define HEAD_Y_MIN                      38  // 2 | fWord
+#define HEAD_X_MAX                      40  // 2 | fWord
+#define HEAD_Y_MAX                      42  // 2 | fWord
+#define HEAD_MAC_STYLE                  44  // 2 | uint16
+#define HEAD_LOWEST_REC_PPEM            46  // 2 | uint16
+#define HEAD_FONT_DIRECTION_HINT        48  // 2 | int16
+#define HEAD_INDEX_TO_LOC_FORMAT        50  // 2 | int16
+#define HEAD_GLYPH_DATA_FORMAT          52  // 2 | int16
+
+
+
+ /*==============================================================================
+  * MAXP table offsets
+  *============================================================================*/
+
+#define MAXP_VERSION                    0   // 4 | fixed
+#define MAXP_NUM_GLYPHS                 4   // 2 | uint16
+#define MAXP_MAX_POINTS                 6   // 2 | uint16
+#define MAXP_MAX_CONTOURS               8   // 2 | uint16
+#define MAXP_MAX_COMPONENT_POINTS       10  // 2 | uint16
+#define MAXP_MAX_COMPONENT_CONTOURS     12  // 2 | uint16
+#define MAXP_MAX_ZONES                  14  // 2 | uint16
+#define MAXP_MAX_TWILIGHT_POINTS        16  // 2 | uint16
+#define MAXP_MAX_STORAGE                18  // 2 | uint16
+#define MAXP_MAX_FUNCTION_DEFS          20  // 2 | uint16
+#define MAXP_MAX_INSTRUCTION_DEFS       22  // 2 | uint16
+#define MAXP_MAX_STACK_ELEMENTS         24  // 2 | uint16
+#define MAXP_MAX_SIZE_OF_INSTRUCTIONS   26  // 2 | uint16
+#define MAXP_MAX_COMPONENT_ELEMENTS     28  // 2 | uint16
+#define MAXP_MAX_COMPONENT_DEPTH        30  // 2 | uint16
+
+
+
+ /*==============================================================================
+  * HHEA table offsets
+  *============================================================================*/
+
+#define HHEA_VERSION                    0   // 4 | fixed
+#define HHEA_ASCENT                     4   // 2 | fWord
+#define HHEA_DESCENT                    6   // 2 | fWord
+#define HHEA_LINE_GAP                   8   // 2 | fWord
+#define HHEA_ADVANCE_WIDTH_MAX          10  // 2 | ufWord
+#define HHEA_MIN_LEFT_SIDE_BEARING      12  // 2 | fWord
+#define HHEA_MIN_RIGHT_SIDE_BEARING     14  // 2 | fWord
+#define HHEA_X_MAX_EXTENT               16  // 2 | fWord
+#define HHEA_CARET_SLOPE_RISE           18  // 2 | int16
+#define HHEA_CARET_SLOPE_RUN            20  // 2 | int16
+#define HHEA_CARET_OFFSET               22  // 2 | fWord
+   // 8 bytes reserved here
+#define HHEA_METRIC_DATA_FORMAT         32  // 2 | int16
+#define HHEA_NUM_OF_LONG_HOR_METRICS    34  // 2 | uint16
+
+
+
+ /*==============================================================================
+  * HMTX table offsets
+  *============================================================================*/
+
+   // HMTX table offsets
+#define HMTX_LONG_HOR_METRICS			0   // 4 | uin16, int16 ARRAY
+// #define HMTX_LEFT_SIDE_BEARING			0   // 2 | fWord ARRAY
+
+
+
+ /*==============================================================================
+  * GLYF table offsets
+  *============================================================================*/
+
+#define GLYF_NUMBER_OF_CONTOURS             0   // 2 | int16
+#define GLYF_XMIN                           2   // 2 | fWord
+#define GLYF_YMIN                           4   // 2 | fWord
+#define GLYF_XMAX                           6   // 2 | fWord
+#define GLYF_YMAX                           8   // 2 | fWord
+#define GLYF_END_PTS_OF_CONTOURS            10  // 2 | uint16 ARRAY
+#define GLYF_INSTRUCTION_LENGTH(contours)   GLYF_END_PTS_OF_CONTOURS + contours * 2 // 2 | uint16
+#define GLYF_INSTRUCTIONS                   10                                      // 1 | uint8  ARRAY
+#define GLYF_FLAGS(offset, instructions)    offset + instructions + 2               // 1 | uint8  ARRAY
+
+   // flags
+#define GLYF_ON_CURVE   0
+#define GLYF_X_SHORT    1
+#define GLYF_Y_SHORT    2
+#define GLYF_REPEAT     3
+#define GLYF_X_SAME     4
+#define GLYF_Y_SAME     5
+#define GLYF_OVERLAP    6
+
+#define GLYF_XCOORDS(offset, num_flags) offset + num_flags                  // 1 | uint8  ARRAY
+#define GLYF_YCOORDS(offset, num_flags, coord) offset + num_flags + coord   // 1 | uint8  ARRAY
+
+
+
+ /*==============================================================================
+  * CMAP table offsets
+  *============================================================================*/
+
+#define CMAP_VERSION                    0   // 2 | uint16
+#define CMAP_NUMBER_SUBTABLES           2   // 2 | uint16
+
+   // field variables
+#define CMAP_PLATFORM_ID                4   // 2 | uint16
+#define CMAP_PLATFORM_SPECIFIC_ID       6   // 2 | uint16
+#define CMAP_OFFSET                     8   // 4 | uint32
+#define CMAP_TABLE_SIZE                 (2 + 2 + 4)
+
+// formats
+#define CMAP_SUBTABLE_FORMAT            0   // 2 | uint16
+
+// #define CMAP_FORMAT0_LENGTH             2   // 2 | uint16
+// #define CMAP_FORMAT0_LANGUAGE           4   // 2 | uint16
+// #define CMAP_FORMAT0_GLYPH_ARRAY        6   // 256 | uint8
+// #define CMAP_FORMAT0_GLYPH_ARRAY_SIZE   6   // 256 | uint8
+
+#define CMAP_FORMAT4_LENGTH             2
+#define CMAP_FORMAT4_LANGUAGE           4
+#define CMAP_FORMAT4_NUM_SEGMENTS_X2	6
+#define CMAP_FORMAT4_SEARCH_RANGE       8
+#define CMAP_FORMAT4_ENTRY_SELECTOR     10
+#define CMAP_FORMAT4_RANGE_SHIFT        12
+#define CMAP_FORMAT4_END_CODE           14
+// 2 bytes reserved here
+#define CMAP_FORMAT4_START_CODE(num_segments) (14 + 2 + num_segments * sizeof(bs_U16))
+#define CMAP_FORMAT4_ID_DELTA(num_segments) (CMAP_FORMAT4_START_CODE(num_segments) + num_segments * sizeof(bs_U16))
+#define CMAP_FORMAT4_ID_RANGE_OFFSET(num_segments) (CMAP_FORMAT4_ID_DELTA(num_segments) + num_segments * sizeof(bs_U16))
+#define CMAP_FORMAT4_GLYPH_ARRAY(num_segments) (CMAP_FORMAT4_ID_RANGE_OFFSET(num_segments) + num_segments * sizeof(bs_U16))
+
+
+
+ /*==============================================================================
+  * KERN table offsets
+  * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6kern.html
+  *============================================================================*/
+
+   /**
+    KERN header
+    these are 4 bytes each on fonts targeted only for OS X apparently, so i
+    guess the entire implementation just breaks and there's no way to know?
+    */
+#define KERN_VERSION                    0   // (bs_U16) - The version number of the kerning table (0x00010000 for the current version).
+#define KERN_NUMBER_OF_TABLES           2   // (bs_U16) - The number of subtables included in the kerning table.
+
+    /**
+     KERN subtable
+     */
+#define KERN_LENGTH						4	// (bs_U32) - The length of this subtable in bytes, including this header.
+#define KERN_COVERAGE					8	// (bs_U16) - Circumstances under which this table is used. See below for description.
+#define KERN_TUPLE_INDEX				10	// (bs_U16) - The tuple index (used for variations fonts). This value specifies which tuple this subtable covers.
+
+     // Coverage flags
+#define KERN_COVERAGE_VERTICAL			0x8000 // Set if table has vertical kerning values.
+#define KERN_COVERAGE_CROSS_STREAM		0x4000 // Set if table has cross-stream kerning values.
+#define KERN_COVERAGE_VARIATION			0x2000 // Set if table has variation kerning values.
+#define KERN_COVERAGE_UNUSED_BITS		0x1F00 // Set to 0.
+#define KERN_COVERAGE_FORMAT_MASK		0x00FF // Set the format of this subtable (0-3 currently defined).
+
+ /**
+  Format 0
+  */
+#define KERN_FORMAT0_PAIRS_COUNT		0 // (bs_U16) - The number of kerning pairs in this subtable.
+#define KERN_FORMAT0_SEARCH_RANGE		2 // (bs_U16) - The largest power of two less than or equal to the value of nPairs, multiplied by the size in bytes of an entry in the subtable.
+#define KERN_FORMAT0_ENTRY_SELECTOR		4 // (bs_U16) - This is calculated as log2 of the largest power of two less than or equal to the value of nPairs. This value indicates how many iterations of the search loop have to be made. For example, in a list of eight items, there would be three iterations of the loop.
+#define KERN_FORMAT0_RANGE_SHIFT		6 // (bs_U16) - The value of nPairs minus the largest power of two less than or equal to nPairs. This is multiplied by the size in bytes of an entry in the table.
+
+#define KERN_FORMAT0_PAIR_START			8
+#define KERN_FORMAT0_PAIR_LEFT			0 // (bs_U16) - The glyph index for the lefthand glyph in the kerning pair.
+#define KERN_FORMAT0_PAIR_RIGHT			2 // (bs_U16) - The glyph index for the righthand glyph in the kerning pair.
+#define KERN_FORMAT0_PAIR_VALUE			4 // (bs_I16) - The kerning value in FUnits for the left and right pair in FUnits. If this value is greater than zero, the glyphs are moved apart. If this value is less than zero, the glyphs are moved together.
+
+
+
 static inline bs_U8 bs_memU8(void* data, bs_U32 offset) {
     return *((bs_U8*)data + offset);
 }
@@ -28,36 +213,53 @@ static inline int bs_memcmpU32(const void* a, const void* b) {
     return memcmp(a, b, sizeof(bs_U32));
 }
 
-// is this really how you do it?
-static void* bs_findTable(bs_TTF* ttf, const char tag[4]) {
+static bs_Result bs_findTable(bs_TTF* ttf, const char tag[4], char** out) {
     const char* table = NULL;
     for (int i = 0; i < ttf->buffer->len - 4; i++) {
         const char* ptr = ttf->buffer->value + i;
 
         if (memcmp(ptr, tag, 4) == 0) {
             bs_U32 offset = bs_memU32(ptr, 8);
-            return ttf->buffer->value + offset;
+            *out = ttf->buffer->value + offset;
+            return BS_RESULT_OK;
         }
     }
     
-    bs_throwBasilisk(BSX_FAILED_TO_QUERY);
-    return NULL;
+    return BS_RESULT_FAILED_TO_QUERY;
 }
 
-static void bs_head(bs_TTF* ttf) {
-    ttf->head.buf = bs_findTable(ttf, "head");
+ /** head */
+BSAPI void _val_bs_readHeadTable(bs_TTF* ttf) {
+    BS_VALIDATE(bs_findTable(ttf, "head", &ttf->head.buf) == BS_RESULT_OK,,);
+    return bs_readHeadTable();
+}
+
+BSAPI void _bs_readHeadTable(bs_TTF* ttf) {
+    bs_findTable(ttf, "head", &ttf->head.buf);
     bs_U32 version = bs_memU32(ttf->head.buf, HEAD_VERSION);
     ttf->head.units_per_em = bs_memU16(ttf->head.buf, HEAD_UNITS_PER_EM);
     ttf->head.index_to_loc_format = bs_memU16(ttf->head.buf, HEAD_INDEX_TO_LOC_FORMAT);
 }
 
-static void bs_maxp(bs_TTF* ttf) {
-    ttf->maxp.buf = bs_findTable(ttf, "maxp");
+ /** maxp */
+BSAPI void _val_bs_readMaxpTable(bs_TTF* ttf) {
+    BS_VALIDATE(bs_findTable(ttf, "maxp", &ttf->head.buf) == BS_RESULT_OK,,);
+    return bs_readMaxpTable();
+}
+
+BSAPI void _bs_readMaxpTable(bs_TTF* ttf) {
+    bs_findTable(ttf, "maxp", &ttf->maxp.buf);
     ttf->maxp.num_glyphs = bs_memU16(ttf->maxp.buf, MAXP_NUM_GLYPHS);
 }
 
-static void bs_hhea(bs_TTF* ttf) {
-    ttf->hhea.buf = bs_findTable(ttf, "hhea");
+ /** hhea */
+BSAPI void _val_bs_readHheaTable(bs_TTF* ttf) {
+    BS_VALIDATE(bs_findTable(ttf, "hhea", &ttf->head.buf) == BS_RESULT_OK,,);
+    return bs_readHheaTable();
+}
+
+BSAPI void _bs_readHheaTable(bs_TTF* ttf) {
+    bs_findTable(ttf, "hhea", &ttf->hhea.buf);
     ttf->hhea.num_of_long_hor_metrics = bs_memU16(ttf->hhea.buf, HHEA_NUM_OF_LONG_HOR_METRICS);
 }
 
@@ -123,10 +325,10 @@ static inline int bs_kernFormat0(bs_TTF* ttf, char* kern, int offset) {
 }
 
 void bs_kern(bs_TTF* ttf) {
-    bs_except(BSX_FAILED_TO_QUERY);
-    char* buf = bs_findTable(ttf, "kern");
-    if (bs_caught())
+    char* buf;
+    if (bs_findTable(ttf, "kern", &buf) != BS_RESULT_OK) {
         return;
+    }
     
     // TODO: these can be bs_U32 on OS X only fonts but idk how 2 check
     bs_U16 version = bs_memU16(buf, KERN_VERSION);
@@ -154,21 +356,15 @@ void bs_kern(bs_TTF* ttf) {
         case 1:
         case 2:
         case 3:
-            bs_throwBasiliskF(BSX_NOT_IMPLEMENTED, "KERN format %d", format);
+            bs_warnF("KERN format %d is not supported\n", format);
         default:
-            bs_throwBasiliskF(BSX_CORRUPTED, "KERN format %d is not between 0..4", format);
+            bs_warnF("KERN format %d is not between 0..4\n", format);
         }
     }
 }
 
-static void bs_gpos(bs_TTF* ttf) {
-    bs_except(BSX_FAILED_TO_QUERY);
-    char* buf = bs_findTable(ttf, "gpos");
-    bs_caught();
-}
-
 static void bs_hmtx(bs_TTF* ttf, bs_Glyph* glyph) {
-    ttf->hmtx.buf = ttf->hmtx.buf == NULL ? bs_findTable(ttf, "hmtx") : ttf->hmtx.buf;
+    bs_findTable(ttf, "hmtx", &ttf->hmtx.buf);
 
     bs_U32 offset = glyph->index * sizeof(bs_LongHorMetric);
     glyph->long_hor_metric.advance_width = bs_memU16(ttf->hmtx.buf, offset);
@@ -176,7 +372,7 @@ static void bs_hmtx(bs_TTF* ttf, bs_Glyph* glyph) {
 }
 
 static bs_U32 bs_loca(bs_TTF* ttf, int id) {
-    ttf->loca.buf = ttf->loca.buf == NULL ? bs_findTable(ttf, "loca") : ttf->loca.buf;
+    bs_findTable(ttf, "loca", &ttf->loca.buf);
 
     bs_U32 offset = 0;
     if (ttf->head.index_to_loc_format == 0)
@@ -224,7 +420,8 @@ static int bs_glyfCoords(bs_Glyf* glyf, bool y, bs_U8* flags, bs_GlyfPt* pts, in
 }
 
 static void bs_glyf(bs_TTF* ttf, bs_Glyph* glyph) {
-    ttf->glyf.buf = bs_findTable(ttf, "glyf");
+    if (bs_findTable(ttf, "glyf", ttf->glyf.buf) != BS_RESULT_OK) {
+    }
 
     // get location of glyph in ttf buffer
     bs_U32 loc = bs_loca(ttf, glyph->index);
@@ -294,7 +491,7 @@ static void bs_glyf(bs_TTF* ttf, bs_Glyph* glyph) {
     coord_offset = bs_glyfCoords(&ttf->glyf, 1, flags, glyph->coords, coord_offset, num_points);
 }
 
-static void bs_cmapFormat4(bs_TTF* ttf, bs_Glyph* glyph, char* subtable) {
+static bs_Result bs_cmapFormat4(bs_TTF* ttf, bs_Glyph* glyph, char* subtable) {
     bs_U16 seg_count_x2 = bs_memU16(subtable, CMAP_FORMAT4_NUM_SEGMENTS_X2);
     bs_U16 seg_count = seg_count_x2 / 2;
 
@@ -310,8 +507,8 @@ static void bs_cmapFormat4(bs_TTF* ttf, bs_Glyph* glyph, char* subtable) {
     }
 
     if (index == -1) {
-        bs_throwBasilisk(BSX_FAILED_TO_QUERY);
-        return;
+        bs_warnF("Couldn't find format4 glyph index for glyph %d in font \"%s\"\n", glyph->code, ttf->name);
+        return BS_RESULT_FAILED_TO_QUERY;
     }
 
     bs_U16* id_range_offset_address = (bs_U16*)(subtable + CMAP_FORMAT4_ID_RANGE_OFFSET(seg_count) + index * sizeof(bs_U16));
@@ -339,11 +536,13 @@ static void bs_cmapFormat4(bs_TTF* ttf, bs_Glyph* glyph, char* subtable) {
 
     glyph->index = glyph_index;
 
-    return;
+    return BS_RESULT_OK;
 }
 
-static void bs_cmap(bs_TTF* ttf, bs_Glyph* glyph) {
-    char* cmap = bs_findTable(ttf, "cmap");
+static bool bs_cmap(bs_TTF* ttf, bs_Glyph* glyph) {
+    char* cmap; 
+    bs_findTable(ttf, "cmap", &cmap);
+
     bs_U16 subtables_count = bs_memU16(cmap, CMAP_NUMBER_SUBTABLES);
 
     int subtable_offset = -1;
@@ -356,8 +555,10 @@ static void bs_cmap(bs_TTF* ttf, bs_Glyph* glyph) {
             break;
     }
 
-    if (subtable_offset == -1)
-        bs_throwBasiliskF(BSX_NOT_IMPLEMENTED, "TTF Only supports Unicode");
+    if (subtable_offset == -1) {
+        bs_warnF("Font \"%s\" has an unsupported encoding type, only Unicode is supported\n", ttf->name);
+        return false;
+    }
 
     char* subtable = cmap + subtable_offset;
     bs_U16 format = bs_memU16(subtable, CMAP_SUBTABLE_FORMAT);
@@ -366,6 +567,8 @@ static void bs_cmap(bs_TTF* ttf, bs_Glyph* glyph) {
     case 4: bs_cmapFormat4(ttf, glyph, subtable); break;
     default: bs_throwBasiliskF(BSX_NOT_IMPLEMENTED, "TTF format %d", format); break;
     }
+
+    return true;
 }
 
 static int bs_cmpFloats(const void *a, const void *b) {
@@ -556,7 +759,6 @@ void bs_ttf(bs_TTF* existing, const char* path, bs_U32 flags) {
     bs_head(&ttf);
     bs_maxp(&ttf);
     bs_hhea(&ttf);
-    //bs_gpos(&ttf);
 
     memcpy(existing, &ttf, sizeof(bs_TTF));
 }
@@ -607,10 +809,9 @@ void bs_bindFont(bs_Font* font, bs_Sampler* sampler, int bind_set, int bind_poin
     }, 1);
 }
 
-bs_Object* bs_loadFont(bs_Object* object, int package_id, const char* resource_name, const char* alphabet, float spacing, bs_U32 flags) {
+bs_Result _bs_loadFont(bs_Object* object, int package_id, const char* resource_name, const char* alphabet, float spacing, bs_U32 flags) {
     bs_Font* font = object->font;
 
-    if (!font) return NULL;
     if (object->flags & BS_OBJECT_ALREADY_EXISTS && !(object->flags & BS_OBJECT_FORCE_DESTROY)) return NULL;
 
     bs_destroyFont(font);
@@ -619,18 +820,21 @@ bs_Object* bs_loadFont(bs_Object* object, int package_id, const char* resource_n
 
     bs_BfntHeader* header = resource->data->value;
     if (header->magic != 0x746E6662) {
-        bs_throwBasilisk(BSX_CORRUPTED);
-        return NULL;
+        bs_warnF("Font \"%s\" is corrupted\n", resource_name);
+        return BS_RESULT_CORRUPTED;
     }
 
     if (header->version != 1) {
-        bs_throwBasilisk(BSX_NOT_SUPPORTED);
-        return NULL;
+        bs_warnF("Font version %d is not supported\n", header->version);
+        return BS_RESULT_NOT_SUPPORTED;
     }
+
+    bs_Object* atlas_object = BS_ATLAS(-1, 0, 0);
+    bs_loadAtlasMemory(atlas_object, package_id, resource->name, resource->data->value + header->batl_offset, 0);
 
     font->spacing = spacing;
     font->alphabet = alphabet;
-    font->atlas = bs_loadAtlasMemory(BS_ATLAS(-1, 0, 0), package_id, resource->name, resource->data->value + header->batl_offset, 0)->head;
+    font->atlas = atlas_object->atlas;
     font->size = header->size;
     font->units_per_em = header->units_per_em;
     font->height = header->line_height;

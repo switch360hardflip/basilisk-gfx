@@ -47,10 +47,14 @@ IXAudio2* px_audio_2 = NULL;
     #define XAUDIO2D_DLL XAUDIO2D_DLL_A
 #endif
 
-bs_Result _bs_playSound(bs_Sound* sound, float volume) {
+BSAPI bs_Result _val_bs_playSound(bs_Sound* sound, float volume) {
+    BS_VALIDATE(sound->xaudio != NULL, BS_RESULT_INVALID_STATE,);
+
+    return bs_playSound(sound, volume);
+}
+
+BSAPI bs_Result _bs_playSound(bs_Sound* sound, float volume) {
     IXAudio2SourceVoice* voice = sound->xaudio;
-    if (voice == NULL)
-        return BS_RESULT_GENERAL_ERROR;
 
     if (volume > max_volume) volume = max_volume;
     if (volume < -max_volume) volume = -max_volume;
@@ -135,7 +139,7 @@ static bs_Result _bs_readAudioChunk(
     return BS_RESULT_OK;
 }
 
-bs_Result _bs_sound(bs_Resource* resource, bs_U32 flags) {
+BSAPI bs_Result _bs_sound(bs_Resource* resource, bs_U32 flags) {
     /*
     IXAudio2SourceVoice* src_voice = NULL;
     WAVEFORMATEXTENSIBLE wfx = { 0 };
@@ -182,9 +186,11 @@ bs_Result _bs_sound(bs_Resource* resource, bs_U32 flags) {
 
     memcpy(existing, &sound, sizeof(bs_Sound));
     */
+
+    return BS_RESULT_NOT_IMPLEMENTED;
 }
 
-bs_Result _bs_iniAudio() {
+BSAPI bs_Result _bs_iniAudio() {
     HRESULT result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
     IXAudio2MasteringVoice* master_voice = NULL;
 

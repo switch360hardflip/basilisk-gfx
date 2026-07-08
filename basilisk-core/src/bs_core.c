@@ -24,7 +24,7 @@ struct VkDevice_T* bsi_fetchDevice() {
     return _bs_instance_->device;
 }
 
-int bs_currentSwap() {
+BSAPI int _bs_currentSwap() {
     return _bs_swapchain_->frame;
 }
 
@@ -36,23 +36,16 @@ BSAPI bs_Swapchain* bs_swapchain() {
     return _bs_swapchain_;
 }
 
-BSAPI bs_Result _val_bs_beginComment(const char* format, ...) {
-    BS_VALIDATE(_bs_procs_.vkCmdBeginDebugUtilsLabelEXT != NULL, BS_RESULT_NOT_SUPPORTED, , );
+BSAPI void _val_bs_beginComment(char* message, int message_len) {
+    BS_VALIDATE(_bs_procs_.vkCmdBeginDebugUtilsLabelEXT != NULL,,);
+    return bs_beginComment(message, message_len);
 }
 
-BSAPI bs_Result _bs_beginComment(const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-
-    va_end(args);
-
+BSAPI void _bs_beginComment(char* message, int message_len) {
     VkDebugUtilsLabelEXT label = {
         .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
-        .pLabelName = string->value,
-        .color = {0.3f, 0.3f, 0.9f, 1.0f}
+        .pLabelName = message,
+        .color = { 0.3f, 0.3f, 0.9f, 1.0f }, // todo param
     };
 
     VkCommandBuffer commands = bsi_fetchCommands();
@@ -60,14 +53,15 @@ BSAPI bs_Result _bs_beginComment(const char* format, ...) {
     _bs_procs_.vkCmdBeginDebugUtilsLabelEXT(commands, &label);
 }
 
+BSAPI void _val_bs_endComment() {
+    BS_VALIDATE(_bs_procs_.vkCmdEndDebugUtilsLabelEXT != NULL,,);
+    return bs_endComment();
+}
+
 BSAPI void _bs_endComment() {
-    assert(_bs_procs_.vkCmdEndDebugUtilsLabelEXT);
     _bs_procs_.vkCmdEndDebugUtilsLabelEXT(bsi_fetchCommands());
 }
 
-int bs_swapCount() {
-    return _bs_settings_.frames_in_flight;
-}
 
 
   /*==============================================================================
@@ -565,7 +559,7 @@ static inline void bs_batchVertex(bs_Batch* batch, bs_U32* offset, const bs_Vert
 */
 
 // cube
-static inline void bs_batchCube(bs_Batch* batch, bs_U32* offset, bs_RGBA color) {
+BSAPI void _bs_batchCube(bs_Batch* batch, bs_U32* offset, bs_RGBA color) {
     //if (smooth_shade) {
     //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = bs_v3(-1.0, -1.0, 1.0), .color = color, .normal = bs_v3(-1.0, -1.0, 1.0) });
     //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = bs_v3(1.0, -1.0, 1.0), .color = color, .normal = bs_v3(1.0, -1.0, 1.0) });
@@ -801,7 +795,7 @@ BSAPI void _bs_batchAabb(bs_Batch* batch, bs_U32* offset, bs_Aabb* aabb, bs_RGBA
     bs_batchLine(batch, offset, bs_v3(aabb->max.x, aabb->min.y, aabb->max.z), bs_v3(aabb->max.x, aabb->max.y, aabb->max.z), color);
 }
 
-void bs_batchSphere(bs_Batch* batch, bs_U32* offset, bs_vec3 position, float radius, bs_U32 lats, bs_U32 longs, bs_RGBA color) {
+BSAPI void _bs_batchSphere(bs_Batch* batch, bs_U32* offset, bs_vec3 position, float radius, bs_U32 lats, bs_U32 longs, bs_RGBA color) {
     BS_VERTEX_DECLARATION(
         declaration, batch, offset,
         bs_vec3, bs_Position,
@@ -1306,11 +1300,11 @@ BSAPI void _bs_unpushBatch(bs_Batch* batch) {
    // }
 }
 
-int bs_batchSize(bs_Batch* batch) {
+BSAPI int _bs_batchSize(bs_Batch* batch) {
     return (batch->indices.unit_size == 0) ? batch->vertices.count : batch->indices.count;
 }
 
-void _bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offset, bs_U32 vertex_count, bs_U32 instance_offset, bs_U32 instance_count) {
+BSAPI void _bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offset, bs_U32 vertex_count, bs_U32 instance_offset, bs_U32 instance_count) {
     VkDeviceSize offsets[] = { 0 };
     VkCommandBuffer command_buffer = bsi_fetchCommands();
 
@@ -1567,12 +1561,18 @@ BSAPI bool _bs_rendererIsDynamic(bs_Renderer* renderer) {
     return renderer->render_pass == NULL;
 }
 
+BSAPI void _val_bs_beginRender(bs_Renderer* renderer) {
+    BS_VALIDATE(_bs_scope_.renderer != NULL,,);
+
+    if (renderer->render_pass) {
+        BS_VALIDATE(_bs_procs_.vkCmdBeginRenderingKHR´ != NULL, , );
+        BS_VALIDATE(_bs_procs_.vkCmdEndRenderingKHR != NULL, , );
+    }
+
+    return bs_beginRender(renderer);
+}
+
 BSAPI void _bs_beginRender(bs_Renderer* renderer) {
-    assert(renderer != NULL);
-
-    if (_bs_scope_.renderer)
-        return bs_throwBasiliskF(BSX_INVALID_STATE, "Cannot dynamically render within a render pass");
-
     _bs_scope_.renderer = renderer;
 
     VkCommandBuffer command_buffer = bsi_fetchCommands();
@@ -1606,10 +1606,6 @@ BSAPI void _bs_beginRender(bs_Renderer* renderer) {
         vkCmdBeginRenderPass(command_buffer, &render_pass_i, VK_SUBPASS_CONTENTS_INLINE);
     }
     else {
-         /** TOOD: Check this after renderer creation and put this in _val */
-        if (!_bs_procs_.vkCmdBeginRenderingKHR || !_bs_procs_.vkCmdEndRenderingKHR)
-            bs_throwBasiliskF(BSX_NOT_SUPPORTED, "Dynamic rendering (vkCmdBeginRenderingKHR)");
-
         VkRenderingAttachmentInfo* attachments = _alloca(renderer->num_outputs * sizeof(VkRenderingAttachmentInfo));
         VkRenderingAttachmentInfo* depth_attachment = NULL;
         int color_attachments_count = renderer->num_outputs;
@@ -1804,8 +1800,10 @@ BSAPI void _bs_rayTrace(bs_RayTracer* ray_tracer, bs_Pipeline* pipeline, bs_U32 
     VkStridedDeviceAddressRegionKHR tables[4] = { 0 };
     int order[4] = { BS_RAY_GEN_SHADER, BS_MISS_SHADER, -1, -1 };
 
-    if (ray_tracer->groups_count > 2)
-        bs_throwBasilisk(BSX_NOT_IMPLEMENTED);
+    if (ray_tracer->groups_count > 2) {
+        bs_warnF("Not implemented: ray_tracer->groups_count > 2");
+        return;
+    }
 
     for (int i = 0; i < ray_tracer->groups_count; i++) {
         int map = 0;
@@ -1824,7 +1822,7 @@ BSAPI void _bs_rayTrace(bs_RayTracer* ray_tracer, bs_Pipeline* pipeline, bs_U32 
     _bs_procs_.vkCmdTraceRaysKHR(command_buffer, tables + 0, tables + 1, tables + 2, tables + 3, width, height, depth);
 }
 
-bs_Result _bs_rayTracer(bs_Object* object, bs_U32 flags, ...) {
+BSAPI bs_Result _bs_rayTracer(bs_Object* object, bs_U32 flags, ...) {
     bs_RayTracer* ray_tracer = object->ray_tracer;
 
     if (!ray_tracer) return NULL;
@@ -1852,7 +1850,7 @@ bs_Result _bs_rayTracer(bs_Object* object, bs_U32 flags, ...) {
     return object;
 }
 
-void bs_accelerateAabb(bs_RayTracer* tracer, bs_Aabb aabb) {
+BSAPI void _bs_accelerateAabb(bs_RayTracer* tracer, bs_Aabb aabb) {
     bs_pushBack(&tracer->aabbs, &(VkAabbPositionsKHR) {
         .minX = aabb.min.x,
         .minY = aabb.min.y,
@@ -1863,11 +1861,11 @@ void bs_accelerateAabb(bs_RayTracer* tracer, bs_Aabb aabb) {
     });
 }
 
-void bs_accelerateBatch(bs_RayTracer* tracer, bs_Batch* batch) {
+BSAPI void _bs_accelerateBatch(bs_RayTracer* tracer, bs_Batch* batch) {
     bs_pushBack(&tracer->batches, &batch);
 }
 
-void bs_destroyRayTracer(bs_RayTracer* tracer) { // i'm already tracer
+BSAPI void _bs_destroyRayTracer(bs_RayTracer* tracer) { // i'm already tracer
     _bs_procs_.vkDestroyAccelerationStructureKHR(_bs_instance_->device, tracer->BLAS, NULL);
     _bs_procs_.vkDestroyAccelerationStructureKHR(_bs_instance_->device, tracer->TLAS, NULL);
     tracer->BLAS = tracer->TLAS = NULL;
@@ -2255,7 +2253,13 @@ int bs_queueSwap(bs_Queue* queue) {
     return queue->flags & BSI_QUEUE_SWAPS_BIT ? _bs_swapchain_->frame : 0;
 }
 
-bs_Object* bs_queue(bs_Object* object, bs_QueueBits flags) {
+BSAPI bs_Result _val_bs_queue(bs_Object* object, bs_QueueBits flags) {
+    BS_VALIDATE_OBJECT_TYPE(object, BS_OBJECT_QUEUE, BS_RESULT_VALIDATION_ERROR);
+
+    return bs_queue(object, flags);
+}
+
+BSAPI bs_Result _bs_queue(bs_Object* object, bs_QueueBits flags) {
     VkResult result;
     bs_Queue* queue = object->queue;
 
@@ -2332,6 +2336,7 @@ bs_Object* bs_queue(bs_Object* object, bs_QueueBits flags) {
         }
     }
 
+    /*
     if (queue->head.id != 0) {
         const char* name = bs_idName(queue->head.source_id, queue->head.id);
         _bs_string_builder_ = bs_stringF(_bs_string_builder_, BS_PRINT_COLOR("%s", BS_PRINT_BLUE_BRIGHT), name);
@@ -2347,14 +2352,12 @@ bs_Object* bs_queue(bs_Object* object, bs_QueueBits flags) {
             bsi_nameHandle(object->queue->_[i].fence, VK_OBJECT_TYPE_FENCE, _bs_string_builder_->value);
         }
     }
+    */
 
     return object;
 }
 
-void bs_destroyQueue(bs_Queue* queue) {
-    if (!queue)
-        return bs_throwBasilisk(BSX_INVALID_PARAM);
-
+BSAPI void _bs_destroyQueue(bs_Queue* queue) {
     for (int i = 0; i < bs_queueSwapsCount(queue); i++) {
         vkFreeCommandBuffers(_bs_instance_->device, _bs_instance_->command_pool, 1, &queue->_[i].command_buffer);
         if (queue->_[i].semaphore)
@@ -2369,59 +2372,72 @@ void bs_destroyQueue(bs_Queue* queue) {
     queue->head.source_id = source_id;
 }
 
-void bs_awaitQueue(bs_Queue* queue, bs_PipelineStage stage) {
+BSAPI void _bs_awaitQueue(bs_Queue* queue, bs_PipelineStage stage) {
     int swap = bs_queueSwap(queue);
     _bs_scope_.wait_semaphores[_bs_scope_.wait_num] = queue->_[swap].semaphore;
     _bs_scope_.wait_stages[_bs_scope_.wait_num] = (VkPipelineStageFlags)stage;
     _bs_scope_.wait_num++;
 }
 
-void bs_awaitAcquisition() {
+BSAPI void _bs_awaitAcquisition() {
     _bs_scope_.wait_semaphores[_bs_scope_.wait_num] = _bs_swapchain_->_[_bs_swapchain_->frame].semaphore;
     _bs_scope_.wait_stages[_bs_scope_.wait_num] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     _bs_scope_.wait_num++;
 }
 
-void bs_stallQueue(bs_Queue* queue) {
+BSAPI void _bs_stallQueue(bs_Queue* queue) {
     vkQueueWaitIdle(queue->queue);
 }
 
-void bs_stallGPU() {
+BSAPI void _bs_stallGPU() {
     vkDeviceWaitIdle(_bs_instance_->device);
 }
 
-bool bs_stall(bs_Queue* queue) {
+BSAPI bool _bs_stall(bs_Queue* queue) {
+    VkResult result;
+
     int swap = bs_queueSwap(queue);
-    VkResult result = vkWaitForFences(_bs_instance_->device, 1, &queue->_[swap].fence, VK_TRUE, BS_TIMEOUT);
-    bs_throwVulkan(result);
+    result = vkWaitForFences(_bs_instance_->device, 1, &queue->_[swap].fence, VK_TRUE, BS_TIMEOUT);
     
     if (result != VK_SUCCESS)
         return false;
 
-    bs_throwVulkan(vkResetFences(_bs_instance_->device, 1, &queue->_[swap].fence));
+    result = vkResetFences(_bs_instance_->device, 1, &queue->_[swap].fence));
+
+    if (result != VK_SUCCESS)
+        bs_warnF("Failed to reset fence in bs_stall(...)\n");
 
     return true;
 }
 
-bool bs_poll(bs_Queue* queue) {
-    int swap = bs_queueSwap(queue);
-    VkResult res = vkGetFenceStatus(_bs_instance_->device, queue->_[swap].fence);
+BSAPI bool _bs_poll(bs_Queue* queue) {
+    VkResult result;
 
-    if (res == VK_SUCCESS) {
-        bs_throwVulkan(vkResetFences(_bs_instance_->device, 1, &queue->_[swap].fence));
+    int swap = bs_queueSwap(queue);
+    result = vkGetFenceStatus(_bs_instance_->device, queue->_[swap].fence);
+
+    if (result == VK_SUCCESS) {
+        result = vkResetFences(_bs_instance_->device, 1, &queue->_[swap].fence);
+
+        if (result != VK_SUCCESS)
+            bs_warnF("Failed to reset fence in bs_poll(...)\n");
+
         return true;
     }
     //else if (res == VK_NOT_READY)
     return false;
 }
 
-void bsi_resetQueue(bs_Queue* queue) {
-    _bs_scope_.queue = queue;
+BSAPI bs_Result _val_bs_resetQueue(bs_Queue* queue) {
+    BS_VALIDATE(!_bs_scope_.has_begun,,);
 
-    if (_bs_scope_.has_begun) {
-        bs_throwBasilisk(BSX_GENERAL);
-        return;
-    }
+    return bs_resetQueue(queue);
+}
+
+BSAPI bs_Result _bs_resetQueue(bs_Queue* queue) {
+    VkResult result;
+
+    _bs_scope_.queue = queue;
 
     int swap = bs_queueSwap(queue);
     VkCommandBuffer command_buffer = queue->_[swap].command_buffer;
@@ -2430,20 +2446,35 @@ void bsi_resetQueue(bs_Queue* queue) {
         .flags = queue->flags & BS_QUEUE_SINGLE_TIMES_BIT ? VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT : 0,
     };
 
-    bs_throwVulkan(vkResetCommandBuffer(command_buffer, 0));
-    bs_throwVulkan(vkBeginCommandBuffer(command_buffer, &ci));
+    result = vkResetCommandBuffer(command_buffer, 0);
+    if (result != VK_SUCCESS) {
+        return bs_convertVulkanResult(result);
+    }
+
+    result = vkBeginCommandBuffer(command_buffer, &ci);
+    if (result != VK_SUCCESS) {
+        return bs_convertVulkanResult(result);
+    }
 
     _bs_scope_.has_begun = true;
+
+    return BS_RESULT_OK;
 }
 
-void bsi_pushQueue(bs_Queue* queue) {
-    assert(_bs_scope_.has_begun);
-    if (!_bs_scope_.has_begun)
-        bs_throwBasilisk(BSX_GENERAL);
+BSAPI bs_Result _val_bs_pushQueue(bs_Queue* queue) {
+    BS_VALIDATE(!_bs_scope_.has_begun, , );
+    return bs_pushQueue(queue);
+}
+
+BSAPI bs_Result _bs_pushQueue(bs_Queue* queue) {
+    VkResult result;
 
     int swap = bs_queueSwap(queue);
     VkCommandBuffer command_buffer = queue->_[swap].command_buffer;
-    bs_throwVulkan(vkEndCommandBuffer(command_buffer));
+
+    result = vkEndCommandBuffer(command_buffer);
+    if (result != VK_SUCCESS)
+        return bs_convertVulkanResult(result);
 
     VkSubmitInfo submit_i = {
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -2456,42 +2487,49 @@ void bsi_pushQueue(bs_Queue* queue) {
         .pWaitSemaphores = _bs_scope_.wait_semaphores
     };
 
-    bs_throwVulkan(vkQueueSubmit(queue->queue, 1, &submit_i, queue->_->fence ? queue->_[swap].fence : NULL));
+    result = vkQueueSubmit(queue->queue, 1, &submit_i, queue->_->fence ? queue->_[swap].fence : NULL);
+    if (result != VK_SUCCESS)
+        return bs_convertVulkanResult(result);
+
     _bs_scope_.has_begun = false;
+
+    return BS_RESULT_OK;
 }
 
-void bs_enqueue(bs_Queue* queue, bs_Callback function) {
-    bsi_resetQueue(queue);
-    if (function)
-        function();
-    bsi_pushQueue(queue);
+BSAPI void _bs_enqueue(bs_Queue* queue, bs_Callback function) {
+    if (bs_resetQueue(queue) == BS_RESULT_OK) {
+        if (function)
+            function();
+        bs_pushQueue(queue);
+    }
+
     bs_setScope(&(bs_Scope) { 0 });
 }
 
-bs_Scope bs_enterSingle() {
-    bs_Scope backup = bs_scope;
-    bs_scope = (bs_Scope){
+BSAPI bs_Scope _bs_enterSingle() {
+    bs_Scope backup = _bs_scope_;
+    _bs_scope_ = (bs_Scope){
         .queue = _bs_instance_->single_times_queue
     };
     return backup;
 }
 
-bs_Scope* bs_getScope() {
-    return &bs_scope;
+BSAPI bs_Scope* _bs_getScope() {
+    return &_bs_scope_;
 }
 
-void bs_setScope(bs_Scope* scope) {
+BSAPI void _bs_setScope(bs_Scope* scope) {
     if (scope)
-        bs_scope = *scope;
+        _bs_scope_ = *scope;
     else
-        memset(&bs_scope, 0, sizeof(bs_Scope));
+        memset(&_bs_scope_, 0, sizeof(bs_Scope));
 }
 
-void bs_leaveSingle(bs_Scope* backup) {
-    bs_scope = *backup;
+BSAPI void _bs_leaveSingle(bs_Scope* backup) {
+    _bs_scope_ = *backup;
 }
 
-void bs_runSingle(void (*f)()) {
+BSAPI void _bs_runSingle(void (*f)()) {
     bs_Scope backup = bs_enterSingle();
     if (f) f();
     bs_leaveSingle(&backup);
@@ -2503,16 +2541,16 @@ void bs_runSingle(void (*f)()) {
    * Swapchain / Presentation
    *============================================================================*/
 
-bs_Image* bs_swapchainImage() {
+BSAPI bs_Image* _bs_swapchainImage() {
     return _bs_swapchain_->image->image;
 }
 
-int bs_imageIndex() {
+BSAPI int _bs_imageIndex() {
     return _bs_image_index_;
 }
 
 void bs_prepareSwapchain();
-void bs_destroySwapchain() {
+static void bs_destroySwapchain() {
     for (int i = 0; i < _bs_settings_.frames_in_flight; i++) {
         vkDestroyImageView(_bs_instance_->device, _bs_swapchain_->image->image->_[i].view, NULL);
         _bs_swapchain_->image->image->_[i].view = 0;
@@ -2522,7 +2560,7 @@ void bs_destroySwapchain() {
     _bs_swapchain_->swapchain = 0;
 }
 
-void bs_resizeSwapchain() {
+static void bs_resizeSwapchain() {
     // glfwGetFramebufferSize(bs_instance->glfw, &bs_swapchain->image.image->dim.x, &bs_swapchain->image.image->dim.y);
     //
     // while (bs_swapchain->image.image->dim.x == 0 || bs_swapchain->image.image->dim.y == 0) {
@@ -2532,14 +2570,14 @@ void bs_resizeSwapchain() {
     //     glfwWaitEvents();
     // }
 
-    bs_throwVulkan(vkDeviceWaitIdle(_bs_instance_->device));
+    // VkResult result = vkDeviceWaitIdle(_bs_instance_->device);
 
     bs_destroySwapchain();
     bs_prepareSwapchain();
 }
 
 // these functions should probably not be called by user
-void bs_acquire() {
+BSAPI void _bs_acquire() {
     if (_bs_swapchain_->image_acquired) return;
 
     VkResult result = vkAcquireNextImageKHR(
@@ -2552,12 +2590,13 @@ void bs_acquire() {
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         bs_resizeSwapchain();
-        if (_bs_wnd.resize)
-            _bs_wnd.resize();
+        //if (_bs_wnd.resize)
+        //    _bs_wnd.resize();
         return;
     }
-    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_FAILED_TO_ACQUIRE);
+    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        bs_warnF("Failed to acquire next swapchain image (Vulkan error %d)\n", result);
+    }
 }
 
 /*
@@ -2605,7 +2644,7 @@ void bsi_resizeObjects() {
 }
 */
 
-void bs_present(bs_Queue* queue, ...) {
+BSAPI void _bs_present(bs_Queue* queue, ...) {
     VkSemaphore wait_semaphores[BS_MAX_NUM_WAITS];
     bs_U32 num_wait_semaphores = 0;
 
@@ -2631,9 +2670,9 @@ void bs_present(bs_Queue* queue, ...) {
     VkResult result = vkQueuePresentKHR(queue->queue, &present_i);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR)
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_NOT_IMPLEMENTED, "Window was resized");
+        bs_critical("Window was resized", sizeof("Window was resized") - 1);
     else if (result != VK_SUCCESS)
-        bs_throwVulkan(result);
+        bs_warnF("Failed to present swapchain image\n");
 
     _bs_swapchain_->frame = (_bs_swapchain_->frame + 1) % _bs_settings_.frames_in_flight;
     _bs_swapchain_->image_acquired = false;

@@ -46,6 +46,7 @@ typedef struct bs_Quad bs_Quad;
 typedef struct bs_Plane bs_Plane;
 typedef struct bs_Box bs_Box;
 typedef struct bs_FileInfo bs_FileInfo;
+typedef struct bs_PngData bs_PngData;
 typedef struct bs_Procedure bs_Procedure;
 typedef struct bs_Timer bs_Timer;
 typedef struct bs_DateTime bs_DateTime;
@@ -212,15 +213,24 @@ typedef enum bs_SwapchainMode bs_SwapchainMode;
 
 #define BS_VALIDATE(condition, ret, format, ...)                     \
     if (!(condition)) {                                              \
-        bs_warnF(BS_PRINT_COLOR("[VAL]", BS_PRINT_RED) " %s: %s\n" __VA_OPT__(format) "\n", __func__, #condition __VA_OPT__(,) __VA_ARGS__); \
+        bs_warnF(BS_PRINT_COLOR("[COREVAL]", BS_PRINT_RED) " %s: %s\n" __VA_OPT__(format) "\n", __func__, #condition __VA_OPT__(,) __VA_ARGS__); \
         return ret;                                                  \
     }
+
+#define BS_VALIDATE_OBJECT_TYPE(object, source_id, _return)          \
+    BS_VALIDATE(((bs_ObjectSource*)bs_fetchUnit(bs_objectSources(), source_id))->type == source_id, _return,,)
 
 #define BS_PI                                                        \
     3.14159265359
 
 #define BS_2PI                                                       \
     (3.14159265359 * 2.0)
+
+#define BS_MIN(a, b)                                                 \
+    (((a)<(b))?(a):(b))
+
+#define BS_MAX(a, b)                                                 \
+    (((a)>(b))?(a):(b))
 
 #define BS_ENUM_GEN(ENUM)                                            \
     ENUM,
@@ -582,312 +592,6 @@ typedef enum bs_SwapchainMode bs_SwapchainMode;
 
 #define BS_NUM_SLOPE_INDICES                                         \
     24
-
-#define BS_TTF_DETAIL                                                \
-    4
-
-#define BS_TTF_MAX_PTS                                               \
-    1024
-
-#define HEAD_VERSION                                                 \
-    0   // 4 | fixed
-
-#define HEAD_FONT_REVISION                                           \
-    4   // 4 | fixed
-
-#define HEAD_CHECK_SUM_ADJUSTMENT                                    \
-    8   // 4 | uint32
-
-#define HEAD_MAGIC_NUMBER                                            \
-    12  // 4 | uint32
-
-#define HEAD_FLAGS                                                   \
-    16  // 2 | uint16
-
-#define HEAD_UNITS_PER_EM                                            \
-    18  // 2 | uint16
-
-#define HEAD_CREATED                                                 \
-    20  // 8 | longDateTime
-
-#define HEAD_MODIFIED                                                \
-    28  // 8 | longDateTime
-
-#define HEAD_X_MIN                                                   \
-    36  // 2 | fWord
-
-#define HEAD_Y_MIN                                                   \
-    38  // 2 | fWord
-
-#define HEAD_X_MAX                                                   \
-    40  // 2 | fWord
-
-#define HEAD_Y_MAX                                                   \
-    42  // 2 | fWord
-
-#define HEAD_MAC_STYLE                                               \
-    44  // 2 | uint16
-
-#define HEAD_LOWEST_REC_PPEM                                         \
-    46  // 2 | uint16
-
-#define HEAD_FONT_DIRECTION_HINT                                     \
-    48  // 2 | int16
-
-#define HEAD_INDEX_TO_LOC_FORMAT                                     \
-    50  // 2 | int16
-
-#define HEAD_GLYPH_DATA_FORMAT                                       \
-    52  // 2 | int16
-
-#define MAXP_VERSION                                                 \
-    0   // 4 | fixed
-
-#define MAXP_NUM_GLYPHS                                              \
-    4   // 2 | uint16
-
-#define MAXP_MAX_POINTS                                              \
-    6   // 2 | uint16
-
-#define MAXP_MAX_CONTOURS                                            \
-    8   // 2 | uint16
-
-#define MAXP_MAX_COMPONENT_POINTS                                    \
-    10  // 2 | uint16
-
-#define MAXP_MAX_COMPONENT_CONTOURS                                  \
-    12  // 2 | uint16
-
-#define MAXP_MAX_ZONES                                               \
-    14  // 2 | uint16
-
-#define MAXP_MAX_TWILIGHT_POINTS                                     \
-    16  // 2 | uint16
-
-#define MAXP_MAX_STORAGE                                             \
-    18  // 2 | uint16
-
-#define MAXP_MAX_FUNCTION_DEFS                                       \
-    20  // 2 | uint16
-
-#define MAXP_MAX_INSTRUCTION_DEFS                                    \
-    22  // 2 | uint16
-
-#define MAXP_MAX_STACK_ELEMENTS                                      \
-    24  // 2 | uint16
-
-#define MAXP_MAX_SIZE_OF_INSTRUCTIONS                                \
-    26  // 2 | uint16
-
-#define MAXP_MAX_COMPONENT_ELEMENTS                                  \
-    28  // 2 | uint16
-
-#define MAXP_MAX_COMPONENT_DEPTH                                     \
-    30  // 2 | uint16
-
-#define HHEA_VERSION                                                 \
-    0   // 4 | fixed
-
-#define HHEA_ASCENT                                                  \
-    4   // 2 | fWord
-
-#define HHEA_DESCENT                                                 \
-    6   // 2 | fWord
-
-#define HHEA_LINE_GAP                                                \
-    8   // 2 | fWord
-
-#define HHEA_ADVANCE_WIDTH_MAX                                       \
-    10  // 2 | ufWord
-
-#define HHEA_MIN_LEFT_SIDE_BEARING                                   \
-    12  // 2 | fWord
-
-#define HHEA_MIN_RIGHT_SIDE_BEARING                                  \
-    14  // 2 | fWord
-
-#define HHEA_X_MAX_EXTENT                                            \
-    16  // 2 | fWord
-
-#define HHEA_CARET_SLOPE_RISE                                        \
-    18  // 2 | int16
-
-#define HHEA_CARET_SLOPE_RUN                                         \
-    20  // 2 | int16
-
-#define HHEA_CARET_OFFSET                                            \
-    22  // 2 | fWord
-
-#define HHEA_METRIC_DATA_FORMAT                                      \
-    32  // 2 | int16
-
-#define HHEA_NUM_OF_LONG_HOR_METRICS                                 \
-    34  // 2 | uint16
-
-#define HMTX_LONG_HOR_METRICS                                        \
-    0   // 4 | uin16, int16 ARRAY
-
-#define GLYF_NUMBER_OF_CONTOURS                                      \
-    0   // 2 | int16
-
-#define GLYF_XMIN                                                    \
-    2   // 2 | fWord
-
-#define GLYF_YMIN                                                    \
-    4   // 2 | fWord
-
-#define GLYF_XMAX                                                    \
-    6   // 2 | fWord
-
-#define GLYF_YMAX                                                    \
-    8   // 2 | fWord
-
-#define GLYF_END_PTS_OF_CONTOURS                                     \
-    10  // 2 | uint16 ARRAY
-
-#define GLYF_INSTRUCTION_LENGTH(contours)                            \
-    GLYF_END_PTS_OF_CONTOURS + contours * 2 // 2 | uint16
-
-#define GLYF_INSTRUCTIONS                                            \
-    10                                      // 1 | uint8  ARRAY
-
-#define GLYF_FLAGS(offset, instructions)                             \
-    offset + instructions + 2               // 1 | uint8  ARRAY
-
-#define GLYF_ON_CURVE                                                \
-    0
-
-#define GLYF_X_SHORT                                                 \
-    1
-
-#define GLYF_Y_SHORT                                                 \
-    2
-
-#define GLYF_REPEAT                                                  \
-    3
-
-#define GLYF_X_SAME                                                  \
-    4
-
-#define GLYF_Y_SAME                                                  \
-    5
-
-#define GLYF_OVERLAP                                                 \
-    6
-
-#define GLYF_XCOORDS(offset, num_flags)                              \
-    offset + num_flags                  // 1 | uint8  ARRAY
-
-#define GLYF_YCOORDS(offset, num_flags, coord)                       \
-    offset + num_flags + coord   // 1 | uint8  ARRAY
-
-#define CMAP_VERSION                                                 \
-    0   // 2 | uint16
-
-#define CMAP_NUMBER_SUBTABLES                                        \
-    2   // 2 | uint16
-
-#define CMAP_PLATFORM_ID                                             \
-    4   // 2 | uint16
-
-#define CMAP_PLATFORM_SPECIFIC_ID                                    \
-    6   // 2 | uint16
-
-#define CMAP_OFFSET                                                  \
-    8   // 4 | uint32
-
-#define CMAP_TABLE_SIZE                                              \
-    (2 + 2 + 4)
-
-#define CMAP_SUBTABLE_FORMAT                                         \
-    0   // 2 | uint16
-
-#define CMAP_FORMAT4_LENGTH                                          \
-    2
-
-#define CMAP_FORMAT4_LANGUAGE                                        \
-    4
-
-#define CMAP_FORMAT4_NUM_SEGMENTS_X2                                 \
-    6
-
-#define CMAP_FORMAT4_SEARCH_RANGE                                    \
-    8
-
-#define CMAP_FORMAT4_ENTRY_SELECTOR                                  \
-    10
-
-#define CMAP_FORMAT4_RANGE_SHIFT                                     \
-    12
-
-#define CMAP_FORMAT4_END_CODE                                        \
-    14
-
-#define CMAP_FORMAT4_START_CODE(num_segments)                        \
-    (14 + 2 + num_segments * sizeof(bs_U16))
-
-#define CMAP_FORMAT4_ID_DELTA(num_segments)                          \
-    (CMAP_FORMAT4_START_CODE(num_segments) + num_segments * sizeof(bs_U16))
-
-#define CMAP_FORMAT4_ID_RANGE_OFFSET(num_segments)                   \
-    (CMAP_FORMAT4_ID_DELTA(num_segments) + num_segments * sizeof(bs_U16))
-
-#define CMAP_FORMAT4_GLYPH_ARRAY(num_segments)                       \
-    (CMAP_FORMAT4_ID_RANGE_OFFSET(num_segments) + num_segments * sizeof(bs_U16))
-
-#define KERN_VERSION                                                 \
-    0   // (bs_U16) - The version number of the kerning table (0x00010000 for the current version).
-
-#define KERN_NUMBER_OF_TABLES                                        \
-    2   // (bs_U16) - The number of subtables included in the kerning table.
-
-#define KERN_LENGTH                                                  \
-    4	// (bs_U32) - The length of this subtable in bytes, including this header.
-
-#define KERN_COVERAGE                                                \
-    8	// (bs_U16) - Circumstances under which this table is used. See below for description.
-
-#define KERN_TUPLE_INDEX                                             \
-    10	// (bs_U16) - The tuple index (used for variations fonts). This value specifies which tuple this subtable covers.
-
-#define KERN_COVERAGE_VERTICAL                                       \
-    0x8000 // Set if table has vertical kerning values.
-
-#define KERN_COVERAGE_CROSS_STREAM                                   \
-    0x4000 // Set if table has cross-stream kerning values.
-
-#define KERN_COVERAGE_VARIATION                                      \
-    0x2000 // Set if table has variation kerning values.
-
-#define KERN_COVERAGE_UNUSED_BITS                                    \
-    0x1F00 // Set to 0.
-
-#define KERN_COVERAGE_FORMAT_MASK                                    \
-    0x00FF // Set the format of this subtable (0-3 currently defined).
-
-#define KERN_FORMAT0_PAIRS_COUNT                                     \
-    0 // (bs_U16) - The number of kerning pairs in this subtable.
-
-#define KERN_FORMAT0_SEARCH_RANGE                                    \
-    2 // (bs_U16) - The largest power of two less than or equal to the value of nPairs, multiplied by the size in bytes of an entry in the subtable.
-
-#define KERN_FORMAT0_ENTRY_SELECTOR                                  \
-    4 // (bs_U16) - This is calculated as log2 of the largest power of two less than or equal to the value of nPairs. This value indicates how many iterations of the search loop have to be made. For example, in a list of eight items, there would be three iterations of the loop.
-
-#define KERN_FORMAT0_RANGE_SHIFT                                     \
-    6 // (bs_U16) - The value of nPairs minus the largest power of two less than or equal to nPairs. This is multiplied by the size in bytes of an entry in the table.
-
-#define KERN_FORMAT0_PAIR_START                                      \
-    8
-
-#define KERN_FORMAT0_PAIR_LEFT                                       \
-    0 // (bs_U16) - The glyph index for the lefthand glyph in the kerning pair.
-
-#define KERN_FORMAT0_PAIR_RIGHT                                      \
-    2 // (bs_U16) - The glyph index for the righthand glyph in the kerning pair.
-
-#define KERN_FORMAT0_PAIR_VALUE                                      \
-    4 // (bs_I16) - The kerning value in FUnits for the left and right pair in FUnits. If this value is greater than zero, the glyphs are moved apart. If this value is less than zero, the glyphs are moved together.
 
 #define BS_STRING_GEN_2(TYPE, FUNC, ...)                             \
     { .size = sizeof(TYPE), .func = #FUNC, __VA_OPT__(.is_required = __VA_ARGS__) },
@@ -1674,6 +1378,12 @@ struct bs_FileInfo {
     size_t size;
 };
 
+struct bs_PngData {
+    int width;
+    int height;
+    int channels_count;
+};
+
 struct bs_Procedure {
     const char* func;
     size_t size;
@@ -1773,11 +1483,13 @@ struct bs_Object {
         bs_Batch* batch;
         bs_Buffer* buffer;
         bs_Image* image;
+        bs_Atlas* atlas;
         bs_Sampler* sampler;
         bs_Renderer* renderer;
         bs_Sound* sound;
         bs_Queue* queue;
         bs_RayTracer* ray_tracer;
+        bs_Font* font;
     };
 };
 
@@ -1829,8 +1541,9 @@ struct bs_ImageIndex {
 };
 
 struct bs_ImageSwaps {
-    struct VkImage_T* image;
-    struct VkImageView_T* view;
+    struct VkImage_T* vk_image;
+    struct VkImageView_T* vk_view;
+    struct VkDeviceMemory_T* vk_memory;
 };
 
 struct bs_Image {
@@ -1841,7 +1554,9 @@ struct bs_Image {
     bs_ImageIndex* indices;
     int bind_set;
     int bind_point;
-    enum VkFormat_T* format;
+    bs_Format format;
+    enum VkImageUsageFlags usage_flags;
+    enum VkImageAspectFlags aspect_flags;
     bs_ImageSwaps _[];
 };
 
@@ -1898,6 +1613,9 @@ struct bs_Atlas {
     bs_AtlasTexture* mapped;
     bs_Image* image;
     bs_Buffer* buffer;
+    struct  {
+        void* unused;
+    }_[];
 };
 
 struct bs_Sampler {
@@ -2244,6 +1962,10 @@ struct bs_Glyph {
     bs_U16 pairs_count;
     bs_U16 pairs_offset;
     bs_LongHorMetric long_hor_metric;
+    union  {
+        bs_U16 code;
+        char ascii;
+    };
 };
 
 struct bs_Head {
@@ -2354,6 +2076,21 @@ struct bs_Font {
     int height;
     float spacing;
     int pairs_count;
+    struct  {
+        int right;
+        float value;
+    }* pairs;
+    struct  {
+        int y_offset;
+        float advance_width;
+        float left_side_bearing;
+        int kerning_pair_offset;
+        int kerning_pair_count;
+    }* glyphs;
+    char table[256];
+    struct  {
+        void* unused;
+    }_[];
 };
 
 struct bs_Endpoint {
@@ -2494,6 +2231,8 @@ struct bs_Instance {
     bs_Binding* bindings;
     bs_Descriptor* descriptors;
     bool descriptor_pool_needs_update;
+    struct VkDescriptorSet_T* sets[BS_MAX_NUM_BIND_SETS];
+    struct VkDescriptorSetLayout_T* layouts[BS_MAX_NUM_BIND_SETS];
     struct VkInstance_T* instance;
     struct VkPhysicalDevice_T* physical_device;
     struct VkDevice_T* device;
@@ -2513,6 +2252,10 @@ struct bs_Swapchain {
     bool resized;
     bool image_acquired;
     bs_Object* image;
+    struct VkSwapchainKHR_T* swapchain;
+    struct  {
+        struct VkSemaphore_T* semaphore;
+    }_[];
 };
 
 struct bs_Config {
@@ -2525,6 +2268,8 @@ struct bs_Scope {
     int subpass;
     bs_Queue* queue;
     bs_U32 wait_num;
+    bs_U32 wait_stages[BS_MAX_NUM_WAITS];
+    struct VkSemaphore_T* wait_semaphores[BS_MAX_NUM_WAITS];
 };
 
 struct bs_Args {
@@ -2671,6 +2416,7 @@ enum bs_Result {
     BS_RESULT_INVALID_BASE64_PADDING,
     BS_RESULT_INVALID_PARAM,
     BS_RESULT_INVALID_TYPE,
+    BS_RESULT_INVALID_STATE,
     BS_RESULT_CORRUPTED,
     BS_RESULT_NOT_SUPPORTED,
     BS_RESULT_NOT_IMPLEMENTED,
@@ -3932,9 +3678,9 @@ bs_currentSwap();
  /**
   @param value
   @param value_length
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_beginComment(
     char* value,
     int value_length);
@@ -3942,9 +3688,9 @@ bs_beginComment(
  /**
   @param format
   @param args
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_beginCommentV(
     char* format,
     va_list args);
@@ -3952,24 +3698,18 @@ bs_beginCommentV(
  /**
   @param format
   @param ...
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_beginCommentF(
     char* format,
      ...);
 
  /**
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_endComment();
-
- /**
-  @return int
-  */
-BSAPI int
-bs_swapCount();
 
  /**
   @return bs_Image*
@@ -4345,7 +4085,6 @@ bs_batch(
 
  /**
   @param batch
-  @param 
   @param value
   @param value_length
   @return bs_Attribute*
@@ -4353,13 +4092,11 @@ bs_batch(
 BSAPI bs_Attribute*
 bs_queryAttribute(
     bs_Batch* batch,
-    bs_Batch* ,
     char* value,
     int value_length);
 
  /**
   @param batch
-  @param 
   @param format
   @param args
   @return bs_Attribute*
@@ -4367,13 +4104,11 @@ bs_queryAttribute(
 BSAPI bs_Attribute*
 bs_queryAttributeV(
     bs_Batch* batch,
-    bs_Batch* ,
     char* format,
     va_list args);
 
  /**
   @param batch
-  @param 
   @param format
   @param ...
   @return bs_Attribute*
@@ -4381,7 +4116,6 @@ bs_queryAttributeV(
 BSAPI bs_Attribute*
 bs_queryAttributeF(
     bs_Batch* batch,
-    bs_Batch* ,
     char* format,
      ...);
 
@@ -5258,6 +4992,14 @@ bs_kern(
     bs_TTF* ttf);
 
  /**
+  @param ttf
+  @return void
+  */
+BSAPI void
+bs_kern(
+    bs_TTF* ttf);
+
+ /**
   @param font
   @param sampler
   @param bind_set
@@ -5887,13 +5629,13 @@ bs_loadAtlas(
 
  /**
   @param argc
-  @param argv[]
+  @param argv
   @return void
   */
 BSAPI void
 bs_parseArgs(
     int argc,
-    char* argv[]);
+    char* argv);
 
  /**
   @return bs_Args*
@@ -5949,18 +5691,18 @@ bsi_resizeObjects();
 
  /**
   @param queue
-  @return void
+  @return bs_Result
   */
-BSAPI void
-bsi_resetQueue(
+BSAPI bs_Result
+bs_resetQueue(
     bs_Queue* queue);
 
  /**
   @param queue
-  @return void
+  @return bs_Result
   */
-BSAPI void
-bsi_pushQueue(
+BSAPI bs_Result
+bs_pushQueue(
     bs_Queue* queue);
 
  /**
@@ -6006,10 +5748,10 @@ bsi_nameHandleF(
      ...);
 
  /**
-  @return bs_Procedures*
+  @return bs_Procs*
   */
-BSAPI bs_Procedures*
-bs_procedures();
+BSAPI bs_Procs*
+bs_procs();
 
  /**
   @param json
@@ -7231,13 +6973,13 @@ bs_list(
 
  /**
   @param guid
-  @param char out[37]
+  @param char out
   @return void
   */
 BSAPI void
 bs_guidToString(
     bs_GUID* guid,
-     char out[37]);
+     char out);
 
  /**
   @param str
@@ -8973,5 +8715,7 @@ BSAPI extern bs_Features _bs_features_;
 BSAPI extern bs_Props _bs_props_;
 BSAPI extern bs_Settings _bs_settings_;
 BSAPI extern bs_Procs _bs_procs_;
+BSAPI extern bs_Scope _bs_scope_;
+BSAPI extern int _bs_image_index_;
 
 #endif

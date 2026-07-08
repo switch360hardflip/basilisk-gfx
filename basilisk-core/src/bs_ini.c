@@ -718,7 +718,7 @@ void bs_ini() {
     bs_configureAttribute("bs_Bone", BS_FORMAT_R32_SINT);
     bs_configureAttribute("bs_Weight", BS_FORMAT_R32_SFLOAT);
 
-    _bs_wnd.fixed_time = 0.025;
+   // _bs_wnd.fixed_time = 0.025;
     bs_findExecutablePaths();
     bs_prepareInstance();
     bs_prepareSurface();

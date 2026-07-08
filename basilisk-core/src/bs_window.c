@@ -405,6 +405,7 @@ void bs_moveWindow(int x, int y) {
 void bs_window(bs_U32 width, bs_U32 height, const char* title, ...) {
 	_bs_instance = bs_calloc(1, sizeof(bs_Instance));
 	_bs_wnd.title = title;
+	_bs_wnd.fixed_time = 0.025;
 	_bs_wnd.dimensions = bs_iv2(width, height);
 
     const char class_name[] = "class";

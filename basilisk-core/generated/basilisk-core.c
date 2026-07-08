@@ -397,14 +397,14 @@ int bs_currentSwap()
     return next.bs_currentSwap();
 }
 
-bs_Result bs_beginComment(
+void bs_beginComment(
     char* value, 
     int value_length)
 {
     return next.bs_beginComment(value, value_length);
 }
 
-bs_Result bs_beginCommentV(
+void bs_beginCommentV(
     char* format, 
     va_list args)
 {
@@ -413,25 +413,19 @@ bs_Result bs_beginCommentV(
     return bs_beginComment(string->value, string->len);
 }
 
-bs_Result bs_beginCommentF(
+void bs_beginCommentF(
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_beginCommentV(format, args);
+    bs_beginCommentV(format, args);
     va_end(args);
-    return _return;
 }
 
-bs_Result bs_endComment()
+void bs_endComment()
 {
     return next.bs_endComment();
-}
-
-int bs_swapCount()
-{
-    return next.bs_swapCount();
 }
 
 bs_Image* bs_swapchainImage()
@@ -694,33 +688,30 @@ bs_Result bs_batch(
 
 bs_Attribute* bs_queryAttribute(
     bs_Batch* batch, 
-    bs_Batch* , 
     char* value, 
     int value_length)
 {
-    return next.bs_queryAttribute(batch, , value, value_length);
+    return next.bs_queryAttribute(batch, value, value_length);
 }
 
 bs_Attribute* bs_queryAttributeV(
     bs_Batch* batch, 
-    bs_Batch* , 
     char* format, 
     va_list args)
 {
     static bs_String* string;
     string = bs_stringV(string, format, args);
-    return bs_queryAttribute(batch, , string->value, string->len);
+    return bs_queryAttribute(batch, string->value, string->len);
 }
 
 bs_Attribute* bs_queryAttributeF(
     bs_Batch* batch, 
-    bs_Batch* , 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_Attribute* _return = bs_queryAttributeV(batch, , format, args);
+    bs_Attribute* _return = bs_queryAttributeV(batch, format, args);
     va_end(args);
     return _return;
 }
@@ -1317,6 +1308,12 @@ void bs_kern(
     return next.bs_kern(ttf);
 }
 
+void bs_kern(
+    bs_TTF* ttf)
+{
+    return next.bs_kern(ttf);
+}
+
 void bs_bindFont(
     bs_Font* font, 
     bs_Sampler* sampler, 
@@ -1759,9 +1756,9 @@ bs_Result bs_loadAtlas(
 
 void bs_parseArgs(
     int argc, 
-    char* argv[])
+    char* argv)
 {
-    return next.bs_parseArgs(argc, argv[]);
+    return next.bs_parseArgs(argc, argv);
 }
 
 bs_Args* bs_arguments()
@@ -1804,16 +1801,16 @@ void bsi_resizeObjects()
     return next.bsi_resizeObjects();
 }
 
-void bsi_resetQueue(
+bs_Result bs_resetQueue(
     bs_Queue* queue)
 {
-    return next.bsi_resetQueue(queue);
+    return next.bs_resetQueue(queue);
 }
 
-void bsi_pushQueue(
+bs_Result bs_pushQueue(
     bs_Queue* queue)
 {
-    return next.bsi_pushQueue(queue);
+    return next.bs_pushQueue(queue);
 }
 
 bs_Result bsi_nameHandle(
@@ -1849,9 +1846,9 @@ bs_Result bsi_nameHandleF(
     return _return;
 }
 
-bs_Procedures* bs_procedures()
+bs_Procs* bs_procs()
 {
-    return next.bs_procedures();
+    return next.bs_procs();
 }
 
 bs_JsonEnumeration bs_beginEnumeration(
@@ -2787,9 +2784,9 @@ bs_List bs_list(
 
 void bs_guidToString(
     bs_GUID* guid, 
-    char out[37])
+    char out)
 {
-    return next.bs_guidToString(guid, char out[37]);
+    return next.bs_guidToString(guid, char out);
 }
 
 bs_GUID bs_stringToGuid(

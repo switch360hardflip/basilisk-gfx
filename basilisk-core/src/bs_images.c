@@ -10,32 +10,21 @@
 #include <bs_internal.h>
 #include <vulkan.h>
 
-static inline bs_U32 bs_queryMemoryType(bs_U32 filter, VkMemoryPropertyFlags props) {
-    VkPhysicalDeviceMemoryProperties mem_props;
-    vkGetPhysicalDeviceMemoryProperties(_bs_instance_->physical_device, &mem_props);
+#include <lodepng/lodepng.h>
 
-    for (bs_U32 i = 0; i < mem_props.memoryTypeCount; i++) {
-        if ((filter & (1 << i)) && (mem_props.memoryTypes[i].propertyFlags & props) == props)
-            return i;
-    }
-
-    bs_throwBasilisk(BSXI_INTERNAL | BSX_FAILED_TO_QUERY);
-    return 0;
-}
-
-bool bs_isStencilFormat(bs_Format format) {
+BSAPI bool _bs_isStencilFormat(bs_Format format) {
     return
         format == BS_FORMAT_D32_SFLOAT_S8_UINT ||
         format == BS_FORMAT_D24_UNORM_S8_UINT ||
         format == BS_FORMAT_D16_UNORM_S8_UINT;
 }
 
-bool bs_isDepthFormat(bs_Format format) {
+BSAPI bool _bs_isDepthFormat(bs_Format format) {
     return bs_isStencilFormat(format) ||
         format == BS_FORMAT_D16_UNORM || format == BS_FORMAT_D32_SFLOAT;
 }
 
-bool bs_hasAlpha(bs_Format format) {
+BSAPI bool _bs_hasAlpha(bs_Format format) {
     return
         format == BS_FORMAT_R8G8B8A8_UNORM ||
         format == BS_FORMAT_R8G8B8A8_SNORM ||
@@ -77,16 +66,21 @@ static inline const char* bs_layoutName(bs_ImageLayout layout) {
     return "Unknown";
 }
 
-int bs_imageSwapsCount(bs_Image* image) {
+BSAPI int _bs_imageSwapsCount(bs_Image* image) {
     return image->flags & BS_IMAGE_SWAPS_BIT ? _bs_settings_.frames_in_flight : 1;
 }
 
-void bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout, bs_ImageLayout new_layout) {
+BSAPI void _val_bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout, bs_ImageLayout new_layout) {
+    BS_VALIDATE(index == 0 || index < image->num_indices,,);
+    return bs_transition(image, index, old_layout, new_layout);
+}
+
+BSAPI void _bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout, bs_ImageLayout new_layout) {
     VkCommandBuffer commands = bsi_fetchCommands();
 
-    if (old_layout == new_layout) return;
-    if (index != 0 && index >= image->num_indices)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
+    if (old_layout == new_layout) {
+        return;
+    }
 
     VkPipelineStageFlags src_stage;
     VkPipelineStageFlags dst_stage;
@@ -214,7 +208,9 @@ void bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout, bs_Ima
         src_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
         dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     }
-    else bs_throwBasiliskF(BSXI_INTERNAL | BSX_UNKNOWN_LAYOUT_TRANSITION, "%s -> %s", bs_layoutName(old_layout), bs_layoutName(new_layout));
+    else {
+        bs_warnF("Unknown layout transition %s -> %s\n", bs_layoutName(old_layout), bs_layoutName(new_layout));
+    }
 
     vkCmdPipelineBarrier(
         commands,
@@ -230,19 +226,39 @@ void bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout, bs_Ima
     }
 }
 
-void bs_nameImage(bs_Image* image, const char* name) {
+BSAPI void _bs_nameImage(bs_Image* image, const char* name) {
     for (int i = 0; i < bs_imageSwapsCount(image); i++) {
         bsi_nameHandleF(image->_[i].vk_image, VK_OBJECT_TYPE_IMAGE, BS_PRINT_COLOR("%s", BS_PRINT_BLUE_BRIGHT), name);
-        bsi_nameHandleF(image->_[i].view, VK_OBJECT_TYPE_IMAGE_VIEW, BS_PRINT_COLOR("%s (View)", BS_PRINT_BLUE_BRIGHT), name);
-        bsi_nameHandleF(image->_[i].memory, VK_OBJECT_TYPE_DEVICE_MEMORY, BS_PRINT_COLOR("%s (Memory)", BS_PRINT_BLUE_BRIGHT), name);
+        bsi_nameHandleF(image->_[i].vk_view, VK_OBJECT_TYPE_IMAGE_VIEW, BS_PRINT_COLOR("%s (View)", BS_PRINT_BLUE_BRIGHT), name);
+        bsi_nameHandleF(image->_[i].vk_memory, VK_OBJECT_TYPE_DEVICE_MEMORY, BS_PRINT_COLOR("%s (Memory)", BS_PRINT_BLUE_BRIGHT), name);
     }
 }
 
-static void bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, VkImageUsageFlags usage_flags, VkImageAspectFlags aspect_flags) {
-    image->_->aspect_flags = aspect_flags;
-    image->_->usage_flags = usage_flags;
+static inline bs_Result bs_queryMemoryType(bs_U32 filter, VkMemoryPropertyFlags props, bs_U32* out) {
+    VkPhysicalDeviceMemoryProperties mem_props;
+    vkGetPhysicalDeviceMemoryProperties(_bs_instance_->physical_device, &mem_props);
 
-    // image
+    for (bs_U32 i = 0; i < mem_props.memoryTypeCount; i++) {
+        if ((filter & (1 << i)) && (mem_props.memoryTypes[i].propertyFlags & props) == props) {
+            *out = i;
+            return BS_RESULT_OK;
+        }
+    }
+
+    return BS_RESULT_FAILED_TO_QUERY;
+}
+
+ /** TODO: this doesn't use swaps atm */
+static bs_Result bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, VkImageUsageFlags usage_flags, VkImageAspectFlags aspect_flags) {
+    VkResult vk_result;
+    bs_Result result;
+
+    image->aspect_flags = aspect_flags;
+    image->usage_flags = usage_flags;
+
+   /**
+    Create Vulkan image
+    */
     VkImageCreateInfo image_ci = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .imageType = VK_IMAGE_TYPE_2D,
@@ -260,67 +276,73 @@ static void bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, VkImag
         .samples = VK_SAMPLE_COUNT_1_BIT,
     };
 
-    bs_throwVulkan(
-        vkCreateImage(
-            _bs_instance_->device, 
-            &image_ci, 
-            NULL, 
-            &image->_->vk_image));
+    vk_result = vkCreateImage(_bs_instance_->device, &image_ci, NULL, &image->_->vk_image);
+    if (vk_result != VK_SUCCESS) {
+        bs_warnF("Failed to create image (%d, %d), VkResult = %d\n", source_id, id, vk_result);
+        return bs_convertVulkanResult(vk_result);
+    }
 
     VkMemoryRequirements mem_req;
     vkGetImageMemoryRequirements(
         _bs_instance_->device, 
         image->_->vk_image,
         &mem_req);
+    
+    bs_U32 memory_type = 0;
+    result = bs_queryMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memory_type);
+    if (result != BS_RESULT_OK) {
+        bs_warnF("Failed to query memory type for image (%d, %d), VkResult = %d\n", source_id, id, vk_result);
+        return result;
+    }
 
     VkMemoryAllocateInfo alloc_i = {
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .allocationSize = mem_req.size,
-        .memoryTypeIndex = bs_queryMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT),
+        .memoryTypeIndex = memory_type,
     };
 
-    bs_throwVulkan(
-        vkAllocateMemory(
-            _bs_instance_->device, 
-            &alloc_i, 
-            NULL, 
-            &image->_->memory));
+    vk_result = vkAllocateMemory(_bs_instance_->device, &alloc_i, NULL, &image->_->vk_memory);
+    if (vk_result != VK_SUCCESS) {
+        bs_warnF("Failed to allocate image memory for image (%d, %d), VkResult = %d\n", source_id, id, vk_result);
+        return bs_convertVulkanResult(vk_result);
+    }
 
-    vkBindImageMemory(
-        _bs_instance_->device, 
-        image->_->vk_image,
-        image->_->memory,
-        0);
+    vk_result = vkBindImageMemory(_bs_instance_->device, image->_->vk_image, image->_->vk_memory, 0);
+    if (vk_result != VK_SUCCESS) {
+        bs_warnF("Failed to bind image memory for image (%d, %d), VkResult = %d\n", source_id, id, vk_result);
+        return bs_convertVulkanResult(vk_result);
+    }
 
-    // image view
+   /**
+    Create Vulkan image view
+    */
     VkImageViewType view_type;
     // todo 1d, 3d
-    if (image->num_indices > 0) {
+    if (image->num_indices > 0)
         view_type = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-    }
-    else {
+    else
         view_type = VK_IMAGE_VIEW_TYPE_2D;
-    }
 
     VkImageViewCreateInfo image_view_ci = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .image = image->_->vk_image,
         .viewType = view_type,
         .format = image->format,
-        .subresourceRange.aspectMask = image->_->aspect_flags,
+        .subresourceRange.aspectMask = image->aspect_flags,
         .subresourceRange.levelCount = 1,
         .subresourceRange.layerCount = image->num_indices == 0 ? 1 : image->num_indices,
     };
 
-    bs_throwVulkan(
-        vkCreateImageView(
-            _bs_instance_->device, 
-            &image_view_ci,
-            NULL, 
-            &image->_->view));
+    vk_result = vkCreateImageView(_bs_instance_->device, &image_view_ci, NULL, &image->_->vk_view);
+    if (vk_result != VK_SUCCESS) {
+        bs_warnF("Failed to create image view for image (%d, %d), VkResult = %d\n", source_id, id, vk_result);
+        return bs_convertVulkanResult(vk_result);
+    }
 
     if (id != 0)
         bs_nameImage(image, bs_idName(source_id, id));
+
+    return BS_RESULT_OK;
 }
 
 static bs_Result bs_depthImage(bs_Object* object, bs_ivec2 dim, int num_indices, bs_Format format, bs_U32 flags) {
@@ -386,23 +408,20 @@ bs_Result bs_image(bs_Object* object, bs_ivec2 dim, int num_indices, bs_Format f
    * PNG
    *============================================================================*/
 
-static inline void bs_throwLodepng(char* path, unsigned error) {
-    bs_throwBasiliskF(BSXI_INTERNAL | BSX_GENERAL, "%s\n%s", lodepng_error_text(error), path);
-}
-
-unsigned char* bs_encodePng(size_t* out_size, const unsigned char* data, bs_ivec2 size, bs_PngType type) {
-    unsigned char* out = NULL;
+ // lodepng_error_text(error)
+unsigned bs_Result bs_encodePng(size_t* out_size, const unsigned char* data, bs_ivec2 size, bs_PngType type, unsigned char** out) {
     int result = 0;
 
     switch (type) {
-    case BS_PNG_RGB: result = lodepng_encode24(&out, out_size, data, size.x, size.y); break;
-    case BS_PNG_RGBA: result = lodepng_encode32(&out, out_size, data, size.x, size.y); break;
-    default:
-        bs_throwBasilisk(BSX_INVALID_TYPE);
+    case BS_PNG_RGB: result = lodepng_encode24(out, out_size, data, size.x, size.y); break;
+    case BS_PNG_RGBA: result = lodepng_encode32(out, out_size, data, size.x, size.y); break;
     };
 
-    if (result != 0)
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_GENERAL, "%s", lodepng_error_text(result));
+    if (result != 0) {
+        char* error = lodepng_error_text(result);
+        bs_warn(error, strlen(error));
+        return BS_RESULT_FAILED_TO_ENCODE;
+    }
 
     return out;
 }
