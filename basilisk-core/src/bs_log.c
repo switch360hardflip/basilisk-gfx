@@ -15,8 +15,6 @@
 #define BS_SECTION_HEADER_END "\n  ==============================================================================\n\n" BS_PRINT_RESET
 #define BS_SECTION_END BS_PRINT_DARK_GREEN "\n  ==============================================================================\n\n" BS_PRINT_RESET
 
-#define BS_CONSTANT_STRING(s) s, sizeof(s) - 1
-
  /** TODO: Make this thread safe */
 
  /** Log section */

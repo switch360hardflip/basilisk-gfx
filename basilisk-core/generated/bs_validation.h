@@ -90,7 +90,6 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_rectangleVsPointAbs = GetProcAddress(module, "_val_bs_rectangleVsPointAbs");
     functions.bs_lineVsLine = GetProcAddress(module, "_val_bs_lineVsLine");
     functions.bs_populateVertexDeclaration = GetProcAddress(module, "_val_bs_populateVertexDeclaration");
-    functions.bs_swapchain = GetProcAddress(module, "_val_bs_swapchain");
     functions.bs_currentSwap = GetProcAddress(module, "_val_bs_currentSwap");
     functions.bs_beginComment = GetProcAddress(module, "_val_bs_beginComment");
     functions.bs_beginCommentV = GetProcAddress(module, "_val_bs_beginCommentV");
@@ -499,9 +498,8 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_totalSeconds = GetProcAddress(module, "_val_bs_totalSeconds");
     functions.bs_isLaterThan = GetProcAddress(module, "_val_bs_isLaterThan");
     functions.bs_cursorPosition = GetProcAddress(module, "_val_bs_cursorPosition");
-    functions.bs_getWindowPosition = GetProcAddress(module, "_val_bs_getWindowPosition");
+    functions.bs_windowPosition = GetProcAddress(module, "_val_bs_windowPosition");
     functions.bs_screenCursorPosition = GetProcAddress(module, "_val_bs_screenCursorPosition");
-    functions.bs_setCursorPosition = GetProcAddress(module, "_val_bs_setCursorPosition");
     functions.bs_lockCursorPosition = GetProcAddress(module, "_val_bs_lockCursorPosition");
     functions.bs_disableUserInputs = GetProcAddress(module, "_val_bs_disableUserInputs");
     functions.bs_middleClick = GetProcAddress(module, "_val_bs_middleClick");
@@ -521,7 +519,7 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_charDownOnce = GetProcAddress(module, "_val_bs_charDownOnce");
     functions.bs_charUpOnce = GetProcAddress(module, "_val_bs_charUpOnce");
     functions.bs_scroll = GetProcAddress(module, "_val_bs_scroll");
-    functions.bs_resize = GetProcAddress(module, "_val_bs_resize");
+    functions.bs_resizeWindow = GetProcAddress(module, "_val_bs_resizeWindow");
     functions.bs_screenDimensions = GetProcAddress(module, "_val_bs_screenDimensions");
     functions.bs_moveWindow = GetProcAddress(module, "_val_bs_moveWindow");
     functions.bs_window = GetProcAddress(module, "_val_bs_window");
@@ -535,9 +533,9 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_advance = GetProcAddress(module, "_val_bs_advance");
     functions.bs_elapsedTime = GetProcAddress(module, "_val_bs_elapsedTime");
     functions.bs_resolution = GetProcAddress(module, "_val_bs_resolution");
-    functions.bs_queryResolution = GetProcAddress(module, "_val_bs_queryResolution");
-    functions.bs_title = GetProcAddress(module, "_val_bs_title");
+    functions.bs_titleWindow = GetProcAddress(module, "_val_bs_titleWindow");
     functions.bs_inFixedTick = GetProcAddress(module, "_val_bs_inFixedTick");
+    functions.bs_setTargetFramerate = GetProcAddress(module, "_val_bs_setTargetFramerate");
     functions.bs_timer = GetProcAddress(module, "_val_bs_timer");
     functions.bs_checkTimer = GetProcAddress(module, "_val_bs_checkTimer");
     functions.bs_copyToClipboard = GetProcAddress(module, "_val_bs_copyToClipboard");

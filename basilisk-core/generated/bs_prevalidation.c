@@ -459,10 +459,6 @@ static void _preval_bs_populateVertexDeclaration(bs_VertexDeclaration* declarati
     return next.bs_populateVertexDeclaration(declaration, attributes, attributes_count);
 }
 
-static bs_Swapchain* _preval_bs_swapchain() {
-    return next.bs_swapchain();
-}
-
 static int _preval_bs_currentSwap() {
     return next.bs_currentSwap();
 }
@@ -3521,8 +3517,11 @@ static bs_IO* _preval_bs_io() {
     return next.bs_io();
 }
 
-static int _preval_bs_timeZoneBias() {
-    return next.bs_timeZoneBias();
+static bs_Result _preval_bs_timeZoneBias(int* out) {
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_timeZoneBias(out);
 }
 
 static bs_DateTime _preval_bs_dateTime() {
@@ -3546,24 +3545,29 @@ static bool _preval_bs_isLaterThan(const bs_DateTime* a, const bs_DateTime* b) {
     return next.bs_isLaterThan(a, b);
 }
 
-static bs_vec2 _preval_bs_cursorPosition() {
-    return next.bs_cursorPosition();
+static bs_vec2 _preval_bs_cursorPosition(bs_Window* window) {
+    if (window == NULL)
+        return (bs_vec2) { 0 };
+
+    return next.bs_cursorPosition(window);
 }
 
-static bs_ivec2 _preval_bs_getWindowPosition() {
-    return next.bs_getWindowPosition();
+static bs_ivec2 _preval_bs_windowPosition(bs_Window* window) {
+    if (window == NULL)
+        return (bs_ivec2) { 0 };
+
+    return next.bs_windowPosition(window);
 }
 
 static bs_vec2 _preval_bs_screenCursorPosition() {
     return next.bs_screenCursorPosition();
 }
 
-static void _preval_bs_setCursorPosition(int x, int y) {
-    return next.bs_setCursorPosition(x, y);
-}
+static void _preval_bs_lockCursorPosition(bs_Window* window, bool value) {
+    if (window == NULL)
+        return;
 
-static void _preval_bs_lockCursorPosition(bool value) {
-    return next.bs_lockCursorPosition(value);
+    return next.bs_lockCursorPosition(window, value);
 }
 
 static void _preval_bs_disableUserInputs(bool value) {
@@ -3638,8 +3642,11 @@ static int _preval_bs_scroll() {
     return next.bs_scroll();
 }
 
-static void _preval_bs_resize(bs_U32 width, bs_U32 height) {
-    return next.bs_resize(width, height);
+static void _preval_bs_resizeWindow(bs_Window* window, bs_U32 width, bs_U32 height) {
+    if (window == NULL)
+        return;
+
+    return next.bs_resizeWindow(window, width, height);
 }
 
 static bs_ivec2 _preval_bs_screenDimensions() {
@@ -3657,8 +3664,11 @@ static void _preval_bs_window(bs_U32 width, bs_U32 height, const char* title,  .
     return next.bs_window(width, height, title, ...);
 }
 
-static void _preval_bs_tick(bs_Callback tick, bs_Callback fixed_tick) {
-    return next.bs_tick(tick, fixed_tick);
+static void _preval_bs_tick(bs_Window* window, bs_Callback tick, bs_Callback fixed_tick) {
+    if (window == NULL)
+        return;
+
+    return next.bs_tick(window, tick, fixed_tick);
 }
 
 static void _preval_bs_exit() {
@@ -3677,39 +3687,63 @@ static void _preval_bs_minimize() {
     return next.bs_minimize();
 }
 
-static double _preval_bs_deltaTime() {
-    return next.bs_deltaTime();
+static double _preval_bs_deltaTime(bs_Window* window) {
+    if (window == NULL)
+        return 0;
+
+    return next.bs_deltaTime(window);
 }
 
-static void _preval_bs_pause() {
-    return next.bs_pause();
+static void _preval_bs_pause(bs_Window* window) {
+    if (window == NULL)
+        return;
+
+    return next.bs_pause(window);
 }
 
-static void _preval_bs_advance() {
-    return next.bs_advance();
+static void _preval_bs_advance(bs_Window* window) {
+    if (window == NULL)
+        return;
+
+    return next.bs_advance(window);
 }
 
-static double _preval_bs_elapsedTime() {
-    return next.bs_elapsedTime();
+static double _preval_bs_elapsedTime(bs_Window* window) {
+    if (window == NULL)
+        return 0;
+
+    return next.bs_elapsedTime(window);
 }
 
-static bs_ivec2 _preval_bs_resolution() {
-    return next.bs_resolution();
+static bs_ivec2 _preval_bs_resolution(bs_Window* window) {
+    if (window == NULL)
+        return (bs_ivec2) { 0 };
+
+    return next.bs_resolution(window);
 }
 
-static bs_ivec2 _preval_bs_queryResolution() {
-    return next.bs_queryResolution();
-}
+static void _preval_bs_titleWindow(bs_Window* window, const char* title,  ...) {
+    if (window == NULL)
+        return;
 
-static void _preval_bs_title(const char* title,  ...) {
     if (title == NULL)
         return;
 
-    return next.bs_title(title, ...);
+    return next.bs_titleWindow(window, title, ...);
 }
 
-static bool _preval_bs_inFixedTick() {
-    return next.bs_inFixedTick();
+static bool _preval_bs_inFixedTick(bs_Window* window) {
+    if (window == NULL)
+        return false;
+
+    return next.bs_inFixedTick(window);
+}
+
+static void _preval_bs_setTargetFramerate(bs_Window* window, int fps) {
+    if (window == NULL)
+        return;
+
+    return next.bs_setTargetFramerate(window, fps);
 }
 
 static bs_Timer _preval_bs_timer() {
@@ -3878,7 +3912,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_rectangleVsPointAbs = _preval_bs_rectangleVsPointAbs;
     functions.bs_lineVsLine = _preval_bs_lineVsLine;
     functions.bs_populateVertexDeclaration = _preval_bs_populateVertexDeclaration;
-    functions.bs_swapchain = _preval_bs_swapchain;
     functions.bs_currentSwap = _preval_bs_currentSwap;
     functions.bs_beginComment = _preval_bs_beginComment;
     functions.bs_endComment = _preval_bs_endComment;
@@ -4233,9 +4266,8 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_totalSeconds = _preval_bs_totalSeconds;
     functions.bs_isLaterThan = _preval_bs_isLaterThan;
     functions.bs_cursorPosition = _preval_bs_cursorPosition;
-    functions.bs_getWindowPosition = _preval_bs_getWindowPosition;
+    functions.bs_windowPosition = _preval_bs_windowPosition;
     functions.bs_screenCursorPosition = _preval_bs_screenCursorPosition;
-    functions.bs_setCursorPosition = _preval_bs_setCursorPosition;
     functions.bs_lockCursorPosition = _preval_bs_lockCursorPosition;
     functions.bs_disableUserInputs = _preval_bs_disableUserInputs;
     functions.bs_middleClick = _preval_bs_middleClick;
@@ -4255,7 +4287,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_charDownOnce = _preval_bs_charDownOnce;
     functions.bs_charUpOnce = _preval_bs_charUpOnce;
     functions.bs_scroll = _preval_bs_scroll;
-    functions.bs_resize = _preval_bs_resize;
+    functions.bs_resizeWindow = _preval_bs_resizeWindow;
     functions.bs_screenDimensions = _preval_bs_screenDimensions;
     functions.bs_moveWindow = _preval_bs_moveWindow;
     functions.bs_window = _preval_bs_window;
@@ -4269,9 +4301,9 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_advance = _preval_bs_advance;
     functions.bs_elapsedTime = _preval_bs_elapsedTime;
     functions.bs_resolution = _preval_bs_resolution;
-    functions.bs_queryResolution = _preval_bs_queryResolution;
-    functions.bs_title = _preval_bs_title;
+    functions.bs_titleWindow = _preval_bs_titleWindow;
     functions.bs_inFixedTick = _preval_bs_inFixedTick;
+    functions.bs_setTargetFramerate = _preval_bs_setTargetFramerate;
     functions.bs_timer = _preval_bs_timer;
     functions.bs_checkTimer = _preval_bs_checkTimer;
     functions.bs_copyToClipboard = _preval_bs_copyToClipboard;

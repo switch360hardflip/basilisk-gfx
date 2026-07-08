@@ -140,13 +140,11 @@ typedef struct bs_IO bs_IO;
 typedef struct bs_Window bs_Window;
 typedef struct bs_Instance bs_Instance;
 typedef struct bs_Bindings bs_Bindings;
-typedef struct bs_Swapchain bs_Swapchain;
 typedef struct bs_Config bs_Config;
 typedef struct bs_Scope bs_Scope;
 typedef struct bs_Args bs_Args;
 typedef struct bs_Features bs_Features;
 typedef struct bs_Props bs_Props;
-typedef struct bs_Settings bs_Settings;
 typedef union bs_vec2 bs_vec2;
 typedef union bs_vec3 bs_vec3;
 typedef union bs_vec4 bs_vec4;
@@ -168,7 +166,6 @@ typedef enum bs_PngType bs_PngType;
 typedef enum bs_JsonType bs_JsonType;
 typedef enum bs_ShaderType bs_ShaderType;
 typedef enum bs_Slot bs_Slot;
-typedef enum bs_SwapchainBit bs_SwapchainBit;
 typedef enum bs_BufferUsageFlag bs_BufferUsageFlag;
 typedef enum bs_MemoryPropertyFlag bs_MemoryPropertyFlag;
 typedef enum bs_Format bs_Format;
@@ -219,6 +216,9 @@ typedef enum bs_SwapchainMode bs_SwapchainMode;
 
 #define BS_VALIDATE_OBJECT_TYPE(object, source_id, _return)          \
     BS_VALIDATE(((bs_ObjectSource*)bs_fetchUnit(bs_objectSources(), source_id))->type == source_id, _return,,)
+
+#define BS_CONSTANT_STRING(s)                                        \
+    s, sizeof(s) - 1
 
 #define BS_PI                                                        \
     3.14159265359
@@ -2210,6 +2210,11 @@ struct bs_IO {
     bool right_clicked_last;
     bool middle_clicked_last;
     bool disable_inputs;
+    bs_U8 hold_keys[BS_KEY_BYTES_COUNT];
+    bs_U8 keys[BS_KEY_BYTES_COUNT];
+    bs_U8 keys_old[BS_KEY_BYTES_COUNT];
+    bs_U8 chars[BS_KEY_BYTES_COUNT];
+    bs_U8 chars_old[BS_KEY_BYTES_COUNT];
     bs_String* executable;
     bs_String* cwd;
     bs_String* appdata;
@@ -2218,28 +2223,48 @@ struct bs_IO {
 };
 
 struct bs_Window {
+    bs_Header head;
     const char* title;
     void* hwnd;
+    bs_Timer timer;
     bs_ivec2 dimensions;
     bs_Callback resize;
     bs_Callback destroy;
     bs_vec2 cursor;
-    bs_vec2 screen_cursor;
     double time, time_old;
     double delta_time;
     double fixed_time;
     double fixed_interpolation;
+    double target_frame_time;
+    double elapsed_time;
+    int last_fixed_update_times[2];
+    int new_time_index;
     bool in_fixed;
     bool lock_cursor_position;
     bool active;
     bs_CursorIcon cursor_icon;
+    bool paused;
+    bool advance;
+    bool alive;
+    struct VkSurfaceFormatKHR surface_format;
+    enum VkColorSpaceKHR color_space;
+    enum VkPresentModeKHR present_mode;
+    struct VkSurfaceKHR_T* surface;
+    int id;
+    int frames_in_flight;
+    int frame;
+    bool resized;
+    bool image_acquired;
+    bs_Object* swapchain_image;
+    struct VkSwapchainKHR_T* swapchain;
+    struct {
+        struct VkSemaphore_T* semaphore;
+        void* unused;
+    }_[];
 };
 
 struct bs_Instance {
     bs_Queue* single_times_queue;
-    bool paused;
-    bool advance;
-    bool alive;
     int bind_sets_count;
     int bindings_count;
     int descriptors_count;
@@ -2248,31 +2273,27 @@ struct bs_Instance {
     bs_Binding* bindings;
     bs_Descriptor* descriptors;
     bool descriptor_pool_needs_update;
+    bs_vec2 screen_cursor;
+    struct {
+        enum  {
+            BS_SURFACE_TYPE_UNDEFINED,
+            BS_SURFACE_TYPE_WIN32,
+            BS_SURFACE_TYPE_WAYLAND,
+            BS_SURFACE_TYPE_X11,
+            BS_SURFACE_TYPE_HEADLESS,
+        } surface_type;
+    } extensions;
     struct VkDescriptorSet_T* sets[BS_MAX_NUM_BIND_SETS];
     struct VkDescriptorSetLayout_T* layouts[BS_MAX_NUM_BIND_SETS];
     struct VkInstance_T* instance;
     struct VkPhysicalDevice_T* physical_device;
     struct VkDevice_T* device;
     struct VkCommandPool_T* command_pool;
-    struct VkSurfaceKHR_T* surface;
 };
 
 struct bs_Bindings {
     bs_BindSet* bs_bind_sets;
     int bs_bind_sets_count;
-};
-
-struct bs_Swapchain {
-    int id;
-    int frame;
-    bs_SwapchainBits flags;
-    bool resized;
-    bool image_acquired;
-    bs_Object* image;
-    struct VkSwapchainKHR_T* swapchain;
-    struct {
-        struct VkSemaphore_T* semaphore;
-    }_[];
 };
 
 struct bs_Config {
@@ -2306,10 +2327,6 @@ struct bs_Props {
     bs_U32 shader_group_handle_size;
     bs_U32 shader_group_base_alignment;
     bs_U32 min_acceleration_structure_scratch_offset_alignment;
-};
-
-struct bs_Settings {
-    bs_SwapchainMode frames_in_flight, buffer_count_min, frames_in_flight_max;
 };
 
 union bs_vec2 {
@@ -2525,11 +2542,6 @@ enum bs_Slot {
     BS_SLOT_29_BIT = 1 << 29,
     BS_SLOT_30_BIT = 1 << 30,
     BS_SLOT_31_BIT = 1 << 31,
-};
-
-enum bs_SwapchainBit {
-    BS_SWAPCHAIN_BITS_NONE = 0,
-    BS_SWAPCHAIN_BITS_CAN_COPY = (1 << 0),
 };
 
 enum bs_BufferUsageFlag {
@@ -3683,12 +3695,6 @@ bs_populateVertexDeclaration(
     bs_VertexDeclaration* declaration,
     bs_Attribute* attributes,
     int attributes_count);
-
- /**
-  @return bs_Swapchain*
-  */
-BSAPI bs_Swapchain*
-bs_swapchain();
 
  /**
   @return int
@@ -7975,10 +7981,12 @@ BSAPI bs_IO*
 bs_io();
 
  /**
-  @return int
+  @param out
+  @return bs_Result
   */
-BSAPI int
-bs_timeZoneBias();
+BSAPI bs_Result
+bs_timeZoneBias(
+    int* out);
 
  /**
   @return bs_DateTime
@@ -8005,16 +8013,20 @@ bs_isLaterThan(
     const bs_DateTime* b);
 
  /**
+  @param window
   @return bs_vec2
   */
 BSAPI bs_vec2
-bs_cursorPosition();
+bs_cursorPosition(
+    bs_Window* window);
 
  /**
+  @param window
   @return bs_ivec2
   */
 BSAPI bs_ivec2
-bs_getWindowPosition();
+bs_windowPosition(
+    bs_Window* window);
 
  /**
   @return bs_vec2
@@ -8023,21 +8035,13 @@ BSAPI bs_vec2
 bs_screenCursorPosition();
 
  /**
-  @param x
-  @param y
-  @return void
-  */
-BSAPI void
-bs_setCursorPosition(
-    int x,
-    int y);
-
- /**
+  @param window
   @param value
   @return void
   */
 BSAPI void
 bs_lockCursorPosition(
+    bs_Window* window,
     bool value);
 
  /**
@@ -8165,12 +8169,14 @@ BSAPI int
 bs_scroll();
 
  /**
+  @param window
   @param width
   @param height
   @return void
   */
 BSAPI void
-bs_resize(
+bs_resizeWindow(
+    bs_Window* window,
     bs_U32 width,
     bs_U32 height);
 
@@ -8205,12 +8211,14 @@ bs_window(
      ...);
 
  /**
+  @param window
   @param tick
   @param fixed_tick
   @return void
   */
 BSAPI void
 bs_tick(
+    bs_Window* window,
     bs_Callback tick,
     bs_Callback fixed_tick);
 
@@ -8241,56 +8249,74 @@ BSAPI void
 bs_minimize();
 
  /**
+  @param window
   @return double
   */
 BSAPI double
-bs_deltaTime();
+bs_deltaTime(
+    bs_Window* window);
 
  /**
+  @param window
   @return void
   */
 BSAPI void
-bs_pause();
+bs_pause(
+    bs_Window* window);
 
  /**
+  @param window
   @return void
   */
 BSAPI void
-bs_advance();
+bs_advance(
+    bs_Window* window);
 
  /**
+  @param window
   @return double
   */
 BSAPI double
-bs_elapsedTime();
+bs_elapsedTime(
+    bs_Window* window);
 
  /**
+  @param window
   @return bs_ivec2
   */
 BSAPI bs_ivec2
-bs_resolution();
+bs_resolution(
+    bs_Window* window);
 
  /**
-  @return bs_ivec2
-  */
-BSAPI bs_ivec2
-bs_queryResolution();
-
- /**
+  @param window
   @param title
   @param ...
   @return void
   */
 BSAPI void
-bs_title(
+bs_titleWindow(
+    bs_Window* window,
     const char* title,
      ...);
 
  /**
+  @param window
   @return bool
   */
 BSAPI bool
-bs_inFixedTick();
+bs_inFixedTick(
+    bs_Window* window);
+
+ /**
+  @param window
+  @param fps
+  @return void
+  */
+BSAPI void
+bs_setTargetFramerate(
+    bs_Window* window,
+    int fps);
 
  /**
   @return bs_Timer
@@ -8717,12 +8743,10 @@ bs_deleteDirectoryF(
 BSAPI extern bs_IO _bs_io_;
 BSAPI extern bs_Instance* _bs_instance_;
 BSAPI extern bs_Bindings _bs_bind_;
-BSAPI extern bs_Swapchain* _bs_swapchain_;
 BSAPI extern bs_Config _bs_config_;
 BSAPI extern bs_Args _bs_args_;
 BSAPI extern bs_Features _bs_features_;
 BSAPI extern bs_Props _bs_props_;
-BSAPI extern bs_Settings _bs_settings_;
 BSAPI extern bs_Procs _bs_procs_;
 BSAPI extern bs_Scope _bs_scope_;
 BSAPI extern int _bs_image_index_;

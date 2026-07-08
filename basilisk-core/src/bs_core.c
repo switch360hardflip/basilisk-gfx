@@ -2190,7 +2190,7 @@ static inline VkQueueFlags bs_convertQueueFlags(bs_QueueBits flags) {
         (flags & BS_QUEUE_TRANSFER_BIT ? VK_QUEUE_TRANSFER_BIT : 0);
 }
 
-bs_U32 bs_queueFamily(bs_QueueBits bs_flags) {
+BSAPI bs_I32 _bs_queueFamily(bs_QueueBits bs_flags) {
     VkQueueFlagBits flags = bs_convertQueueFlags(bs_flags);
 
     bs_U32 num_families = 0;
@@ -2217,11 +2217,11 @@ bs_U32 bs_queueFamily(bs_QueueBits bs_flags) {
     return -1;
 }
 
-int bs_queueSwapsCount(bs_Queue* queue) {
+BSAPI int _bs_queueSwapsCount(bs_Queue* queue) {
     return queue->flags & BSI_QUEUE_SWAPS_BIT ? BS_MAX(_bs_settings_.frames_in_flight, _bs_settings_.buffer_count_min) : 1;
 }
 
-int bs_queueSwap(bs_Queue* queue) {
+BSAPI int _bs_queueSwap(bs_Queue* queue) {
     return queue->flags & BSI_QUEUE_SWAPS_BIT ? _bs_swapchain_->frame : 0;
 }
 

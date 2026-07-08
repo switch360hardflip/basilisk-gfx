@@ -387,11 +387,6 @@ void bs_populateVertexDeclaration(
     return next.bs_populateVertexDeclaration(declaration, attributes, attributes_count);
 }
 
-bs_Swapchain* bs_swapchain()
-{
-    return next.bs_swapchain();
-}
-
 int bs_currentSwap()
 {
     return next.bs_currentSwap();
@@ -3494,9 +3489,10 @@ bs_IO* bs_io()
     return next.bs_io();
 }
 
-int bs_timeZoneBias()
+bs_Result bs_timeZoneBias(
+    int* out)
 {
-    return next.bs_timeZoneBias();
+    return next.bs_timeZoneBias(out);
 }
 
 bs_DateTime bs_dateTime()
@@ -3517,14 +3513,16 @@ bool bs_isLaterThan(
     return next.bs_isLaterThan(a, b);
 }
 
-bs_vec2 bs_cursorPosition()
+bs_vec2 bs_cursorPosition(
+    bs_Window* window)
 {
-    return next.bs_cursorPosition();
+    return next.bs_cursorPosition(window);
 }
 
-bs_ivec2 bs_getWindowPosition()
+bs_ivec2 bs_windowPosition(
+    bs_Window* window)
 {
-    return next.bs_getWindowPosition();
+    return next.bs_windowPosition(window);
 }
 
 bs_vec2 bs_screenCursorPosition()
@@ -3532,17 +3530,11 @@ bs_vec2 bs_screenCursorPosition()
     return next.bs_screenCursorPosition();
 }
 
-void bs_setCursorPosition(
-    int x, 
-    int y)
-{
-    return next.bs_setCursorPosition(x, y);
-}
-
 void bs_lockCursorPosition(
+    bs_Window* window, 
     bool value)
 {
-    return next.bs_lockCursorPosition(value);
+    return next.bs_lockCursorPosition(window, value);
 }
 
 void bs_disableUserInputs(
@@ -3643,11 +3635,12 @@ int bs_scroll()
     return next.bs_scroll();
 }
 
-void bs_resize(
+void bs_resizeWindow(
+    bs_Window* window, 
     bs_U32 width, 
     bs_U32 height)
 {
-    return next.bs_resize(width, height);
+    return next.bs_resizeWindow(window, width, height);
 }
 
 bs_ivec2 bs_screenDimensions()
@@ -3672,10 +3665,11 @@ void bs_window(
 }
 
 void bs_tick(
+    bs_Window* window, 
     bs_Callback tick, 
     bs_Callback fixed_tick)
 {
-    return next.bs_tick(tick, fixed_tick);
+    return next.bs_tick(window, tick, fixed_tick);
 }
 
 void bs_exit()
@@ -3699,46 +3693,55 @@ void bs_minimize()
     return next.bs_minimize();
 }
 
-double bs_deltaTime()
+double bs_deltaTime(
+    bs_Window* window)
 {
-    return next.bs_deltaTime();
+    return next.bs_deltaTime(window);
 }
 
-void bs_pause()
+void bs_pause(
+    bs_Window* window)
 {
-    return next.bs_pause();
+    return next.bs_pause(window);
 }
 
-void bs_advance()
+void bs_advance(
+    bs_Window* window)
 {
-    return next.bs_advance();
+    return next.bs_advance(window);
 }
 
-double bs_elapsedTime()
+double bs_elapsedTime(
+    bs_Window* window)
 {
-    return next.bs_elapsedTime();
+    return next.bs_elapsedTime(window);
 }
 
-bs_ivec2 bs_resolution()
+bs_ivec2 bs_resolution(
+    bs_Window* window)
 {
-    return next.bs_resolution();
+    return next.bs_resolution(window);
 }
 
-bs_ivec2 bs_queryResolution()
-{
-    return next.bs_queryResolution();
-}
-
-void bs_title(
+void bs_titleWindow(
+    bs_Window* window, 
     const char* title, 
     ...)
 {
-    return next.bs_title(title, ...);
+    return next.bs_titleWindow(window, title, ...);
 }
 
-bool bs_inFixedTick()
+bool bs_inFixedTick(
+    bs_Window* window)
 {
-    return next.bs_inFixedTick();
+    return next.bs_inFixedTick(window);
+}
+
+void bs_setTargetFramerate(
+    bs_Window* window, 
+    int fps)
+{
+    return next.bs_setTargetFramerate(window, fps);
 }
 
 bs_Timer bs_timer()
