@@ -24,16 +24,8 @@ struct VkDevice_T* bsi_fetchDevice() {
     return _bs_instance_->device;
 }
 
-BSAPI int _bs_currentSwap() {
-    return _bs_swapchain_->frame;
-}
-
 BSAPI bs_Procedure* _bs_procedures() {
     return &_bs_procs_;
-}
-
-BSAPI bs_Swapchain* bs_swapchain() {
-    return _bs_swapchain_;
 }
 
 BSAPI void _val_bs_beginComment(char* message, int message_len) {
@@ -153,7 +145,7 @@ BSAPI void _bs_setLineWidth(float width) {
    *============================================================================*/
 
 BSAPI int _bs_bufferSwaps(bs_Buffer* buffer) {
-    return buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_settings_.frames_in_flight : 1;
+    return buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
 }
 
 BSAPI bool _bs_bufferIsMapped(bs_Buffer* buffer) {
@@ -198,7 +190,7 @@ BSAPI bs_Result _bs_buffer(bs_Object* object, bs_U32 num_bytes, bs_BufferUsageFl
         return BS_RESULT_GENERAL_ERROR;
     }
 
-    bs_U32 num_swaps = flags & BSI_BUFFER_SWAPS_BIT ? _bs_settings_.frames_in_flight : 1;
+    bs_U32 num_swaps = flags & BSI_BUFFER_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
 
     VkBufferCreateInfo buffer_i = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -271,7 +263,7 @@ BSAPI bs_Result _bs_buffer(bs_Object* object, bs_U32 num_bytes, bs_BufferUsageFl
 }
 
 BSAPI char* _bs_bufferMap(bs_Buffer* buffer) {
-    int swap = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
+    int swap = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_scope_.window->frame : 0;
     return buffer->_[swap].data;
 }
 
@@ -284,7 +276,7 @@ BSAPI bs_Result _bs_mapBuffer(bs_Buffer* buffer, bs_U32 num_bytes) {
     else if (num_bytes > buffer->num_bytes)
         return BS_RESULT_OUT_OF_BOUNDS;
 
-    bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_settings_.frames_in_flight : 1;
+    bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
     for (int i = 0; i < num_swaps; i++) {
         VkResult result = vkMapMemory(_bs_instance_->device, buffer->_[i].memory, 0, buffer->num_bytes, 0, (void**)&buffer->_[i].data);
         if (result != VK_SUCCESS) {
@@ -298,7 +290,7 @@ BSAPI bs_Result _bs_mapBuffer(bs_Buffer* buffer, bs_U32 num_bytes) {
 BSAPI void _bs_unmapBuffer(bs_Buffer* buffer) {
     if (buffer->_->data == NULL) return;
 
-    bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_settings_.frames_in_flight : 1;
+    bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
     for (int i = 0; i < num_swaps; i++) {
         vkUnmapMemory(_bs_instance_->device, buffer->_[i].memory);
         buffer->_[i].data = NULL;
@@ -347,7 +339,7 @@ BSAPI void _bs_stageImage(bs_Buffer* buffer, bs_Format format, bs_ivec2 dim, con
 
 BSAPI void _bs_destroyBuffer(bs_Buffer* buffer) {
     bs_unmapBuffer(buffer);
-    bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_settings_.frames_in_flight : 1;
+    bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
     for (int i = 0; i < num_swaps; i++) {
         if (buffer->_[i].vk_buffer)
             vkDestroyBuffer(_bs_instance_->device, buffer->_[i].vk_buffer, NULL);
@@ -386,8 +378,8 @@ BSAPI void _bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 dst_offset, bs_U
         .size = num_bytes
     };
 
-    int src_swap = (src->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
-    int dst_swap = (dst->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
+    int src_swap = (src->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_scope_.window->frame : 0;
+    int dst_swap = (dst->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_scope_.window->frame : 0;
 
     VkCommandBuffer commands = bsi_fetchCommands();
     vkCmdCopyBuffer(commands, src->_[src_swap].vk_buffer, dst->_[dst_swap].vk_buffer, 1, &copy_region);
@@ -400,7 +392,7 @@ BSAPI void _bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 dst_offset, bs_U
 
 BSAPI void _bs_setBufferAsync(bs_Buffer* buffer, bs_U32 offset, bs_U32 num_bytes, bs_U32 value) {
     VkCommandBuffer commands = bsi_fetchCommands();
-    int swap = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_swapchain_->frame : 0;
+    int swap = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_scope_.window->frame : 0;
     vkCmdFillBuffer(commands, buffer->_[swap].vk_buffer, offset, num_bytes, value);
     if (_bs_scope_.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
         bs_pushQueue(_bs_scope_.queue);
@@ -1287,7 +1279,7 @@ BSAPI void _bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offs
     if (instance_count <= 0) return;
     if (!batch->vertex_buffer) return;
 
-    bs_U32 vertex_swap = (batch->vertex_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
+    bs_U32 vertex_swap = (batch->vertex_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_scope_.window->frame : 0;
 
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
     if (pipeline->num_bind_sets != 0) {
@@ -1304,7 +1296,7 @@ BSAPI void _bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offs
     if (!bs_batchIsIndexed(batch)) {
         vkCmdDraw(command_buffer, vertex_count, instance_count, vertex_offset, instance_offset);
     } else {
-        bs_U32 index_swap = (batch->index_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_swapchain_->frame : 0;
+        bs_U32 index_swap = (batch->index_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_scope_.window->frame : 0;
         vkCmdBindIndexBuffer(command_buffer, batch->index_buffer->buffer->_[index_swap].vk_buffer, 0, VK_INDEX_TYPE_UINT32);
         vkCmdDrawIndexed(command_buffer, vertex_count, instance_count, vertex_offset, 0, instance_offset);
     }
@@ -1686,7 +1678,7 @@ BSAPI void _bs_runPass(bs_Renderer* renderer, ...) {
 }
 
 BSAPI int _bs_rendererSwapsCount(bs_Renderer* renderer) {
-    return renderer->flags & BSI_RENDERER_HAS_SWAPS_BIT ? _bs_settings_.frames_in_flight : 1;
+    return renderer->flags & BSI_RENDERER_HAS_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
 }
 
 static void bs_destroyFramebuffer(bs_Renderer* renderer) {
@@ -2206,7 +2198,7 @@ BSAPI bs_I32 _bs_queueFamily(bs_QueueBits bs_flags) {
         }
 
         VkBool32 supports_present = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(_bs_instance_->physical_device, i, _bs_instance_->surface, &supports_present);
+        vkGetPhysicalDeviceSurfaceSupportKHR(_bs_instance_->physical_device, i, _bs_scope_.window->surface, &supports_present);
         if (supports_present) {
             bs_free(queue_families);
             return i;
@@ -2218,11 +2210,11 @@ BSAPI bs_I32 _bs_queueFamily(bs_QueueBits bs_flags) {
 }
 
 BSAPI int _bs_queueSwapsCount(bs_Queue* queue) {
-    return queue->flags & BSI_QUEUE_SWAPS_BIT ? BS_MAX(_bs_settings_.frames_in_flight, _bs_settings_.buffer_count_min) : 1;
+    return queue->flags & BSI_QUEUE_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
 }
 
 BSAPI int _bs_queueSwap(bs_Queue* queue) {
-    return queue->flags & BSI_QUEUE_SWAPS_BIT ? _bs_swapchain_->frame : 0;
+    return queue->flags & BSI_QUEUE_SWAPS_BIT ? _bs_scope_.window->frame : 0;
 }
 
 BSAPI bs_Result _val_bs_queue(bs_Object* object, bs_QueueBits flags) {
@@ -2352,7 +2344,7 @@ BSAPI void _bs_awaitQueue(bs_Queue* queue, bs_PipelineStage stage) {
 }
 
 BSAPI void _bs_awaitAcquisition() {
-    _bs_scope_.wait_semaphores[_bs_scope_.wait_num] = _bs_swapchain_->_[_bs_swapchain_->frame].semaphore;
+    _bs_scope_.wait_semaphores[_bs_scope_.wait_num] = _bs_scope_.window->_[_bs_scope_.window->frame].semaphore;
     _bs_scope_.wait_stages[_bs_scope_.wait_num] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     _bs_scope_.wait_num++;
 }
@@ -2514,7 +2506,7 @@ BSAPI void _bs_runSingle(void (*f)()) {
    *============================================================================*/
 
 BSAPI bs_Image* _bs_swapchainImage() {
-    return _bs_swapchain_->image->image;
+    return _bs_scope_.window->swapchain_image->image;
 }
 
 BSAPI int _bs_imageIndex() {
@@ -2523,13 +2515,16 @@ BSAPI int _bs_imageIndex() {
 
 void bs_prepareSwapchain();
 static void bs_destroySwapchain() {
-    for (int i = 0; i < _bs_settings_.frames_in_flight; i++) {
-        vkDestroyImageView(_bs_instance_->device, _bs_swapchain_->image->image->_[i].vk_view, NULL);
-        _bs_swapchain_->image->image->_[i].vk_view = 0;
+    bs_Window* window = _bs_scope_.window;
+    bs_Image* swapchain_image = window->swapchain_image->image;
+
+    for (int i = 0; i < window->frames_in_flight; i++) {
+        vkDestroyImageView(_bs_instance_->device, swapchain_image->_[i].vk_view, NULL);
+        swapchain_image->_[i].vk_view = 0;
     }
 
-    vkDestroySwapchainKHR(_bs_instance_->device, _bs_swapchain_->swapchain, NULL);
-    _bs_swapchain_->swapchain = 0;
+    vkDestroySwapchainKHR(_bs_instance_->device, window->swapchain, NULL);
+    window->swapchain = 0;
 }
 
 static void bs_resizeSwapchain() {
@@ -2550,13 +2545,15 @@ static void bs_resizeSwapchain() {
 
 // these functions should probably not be called by user
 BSAPI void _bs_acquire() {
-    if (_bs_swapchain_->image_acquired) return;
+    bs_Window* window = _bs_scope_.window;
+
+    if (window->image_acquired) return;
 
     VkResult result = vkAcquireNextImageKHR(
         _bs_instance_->device,
-        _bs_swapchain_->swapchain,
+        window->swapchain,
         BS_U64_MAX,
-        _bs_swapchain_->_[_bs_swapchain_->frame].semaphore,
+        window->_[window->frame].semaphore,
         VK_NULL_HANDLE,
         &_bs_image_index_);
 
@@ -2617,6 +2614,8 @@ void bsi_resizeObjects() {
 */
 
 BSAPI void _bs_present(bs_Queue* queue, ...) {
+    bs_Window* window = _bs_scope_.window;
+
     VkSemaphore wait_semaphores[BS_MAX_NUM_WAITS];
     bs_U32 num_wait_semaphores = 0;
 
@@ -2635,7 +2634,7 @@ BSAPI void _bs_present(bs_Queue* queue, ...) {
         .waitSemaphoreCount = num_wait_semaphores,
         .pWaitSemaphores = wait_semaphores,
         .swapchainCount = 1,
-        .pSwapchains = &_bs_swapchain_->swapchain,
+        .pSwapchains = &window->swapchain,
         .pImageIndices = &_bs_image_index_,
     };
 
@@ -2646,6 +2645,6 @@ BSAPI void _bs_present(bs_Queue* queue, ...) {
     else if (result != VK_SUCCESS)
         bs_warnF("Failed to present swapchain image\n");
 
-    _bs_swapchain_->frame = (_bs_swapchain_->frame + 1) % _bs_settings_.frames_in_flight;
-    _bs_swapchain_->image_acquired = false;
+    window->frame = (window->frame + 1) % window->frames_in_flight;
+    window->image_acquired = false;
 }

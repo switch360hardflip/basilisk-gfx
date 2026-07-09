@@ -207,34 +207,34 @@ static void bs_loadMeshes(bs_Model* model, bs_Json* root) {
         }                                                                           \
     }
 
-bs_vec4 bs_interpolateRotation(bs_AnimationBone* animation_joint, float time) {
+BSAPI bs_vec4 _bs_interpolateRotation(bs_AnimationBone* animation_joint, float time) {
     if (!animation_joint->rotations) return BS_QUAT_IDENTITY;
     BS_SEARCH_CHANNEL(rotations, animation_joint, time);
     return animation_joint->rotations[closest].value;
 }
 
-bs_vec3 bs_interpolateTranslation(bs_AnimationBone* animation_joint, float time) {
+BSAPI bs_vec3 _bs_interpolateTranslation(bs_AnimationBone* animation_joint, float time) {
     if (!animation_joint->translations) return bs_v3V1(0);
     BS_SEARCH_CHANNEL(translations, animation_joint, time);
     return animation_joint->translations[closest].value;
 }
 
-bs_vec3 bs_interpolateScale(bs_AnimationBone* animation_joint, float time) {
+BSAPI bs_vec3 _bs_interpolateScale(bs_AnimationBone* animation_joint, float time) {
     if (!animation_joint->scalings) return bs_v3V1(1);
     BS_SEARCH_CHANNEL(scalings, animation_joint, time);
     return animation_joint->scalings[closest].value;
 }
 
-bs_mat4 bs_boneTransform(bs_Armature* armature, bs_Bone* joint) {
+BSAPI bs_mat4 _bs_boneTransform(bs_Armature* armature, bs_Bone* joint) {
     if (!joint) return BS_MAT4_IDENTITY;
     return armature->bones[joint->id].matrix;
 }
 
-bs_vec3 bs_bonePosition(bs_Armature* armature, bs_Bone* joint) {
+BSAPI bs_vec3 _bs_bonePosition(bs_Armature* armature, bs_Bone* joint) {
     return bs_m4MulV4(bs_boneTransform(armature, joint), bs_v4(0.0, 0.0, 0.0, 1.0)).xyz;
 }
 
-bs_mat4* bs_transformBone(bs_Armature* armature, bs_Bone* bone, bs_mat4 transform) {
+BSAPI bs_mat4* _bs_transformBone(bs_Armature* armature, bs_Bone* bone, bs_mat4 transform) {
     bs_mat4 parent = (bone->parent_idx == -1) ? BS_MAT4_IDENTITY : armature->bones[bone->parent_idx].matrix;
     bs_mat4* destination = &armature->bones[bone->id].matrix;
 
@@ -245,7 +245,7 @@ bs_mat4* bs_transformBone(bs_Armature* armature, bs_Bone* bone, bs_mat4 transfor
     return destination;
 }
 
-void bs_blendPose(bs_Armature* armature, bs_Animation* animation_a, bs_Animation* animation_b, float factor, float time_a, float time_b) {
+BSAPI void _bs_blendPose(bs_Armature* armature, bs_Animation* animation_a, bs_Animation* animation_b, float factor, float time_a, float time_b) {
     if (animation_b) {
         if (animation_a->bones_count != animation_b->bones_count)
             bs_throwBasiliskF(BSX_MISMATCH, "Animation %s: %d bones\nAnimation %s: %d bones", animation_a->name, animation_a->bones_count, animation_b->name, animation_b->bones_count);
@@ -283,7 +283,7 @@ static inline bs_vec3 bs_worldSpaceJoint(bs_Armature* armature, int bone_id) {
   pretty lazily implemented rn
   should test around with transforming the target instead of every joint
   */
-void bs_fabrik(bs_Armature* armature, int end_effector_id, bs_vec3 target, int chain_length, float* chain) {
+BSAPI void _bs_fabrik(bs_Armature* armature, int end_effector_id, bs_vec3 target, int chain_length, float* chain) {
     bs_Bone* bone = &armature->bones[end_effector_id].bone;
     bs_vec3 current = target;
 
@@ -320,7 +320,7 @@ void bs_fabrik(bs_Armature* armature, int end_effector_id, bs_vec3 target, int c
     }
 }
 
-void bs_bindPose(bs_Armature* armature) {
+BSAPI void _bs_bindPose(bs_Armature* armature) {
     for (int i = 0; i < armature->bones_count; i++)
         armature->bones[i].matrix = BS_MAT4_IDENTITY;
 }
@@ -334,15 +334,15 @@ void bs_bindPose(bs_Armature* armature) {
     bone->channel##[bone->channel##_count].value = p##;                                                         \
     bone->channel##[bone->channel##_count++].time = timestamp;
 
-void bs_keyframePosition(bs_AnimationBone* bone, float timestamp, bs_vec3 translation) { 
+BSAPI void _bs_keyframePosition(bs_AnimationBone* bone, float timestamp, bs_vec3 translation) { 
     BS_SET_CHANNEL(translations, translation);
 }
 
-void bs_keyframeRotation(bs_AnimationBone* bone, float timestamp, bs_vec4 rotation) { 
+BSAPI void _bs_keyframeRotation(bs_AnimationBone* bone, float timestamp, bs_vec4 rotation) { 
     BS_SET_CHANNEL(rotations, rotation); 
 }
 
-void bs_keyframeScale(bs_AnimationBone* bone, float timestamp, bs_vec3 scale) { 
+BSAPI void _bs_keyframeScale(bs_AnimationBone* bone, float timestamp, bs_vec3 scale) { 
     BS_SET_CHANNEL(scalings, scale); 
 }
 
@@ -359,7 +359,7 @@ static int bs_queryAnimationHash(bs_Model* model, char* name) {
     return -1;
 }
 
-bs_Animation bs_loadAnimation(bs_Model* model, const char* name) {
+BSAPI bs_Animation _bs_loadAnimation(bs_Model* model, const char* name) {
     int animation_id = bs_queryAnimationHash(model, name);
     if (animation_id == -1)
         return (bs_Animation) { 0 };
@@ -615,7 +615,7 @@ static void bs_calculateModelBounds(bs_Model* model) {
     }
 }
 
-void bs_destroyModel(bs_Model* model) {
+BSAPI void _bs_destroyModel(bs_Model* model) {
     for (int i = 0; i < model->meshes_count; i++) {
         bs_Mesh* mesh = model->meshes + i;
         for (int j = 0; j < mesh->primitives_count; j++) {
@@ -633,7 +633,7 @@ void bs_destroyModel(bs_Model* model) {
     model->meshes = bs_free(model->meshes);
 }
 
-bs_Resource* bs_model(int package_id, const char* name, bs_U32 flags) {
+BSAPI bs_Resource* _bs_model(int package_id, const char* name, bs_U32 flags) {
     bs_Resource* resource = bs_loadResource(package_id, name, flags);
 
     struct {
@@ -720,7 +720,7 @@ bs_Object bs_armature(int id, bs_ArmatureFlags flags) {
 }
 */
 
-int bs_bone(bs_Armature* armature, bs_mat4 local_transform, int parent_id, const char* name) {
+BSAPI int _bs_bone(bs_Armature* armature, bs_mat4 local_transform, int parent_id, const char* name) {
     if (!armature) 
         bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
 
@@ -747,7 +747,7 @@ int bs_bone(bs_Armature* armature, bs_mat4 local_transform, int parent_id, const
     return armature->bones_count++;
 }
 
-void bs_destroyAnimation(bs_Animation* animation) {
+BSAPI void _bs_destroyAnimation(bs_Animation* animation) {
     animation->bones_count = 0;
     animation->bones = NULL;
     bs_free(animation->bones);
@@ -785,7 +785,7 @@ bs_Object bs_animation(bs_Armature* armature, int id, const char* name, bs_Anima
   * Queries
   =============================================================================*/
 
-bs_Mesh* bs_queryMeshHash(bs_Model* model, bs_U64 hash, const char* name) {
+BSAPI bs_Mesh* _bs_queryMeshHash(bs_Model* model, bs_U64 hash, const char* name) {
     for (int i = 0; i < model->meshes_count; i++) {
         bs_Mesh* mesh = model->meshes + i;
         if (mesh->name_hash == hash)
@@ -796,7 +796,7 @@ bs_Mesh* bs_queryMeshHash(bs_Model* model, bs_U64 hash, const char* name) {
     return NULL;
 }
 
-bs_Mesh* bs_queryMesh(bs_Model* model, const char* name) {
+BSAPI bs_Mesh* _bs_queryMesh(bs_Model* model, const char* name) {
     return bs_queryMeshHash(model, bs_stringHash(name), name);
 }
 
@@ -828,7 +828,7 @@ bs_Object bs_queryArmature(bs_Model* model, int id, const char* name, bs_Armatur
 }
 */
 
-bs_Armature* bs_queryArmature(bs_Model* model, const char* name) {
+BSAPI bs_Armature* _bs_queryArmature(bs_Model* model, const char* name) {
     for (int i = 0; i < model->armatures_count; i++) {
         if (strcmp(name, model->armatures[i].name) == 0)
             return model->armatures + i;
@@ -838,7 +838,7 @@ bs_Armature* bs_queryArmature(bs_Model* model, const char* name) {
     return NULL;
 }
 
-int bs_queryBoneId(bs_Armature* armature, const char* name) {
+BSAPI int _bs_queryBoneId(bs_Armature* armature, const char* name) {
     bs_U64 name_hash = bs_stringHash(name);
     for (int i = 0; i < armature->bones_count; i++) {
         if (armature->bones[i].bone.name_hash == name_hash)
@@ -849,7 +849,7 @@ int bs_queryBoneId(bs_Armature* armature, const char* name) {
     return -1;
 }
 
-bs_Bone* bs_queryBone(bs_Armature* armature, const char* name) {
+BSAPI bs_Bone* _bs_queryBone(bs_Armature* armature, const char* name) {
     int id = bs_queryBoneId(armature, name);
     return id == -1 ? NULL : &armature->bones[id].bone;
 }
@@ -883,7 +883,7 @@ bs_Object bs_queryAnimation(bs_Model* model, int id, const char* name, bs_Animat
 }
 
 */
-bs_Material* bs_queryMaterial(bs_Model* model, const char* name) {
+BSAPI bs_Material* _bs_queryMaterial(bs_Model* model, const char* name) {
     for (int i = 0; i < model->materials_count; i++) {
         if (strcmp(name, model->materials[i].name) == 0)
             return model->materials + i;

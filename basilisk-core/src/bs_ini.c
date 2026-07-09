@@ -497,11 +497,11 @@ static void bs_prepareCommands() {
 
 
 
-bs_Args* bs_arguments() {
+BSAPI bs_Args* _bs_arguments() {
     return &_bs_args_;
 }
 
-void bs_parseArgs(int argc, char* argv[]) {
+BSAPI void _bs_parseArgs(int argc, char* argv[]) {
     for (int i = 0; i < argc; i++) {
         if      (strcmp(argv[i], "--cmd-log") == 0) _bs_args_.cmd_log = true;
         else if (strcmp(argv[i], "--color-log") == 0) _bs_args_.color_log = true;
@@ -518,7 +518,7 @@ void bs_parseArgs(int argc, char* argv[]) {
         bs_throwBasiliskF(BSX_FAILED_TO_QUERY, #name); \
     }
 
-void bs_queryProcedures(bs_Procedure* procedures, int count, HMODULE dll_handle, unsigned char* destination) {
+BSAPI void _bs_queryProcedures(bs_Procedure* procedures, int count, HMODULE dll_handle, unsigned char* destination) {
 #define BS_STRING_GEN_2(TYPE, FUNC, ...) { .size = sizeof(TYPE), .func = #FUNC, __VA_OPT__(.is_required = __VA_ARGS__) },
 
     for (int i = 0; i < count; i++) {
@@ -536,7 +536,9 @@ void bs_queryProcedures(bs_Procedure* procedures, int count, HMODULE dll_handle,
 }
 
 void bs_findExecutablePaths();
-void bs_ini() {
+BSAPI void _bs_ini() {
+    _bs_instance_ = bs_calloc(1, sizeof(bs_Instance));
+
     bs_configureAttribute("bs_Position", BS_FORMAT_R32_SFLOAT);
     bs_configureAttribute("bs_Texture", BS_FORMAT_R32_SFLOAT);
     bs_configureAttribute("bs_Color", BS_FORMAT_R8_UNORM);
@@ -564,7 +566,7 @@ static int bs_compareInt(const int* a, const int* b) {
     else return 1;
 }
 
-void bs_load(
+BSAPI void _bs_load(
     bs_Callback load_resources)
 {
     if (!_bs_instance_->single_times_queue)

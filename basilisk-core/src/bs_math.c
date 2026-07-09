@@ -27,7 +27,7 @@ static inline double bs_determinate(float a, float b, float c, float d) {
     return a * d - b * c;
 }
 
-bool bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_vec2* out) {
+BSAPI bool _bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_vec2* out) {
     double detL1 = bs_determinate(l1_start.x, l1_start.y, l1_end.x, l1_end.y);
     double detL2 = bs_determinate(l2_start.x, l2_start.y, l2_end.x, l2_end.y);
     double x1mx2 = l1_start.x - l1_end.x;

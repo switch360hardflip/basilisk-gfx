@@ -312,8 +312,8 @@ BSAPI void _bs_minimizeWindow(bs_Window* window) {
 #endif
 }
 
-BSAPI void _bs_exit(bs_Window* window) {
-    window->alive = false;
+BSAPI void _bs_exit() {
+    _bs_instance_->alive = false;
 }
 
 BSAPI void _bs_pause(bs_Window* window) {
@@ -516,7 +516,7 @@ BSAPI void _bs_tickWindow(bs_Window* window, bs_Callback tick, bs_Callback fixed
         DispatchMessage(&msg);
 
         switch (msg.message) {
-        case WM_QUIT: PostQuitMessage(0); window->alive = false; return;
+        case WM_QUIT: PostQuitMessage(0); _bs_instance_->alive = false; return;
 
         case WM_LBUTTONDOWN: _bs_io_.left_clicked = true; break;
         case WM_LBUTTONUP: _bs_io_.left_clicked = false; break;
@@ -629,26 +629,10 @@ BSAPI void _bs_tickWindow(bs_Window* window, bs_Callback tick, bs_Callback fixed
 }
 
 BSAPI void _bs_tick(bs_Callback tick, bs_Callback fixed_tick) {
-
-    double dt = 0.0;
-
-    double last_fixed_time = window->time_old;
-    double current_time = 0.0;
-
     _bs_instance_->alive = true;
 
     while (_bs_instance_->alive) {
-        bs_checkTimer(&timer);
-        double frame_start = timer.seconds;
-
-        _bs_io_.scroll = 0;
-
-        memset(_bs_io_.chars, 0, sizeof(_bs_io_.chars));
-
         tick();
-
-    end:
-        void;
     }
 }
 
@@ -667,25 +651,27 @@ LRESULT CALLBACK bs_windowProcedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM 
 	case WM_SYSCHAR:
 		return 0;
 	case WM_SETCURSOR: {
-		SetCursor(_bs_wnd.cursor_icons[_bs_wnd.cursor_icon].handle);
+		// SetCursor(window->cursor_icons[_bs_wnd.cursor_icon].handle);
 	} break;
 	default: return DefWindowProc(hwnd, msg, w_param, l_param);
     }
     return 0;
 }
 
-void bs_moveWindow(int x, int y) {
-	bs_ivec2 resolution = bs_resolution();
-	SetWindowPos(_bs_wnd.hwnd, HWND_TOP, x, y, 0, 0, SWP_NOSIZE);
+BSAPI void _bs_moveWindow(bs_Window* window, int x, int y) {
+	bs_ivec2 resolution = bs_resolution(window);
+	SetWindowPos(window->hwnd, HWND_TOP, x, y, 0, 0, SWP_NOSIZE);
 }
 
-void bs_window(bs_U32 width, bs_U32 height, const char* title, ...) {
-	_bs_instance = bs_calloc(1, sizeof(bs_Instance));
-	_bs_wnd.title = title;
-	_bs_wnd.fixed_time = 0.025;
-	_bs_wnd.dimensions = bs_iv2(width, height);
+BSAPI bs_Result _bs_window(bs_Object* object, bs_U32 width, bs_U32 height, const char* title, ...) {
+    bs_Window* window = object->window;
+
+    window->title = title;
+    window->fixed_time = 0.025;
+    window->dimensions = (bs_ivec2) { width, height };
+
     bs_Timer timer = bs_timer();
-    bs_setTargetFramerate(window, 60);
+    bs_setTargetFramerate(object->window, 60);
 
     const char class_name[] = "class";
     HINSTANCE hinstance = GetModuleHandle(0);
@@ -707,7 +693,7 @@ void bs_window(bs_U32 width, bs_U32 height, const char* title, ...) {
     if (!RegisterClassEx(&wc))
         bs_throwLastWin32Error(NULL);
 
-	_bs_wnd.hwnd = CreateWindowEx(
+    window->hwnd = CreateWindowEx(
 		WS_EX_CLIENTEDGE,
 	//	WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR,
         class_name,
@@ -717,8 +703,10 @@ void bs_window(bs_U32 width, bs_U32 height, const char* title, ...) {
         CW_USEDEFAULT, CW_USEDEFAULT, width, height,
         NULL, NULL, hinstance, NULL);
 
-    if (!_bs_wnd.hwnd)
-        bs_throwLastWin32Error(NULL);
+    if (!window->hwnd) {
+        bs_warnF("Failed to create window\n");
+        return bs_convertLastError();
+    }
 
     PIXELFORMATDESCRIPTOR pixel_format_descriptor = {
         .nSize = sizeof(PIXELFORMATDESCRIPTOR),
@@ -738,7 +726,7 @@ void bs_window(bs_U32 width, bs_U32 height, const char* title, ...) {
         .dwLayerMask = 0, .dwVisibleMask = 0, .dwDamageMask = 0
     };
  
-     HDC hdc = GetDC(_bs_wnd.hwnd);
+     HDC hdc = GetDC(window->hwnd);
      int pixel_format = ChoosePixelFormat(hdc, &pixel_format_descriptor);
 	 SetPixelFormat(hdc, pixel_format, &pixel_format_descriptor);
 //	 SetWindowLong(bs_wnd.hwnd, GWL_STYLE, 0);
@@ -760,8 +748,8 @@ void bs_window(bs_U32 width, bs_U32 height, const char* title, ...) {
 	//	 sizeof(preference)
 	// );
 
-     ShowWindow(_bs_wnd.hwnd, SW_SHOW);
-     UpdateWindow(_bs_wnd.hwnd);
+     ShowWindow(window->hwnd, SW_SHOW);
+     UpdateWindow(window->hwnd);
 
 	 bs_setCursor(BS_CURSOR_DEFAULT);
  }

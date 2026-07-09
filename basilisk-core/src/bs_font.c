@@ -324,7 +324,7 @@ static inline int bs_kernFormat0(bs_TTF* ttf, char* kern, int offset) {
     return sizeof(bs_U16) * 4 + sizeof(bs_U16) * 3 * pairs_count;
 }
 
-void bs_kern(bs_TTF* ttf) {
+BSAPI void _bs_kern(bs_TTF* ttf) {
     char* buf;
     if (bs_findTable(ttf, "kern", &buf) != BS_RESULT_OK) {
         return;
@@ -673,7 +673,7 @@ static void bs_calculateContourCurves(bs_Glyph* glyph, int contour, bs_vec2* out
 #define AA_SAMPLES 4
 #define AA_TOTAL (AA_SAMPLES * AA_SAMPLES)
 
-void bs_rasterizeGlyph(bs_TTF* font, bs_Glyph* glyph, int width, int height, char* out_bmp, float scale) {
+BSAPI void _bs_rasterizeGlyph(bs_TTF* font, bs_Glyph* glyph, int width, int height, char* out_bmp, float scale) {
    // int num_pts = font->lookup[code].num_points;
     bs_vec2 out[BS_TTF_MAX_PTS]; // todo too much stack
     bs_U32 out_num_pts = 0;
@@ -732,7 +732,7 @@ static inline bool bs_sameFont(bs_TTF* font, const char* path, const char* alpha
         font->alphabet == alphabet;
 }
 
-void bs_glyph(bs_TTF* ttf, bs_U16 code) {
+BSAPI void _bs_glyph(bs_TTF* ttf, bs_U16 code) {
     //int index = bs_glyphIndex(ttf, code);
 
     bs_Glyph* glyph = bs_pushBack(&ttf->glyphs, &(bs_Glyph) {.code = code});
@@ -742,12 +742,12 @@ void bs_glyph(bs_TTF* ttf, bs_U16 code) {
     bs_hmtx(ttf, glyph);
 }
 
-void bs_destroyTtf(bs_TTF* ttf) {
+BSAPI void _bs_destroyTtf(bs_TTF* ttf) {
     free(ttf->buffer);
     //free(ttf->atlas);
 }
 
-void bs_ttf(bs_TTF* existing, const char* path, bs_U32 flags) {
+BSAPI void _bs_ttf(bs_TTF* existing, const char* path, bs_U32 flags) {
     bs_TTF ttf = {
         .buffer = bs_loadFile(path),
         .glyphs = bs_list(sizeof(bs_Glyph), 64),
@@ -769,7 +769,7 @@ void bs_ttf(bs_TTF* existing, const char* path, bs_U32 flags) {
    * Font Format
    *============================================================================*/
 
-bs_vec2 bs_textDimensions(bs_Font* font, char* name, int length) {
+BSAPI bs_vec2 _bs_textDimensions(bs_Font* font, char* name, int length) {
     float width = 0.0;
     float layout_scale = ((float)font->size / (float)font->units_per_em);
 
@@ -787,9 +787,9 @@ bs_vec2 bs_textDimensions(bs_Font* font, char* name, int length) {
         font->height);
 }
 
-void bs_destroyFont(bs_Font* font) {
+BSAPI void _bs_destroyFont(bs_Font* font) {
     if (font->atlas)
-        bs_destroyAtlas(font->atlas);
+        _bs_destroyAtlas(font->atlas);
     //	if (font->fragment_shader)
     //		bs_destroyShader(font->fragment_shader);
 
@@ -801,8 +801,8 @@ void bs_destroyFont(bs_Font* font) {
     font->head.id = id;
 }
 
-void bs_bindFont(bs_Font* font, bs_Sampler* sampler, int bind_set, int bind_point) {
-    bs_bindImages(bind_set, bind_point, &(bs_ImageDescriptor) {
+BSAPI void _bs_bindFont(bs_Font* font, bs_Sampler* sampler, int bind_set, int bind_point) {
+    _bs_bindImages(bind_set, bind_point, &(bs_ImageDescriptor) {
         .image = font->atlas->image,
         .layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         .sampler = sampler,

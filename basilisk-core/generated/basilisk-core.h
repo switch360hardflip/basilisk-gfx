@@ -1491,6 +1491,7 @@ struct bs_Object {
         bs_Queue* queue;
         bs_RayTracer* ray_tracer;
         bs_Font* font;
+        bs_Window* window;
     };
 };
 
@@ -2201,8 +2202,6 @@ struct bs_ObjectId {
 };
 
 struct bs_IO {
-    bs_U64 exceptions;
-    bs_U64 caught;
     bool left_clicked;
     bool right_clicked;
     bool middle_clicked;
@@ -2215,11 +2214,11 @@ struct bs_IO {
     bs_U8 keys_old[BS_KEY_BYTES_COUNT];
     bs_U8 chars[BS_KEY_BYTES_COUNT];
     bs_U8 chars_old[BS_KEY_BYTES_COUNT];
+    bs_I8 scroll, scroll_old;
     bs_String* executable;
     bs_String* cwd;
     bs_String* appdata;
     bs_String* log;
-    bs_I8 scroll, scroll_old;
 };
 
 struct bs_Window {
@@ -2245,7 +2244,6 @@ struct bs_Window {
     bs_CursorIcon cursor_icon;
     bool paused;
     bool advance;
-    bool alive;
     struct VkSurfaceFormatKHR surface_format;
     enum VkColorSpaceKHR color_space;
     enum VkPresentModeKHR present_mode;
@@ -2259,7 +2257,6 @@ struct bs_Window {
     struct VkSwapchainKHR_T* swapchain;
     struct {
         struct VkSemaphore_T* semaphore;
-        void* unused;
     }_[];
 };
 
@@ -2273,6 +2270,7 @@ struct bs_Instance {
     bs_Binding* bindings;
     bs_Descriptor* descriptors;
     bool descriptor_pool_needs_update;
+    bool alive;
     bs_vec2 screen_cursor;
     struct {
         enum  {
@@ -2305,6 +2303,7 @@ struct bs_Scope {
     bs_Renderer* renderer;
     int subpass;
     bs_Queue* queue;
+    bs_Window* window;
     bs_U32 wait_num;
     bs_U32 wait_stages[BS_MAX_NUM_WAITS];
     struct VkSemaphore_T* wait_semaphores[BS_MAX_NUM_WAITS];
@@ -4897,18 +4896,18 @@ bs_queueSwapsCount(
  /**
   @param object
   @param flags
-  @return 
+  @return bs_Result
   */
-BSAPI 
+BSAPI bs_Result
 bs_queue(
     bs_Object* object,
     bs_QueueBits flags);
 
  /**
   @param queue
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_destroyQueue(
     bs_Queue* queue);
 
@@ -8187,12 +8186,14 @@ BSAPI bs_ivec2
 bs_screenDimensions();
 
  /**
+  @param window
   @param x
   @param y
   @return void
   */
 BSAPI void
 bs_moveWindow(
+    bs_Window* window,
     int x,
     int y);
 

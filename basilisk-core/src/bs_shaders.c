@@ -78,7 +78,7 @@ static void bs_destroyDescriptors() {
 
 } 
 
-const char* bs_serializeBindType(bs_BindType type) {
+BSAPI const char* _bs_serializeBindType(bs_BindType type) {
     switch (type) {
     case BS_BIND_TYPE_STORAGE_BUFFER: return "STORAGE_BUFFER";
     case BS_BIND_TYPE_UNIFORM_BUFFER: return "UNIFORM_BUFFER";
@@ -94,7 +94,7 @@ const char* bs_serializeBindType(bs_BindType type) {
     }
 }
 
-bs_BindType bs_deserializeBindType(const char* string) {
+BSAPI bs_BindType _bs_deserializeBindType(const char* string) {
     if (strcmp(string, "STORAGE_BUFFER") == 0) return BS_BIND_TYPE_STORAGE_BUFFER;
     else if (strcmp(string, "UNIFORM_BUFFER") == 0) return BS_BIND_TYPE_UNIFORM_BUFFER;
     else if (strcmp(string, "SAMPLED_IMAGE") == 0) return BS_BIND_TYPE_SAMPLED_IMAGE;
@@ -108,7 +108,7 @@ bs_BindType bs_deserializeBindType(const char* string) {
     return 0;
 }
 
-VkDescriptorType bs_convertBindType(bs_BindType type) {
+BSAPI VkDescriptorType _bs_convertBindType(bs_BindType type) {
     switch (type) {
     case BS_BIND_TYPE_INLINE_UNIFORM_BLOCK: return VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK;
     case BS_BIND_TYPE_ACCELERATION_STRUCTURE: return VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
@@ -118,7 +118,7 @@ VkDescriptorType bs_convertBindType(bs_BindType type) {
     }
 }
 
-void bs_pushDescriptorPools() {
+BSAPI void _bs_pushDescriptorPools() {
 //    if (bs_instance->descriptor_pool_needs_update) {
 //        bs_instance->descriptor_pool_needs_update = false;
 //    }
@@ -184,7 +184,7 @@ void bs_pushDescriptorPools() {
     }
 }
 
-void bs_pushDescriptors() {
+BSAPI void _bs_pushDescriptors() {
     for (int i = 0; i < _bs_instance_->bind_sets_count; i++) {
         bs_BindSet* bind_set = _bs_instance_->bind_sets + i;
         if (!bind_set->update_template) continue;
@@ -239,7 +239,7 @@ static void bs_prepareDescriptorTemplate(bs_BindSet* bind_set) {
     vkCreateDescriptorUpdateTemplate(_bs_instance_->device, &ci, NULL, &bind_set->update_template);
 }
 
-void bs_pushBindings() {
+BSAPI void _bs_pushBindings() {
     for (bs_U32 i = 0; i < _bs_instance_->bind_sets_count; i++) {
         bs_BindSet* bind_set = _bs_instance_->bind_sets + i;
         if (bind_set->bindings_count == 0) continue;
@@ -296,7 +296,7 @@ static bs_Binding* bs_binding(bs_U32 bind_set_slot, bs_U32 slot, bs_Descriptor* 
 
 // ugglygoogoogaga
 
-void bs_bindImages(bs_U32 bind_set_slot, bs_U32 slot, bs_ImageDescriptor* in_descriptors, int images_count) {
+BSAPI void _bs_bindImages(bs_U32 bind_set_slot, bs_U32 slot, bs_ImageDescriptor* in_descriptors, int images_count) {
     size_t size = images_count * sizeof(bs_Descriptor);
     bs_Descriptor* descriptors = _alloca(size);
 
@@ -324,7 +324,7 @@ void bs_bindImages(bs_U32 bind_set_slot, bs_U32 slot, bs_ImageDescriptor* in_des
     bs_binding(bind_set_slot, slot, descriptors, images_count);
 }
 
-void bs_bindImage(bs_U32 bind_set_slot, bs_U32 slot, bs_Image* image, bs_Sampler* sampler, bs_ImageLayout layout) {
+BSAPI void _bs_bindImage(bs_U32 bind_set_slot, bs_U32 slot, bs_Image* image, bs_Sampler* sampler, bs_ImageLayout layout) {
     return bs_bindImages(bind_set_slot, slot, &(bs_ImageDescriptor) {
         .sampler = sampler,
         .layout = layout,
@@ -332,7 +332,7 @@ void bs_bindImage(bs_U32 bind_set_slot, bs_U32 slot, bs_Image* image, bs_Sampler
     }, 1);
 }
 
-void bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 slot, bs_Buffer* buffer) {
+BSAPI void _bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 slot, bs_Buffer* buffer) {
     bs_Binding* binding;
     if (!buffer) {
      //   binding = bs_binding(bind_set_slot, slot, &(VkDescriptorBufferInfo) {
@@ -368,7 +368,7 @@ void bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 slot, bs_Buffer* buffer) {
     buffer->binding = slot;
 }
 
-void bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 slot, bs_RayTracer* ray_tracer) {
+BSAPI void _bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 slot, bs_RayTracer* ray_tracer) {
     if (!ray_tracer)
         bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
 
@@ -382,7 +382,7 @@ void bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 slot, bs_RayTrace
     */
 }
 
-bs_BindSet* bs_queryBindSet(bs_U32 id) {
+BSAPI bs_BindSet* _bs_queryBindSet(bs_U32 id) {
     assert(id <= _bs_instance_->max_bind_set);
 
     int bind_set = _bs_instance_->descriptor_lookup[id].bind_set;
@@ -404,7 +404,7 @@ bs_BindSet* bs_queryBindSet(bs_U32 id) {
     return NULL;
 }
 
-bs_Binding* bs_queryBinding(bs_BindSet* bind_set, bs_U32 id) {
+BSAPI bs_Binding* _bs_queryBinding(bs_BindSet* bind_set, bs_U32 id) {
     assert(id <= bind_set->max_binding);
 
     int binding = _bs_instance_->descriptor_lookup[bind_set->slot].bindings[id];
@@ -439,7 +439,7 @@ static int bs_compareBindSets(const bs_BindSet* a, const bs_BindSet* b) {
 }
 
 
-void bs_loadBindings(int package_id, const char* path) {
+BSAPI void _bs_loadBindings(int package_id, const char* path) {
     bs_Resource* resource = bs_loadResource(package_id, path, 0);
     bs_Json json = bs_json(resource->data->value, resource->data->len);
 
@@ -630,7 +630,7 @@ static inline VkFormat bs_convertFormatFromBaseType(bs_Format format, bs_U32 siz
     return 0;
 }
 
-void bs_configureAttribute(const char* name, bs_Format base_format) {
+BSAPI void _bs_configureAttribute(const char* name, bs_Format base_format) {
     bs_pushBack(&_bs_config.attributes, &(bs_AttributeType) {
         .base_format = base_format,
         .name = name,
@@ -681,7 +681,7 @@ static inline void bs_readAttributes(bs_Shader* shader, bs_Json* root) {
     }
 }
 
-bs_ShaderType bs_deserializeShaderType(const char* type_name) {
+BSAPI bs_ShaderType _bs_deserializeShaderType(const char* type_name) {
     if (strcmp(type_name, "VERTEX") == 0)
         return BS_VERTEX_SHADER;
     else if (strcmp(type_name, "GEOMETRY") == 0)
@@ -705,7 +705,7 @@ bs_ShaderType bs_deserializeShaderType(const char* type_name) {
     return 0;
 }
 
-const char* bs_serializeShaderType(bs_ShaderType type) {
+BSAPI const char* _bs_serializeShaderType(bs_ShaderType type) {
     switch (type) {
     case BS_VERTEX_SHADER: return "VERTEX";
     case BS_GEOMETRY_SHADER: return "GEOMETRY";
@@ -722,7 +722,7 @@ const char* bs_serializeShaderType(bs_ShaderType type) {
     return 0;
 }
 
-bs_Result bs_shader(int package_id, const char* name, bs_U32 flags, bs_Resource** out) {
+BSAPI bs_Result _bs_shader(int package_id, const char* name, bs_U32 flags, bs_Resource** out) {
     bs_Resource* resource = bs_loadResource(package_id, name, flags);
 
     bs_Json metadata = bs_json(resource->data->value, resource->data->len);
@@ -813,7 +813,7 @@ bs_Result bs_shader(int package_id, const char* name, bs_U32 flags, bs_Resource*
     return BS_RESULT_OK;
 }
 
-void bs_destroyShader(bs_Shader* shader) {
+BSAPI void _bs_destroyShader(bs_Shader* shader) {
    // free(shader->name);
     for (int i = 0; i < shader->num_attributes; i++)
         free(shader->attributes[i].name);
@@ -841,7 +841,7 @@ static inline bs_Result bs_queryPipeline(bs_PipelineType type, bs_U64 hash, bs_P
     return BS_RESULT_FAILED_TO_QUERY;
 }
 
-void bs_pushConstant(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 size, void* data) {
+BSAPI void _bs_pushConstant(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 size, void* data) {
     VkCommandBuffer command_buffer = bsi_fetchCommands();
     if ((offset + size) > pipeline->constant_size)
         return bs_throwBasiliskF(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS, "Pipeline " BS_PRINT_COLOR("%" PRIx64, BS_PRINT_BLUE_BRIGHT) "\nPush Constant\n%d + %d > %d", pipeline->hash, offset, size, pipeline->constant_size);
@@ -917,7 +917,7 @@ static inline bool bs_pipelineNeedsUpdating(bs_Pipeline* pipeline) {
     return pipeline->flags & BS_PIPELINE_NEEDS_UPDATING;
 }
 
-void bs_destroyComputePipeline(bs_Pipeline* pipeline) {
+BSAPI void _bs_destroyComputePipeline(bs_Pipeline* pipeline) {
     vkDestroyPipelineLayout(_bs_instance_->device, pipeline->layout, NULL);
     vkDestroyPipeline(_bs_instance_->device, pipeline->pipeline, NULL);
 }
@@ -927,7 +927,7 @@ typedef struct {
     bs_PipelineFlags flags;
 } bs_ComputePipelineHash;
 
-bs_Pipeline* bs_computePipeline(bs_Shader* compute_shader, bs_PipelineFlags flags) {
+BSAPI bs_Pipeline* _bs_computePipeline(bs_Shader* compute_shader, bs_PipelineFlags flags) {
     if (bs_pipelines[BS_PIPELINE_COMPUTE].capacity == 0)
         bs_pipelines[BS_PIPELINE_COMPUTE] = bs_list(sizeof(bs_Pipeline*), 64);
 
@@ -1007,13 +1007,13 @@ static inline int bs_defaultEnum(int value, int def) {
     return (value == 0) ? def : (value == -1 ? 0 : value);
 }
 
-void bs_destroyPipeline(bs_Pipeline* pipeline) {
+BSAPI void _bs_destroyPipeline(bs_Pipeline* pipeline) {
     pipeline->name = bs_free(pipeline->name);
     vkDestroyPipelineLayout(_bs_instance_->device, pipeline->layout, NULL);
     vkDestroyPipeline(_bs_instance_->device, pipeline->pipeline, NULL);
 }
 
-bs_U64 bs_pipelineHash(bs_PipelineHash* descriptor) {
+BSAPI bs_U64 _bs_pipelineHash(bs_PipelineHash* descriptor) {
     bs_U64 hash = 0xcbf29ce484222325;
 
     for (int i = 0; i < sizeof(bs_PipelineHash); i++) {
@@ -1030,7 +1030,7 @@ static void bs_defaultDescriptor(bs_PipelineHash* descriptor) {
     descriptor->cull_type = (descriptor->cull_type == BS_CULL_MODE_NONE) ? 0 : descriptor->cull_type;
 }
 
-bs_Pipeline* bs_pipeline(bs_PipelineHash* descriptor) {
+BSAPI bs_Pipeline* _bs_pipeline(bs_PipelineHash* descriptor) {
     if (bs_pipelines[BS_PIPELINE_GRAPHICS].capacity == 0)
         bs_pipelines[BS_PIPELINE_GRAPHICS] = bs_list(sizeof(bs_Pipeline*), 64);
 
@@ -1324,7 +1324,7 @@ static inline VkRayTracingShaderGroupCreateInfoKHR bs_shaderGroup(VkRayTracingSh
     };
 }
 
-bs_Result bs_rayTracingPipeline(bs_RayTracePipelineHash* pipeline_hash, bs_Pipeline** out) {
+BSAPI bs_Result _bs_rayTracingPipeline(bs_RayTracePipelineHash* pipeline_hash, bs_Pipeline** out) {
     bs_Result result;
 
     if (pipeline_hash == NULL)

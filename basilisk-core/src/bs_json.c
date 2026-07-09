@@ -9,7 +9,7 @@
 #include <bs_internal.h>
 #include <yyjson.h>
 
-bs_Json bs_jsonRoot(bs_Json* json, bs_JsonObject obj) {
+BSAPI bs_Json _bs_jsonRoot(bs_Json* json, bs_JsonObject obj) {
 	yyjson_doc* doc;
 	if (!json) {
 		doc = yyjson_mut_doc_new(NULL);
@@ -29,7 +29,7 @@ bs_Json bs_jsonRoot(bs_Json* json, bs_JsonObject obj) {
   TODO:
   if bs_jsonRoot(root, ...) is called before this, "root" will become a dangling pointer
   */
-void bs_ensureJsonMutable(bs_Json* root) {
+BSAPI void _bs_ensureJsonMutable(bs_Json* root) {
 	if (!root->is_mutable) {
 		root->is_mutable = true;
 		root->doc = yyjson_doc_mut_copy(root->doc, NULL);
@@ -37,7 +37,7 @@ void bs_ensureJsonMutable(bs_Json* root) {
 	}
 }
 
-bs_Json bs_jsonCopy(const bs_Json* root) {
+BSAPI bs_Json _bs_jsonCopy(const bs_Json* root) {
 	bs_Json json = {
 		.is_mutable = true,
 		.doc = root->is_mutable ?
@@ -50,7 +50,7 @@ bs_Json bs_jsonCopy(const bs_Json* root) {
 	return json;
 }
 
-char* bs_saveJson(bs_Json* json, bs_SaveJsonBits flags) {
+BSAPI char* _bs_saveJson(bs_Json* json, bs_SaveJsonBits flags) {
 	size_t size = 0;
 	yyjson_write_err error = { 0 };
 	char* result = json->is_mutable ?
@@ -63,7 +63,7 @@ char* bs_saveJson(bs_Json* json, bs_SaveJsonBits flags) {
 	return result;
 }
 
-bs_Json bs_emptyJson() {
+BSAPI bs_Json _bs_emptyJson() {
 	yyjson_doc* doc = yyjson_read("{}", 2, 0);
 	
 	return (bs_Json) {
@@ -72,7 +72,7 @@ bs_Json bs_emptyJson() {
 	};
 }
 
-bs_Json bs_emptyJsonArray() {
+BSAPI bs_Json _bs_emptyJsonArray() {
 	yyjson_doc* doc = yyjson_read("[]", 2, 0);
 
 	return (bs_Json) {
@@ -81,7 +81,7 @@ bs_Json bs_emptyJsonArray() {
 	};
 }
 
-bs_Json bs_json(char* raw, int len) {
+BSAPI bs_Json _bs_json(char* raw, int len) {
 	yyjson_doc* doc = yyjson_read(raw, len, 0);
 
 	bs_Json json = {
@@ -95,7 +95,7 @@ bs_Json bs_json(char* raw, int len) {
 	return json;
 }
 
-bs_Json bs_loadJson(const char* path) {
+BSAPI bs_Json _bs_loadJson(const char* path) {
 	bs_String* raw = bs_loadFile(path);
 	if (!raw)
 		return (bs_Json) { 0 };
@@ -109,7 +109,7 @@ bs_Json bs_loadJson(const char* path) {
 	return json;
 }
 
-bs_Json bs_loadJsonF(char* format, ...) {
+BSAPI bs_Json _bs_loadJsonF(char* format, ...) {
 	char path[256];
 	int path_len = 0;
 	BS_PARSE_FORMAT(format, path, path_len);
@@ -318,7 +318,7 @@ static bs_JsonValue bs_createJsonValue(bool is_mutable, yyjson_val* root, char* 
 	bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_TYPE);
 }
 
-bs_JsonValue bs_parseJsonValue(char* raw) {
+BSAPI bs_JsonValue _bs_parseJsonValue(char* raw) {
 	yyjson_doc* doc = yyjson_read(raw, strlen(raw), 0);
 	yyjson_val* root = yyjson_doc_get_root(doc);
 
@@ -466,11 +466,11 @@ static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path,
 
 }
 
-bs_JsonValue bs_fetchJson(bs_Json* root, bs_JsonType expect, char* path) {
+BSAPI bs_JsonValue _bs_fetchJson(bs_Json* root, bs_JsonType expect, char* path) {
 	return bs_fetchJsonN(root, expect, path, strlen(path), false);
 }
 
-bs_JsonValue bs_fetchJsonF(bs_Json* root, bs_JsonType expect, const char* format, ...) {
+BSAPI bs_JsonValue _bs_fetchJsonF(bs_Json* root, bs_JsonType expect, const char* format, ...) {
 	static bs_String* string;
 	va_list args;
 	va_start(args, format);
@@ -479,12 +479,12 @@ bs_JsonValue bs_fetchJsonF(bs_Json* root, bs_JsonType expect, const char* format
 	return bs_fetchJsonN(root, expect, string->value, string->len, false);
 }
 
-void bs_deleteJson(bs_Json* root, char* path) {
+BSAPI void _bs_deleteJson(bs_Json* root, char* path) {
 	bs_ensureJsonMutable(root);
 	bs_fetchJsonN(root, 0, path, strlen(path), true);
 }
 
-void bs_deleteJsonF(bs_Json* root, const char* format, ...) {
+BSAPI void _bs_deleteJsonF(bs_Json* root, const char* format, ...) {
 	char path[128];
 	int path_len = 0;
 	BS_PARSE_FORMAT(format, path, path_len);
@@ -510,7 +510,7 @@ static inline void bs_throwInvalidJsonType(yyjson_mut_val* val) {
 	bs_throwBasiliskF(BSXI_INTERNAL | BSX_INVALID_TYPE, "%s", bs_serializeJsonType(yyjson_mut_get_type(val)));
 }
 
-bool bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path) {
+BSAPI bool _bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path) {
 	bs_ensureJsonMutable(root);
 
 	char* old_path = path;
@@ -673,7 +673,7 @@ bool bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path) {
 	return false;
 }
 
-bool bs_ensureJsonF(bs_Json* root, bs_JsonValue value, const char* format, ...) {
+BSAPI bool _bs_ensureJsonF(bs_Json* root, bs_JsonValue value, const char* format, ...) {
 	char path[128];
 	int path_len = 0;
 	BS_PARSE_FORMAT(format, path, path_len);
@@ -681,7 +681,7 @@ bool bs_ensureJsonF(bs_Json* root, bs_JsonValue value, const char* format, ...) 
 	return false;
 }
 
-void bs_destroyJson(bs_Json* json) {
+BSAPI void _bs_destroyJson(bs_Json* json) {
 	if (json->is_mutable)
 		yyjson_mut_doc_free(json->doc);
 	else
@@ -698,7 +698,7 @@ static void bs_enumerateMutableJson(bs_Json* json, bs_JsonEnumeration* e) {
 	e->value = bs_createJsonValue(json->is_mutable, value, key_str, BS_JSON_UNDEFINED);
 }
 
-void bs_enumerateJson(bs_Json* json, bs_JsonEnumeration* e) {
+BSAPI void _bs_enumerateJson(bs_Json* json, bs_JsonEnumeration* e) {
 	if (json->is_mutable)
 		return bs_enumerateMutableJson(json, e);
 
@@ -711,7 +711,7 @@ void bs_enumerateJson(bs_Json* json, bs_JsonEnumeration* e) {
 	e->value = bs_createJsonValue(json->is_mutable, value, key_str, BS_JSON_UNDEFINED);
 }
 
-bs_JsonEnumeration bs_beginEnumeration(bs_Json* json) {
+BSAPI bs_JsonEnumeration _bs_beginEnumeration(bs_Json* json) {
 	bs_JsonEnumeration result;
 
 	if (json->is_mutable) {
@@ -741,24 +741,24 @@ bs_JsonEnumeration bs_beginEnumeration(bs_Json* json) {
 //	const char* path,
 //	...);
 
-bs_JsonValue bs_jsonValueFromRoot(bs_Json x) { return (bs_JsonValue) { .type = BS_JSON_OBJECT, .as_object = x.as_object, .found = true }; }
-bs_JsonValue bs_jsonValueFromObject(bs_JsonObject x) { return (bs_JsonValue) { .type = BS_JSON_OBJECT, .as_object = x, .found = true, }; }
-bs_JsonValue bs_jsonValueFromBool(bool x) { return (bs_JsonValue) { .type = BS_JSON_BOOL, .as_bool = x, .found = true }; }
-bs_JsonValue bs_jsonValueFromInteger(int x) { return (bs_JsonValue) { .type = BS_JSON_NUMBER_INTEGER, .as_number = x, .found = true, }; }
-bs_JsonValue bs_jsonValueFromFloat(double x) { return (bs_JsonValue) { .type = BS_JSON_NUMBER, .as_number = x, .found = true, }; }
-bs_JsonValue bs_jsonValueFromString(char* x) { return (bs_JsonValue) { .type = BS_JSON_STRING, .as_string = x ? strdup(x) : x, .found = true, }; }
-bs_JsonValue bs_jsonValueFromStringPointer(char* x) { return (bs_JsonValue) { .type = BS_JSON_STRING, .as_string = x, .found = true, }; }
-bs_JsonValue bs_jsonValueFromDateTime(bs_DateTime x) {
+BSAPI bs_JsonValue _bs_jsonValueFromRoot(bs_Json x) { return (bs_JsonValue) { .type = BS_JSON_OBJECT, .as_object = x.as_object, .found = true }; }
+BSAPI bs_JsonValue _bs_jsonValueFromObject(bs_JsonObject x) { return (bs_JsonValue) { .type = BS_JSON_OBJECT, .as_object = x, .found = true, }; }
+BSAPI bs_JsonValue _bs_jsonValueFromBool(bool x) { return (bs_JsonValue) { .type = BS_JSON_BOOL, .as_bool = x, .found = true }; }
+BSAPI bs_JsonValue _bs_jsonValueFromInteger(int x) { return (bs_JsonValue) { .type = BS_JSON_NUMBER_INTEGER, .as_number = x, .found = true, }; }
+BSAPI bs_JsonValue _bs_jsonValueFromFloat(double x) { return (bs_JsonValue) { .type = BS_JSON_NUMBER, .as_number = x, .found = true, }; }
+BSAPI bs_JsonValue _bs_jsonValueFromString(char* x) { return (bs_JsonValue) { .type = BS_JSON_STRING, .as_string = x ? strdup(x) : x, .found = true, }; }
+BSAPI bs_JsonValue _bs_jsonValueFromStringPointer(char* x) { return (bs_JsonValue) { .type = BS_JSON_STRING, .as_string = x, .found = true, }; }
+BSAPI bs_JsonValue _bs_jsonValueFromDateTime(bs_DateTime x) {
 	return (bs_JsonValue) {
 		.type = BS_JSON_STRING,
 		.as_string = bs_charStringF("%02d-%02d-%02d %02d:%02d:%02d", x.years, x.months, x.days, x.hours, x.minutes, x.seconds),
 		.found = true,
 	};
 }
-bs_JsonValue bs_jsonObject(bs_Json* json) { return (bs_JsonValue) { .type = BS_JSON_OBJECT, .as_object = yyjson_mut_obj(json->doc), .found = true, }; } 
-bs_JsonValue bs_jsonArray(bs_JsonType type, char* data, int count) { return (bs_JsonValue) { .type = BS_JSON_ARRAY | type, .found = true, .as_array.as_ints = data, .size = count }; }
+BSAPI bs_JsonValue _bs_jsonObject(bs_Json* json) { return (bs_JsonValue) { .type = BS_JSON_OBJECT, .as_object = yyjson_mut_obj(json->doc), .found = true, }; } 
+BSAPI bs_JsonValue _bs_jsonArray(bs_JsonType type, char* data, int count) { return (bs_JsonValue) { .type = BS_JSON_ARRAY | type, .found = true, .as_array.as_ints = data, .size = count }; }
 
-bs_JsonValue bs_jsonVec2(bs_vec2* vector) { 
+BSAPI bs_JsonValue _bs_jsonVec2(bs_vec2* vector) { 
 	return (bs_JsonValue) { 
 		.type = BS_JSON_ARRAY | BS_JSON_FLOAT, 
 		.found = true,
@@ -767,7 +767,7 @@ bs_JsonValue bs_jsonVec2(bs_vec2* vector) {
 	}; 
 }
 
-bs_JsonValue bs_jsonVec3(bs_vec3* vector) { 
+BSAPI bs_JsonValue _bs_jsonVec3(bs_vec3* vector) { 
 	return (bs_JsonValue) { 
 		.type = BS_JSON_ARRAY | BS_JSON_FLOAT, 
 		.found = true, 
@@ -776,7 +776,7 @@ bs_JsonValue bs_jsonVec3(bs_vec3* vector) {
 	}; 
 }
 
-bs_JsonValue bs_jsonVec4(bs_vec4* vector) { 
+BSAPI bs_JsonValue _bs_jsonVec4(bs_vec4* vector) { 
 	return (bs_JsonValue) { 
 		.type = BS_JSON_ARRAY | BS_JSON_FLOAT, 
 		.found = true, 
@@ -785,7 +785,7 @@ bs_JsonValue bs_jsonVec4(bs_vec4* vector) {
 	}; 
 }
 
-bs_JsonValue bs_jsonRGBA(bs_RGBA color) {
+BSAPI bs_JsonValue _bs_jsonRGBA(bs_RGBA color) {
 	return (bs_JsonValue) {
 		.type = BS_JSON_ARRAY | BS_JSON_UCHAR,
 		.found = true,

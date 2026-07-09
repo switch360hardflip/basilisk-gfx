@@ -1452,22 +1452,19 @@ static int _preval_bs_queueSwapsCount(bs_Queue* queue) {
     return next.bs_queueSwapsCount(queue);
 }
 
-static  _preval_bs_queue(bs_Object* object, bs_QueueBits flags) {
+static bs_Result _preval_bs_queue(bs_Object* object, bs_QueueBits flags) {
     if (object == NULL)
-        return 0;
-
-    if (!(_bs_validateObject(object)))
-        return 0;
+        return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_queue(object, flags);
 }
 
-static bs_Result _preval_bs_destroyQueue(bs_Queue* queue) {
+static void _preval_bs_destroyQueue(bs_Queue* queue) {
     if (queue == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (queue->head.source_id != BS_OBJECT_QUEUE)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_destroyQueue(queue);
 }
@@ -3653,8 +3650,11 @@ static bs_ivec2 _preval_bs_screenDimensions() {
     return next.bs_screenDimensions();
 }
 
-static void _preval_bs_moveWindow(int x, int y) {
-    return next.bs_moveWindow(x, y);
+static void _preval_bs_moveWindow(bs_Window* window, int x, int y) {
+    if (window == NULL)
+        return;
+
+    return next.bs_moveWindow(window, x, y);
 }
 
 static void _preval_bs_window(bs_U32 width, bs_U32 height, const char* title,  ...) {

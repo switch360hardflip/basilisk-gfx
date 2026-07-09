@@ -1213,14 +1213,14 @@ int bs_queueSwapsCount(
     return next.bs_queueSwapsCount(queue);
 }
 
- bs_queue(
+bs_Result bs_queue(
     bs_Object* object, 
     bs_QueueBits flags)
 {
     return next.bs_queue(object, flags);
 }
 
-bs_Result bs_destroyQueue(
+void bs_destroyQueue(
     bs_Queue* queue)
 {
     return next.bs_destroyQueue(queue);
@@ -3649,10 +3649,11 @@ bs_ivec2 bs_screenDimensions()
 }
 
 void bs_moveWindow(
+    bs_Window* window, 
     int x, 
     int y)
 {
-    return next.bs_moveWindow(x, y);
+    return next.bs_moveWindow(window, x, y);
 }
 
 void bs_window(
