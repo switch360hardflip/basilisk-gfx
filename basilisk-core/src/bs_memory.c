@@ -586,9 +586,11 @@ BSAPI void* _bs_pushBackList(bs_List* destination, bs_List* source) {
     return dest;
 }
 
-BSAPI void _bs_erase(bs_List* list, int index, bs_U32 count) {
-    if ((index + count - 1) >= list->count)
-        return bs_throwBasilisk(BSX_OUT_OF_BOUNDS);
+BSAPI bs_Result _bs_erase(bs_List* list, int index, bs_U32 count) {
+    if ((index + count - 1) >= list->count) {
+        bs_warnF("_bs_erase: index %d + count %d out of bounds (list->count = %d)\n", index, count, list->count);
+        return BS_RESULT_OUT_OF_BOUNDS;
+    }
 
     for (int i = index; i < (list->count - 1); i++) {
         unsigned char* this = list->data + i * list->unit_size;
@@ -598,6 +600,7 @@ BSAPI void _bs_erase(bs_List* list, int index, bs_U32 count) {
     }
 
     list->count -= count;
+    return BS_RESULT_OK;
 }
 
 BSAPI void _bs_destroyList(bs_List* list) {
@@ -723,10 +726,10 @@ BSAPI int _bs_numDirectoriesF(const char* format, ...) {
 }
 
 #else
-BSAPI void _bs_foreachFile(int(*x)(bs_FileInfo, void*), const char* directory) { bs_throwNotImplemented(); }
-BSAPI void _bs_foreachDirectory(int(*x)(bs_FileInfo, void*), const char* directory) { bs_throwNotImplemented(); }
-BSAPI void _bs_foreachFileF(int(*x)(bs_FileInfo, void*), const char* format, ...) { bs_throwNotImplemented(); }
-BSAPI void _bs_foreachDirectoryF(int(*x)(bs_FileInfo, void*), const char* format, ...) { bs_throwNotImplemented(); }
+BSAPI bs_Result _bs_foreachFile(int(*x)(bs_FileInfo, void*), const char* directory) { bs_warnF("_bs_foreachFile not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
+BSAPI bs_Result _bs_foreachDirectory(int(*x)(bs_FileInfo, void*), const char* directory) { bs_warnF("_bs_foreachDirectory not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
+BSAPI bs_Result _bs_foreachFileF(int(*x)(bs_FileInfo, void*), const char* format, ...) { bs_warnF("_bs_foreachFileF not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
+BSAPI bs_Result _bs_foreachDirectoryF(int(*x)(bs_FileInfo, void*), const char* format, ...) { bs_warnF("_bs_foreachDirectoryF not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
 #endif
 
    /**
@@ -745,7 +748,7 @@ BSAPI char* _bs_fileName(const char* path) {
 BSAPI char* _bs_fileExtension(const char* path) {
     char* dot = strrchr(path, '.');
     if (!dot || dot == path || dot[1] == '/' || dot[1] == '\\') {
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_GENERAL, "Path %s does not have a file extension", path);
+        bs_warnF("Path %s does not have a file extension\n", path);
         return NULL;
     }
     return dot + 1;
@@ -803,7 +806,7 @@ BSAPI bs_DateTime _bs_fileModifiedDate(const char* path) {
     return bs_fromSystemTime(system_time);
 }
 
-BSAPI void _bs_setFileModifiedDate(const char* path, bs_DateTime* date_time) {
+BSAPI bs_Result _bs_setFileModifiedDate(const char* path, bs_DateTime* date_time) {
     HANDLE file = CreateFile(
         path,
         FILE_WRITE_ATTRIBUTES,
@@ -814,19 +817,28 @@ BSAPI void _bs_setFileModifiedDate(const char* path, bs_DateTime* date_time) {
         NULL
     );
 
-    if (file == INVALID_HANDLE_VALUE)
-        bs_throwLastWin32Error(path);
+    if (file == INVALID_HANDLE_VALUE) {
+        bs_warnF("_bs_setFileModifiedDate(%s) -> CreateFile failed with error %lu\n", path, GetLastError());
+        return bs_convertLastError();
+    }
 
     SYSTEMTIME system_time = bs_toSystemTime(date_time);
 
     FILETIME file_time;
-    if (!SystemTimeToFileTime(&system_time, &file_time))
-        bs_throwLastWin32Error(path);
+    if (!SystemTimeToFileTime(&system_time, &file_time)) {
+        bs_warnF("_bs_setFileModifiedDate(%s) -> SystemTimeToFileTime failed with error %lu\n", path, GetLastError());
+        CloseHandle(file);
+        return bs_convertLastError();
+    }
 
-    if (!SetFileTime(file, NULL, NULL, &file_time))
-        bs_throwLastWin32Error(path);
+    if (!SetFileTime(file, NULL, NULL, &file_time)) {
+        bs_warnF("_bs_setFileModifiedDate(%s) -> SetFileTime failed with error %lu\n", path, GetLastError());
+        CloseHandle(file);
+        return bs_convertLastError();
+    }
 
     CloseHandle(file);
+    return BS_RESULT_OK;
 }
 
 BSAPI bs_DateTime _bs_fileModifiedDateF(const char* format, ...) {
@@ -838,11 +850,11 @@ BSAPI bs_DateTime _bs_fileModifiedDateF(const char* format, ...) {
 
 #else
 BSAPI bs_DateTime _bs_fileModifiedDate(const char* path) {
-    bs_throwNotImplemented();
+    bs_warnF("_bs_fileModifiedDate not implemented on this platform\n");
     return (bs_DateTime) { 0 };
 }
 BSAPI bs_DateTime _bs_fileModifiedDateF(const char* format, ...) {
-    bs_throwNotImplemented();
+    bs_warnF("_bs_fileModifiedDateF not implemented on this platform\n");
     return (bs_DateTime) { 0 };
 }
 #endif
@@ -939,13 +951,17 @@ BSAPI bs_Result _bs_loadFileChunk(long offset, size_t size, const char* path, bs
     Deleting documents
     */
 
-BSAPI void _bs_deleteFile(const char* path) {
+BSAPI bs_Result _bs_deleteFile(const char* path) {
 #ifdef _WIN32
-    DeleteFile(path);
-    bs_throwLastWin32Error(path);
+    if (!DeleteFile(path)) {
+        bs_warnF("_bs_deleteFile(%s) failed with error %lu\n", path, GetLastError());
+        return bs_convertLastError();
+    }
     bs_infoF("Deleted file %s\n", path);
+    return BS_RESULT_OK;
 #else
-    bs_throwBasilisk(BSX_INTERNAL | BSX_NOT_IMPLEMENTED);
+    bs_warnF("_bs_deleteFile not implemented on this platform\n");
+    return BS_RESULT_NOT_IMPLEMENTED;
 #endif
 }
 
@@ -958,7 +974,7 @@ BSAPI void _bs_deleteDirectoryContents(const char* path) {
 #ifdef _WIN32
     _bs_foreachFile(bs_doDeleteFile, NULL, path);
 #else
-    bs_throwBasilisk(BSX_INTERNAL | BSX_NOT_IMPLEMENTED);
+    bs_warnF("_bs_deleteDirectoryContents not implemented on this platform\n");
 #endif
 }
 
@@ -967,7 +983,7 @@ BSAPI void _bs_deleteDirectory(const char* path) {
     _bs_deleteDirectoryContents(path);
     RemoveDirectory(path);
 #else
-    bs_throwBasilisk(BSX_INTERNAL | BSX_NOT_IMPLEMENTED);
+    bs_warnF("_bs_deleteDirectory not implemented on this platform\n");
 #endif
 }
 
@@ -975,7 +991,8 @@ BSAPI bool _bs_directoryExists(const char* path) {
 #ifdef _WIN32
     return _bs_fileExists(path);
 #else
-    bs_throwBasilisk(BSX_INTERNAL | BSX_NOT_IMPLEMENTED);
+    bs_warnF("_bs_directoryExists not implemented on this platform\n");
+    return false;
 #endif
 }
 
@@ -983,19 +1000,24 @@ BSAPI bool _bs_directoryExists(const char* path) {
     Saving documents
     */
 
-BSAPI void _bs_appendToFile(const char* path, const char* data) {
+BSAPI bs_Result _bs_appendToFile(const char* path, const char* data) {
     FILE* file = fopen(path, "ab");
-    if (!file)
-        return bs_throwErrno(path);
+    if (!file) {
+        bs_warnF("_bs_appendToFile(%s) -> fopen -> errno %d (%s)\n", path, errno, bs_serializeErrno());
+        return bs_convertErrno();
+    }
 
     fputs(data, file);
     fclose(file);
+    return BS_RESULT_OK;
 }
 
-BSAPI void _bs_saveFile(const char* path, char* data, bs_U32 data_len) {
+BSAPI bs_Result _bs_saveFile(const char* path, char* data, bs_U32 data_len) {
     FILE* file = fopen(path, "wb");
-    if (!file)
-        return bs_throwErrno(path);
+    if (!file) {
+        bs_warnF("_bs_saveFile(%s) -> fopen -> errno %d (%s)\n", path, errno, bs_serializeErrno());
+        return bs_convertErrno();
+    }
 
     if (data)
         fwrite(data, data_len, 1, file);
@@ -1003,6 +1025,7 @@ BSAPI void _bs_saveFile(const char* path, char* data, bs_U32 data_len) {
 
     if (!_bs_args_.skip_log_info)
         bs_infoF("Saved %d bytes to %s\n", data_len, path);
+    return BS_RESULT_OK;
 }
 
 BSAPI bs_String* _bs_fullPath(bs_String* old, const char* path, int path_len) {
@@ -1029,9 +1052,8 @@ BSAPI void _bs_guidToString(bs_GUID* guid, char out[37]) {
     out[36] = '\0';
 
 #else
-    bs_throwBasiliskM(BSX_INTERNAL | BSX_NOT_IMPLEMENTED);
+    bs_warnF("_bs_guidToString not implemented on this platform\n");
 #endif
-    return NULL;
 }
 
 BSAPI bs_GUID _bs_stringToGuid(const char* str) {
@@ -1044,11 +1066,14 @@ BSAPI bs_GUID _bs_stringToGuid(const char* str) {
     swprintf(formatted, 39, L"{%s}", wstr);
 
     HRESULT hr = CLSIDFromString(formatted, &guid);
-    bs_throwHResult(hr, str);
+    if (FAILED(hr)) {
+        bs_warnF("_bs_stringToGuid(%s) -> CLSIDFromString failed with HRESULT %lx\n", str, hr);
+        return (bs_GUID) { 0 };
+    }
 
     return guid;
 #else
-    bs_throwBasiliskM(BSX_INTERNAL | BSX_NOT_IMPLEMENTED);
+    bs_warnF("_bs_stringToGuid not implemented on this platform\n");
     return (bs_GUID) { 0 };
 #endif
 }
@@ -1060,9 +1085,14 @@ BSAPI bool _bs_sameGuid(bs_GUID* a, bs_GUID* b) {
 BSAPI bs_GUID _bs_guid() {
     bs_GUID guid = { 0 };
 #ifdef _WIN32
-    bs_throwHResult(CoCreateGuid(&guid), NULL);
+    HRESULT hr = CoCreateGuid(&guid);
+    if (FAILED(hr)) {
+        bs_warnF("_bs_guid -> CoCreateGuid failed with HRESULT %lx\n", hr);
+        return (bs_GUID) { 0 };
+    }
 #else
-    bs_throwBasiliskM(BSX_INTERNAL | BSX_NOT_IMPLEMENTED);
+    bs_warnF("_bs_guid not implemented on this platform\n");
+    return (bs_GUID) { 0 };
 #endif
     return guid;
 }
@@ -1095,26 +1125,34 @@ BSAPI int _bs_numDigits(int n) {
 BSAPI bs_I64 _bs_toLong(const char* str) {
     char* o = NULL;
     bs_I64 v = strtol(str, &o, 10);
-    if (str == o)
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_CONVERT, "%s -> Long", str);
+    if (str == o) {
+        bs_warnF("Failed to convert \"%s\" to Long\n", str);
+        return 0;
+    }
     return v;
 }
 
 BSAPI bs_U64 _bs_toULong(const char* str) {
     char* o = NULL;
     bs_I64 v = strtol(str, &o, 10);
-    if (v < 0)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_EXPECTED_UNSIGNED);
-    if (str == o)
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_CONVERT, "%s -> ULong", str);
+    if (v < 0) {
+        bs_warnF("Expected unsigned value for \"%s\"\n", str);
+        return 0;
+    }
+    if (str == o) {
+        bs_warnF("Failed to convert \"%s\" to ULong\n", str);
+        return 0;
+    }
     return v;
 }
 
 BSAPI bs_F64 _bs_toDouble(const char *str) {
     char* o = NULL;
     bs_F64 v = strtod(str, &o);
-    if (str == o)
-        bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_CONVERT, "%s -> Double", str);
+    if (str == o) {
+        bs_warnF("Failed to convert \"%s\" to Double\n", str);
+        return 0.0;
+    }
     return v;
 }
 
@@ -1168,7 +1206,7 @@ BSAPI void _bs_ensureDirectory(char* path) {
             return;
 
         if (!CreateDirectory(path, NULL) && GetLastError() != ERROR_ALREADY_EXISTS)
-            bs_throwLastWin32Error(path);
+            bs_warnF("_bs_ensureDirectory(%s) -> CreateDirectory failed with error %lu\n", path, GetLastError());
     }
     else {
         bool is_directory_or_junction =
@@ -1215,7 +1253,10 @@ BSAPI void _bs_findExecutablePaths() {
 BSAPI void _bs_findRelativePath() {
     char path[MAX_PATH]; // todo check if this can be more than max path
     int len = GetCurrentDirectory(MAX_PATH, path);
-    if (len == 0) bs_throwLastWin32Error(path);
+    if (len == 0) {
+        bs_warnF("_bs_findRelativePath -> GetCurrentDirectory failed with error %lu\n", GetLastError());
+        return;
+    }
 
     _bs_io_.cwd = bs_string(NULL, path, len);
     for (int i = 0; i < len; i++) {
@@ -1231,8 +1272,10 @@ BSAPI char* _bs_appdataPath() {
     PWSTR wpath = NULL;
     HRESULT result = SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, &wpath);
 
-    if (result != S_OK) 
-        bs_throwHResult(result, NULL);
+    if (result != S_OK) {
+        bs_warnF("_bs_appdataPath -> SHGetKnownFolderPath failed with HRESULT %lx\n", result);
+        return NULL;
+    }
 
     int len = lstrlenW(wpath);
     _bs_io_.appdata = bs_string(_bs_io_.appdata, NULL, len);
@@ -1278,8 +1321,8 @@ BSAPI void _bs_copyToClipboardF(const char* format, ...) {
 }
 
 #else
-BSAPI char* _bs_executableDirectory() { return bs_throwNotImplemented(); }
-BSAPI void _bs_findExecutablePaths() { bs_throwNotImplemented(); }
-BSAPI void _bs_findCurrentWorkingDirectory() { bs_throwNotImplemented(); }
-BSAPI void _bs_ensureDirectory(const char* path) { bs_throwNotImplemented(); }
+BSAPI char* _bs_executableDirectory() { bs_warnF("_bs_executableDirectory not implemented on this platform\n"); return NULL; }
+BSAPI void _bs_findExecutablePaths() { bs_warnF("_bs_findExecutablePaths not implemented on this platform\n"); }
+BSAPI void _bs_findCurrentWorkingDirectory() { bs_warnF("_bs_findCurrentWorkingDirectory not implemented on this platform\n"); }
+BSAPI void _bs_ensureDirectory(const char* path) { bs_warnF("_bs_ensureDirectory not implemented on this platform\n"); }
 #endif

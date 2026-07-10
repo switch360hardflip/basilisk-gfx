@@ -245,10 +245,19 @@ BSAPI bs_mat4* _bs_transformBone(bs_Armature* armature, bs_Bone* bone, bs_mat4 t
     return destination;
 }
 
+BSAPI void _val_bs_blendPose(bs_Armature* armature, bs_Animation* animation_a, bs_Animation* animation_b, float factor, float time_a, float time_b) {
+    BS_VALIDATE(!animation_b || animation_a->bones_count == animation_b->bones_count,,
+        "Animation \"%s\" (%d bones) != \"%s\" (%d bones)",
+        animation_a->name, animation_a->bones_count, animation_b ? animation_b->name : "NULL", animation_b ? animation_b->bones_count : 0);
+    _bs_blendPose(armature, animation_a, animation_b, factor, time_a, time_b);
+}
+
 BSAPI void _bs_blendPose(bs_Armature* armature, bs_Animation* animation_a, bs_Animation* animation_b, float factor, float time_a, float time_b) {
     if (animation_b) {
-        if (animation_a->bones_count != animation_b->bones_count)
-            bs_throwBasiliskF(BSX_MISMATCH, "Animation %s: %d bones\nAnimation %s: %d bones", animation_a->name, animation_a->bones_count, animation_b->name, animation_b->bones_count);
+        if (animation_a->bones_count != animation_b->bones_count) {
+            bs_warnF("Animation \"%s\" (%d bones) != \"%s\" (%d bones)\n", animation_a->name, animation_a->bones_count, animation_b->name, animation_b->bones_count);
+            return;
+        }
 
         for (int i = 0; i < armature->bones_count; i++) {
             bs_AnimationBone* a = animation_a->bones + i;
@@ -662,7 +671,7 @@ BSAPI bs_Resource* _bs_model(int package_id, const char* name, bs_U32 flags) {
             gltf = resource->data->value + offset + sizeof(*chunk);
         }
         else {
-            bs_throwBasilisk(BSX_CORRUPTED);
+            bs_warnF("_bs_model: unknown chunk type 0x%08X\n", chunk->type);
             return NULL;
         }
 
@@ -670,7 +679,7 @@ BSAPI bs_Resource* _bs_model(int package_id, const char* name, bs_U32 flags) {
     }
 
     if (!json.doc) {
-        bs_throwBasiliskF(BSX_CORRUPTED, "Missing JSON chunk");
+        bs_warnF("_bs_model: missing JSON chunk\n");
         return NULL;
     }
     
@@ -720,9 +729,17 @@ bs_Object bs_armature(int id, bs_ArmatureFlags flags) {
 }
 */
 
+BSAPI int _val_bs_bone(bs_Armature* armature, bs_mat4 local_transform, int parent_id, const char* name) {
+    BS_VALIDATE(armature != NULL, -1,
+        "armature is NULL");
+    return _bs_bone(armature, local_transform, parent_id, name);
+}
+
 BSAPI int _bs_bone(bs_Armature* armature, bs_mat4 local_transform, int parent_id, const char* name) {
-    if (!armature) 
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
+    if (!armature) {
+        bs_warnF("_bs_bone: armature is NULL\n");
+        return -1;
+    }
 
     bs_mat4 bind_matrix = BS_MAT4_IDENTITY;
 
@@ -792,7 +809,7 @@ BSAPI bs_Mesh* _bs_queryMeshHash(bs_Model* model, bs_U64 hash, const char* name)
             return mesh;
     }
 
-    bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_QUERY, "Mesh \"%s\"", name);
+    bs_warnF("Mesh \"%s\" not found\n", name);
     return NULL;
 }
 
@@ -834,7 +851,7 @@ BSAPI bs_Armature* _bs_queryArmature(bs_Model* model, const char* name) {
             return model->armatures + i;
     }
 
-    bs_throwBasiliskF(BSX_FAILED_TO_QUERY, "Armature %s", name);
+    bs_warnF("Armature \"%s\" not found\n", name);
     return NULL;
 }
 
@@ -845,7 +862,7 @@ BSAPI int _bs_queryBoneId(bs_Armature* armature, const char* name) {
             return i;
     }
 
-    bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_QUERY, "Bone \"%s\"", name);
+    bs_warnF("Bone \"%s\" not found\n", name);
     return -1;
 }
 
@@ -889,6 +906,6 @@ BSAPI bs_Material* _bs_queryMaterial(bs_Model* model, const char* name) {
             return model->materials + i;
     }
 
-    bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_QUERY, "Material \"%s\"", name);
+    bs_warnF("Material \"%s\" not found\n", name);
     return NULL;
 }

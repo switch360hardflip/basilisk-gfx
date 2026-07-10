@@ -222,6 +222,7 @@ typedef void(__stdcall* PFN_bs_kern)(bs_TTF* ttf);
 typedef void(__stdcall* PFN_bs_kern)(bs_TTF* ttf);
 typedef void(__stdcall* PFN_bs_bindFont)(bs_Font* font, bs_Sampler* sampler, int bind_set, int bind_point);
 typedef bs_vec2(__stdcall* PFN_bs_textDimensions)(bs_Font* font, char* name, int length);
+typedef void(__stdcall* PFN_bs_destroyFont)(bs_Font* font);
 typedef bs_Result(__stdcall* PFN_bs_loadFont)(bs_Object* object, int package_id, const char* resource_name, const char* alphabet, float spacing, bs_U32 flags);
 typedef bs_Result(__stdcall* PFN_bs_image)(bs_Object* object, bs_ivec2 dim, int num_indices, bs_Format format, bs_U32 flags);
 typedef int(__stdcall* PFN_bs_imageSwapsCount)(bs_Image* image);
@@ -274,16 +275,16 @@ typedef void(__stdcall* PFN_bs_enumerateJson)(bs_Json* json, bs_JsonEnumeration*
 typedef bs_Json(__stdcall* PFN_bs_jsonRoot)(bs_Json* json, bs_JsonObject object);
 typedef void(__stdcall* PFN_bs_ensureJsonMutable)(bs_Json* root);
 typedef bs_Json(__stdcall* PFN_bs_jsonCopy)(const bs_Json* root);
-typedef char*(__stdcall* PFN_bs_saveJson)(bs_Json* json, bs_SaveJsonBits flags);
+typedef bs_Result(__stdcall* PFN_bs_saveJson)(bs_Json* json, bs_SaveJsonBits flags, char** out);
 typedef bs_Json(__stdcall* PFN_bs_emptyJson)();
 typedef bs_Json(__stdcall* PFN_bs_emptyJsonArray)();
 typedef bs_Result(__stdcall* PFN_bs_json)(char* raw, int len, bs_Json* out_json);
-typedef bs_Result(__stdcall* PFN_bs_loadJson)(char* path, bs_Json* out_json, char* value, int value_length);
-typedef bs_Result(__stdcall* PFN_bs_destroyJson)(bs_Json* json);
+typedef bs_Result(__stdcall* PFN_bs_loadJson)(bs_Json* out_json, char* value, int value_length);
+typedef void(__stdcall* PFN_bs_destroyJson)(bs_Json* json);
 typedef bs_JsonValue(__stdcall* PFN_bs_parseJsonValue)(char* raw);
 typedef bs_JsonValue(__stdcall* PFN_bs_fetchJson)(bs_Json* root, bs_JsonType expect, char* value, int value_length);
 typedef void(__stdcall* PFN_bs_deleteJson)(bs_Json* root, char* value, int value_length);
-typedef bool(__stdcall* PFN_bs_ensureJson)(bs_Json* root, bs_JsonValue value, char* value, int value_length);
+typedef bs_Result(__stdcall* PFN_bs_ensureJson)(bs_Json* root, bs_JsonValue value, char* value, int value_length);
 typedef bs_JsonValue(__stdcall* PFN_bs_jsonValueFromObject)(bs_JsonObject x);
 typedef bs_JsonValue(__stdcall* PFN_bs_jsonValueFromRoot)(bs_Json x);
 typedef bs_JsonValue(__stdcall* PFN_bs_jsonValueFromBool)(bool x);
@@ -428,8 +429,6 @@ typedef int(__stdcall* PFN_bs_configureSource)(bs_ObjectType type, int count, co
 typedef bool(__stdcall* PFN_bs_exists)(bs_U32 source_id, bs_U32 id);
 typedef bs_Object*(__stdcall* PFN_bs_fetch)(bs_U32 source_id, bs_U32 id);
 typedef bool(__stdcall* PFN_bs_shouldLoadId)(bs_U32 source_id, bs_U32 id);
-typedef bs_ShaderType(__stdcall* PFN_bs_deserializeShaderType)(const char* type_name);
-typedef const char*(__stdcall* PFN_bs_serializeShaderType)(bs_ShaderType type);
 typedef bs_Result(__stdcall* PFN_bs_shader)(int package_id, const char* name, bs_U32 flags, bs_Resource** out);
 typedef void(__stdcall* PFN_bs_destroyShader)(bs_Shader* shader);
 typedef bs_Pipeline*(__stdcall* PFN_bs_computePipeline)(bs_Shader* compute_shader, bs_PipelineFlags flags);
@@ -441,7 +440,6 @@ typedef void(__stdcall* PFN_bs_destroyPipeline)(bs_Pipeline* pipeline);
 typedef void(__stdcall* PFN_bs_pushConstant)(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 size, void* data);
 typedef bs_Pipeline*(__stdcall* PFN_bs_rayTracingPipeline)(bs_RayTracePipelineHash* pipeline_hash);
 typedef bs_BindType(__stdcall* PFN_bs_deserializeBindType)(const char* string);
-typedef const char*(__stdcall* PFN_bs_serializeBindType)(bs_BindType type);
 typedef void(__stdcall* PFN_bs_loadBindings)(int package_id, const char* path);
 typedef void(__stdcall* PFN_bs_bindImage)(bs_U32 bind_set_slot, bs_U32 binding_slot, bs_Image* image, bs_Sampler* sampler, bs_ImageLayout layout);
 typedef void(__stdcall* PFN_bs_bindImages)(bs_U32 bind_set_slot, bs_U32 slot, bs_ImageDescriptor* images, int images_count);
@@ -510,6 +508,11 @@ typedef bs_Result(__stdcall* PFN_bs_loadFileChunk)(const char* path, long offset
 typedef bs_Result(__stdcall* PFN_bs_deleteFile)(const char* path, bs_String** out, char* value, int value_length);
 typedef void(__stdcall* PFN_bs_deleteDirectoryContents)(char* value, int value_length);
 typedef void(__stdcall* PFN_bs_deleteDirectory)(char* value, int value_length);
+typedef const char*(__stdcall* PFN_bs_serializeJsonType)(bs_JsonType e);
+typedef const char*(__stdcall* PFN_bs_serializeShaderType)(bs_ShaderType e);
+typedef bs_ShaderType(__stdcall* PFN_bs_deserializeShaderType)(const char* value);
+typedef const char*(__stdcall* PFN_bs_serializeBindType)(bs_BindType e);
+typedef bs_BindType(__stdcall* PFN_bs_deserializeBindType)(const char* value);
 
 typedef struct {
     PFN_bs_packages bs_packages;
@@ -677,6 +680,7 @@ typedef struct {
     PFN_bs_kern bs_kern;
     PFN_bs_bindFont bs_bindFont;
     PFN_bs_textDimensions bs_textDimensions;
+    PFN_bs_destroyFont bs_destroyFont;
     PFN_bs_loadFont bs_loadFont;
     PFN_bs_image bs_image;
     PFN_bs_imageSwapsCount bs_imageSwapsCount;
@@ -883,8 +887,6 @@ typedef struct {
     PFN_bs_exists bs_exists;
     PFN_bs_fetch bs_fetch;
     PFN_bs_shouldLoadId bs_shouldLoadId;
-    PFN_bs_deserializeShaderType bs_deserializeShaderType;
-    PFN_bs_serializeShaderType bs_serializeShaderType;
     PFN_bs_shader bs_shader;
     PFN_bs_destroyShader bs_destroyShader;
     PFN_bs_computePipeline bs_computePipeline;
@@ -896,7 +898,6 @@ typedef struct {
     PFN_bs_pushConstant bs_pushConstant;
     PFN_bs_rayTracingPipeline bs_rayTracingPipeline;
     PFN_bs_deserializeBindType bs_deserializeBindType;
-    PFN_bs_serializeBindType bs_serializeBindType;
     PFN_bs_loadBindings bs_loadBindings;
     PFN_bs_bindImage bs_bindImage;
     PFN_bs_bindImages bs_bindImages;
@@ -965,6 +966,11 @@ typedef struct {
     PFN_bs_deleteFile bs_deleteFile;
     PFN_bs_deleteDirectoryContents bs_deleteDirectoryContents;
     PFN_bs_deleteDirectory bs_deleteDirectory;
+    PFN_bs_serializeJsonType bs_serializeJsonType;
+    PFN_bs_serializeShaderType bs_serializeShaderType;
+    PFN_bs_deserializeShaderType bs_deserializeShaderType;
+    PFN_bs_serializeBindType bs_serializeBindType;
+    PFN_bs_deserializeBindType bs_deserializeBindType;
 } bs_FunctionTable;
 
 bs_FunctionTable _bs_getFunctions() {
@@ -1147,6 +1153,7 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_kern = GetProcAddress(module, "_bs_kern");
     functions.bs_bindFont = GetProcAddress(module, "_bs_bindFont");
     functions.bs_textDimensions = GetProcAddress(module, "_bs_textDimensions");
+    functions.bs_destroyFont = GetProcAddress(module, "_bs_destroyFont");
     functions.bs_loadFont = GetProcAddress(module, "_bs_loadFont");
     functions.bs_image = GetProcAddress(module, "_bs_image");
     functions.bs_imageSwapsCount = GetProcAddress(module, "_bs_imageSwapsCount");
@@ -1401,8 +1408,6 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_exists = GetProcAddress(module, "_bs_exists");
     functions.bs_fetch = GetProcAddress(module, "_bs_fetch");
     functions.bs_shouldLoadId = GetProcAddress(module, "_bs_shouldLoadId");
-    functions.bs_deserializeShaderType = GetProcAddress(module, "_bs_deserializeShaderType");
-    functions.bs_serializeShaderType = GetProcAddress(module, "_bs_serializeShaderType");
     functions.bs_shader = GetProcAddress(module, "_bs_shader");
     functions.bs_destroyShader = GetProcAddress(module, "_bs_destroyShader");
     functions.bs_computePipeline = GetProcAddress(module, "_bs_computePipeline");
@@ -1414,7 +1419,6 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_pushConstant = GetProcAddress(module, "_bs_pushConstant");
     functions.bs_rayTracingPipeline = GetProcAddress(module, "_bs_rayTracingPipeline");
     functions.bs_deserializeBindType = GetProcAddress(module, "_bs_deserializeBindType");
-    functions.bs_serializeBindType = GetProcAddress(module, "_bs_serializeBindType");
     functions.bs_loadBindings = GetProcAddress(module, "_bs_loadBindings");
     functions.bs_bindImage = GetProcAddress(module, "_bs_bindImage");
     functions.bs_bindImages = GetProcAddress(module, "_bs_bindImages");
@@ -1505,6 +1509,11 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_deleteDirectory = GetProcAddress(module, "_bs_deleteDirectory");
     functions.bs_deleteDirectoryV = GetProcAddress(module, "_bs_deleteDirectoryV");
     functions.bs_deleteDirectoryF = GetProcAddress(module, "_bs_deleteDirectoryF");
+    functions.bs_serializeJsonType = GetProcAddress(module, "_bs_serializeJsonType");
+    functions.bs_serializeShaderType = GetProcAddress(module, "_bs_serializeShaderType");
+    functions.bs_deserializeShaderType = GetProcAddress(module, "_bs_deserializeShaderType");
+    functions.bs_serializeBindType = GetProcAddress(module, "_bs_serializeBindType");
+    functions.bs_deserializeBindType = GetProcAddress(module, "_bs_deserializeBindType");
 
     return functions;
 }

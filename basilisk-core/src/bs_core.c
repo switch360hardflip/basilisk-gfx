@@ -1343,7 +1343,7 @@ BSAPI bs_Result _bs_renderer(bs_Object* object, bs_RendererBits flags) {
     renderer->outputs = bs_malloc(BS_MAX_NUM_ATTACHMENTS * sizeof(bs_Output));
     renderer->dependencies = bs_malloc(BS_MAX_NUM_SUBPASS_DEPENDENCIES * sizeof(VkSubpassDependency));
 
-    // BS_MAX(_bs_settings_.frames_in_flight, _bs_settings_.buffer_count_min)
+    // BS_MAX(_bs_scope_.window->frames_in_flight, _bs_settings_.buffer_count_min)
 
     return BS_RESULT_OK;
 }
@@ -2227,8 +2227,13 @@ BSAPI bs_Result _bs_queue(bs_Object* object, bs_QueueBits flags) {
     VkResult result;
     bs_Queue* queue = object->queue;
 
-    if (!queue) return NULL;
-    if (object->flags & BS_OBJECT_ALREADY_EXISTS && !(object->flags & BS_OBJECT_FORCE_DESTROY)) return NULL;
+    if (!queue) {
+        return BS_RESULT_OK;
+    }
+
+    if (object->flags & BS_OBJECT_ALREADY_EXISTS && !(object->flags & BS_OBJECT_FORCE_DESTROY)) {
+        return BS_RESULT_OK;
+    }
 
     bs_destroyQueue(queue);
 
@@ -2281,22 +2286,22 @@ BSAPI bs_Result _bs_queue(bs_Object* object, bs_QueueBits flags) {
         if (!(flags & BS_QUEUE_DONT_SIGNAL)) {
             result = vkCreateSemaphore(_bs_instance_->device, &semaphore_ci, NULL, &object->queue->_[i].semaphore);
             if (result != VK_SUCCESS) {
-                bs_throwVulkan(result);
-                return NULL;
+                bs_warnF("Failed to create queue semaphore (Vulkan result %d)\n", result);
+                return bs_convertVulkanResult(result);
             }
 
         }
 
         result = vkCreateFence(_bs_instance_->device, &fence_ci, NULL, &object->queue->_[i].fence);
         if (result != VK_SUCCESS) {
-            bs_throwVulkan(result);
-            return NULL;
+            bs_warnF("Failed to create queue fence (Vulkan result %d)\n", result);
+            return bs_convertVulkanResult(result);
         }
 
         result = vkResetFences(_bs_instance_->device, 1, &object->queue->_[i].fence);
         if (result != VK_SUCCESS) {
-            bs_throwVulkan(result);
-            return NULL;
+            bs_warnF("Failed to reset queue fence (Vulkan result %d)\n", result);
+            return bs_convertVulkanResult(result);
         }
     }
 
@@ -2318,7 +2323,7 @@ BSAPI bs_Result _bs_queue(bs_Object* object, bs_QueueBits flags) {
     }
     */
 
-    return object;
+    return BS_RESULT_OK;
 }
 
 BSAPI void _bs_destroyQueue(bs_Queue* queue) {

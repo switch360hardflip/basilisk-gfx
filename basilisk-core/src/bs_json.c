@@ -7,7 +7,11 @@
 
 #include <basilisk-core.h>
 #include <bs_internal.h>
-#include <yyjson.h>
+#include <yyjson/yyjson.h>
+
+static bs_Result bs_convertJsonCode() {
+
+}
 
 BSAPI bs_Json _bs_jsonRoot(bs_Json* json, bs_JsonObject obj) {
 	yyjson_doc* doc;
@@ -50,15 +54,17 @@ BSAPI bs_Json _bs_jsonCopy(const bs_Json* root) {
 	return json;
 }
 
-BSAPI char* _bs_saveJson(bs_Json* json, bs_SaveJsonBits flags) {
+BSAPI bs_Result _bs_saveJson(bs_Json* json, bs_SaveJsonBits flags, char** out) {
 	size_t size = 0;
 	yyjson_write_err error = { 0 };
 	char* result = json->is_mutable ?
 		yyjson_mut_write_opts(json->doc, flags, NULL, &size, &error) :
 		yyjson_write_opts(json->doc, flags, NULL, &size, &error);
 
-	if (error.code)
-		bs_throwBasiliskF(BSXI_INTERNAL | BSX_FAILED_TO_WRITE, "%s", error.msg);
+	if (error.code) {
+		bs_warnF("Failed to save JSON: %s\n", error.msg);
+		return ;
+	}
 
 	return result;
 }
@@ -89,31 +95,32 @@ BSAPI bs_Json _bs_json(char* raw, int len) {
 		.as_object = yyjson_doc_get_root(doc),
 	};
 
-	if (!json.doc)
-		bs_throwBasilisk(BSXI_INTERNAL | BSX_CORRUPTED);
+	if (!json.doc) {
+		bs_warnF("Failed to parse JSON\n");
+		return (bs_Json){0};
+	}
 
 	return json;
 }
 
-BSAPI bs_Json _bs_loadJson(const char* path) {
-	bs_String* raw = bs_loadFile(path);
-	if (!raw)
-		return (bs_Json) { 0 };
+BSAPI bs_Result _bs_loadJson(char* path, int path_length, bs_Json* out) {
+	bs_String* raw;
+	bs_Result result;
 
-	bs_Json json = bs_json(raw->value, raw->len - 1);
+	result = bs_loadFile(&raw, path, path_length);
+	if (result != BS_RESULT_OK) {
+		return result;
+	}
+	
+	bs_Json json;
+	result = bs_json(raw->value, raw->len - 1, &json);
+	if (result != BS_RESULT_OK) {
+		return result;
+	}
+
 	bs_free(raw);
 
-	if (!json.doc)
-		bs_throwBasilisk(BSXI_INTERNAL | BSX_CORRUPTED);
-
-	return json;
-}
-
-BSAPI bs_Json _bs_loadJsonF(char* format, ...) {
-	char path[256];
-	int path_len = 0;
-	BS_PARSE_FORMAT(format, path, path_len);
-	return bs_loadJson(path);
+	return BS_RESULT_OK;
 }
 
 static bs_JsonValue bs_createJsonArray(bool is_mutable, yyjson_val* root, int start, int end, bool is_32bit) {
@@ -251,26 +258,28 @@ static void bs_deleteJsonArrayRange(yyjson_mut_val* root, int start, int end) {
 	}
 }
 
-static bs_JsonValue bs_createJsonValue(bool is_mutable, yyjson_val* root, char* name, bs_JsonType expect) {
-	if (!root) {
-		if (expect & BS_JSON_UNDEFINED)
-			return (bs_JsonValue) { .found = false };
-		else
-			bs_throwBasiliskF(BSXI_INTERNAL | BSX_INVALID_TYPE, "%s", name);
-	}
+static inline void bs_warnUnexpectedJsonType(bs_JsonType expect, const char* actual) {
+	bs_warnF("Expected JSON type %s, got %s type\n", bs_serializeJsonType(expect), actual);
+}
 
+static bs_JsonValue bs_createJsonValue(bool is_mutable, yyjson_val* root, char* name, bs_JsonType expect) {
 	yyjson_type type = is_mutable ? yyjson_mut_get_type(root) : yyjson_get_type(root);
 
 	if (type == YYJSON_TYPE_ARR) {
-		if (!(expect & (BS_JSON_ARRAY | BS_JSON_DONT_CARE | BS_JSON_UNDEFINED)))
-			bs_throwBasiliskF(BSXI_INTERNAL | BSX_INVALID_TYPE, "%s", name);
+		if (!(expect & (BS_JSON_ARRAY | BS_JSON_DONT_CARE | BS_JSON_UNDEFINED))) {
+			bs_warnUnexpectedJsonType(expect, "array");
+			return (bs_JsonValue) { 0 };
+		}
 
 		int size = is_mutable ? yyjson_mut_arr_size(root) : yyjson_arr_size(root);
 		return bs_createJsonArray(is_mutable, root, 0, size, false);
 	}
 	else if (type == YYJSON_TYPE_STR || type == YYJSON_TYPE_NULL) {
-		if (!(expect & (BS_JSON_STRING | BS_JSON_DONT_CARE | BS_JSON_UNDEFINED)))
-			bs_throwBasiliskF(BSXI_INTERNAL | BSX_INVALID_TYPE, "%s", name);
+		if (!(expect & (BS_JSON_STRING | BS_JSON_DONT_CARE | BS_JSON_UNDEFINED))) {
+			bs_warnUnexpectedJsonType(expect, "string");
+			return (bs_JsonValue) { 0 };
+		}
+
 		return (bs_JsonValue) {
 			.as_string = root->uni.str,
 			.found = true,
@@ -278,8 +287,10 @@ static bs_JsonValue bs_createJsonValue(bool is_mutable, yyjson_val* root, char* 
 		};
 	}
 	else if (type == YYJSON_TYPE_NUM) {
-		if (!(expect & (BS_JSON_BOOL | BS_JSON_NUMBER | BS_JSON_FLOAT | BS_JSON_NUMBER_INTEGER | BS_JSON_UCHAR | BS_JSON_DONT_CARE | BS_JSON_UNDEFINED)))
-			bs_throwBasiliskF(BSXI_INTERNAL | BSX_INVALID_TYPE, "%s", name);
+		if (!(expect & (BS_JSON_BOOL | BS_JSON_NUMBER | BS_JSON_FLOAT | BS_JSON_NUMBER_INTEGER | BS_JSON_UCHAR | BS_JSON_DONT_CARE | BS_JSON_UNDEFINED))) {
+			bs_warnUnexpectedJsonType(expect, "number");
+			return (bs_JsonValue) { 0 };
+		}
 
 		yyjson_subtype subtype = is_mutable ? yyjson_mut_get_subtype(root) : yyjson_get_subtype(root);
 		double value = (subtype == YYJSON_SUBTYPE_UINT || subtype == YYJSON_SUBTYPE_SINT) ? (bs_F64)root->uni.i64 : (bs_F64)root->uni.f64;
@@ -297,8 +308,11 @@ static bs_JsonValue bs_createJsonValue(bool is_mutable, yyjson_val* root, char* 
 		return v;
 	}
 	else if (type == YYJSON_TYPE_BOOL) {
-		if (!(expect & (BS_JSON_BOOL | BS_JSON_DONT_CARE | BS_JSON_UNDEFINED)))
-			bs_throwBasiliskF(BSXI_INTERNAL | BSX_INVALID_TYPE, "%s", name);
+		if (!(expect & (BS_JSON_BOOL | BS_JSON_DONT_CARE | BS_JSON_UNDEFINED))) {
+			bs_warnUnexpectedJsonType(expect, "boolean");
+			return (bs_JsonValue) { 0 };
+		}
+
 		return (bs_JsonValue) {
 			.found = true,
 			.as_bool = yyjson_get_bool(root),
@@ -306,16 +320,20 @@ static bs_JsonValue bs_createJsonValue(bool is_mutable, yyjson_val* root, char* 
 		};
 	}
 	else if (type == YYJSON_TYPE_OBJ) {
-		if (!(expect & (BS_JSON_OBJECT | BS_JSON_DONT_CARE | BS_JSON_UNDEFINED)))
-			bs_throwBasiliskF(BSXI_INTERNAL | BSX_INVALID_TYPE, "%s", name);
+		if (!(expect & (BS_JSON_OBJECT | BS_JSON_DONT_CARE | BS_JSON_UNDEFINED))) {
+			bs_warnUnexpectedJsonType(expect, "object");
+			return (bs_JsonValue) { 0 };
+		}
+
 		return (bs_JsonValue) {
 			.found = true,
 			.as_object = root,
 			.type = BS_JSON_OBJECT,
 		};
 	}
-		
-	bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_TYPE);
+
+	bs_warnUnexpectedJsonType(expect, "unknown");
+	return (bs_JsonValue) { 0 };
 }
 
 BSAPI bs_JsonValue _bs_parseJsonValue(char* raw) {
@@ -326,9 +344,6 @@ BSAPI bs_JsonValue _bs_parseJsonValue(char* raw) {
 }
 
 static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path, int len, bool delete) {
-	if (!root)
-		bs_throwBasiliskF(BSX_INVALID_PARAM, "NULL JSON root @ path (\"%s\")", path);
-
 	char* old = path;
 	path = strdup(path);
 	
@@ -344,8 +359,10 @@ static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path,
 		char* array_start = strchr(token, '[');
 		if (array_start) {
 			char* array_end = strchr(array_start, ']');
-			if (!array_end)
-				bs_throwBasilisk(BSXI_INTERNAL | BSX_EXPECTED_END);
+			if (!array_end) {
+				bs_warnF("Expected end of array in JSON path \"%s\"\n", old);
+				return (bs_JsonValue) { 0 };
+			}
 
 			assert(array_end[1] == '\0'); // todo error
 			array_end[0] = array_start[0] = '\0';
@@ -358,10 +375,10 @@ static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path,
 			else {
 				object = is_mutable ? yyjson_mut_obj_get(object, token) : yyjson_obj_get(object, token);
 				if (!object) {
-					if (expect == BS_JSON_UNDEFINED)
-						return (bs_JsonValue) { .found = false };
-					else
-						bs_throwBasiliskF(BSXI_INTERNAL | BSX_NOT_FOUND, "%s", old);
+					if (expect != BS_JSON_UNDEFINED)
+						bs_warnF("Couldn't find object \"%s\" from path \"%s\"\n", token, old);
+
+					return (bs_JsonValue) { 0 };
 				}
 			}
 
@@ -418,7 +435,8 @@ static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path,
 			}
 			else {
 				if (strchr(token, ',')) { // [1, 2, 7, 2] - Selects array elements with the specified indexes.
-					bs_throwBasilisk(BSXI_INTERNAL | BSX_NOT_IMPLEMENTED);
+					bs_warnF("JSON path specific index selection has not been implemented yet\n", token, old);
+					return (bs_JsonValue) { 0 };
 					assert(token == last);
 					char* array_token = NULL;
 					while ((array_token = bs_strsep(&token, ","))) {
@@ -439,7 +457,7 @@ static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path,
 					continue;
 				}
 			}
-		} 
+		}
 		else if (delete && token == last) {
 			yyjson_mut_obj_remove_key(object, last);
 			break;
@@ -451,9 +469,10 @@ static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path,
 
 		object = is_mutable ? yyjson_mut_obj_get(object, token) : yyjson_obj_get(object, token);
 		if (token != last && ((is_mutable ? yyjson_mut_get_type(object) : yyjson_get_type(object)) != YYJSON_TYPE_OBJ)) {
-			if (expect == BS_JSON_UNDEFINED)
-				return (bs_JsonValue) { .found = false };
-			bs_throwBasiliskF(BSXI_INTERNAL | BSX_NOT_FOUND, "%s", old);
+			if (expect != BS_JSON_UNDEFINED)
+				bs_warnF("Couldn't find object \"%s\" from path \"%s\"\n", token, old);
+
+			return (bs_JsonValue) { 0 };
 		}
 
 	}
@@ -466,58 +485,36 @@ static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path,
 
 }
 
-BSAPI bs_JsonValue _bs_fetchJson(bs_Json* root, bs_JsonType expect, char* path) {
-	return bs_fetchJsonN(root, expect, path, strlen(path), false);
+BSAPI bs_JsonValue _bs_fetchJson(bs_Json* root, bs_JsonType expect, char* path, int path_length) {
+	return bs_fetchJsonN(root, expect, path, path_length, false);
 }
 
-BSAPI bs_JsonValue _bs_fetchJsonF(bs_Json* root, bs_JsonType expect, const char* format, ...) {
-	static bs_String* string;
-	va_list args;
-	va_start(args, format);
-	string = bs_stringV(string, format, args);
-	va_end(args);
-	return bs_fetchJsonN(root, expect, string->value, string->len, false);
+BSAPI void _val_bs_deleteJson(bs_Json* root, char* path, int path_length) {
+	BS_VALIDATE(root->is_mutable == true, false, );
+
+	return bs_deleteJson(root, path, path_length);
 }
 
-BSAPI void _bs_deleteJson(bs_Json* root, char* path) {
+BSAPI void _bs_deleteJson(bs_Json* root, char* path, int path_length) {
 	bs_ensureJsonMutable(root);
-	bs_fetchJsonN(root, 0, path, strlen(path), true);
+	bs_fetchJsonN(root, 0, path, path_length, true);
 }
 
-BSAPI void _bs_deleteJsonF(bs_Json* root, const char* format, ...) {
-	char path[128];
-	int path_len = 0;
-	BS_PARSE_FORMAT(format, path, path_len);
-
-	bs_ensureJsonMutable(root);
-	bs_fetchJsonN(root, 0, path, path_len, true);
+static inline void bs_warnFailedToUpdate(char* type, char* token, char* path) {
+	bs_warnF("Failed to update JSON %s \"%s\" in path \"%s\"\n", type, token, path);
 }
 
-static inline const char* bs_serializeJsonType(yyjson_type type) {
-	switch (type) {
-		case YYJSON_TYPE_NONE: return "NONE";
-		case YYJSON_TYPE_RAW: return "RAW";
-		case YYJSON_TYPE_NULL: return "NULL";
-		case YYJSON_TYPE_BOOL: return "BOOL";
-		case YYJSON_TYPE_NUM: return "NUMBER";
-		case YYJSON_TYPE_STR: return "STRING";
-		case YYJSON_TYPE_ARR: return "ARRAY";
-		case YYJSON_TYPE_OBJ: return "OBJECT";
-	}
+BSAPI bs_Result _val_bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path, int path_length) {
+	BS_VALIDATE(root->is_mutable == true, false,);
+
+	return bs_ensureJson(root, value, path, path_length);
 }
 
-static inline void bs_throwInvalidJsonType(yyjson_mut_val* val) {
-	bs_throwBasiliskF(BSXI_INTERNAL | BSX_INVALID_TYPE, "%s", bs_serializeJsonType(yyjson_mut_get_type(val)));
-}
-
-BSAPI bool _bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path) {
-	bs_ensureJsonMutable(root);
+BSAPI bs_Result _bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path, int path_length) {
+	bs_Result result = BS_RESULT_OK;
 
 	char* old_path = path;
 	path = strdup(path);
-
-	if (!root->is_mutable)
-		bs_throwBasilisk(BSX_IMMUTABLE);
 
 	yyjson_mut_val* object = root->as_object;
 	char* token = NULL;
@@ -529,8 +526,11 @@ BSAPI bool _bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path) {
 		char* array_start = strchr(token, '[');
 		if (array_start) {
 			char* array_end = strchr(array_start, ']');
-			if (!array_end)
-				bs_throwBasilisk(BSXI_INTERNAL | BSX_EXPECTED_END);
+			if (!array_end) {
+				bs_warnF("Expected end of array in JSON path \"%s\"\n", old_path);
+				result = BS_RESULT_GENERAL_ERROR;
+				goto end;
+			}
 
 			assert(array_end[1] == '\0'); // todo error
 			array_end[0] = array_start[0] = '\0';
@@ -549,8 +549,11 @@ BSAPI bool _bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path) {
 			if (!object) {
 				yyjson_mut_val* field = yyjson_mut_strcpy(root->doc, token);
 				object = yyjson_mut_arr(root->doc);
-				if (!yyjson_mut_obj_add(old, field, object))
-					bs_throwBasilisk(BSXI_INTERNAL | BSX_GENERAL);
+				if (!yyjson_mut_obj_add(old, field, object)) {
+					bs_warnF("Failed to add JSON object \"%s\" in path \"%s\"\n", token, old_path);
+					result = BS_RESULT_GENERAL_ERROR;
+					goto end;
+				}
 			}
 			old = object;
 			object = yyjson_mut_arr_get(object, index);
@@ -558,8 +561,11 @@ BSAPI bool _bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path) {
 			if (token != last) {
 				if (!object) {
 					object = yyjson_mut_obj(root->doc);
-					if (!yyjson_mut_arr_append(old, object))
-						bs_throwBasilisk(BSXI_INTERNAL | BSX_GENERAL);
+					if (!yyjson_mut_arr_append(old, object)) {
+						bs_warnF("Failed to append JSON object \"%s\" in path \"%s\"\n", token, old_path);
+						result = BS_RESULT_GENERAL_ERROR;
+						goto end;
+					}
 				}
 			}
 			else {
@@ -570,15 +576,25 @@ BSAPI bool _bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path) {
 				else if (value.type & (BS_JSON_NUMBER_INTEGER | BS_JSON_UCHAR))	val = yyjson_mut_int(root->doc, value.as_number);
 				else if (value.type & BS_JSON_BOOL)								val = yyjson_mut_bool(root->doc, value.as_bool);
 				else if (value.type & BS_JSON_OBJECT)							val = value.as_object;
-				else bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_TYPE);
+				else {
+					bs_warnF("Invalid JSON type \"%d\" (%d)\n", bs_serializeJsonType(value.type), value.type);
+					result = BS_RESULT_INVALID_TYPE;
+					goto end;
+				}
 
 				if (!object) {
-					if (!yyjson_mut_arr_append(old, val))
-						bs_throwBasilisk(BSXI_INTERNAL | BSX_GENERAL);
+					if (!yyjson_mut_arr_append(old, val)) {
+						bs_warnF("Failed to append JSON value \"%s\" in path \"%s\"\n", token, old_path);
+						result = BS_RESULT_GENERAL_ERROR;
+						goto end;
+					}
 				}
 				else {
-					if (!yyjson_mut_arr_replace(old, index, val))
-						bs_throwBasilisk(BSXI_INTERNAL | BSX_GENERAL);
+					if (!yyjson_mut_arr_replace(old, index, val)) {
+						bs_warnF("Failed to replace JSON value \"%s\" in path \"%s\"\n", token, old_path);
+						result = BS_RESULT_GENERAL_ERROR;
+						goto end;
+					}
 				}
 			}
 		}
@@ -593,15 +609,22 @@ BSAPI bool _bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path) {
 				}
 				else
 					object = yyjson_mut_obj_get(object, token);
+
 				if (!object) {
 					object = yyjson_mut_obj(root->doc);
-					if (!yyjson_mut_obj_add(old, yyjson_mut_strcpy(root->doc, token), object))
-						bs_throwBasilisk(BSXI_INTERNAL | BSX_GENERAL);
+					if (!yyjson_mut_obj_add(old, yyjson_mut_strcpy(root->doc, token), object)) {
+						bs_warnF("Failed to add JSON object \"%s\" in path \"%s\"\n", token, old_path);
+						result = BS_RESULT_GENERAL_ERROR;
+						goto end;
+					}
 				}
 				else if (yyjson_mut_get_type(object) != YYJSON_TYPE_OBJ) {
 					object = yyjson_mut_obj(root->doc);
-					if (!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), object))
-						bs_throwBasilisk(BSXI_INTERNAL | BSX_GENERAL);
+					if (!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), object)) {
+						bs_warnF("Failed to update JSON object \"%s\" in path \"%s\"\n", token, old_path);
+						result = BS_RESULT_GENERAL_ERROR;
+						goto end;
+					}
 				}
 			}
 			else {
@@ -641,44 +664,55 @@ BSAPI bool _bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path) {
 						yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), arr);
 				}
 				else if (value.type & BS_JSON_STRING) {
-					if (!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), yyjson_mut_str(root->doc, value.as_string)))
-						bs_throwBasiliskF(BSXI_INTERNAL | BSX_GENERAL, "%s, %s", token, value.as_string);
+					if (!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), yyjson_mut_str(root->doc, value.as_string))) {
+						bs_warnFailedToUpdate("string", token, old_path);
+						result = BS_RESULT_GENERAL_ERROR;
+						goto end;
+					}
 				}
 				else if (value.type & BS_JSON_NUMBER) {
-					if (!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), yyjson_mut_double(root->doc, value.as_number)))
-						bs_throwBasilisk(BSXI_INTERNAL | BSX_GENERAL);
+					if (!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), yyjson_mut_double(root->doc, value.as_number))) {
+						bs_warnFailedToUpdate("number", token, old_path);
+						result = BS_RESULT_GENERAL_ERROR;
+						goto end;
+					}
 				}
 				else if (value.type & BS_JSON_FLOAT) {
-					if (!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), yyjson_mut_float(root->doc, value.as_number)))
-						bs_throwBasilisk(BSXI_INTERNAL | BSX_GENERAL);
+					if (!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), yyjson_mut_float(root->doc, value.as_number))) {
+						bs_warnFailedToUpdate("float", token, old_path);
+						result = BS_RESULT_GENERAL_ERROR;
+						goto end;
+					}
 				}
 				else if (value.type & (BS_JSON_NUMBER_INTEGER | BS_JSON_UCHAR)) {
-					if (!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), yyjson_mut_int(root->doc, value.as_number)))
-						bs_throwBasilisk(BSXI_INTERNAL | BSX_GENERAL);
+					if (!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), yyjson_mut_int(root->doc, value.as_number))) {
+						bs_warnFailedToUpdate("integer", token, old_path);
+						result = BS_RESULT_GENERAL_ERROR;
+						goto end;
+					}
 				}
 				else if (value.type & BS_JSON_OBJECT) {
-					if(!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), value.as_object))
-						bs_throwBasilisk(BSXI_INTERNAL | BSX_GENERAL);
+					if(!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), value.as_object)) {
+						bs_warnFailedToUpdate("object", token, old_path);
+						result = BS_RESULT_GENERAL_ERROR;
+						goto end;
+					}
 				}
 				else if (value.type & BS_JSON_BOOL) {
-					if (!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), yyjson_mut_bool(root->doc, value.as_bool)))
-						bs_throwBasilisk(BSXI_INTERNAL | BSX_GENERAL);
+					if (!yyjson_mut_obj_put(old, yyjson_mut_str(root->doc, token), yyjson_mut_bool(root->doc, value.as_bool))) {
+						bs_warnFailedToUpdate("boolean", token, old_path);
+						result = BS_RESULT_GENERAL_ERROR;
+						goto end;
+					}
 				}
 			}
 		}
 	}
 
+end:
 	free(path);
 
-	return false;
-}
-
-BSAPI bool _bs_ensureJsonF(bs_Json* root, bs_JsonValue value, const char* format, ...) {
-	char path[128];
-	int path_len = 0;
-	BS_PARSE_FORMAT(format, path, path_len);
-	bs_ensureJson(root, value, path);
-	return false;
+	return result;
 }
 
 BSAPI void _bs_destroyJson(bs_Json* json) {

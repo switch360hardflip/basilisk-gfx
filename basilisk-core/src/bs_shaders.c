@@ -78,36 +78,6 @@ static void bs_destroyDescriptors() {
 
 } 
 
-BSAPI const char* _bs_serializeBindType(bs_BindType type) {
-    switch (type) {
-    case BS_BIND_TYPE_STORAGE_BUFFER: return "STORAGE_BUFFER";
-    case BS_BIND_TYPE_UNIFORM_BUFFER: return "UNIFORM_BUFFER";
-    case BS_BIND_TYPE_SAMPLED_IMAGE: return "SAMPLED_IMAGE";
-    case BS_BIND_TYPE_INPUT_ATTACHMENT: return "INPUT_ATTACHMENT";
-    case BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER: return "COMBINED_IMAGE_SAMPLER";
-    case BS_BIND_TYPE_PUSH_CONSTANT: return "PUSH_CONSTANT";
-    case BS_BIND_TYPE_ACCELERATION_STRUCTURE: return "ACCELERATION_STRUCTURE";
-    case BS_BIND_TYPE_STORAGE_IMAGE: return "STORAGE_IMAGE";
-    default:
-        bs_throwBasiliskF(BSX_FAILED_TO_CONVERT, "(bs_BindType)%d\n", type);
-        return NULL;
-    }
-}
-
-BSAPI bs_BindType _bs_deserializeBindType(const char* string) {
-    if (strcmp(string, "STORAGE_BUFFER") == 0) return BS_BIND_TYPE_STORAGE_BUFFER;
-    else if (strcmp(string, "UNIFORM_BUFFER") == 0) return BS_BIND_TYPE_UNIFORM_BUFFER;
-    else if (strcmp(string, "SAMPLED_IMAGE") == 0) return BS_BIND_TYPE_SAMPLED_IMAGE;
-    else if (strcmp(string, "INPUT_ATTACHMENT") == 0) return BS_BIND_TYPE_INPUT_ATTACHMENT;
-    else if (strcmp(string, "COMBINED_IMAGE_SAMPLER") == 0) return BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER;
-    else if (strcmp(string, "PUSH_CONSTANT") == 0) return BS_BIND_TYPE_PUSH_CONSTANT;
-    else if (strcmp(string, "ACCELERATION_STRUCTURE") == 0) return BS_BIND_TYPE_ACCELERATION_STRUCTURE;
-    else if (strcmp(string, "STORAGE_IMAGE") == 0) return BS_BIND_TYPE_STORAGE_IMAGE;
-
-    bs_throwBasiliskF(BSX_FAILED_TO_CONVERT, "Bind type %s\n", string);
-    return 0;
-}
-
 BSAPI VkDescriptorType _bs_convertBindType(bs_BindType type) {
     switch (type) {
     case BS_BIND_TYPE_INLINE_UNIFORM_BLOCK: return VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK;
@@ -152,8 +122,10 @@ BSAPI void _bs_pushDescriptorPools() {
             if (binding->type == BS_BIND_TYPE_PUSH_CONSTANT)
                 continue;
 
-            if (binding->type < 0 || binding->type >= BS_NUM_BIND_TYPES)
-                bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_TYPE);
+            if (binding->type < 0 || binding->type >= BS_NUM_BIND_TYPES) {
+                bs_warnF("Invalid bind type %d at binding %d\n", binding->type, j);
+                continue;
+            }
 
             pool_sizes[binding->type].descriptorCount++;
             pool_sizes[binding->type].type = bs_convertBindType(binding->type);
@@ -173,7 +145,11 @@ BSAPI void _bs_pushDescriptorPools() {
         .maxSets = BS_MAX_NUM_BIND_SETS,
     };
 
-    bs_throwVulkan(vkCreateDescriptorPool(_bs_instance_->device, &pool_i, NULL, &descriptor_pool));
+    VkResult result = vkCreateDescriptorPool(_bs_instance_->device, &pool_i, NULL, &descriptor_pool);
+    if (result != VK_SUCCESS) {
+        bs_warnF("vkCreateDescriptorPool failed: %d\n", result);
+        return;
+    }
 
     for (int i = 0; i < _bs_instance_->bind_sets_count; i++) {
         bs_BindSet* bind_set = _bs_instance_->bind_sets + i;
@@ -368,9 +344,16 @@ BSAPI void _bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 slot, bs_Buffer* buffer) 
     buffer->binding = slot;
 }
 
+BSAPI void _val_bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 slot, bs_RayTracer* ray_tracer) {
+    BS_VALIDATE(ray_tracer != NULL, ,);
+    _bs_bindAccelerationStructure(bind_set_slot, slot, ray_tracer);
+}
+
 BSAPI void _bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 slot, bs_RayTracer* ray_tracer) {
-    if (!ray_tracer)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
+    if (!ray_tracer) {
+        bs_warnF("ray_tracer is NULL\n");
+        return;
+    }
 
    //bs_Binding* binding = bs_binding(bind_set_slot, slot, &ray_tracer->TLAS, 1);
    //if (!binding) return;
@@ -387,7 +370,7 @@ BSAPI bs_BindSet* _bs_queryBindSet(bs_U32 id) {
 
     int bind_set = _bs_instance_->descriptor_lookup[id].bind_set;
     if (bind_set < 0) {
-        bsi_throwBasiliskF(BSX_FAILED_TO_QUERY, "Bind set %d", id);
+        bs_warnF("Failed to query bind set %d\n", id);
         return NULL;
     }
  
@@ -400,7 +383,7 @@ BSAPI bs_BindSet* _bs_queryBindSet(bs_U32 id) {
             return bind_set;
     }
 
-    bsi_throwBasiliskF(BSX_FAILED_TO_QUERY, "Bind set %d", id);
+    bs_warnF("Failed to query bind set %d\n", id);
     return NULL;
 }
 
@@ -409,7 +392,7 @@ BSAPI bs_Binding* _bs_queryBinding(bs_BindSet* bind_set, bs_U32 id) {
 
     int binding = _bs_instance_->descriptor_lookup[bind_set->slot].bindings[id];
     if (binding < 0) {
-        bsi_throwBasiliskF(BSX_FAILED_TO_QUERY, "Binding %d", id);
+        bs_warnF("Failed to query binding %d\n", id);
         return NULL;
     }
 
@@ -422,7 +405,7 @@ BSAPI bs_Binding* _bs_queryBinding(bs_BindSet* bind_set, bs_U32 id) {
             return binding;
     }
 
-    bsi_throwBasiliskF(BSX_FAILED_TO_QUERY, "Binding %d", id);
+    bs_warnF("Failed to query binding %d\n", id);
     return NULL;
 }
 
@@ -701,7 +684,7 @@ BSAPI bs_ShaderType _bs_deserializeShaderType(const char* type_name) {
     else if (strcmp(type_name, "INTERSECTION") == 0)
         return BS_INTERSECTION_SHADER;
 
-    bs_throwBasiliskF(BSX_FAILED_TO_CONVERT, "Shader type \"%s\"", type_name);
+    bs_warnF("Failed to convert shader type \"%s\"\n", type_name);
     return 0;
 }
 
@@ -718,7 +701,7 @@ BSAPI const char* _bs_serializeShaderType(bs_ShaderType type) {
     case BS_INTERSECTION_SHADER: return "INTERSECTION";
     }
 
-    bs_throwBasiliskF(BSX_FAILED_TO_CONVERT, "Shader type \"%d\"", type);
+    bs_warnF("Failed to convert shader type \"%d\"\n", type);
     return 0;
 }
 
@@ -765,7 +748,12 @@ BSAPI bs_Result _bs_shader(int package_id, const char* name, bs_U32 flags, bs_Re
         .pCode = spirv,
     };
 
-    bs_throwVulkan(vkCreateShaderModule(_bs_instance_->device, &shader_ci, NULL, &shader.module));
+    VkResult vk_result = vkCreateShaderModule(_bs_instance_->device, &shader_ci, NULL, &shader.module);
+    if (vk_result != VK_SUCCESS) {
+        bs_warnF("vkCreateShaderModule failed: %d\n", vk_result);
+        bs_destroyJson(&metadata);
+        return bs_convertVulkanResult(vk_result);
+    }
 
     bs_destroyJson(&metadata);
     if (!(flags & BS_SHADER_KEEP_SPIRV)) {
@@ -841,14 +829,24 @@ static inline bs_Result bs_queryPipeline(bs_PipelineType type, bs_U64 hash, bs_P
     return BS_RESULT_FAILED_TO_QUERY;
 }
 
+BSAPI void _val_bs_pushConstant(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 size, void* data) {
+    BS_VALIDATE(pipeline != NULL, ,);
+    BS_VALIDATE((offset + size) <= pipeline->constant_size, , "Push constant %d + %d > %d", offset, size, pipeline->constant_size);
+    _bs_pushConstant(pipeline, offset, size, data);
+}
+
 BSAPI void _bs_pushConstant(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 size, void* data) {
     VkCommandBuffer command_buffer = bsi_fetchCommands();
-    if ((offset + size) > pipeline->constant_size)
-        return bs_throwBasiliskF(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS, "Pipeline " BS_PRINT_COLOR("%" PRIx64, BS_PRINT_BLUE_BRIGHT) "\nPush Constant\n%d + %d > %d", pipeline->hash, offset, size, pipeline->constant_size);
+    if ((offset + size) > pipeline->constant_size) {
+        bs_warnF("Push constant %d + %d > %d\n", offset, size, pipeline->constant_size);
+        return;
+    }
     vkCmdPushConstants(command_buffer, pipeline->layout, pipeline->shader_stages, offset, size, data);
     if (_bs_scope_.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
         bs_pushQueue(_bs_scope_.queue);
-        bs_throwVulkan(vkQueueWaitIdle(_bs_scope_.queue->queue));
+        VkResult result = vkQueueWaitIdle(_bs_scope_.queue->queue);
+        if (result != VK_SUCCESS)
+            bs_warnF("vkQueueWaitIdle failed: %d\n", result);
     }
 }
 
@@ -972,7 +970,11 @@ BSAPI bs_Pipeline* _bs_computePipeline(bs_Shader* compute_shader, bs_PipelineFla
         .layout = bs_createPipelineLayout(existing),
     };
 
-    bs_throwVulkan(vkCreateComputePipelines(_bs_instance_->device, VK_NULL_HANDLE, 1, &pipeline_ci, NULL, &existing->pipeline));
+    VkResult vk_result = vkCreateComputePipelines(_bs_instance_->device, VK_NULL_HANDLE, 1, &pipeline_ci, NULL, &existing->pipeline);
+    if (vk_result != VK_SUCCESS) {
+        bs_warnF("vkCreateComputePipelines failed: %d\n", vk_result);
+        return NULL;
+    }
 
     const char* blue = (_bs_args_.color_log ? BS_PRINT_BLUE_BRIGHT : "");
     const char* cyan = (_bs_args_.color_log ? BS_PRINT_CYAN : "");
@@ -1030,14 +1032,16 @@ static void bs_defaultDescriptor(bs_PipelineHash* descriptor) {
     descriptor->cull_type = (descriptor->cull_type == BS_CULL_MODE_NONE) ? 0 : descriptor->cull_type;
 }
 
+BSAPI bs_Pipeline* _val_bs_pipeline(bs_PipelineHash* descriptor) {
+    BS_VALIDATE(_bs_scope_.renderer != NULL, NULL, "Pipelines must be created within a renderer");
+    BS_VALIDATE(descriptor->shaders[0]->type == BS_VERTEX_SHADER, NULL,);
+    BS_VALIDATE(descriptor->shaders[1]->type == BS_FRAGMENT_SHADER, NULL,);
+    return _bs_pipeline(descriptor);
+}
+
 BSAPI bs_Pipeline* _bs_pipeline(bs_PipelineHash* descriptor) {
     if (bs_pipelines[BS_PIPELINE_GRAPHICS].capacity == 0)
         bs_pipelines[BS_PIPELINE_GRAPHICS] = bs_list(sizeof(bs_Pipeline*), 64);
-
-    if (!_bs_scope_.renderer) {
-        bs_throwBasiliskF(BSX_INVALID_STATE, "Pipelines must be created within a renderer");
-        return NULL;
-    }
 
     bool is_dynamic_renderer = bs_rendererIsDynamic(_bs_scope_.renderer);
 
@@ -1046,10 +1050,6 @@ BSAPI bs_Pipeline* _bs_pipeline(bs_PipelineHash* descriptor) {
 
     bs_Shader* vs = descriptor->shaders[0];
     bs_Shader* fs = descriptor->shaders[1];
-    
-    if (vs->type != BS_VERTEX_SHADER ||
-        fs->type != BS_FRAGMENT_SHADER) 
-        bs_throwBasilisk(BSX_OUT_OF_ORDER);
 
     bs_Pipeline pipeline = {
         .type = BS_PIPELINE_GRAPHICS,
@@ -1089,14 +1089,13 @@ BSAPI bs_Pipeline* _bs_pipeline(bs_PipelineHash* descriptor) {
 
     int num_blend_states = 0;
     if (!is_dynamic_renderer) {
-        if (descriptor->subpass >= _bs_scope_.renderer->num_subpasses)
-            bs_throwBasiliskF(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS, "Pipeline subpass (%d) falls outside (%d) renderer %s(%s)%s's subpass count (%d)",
+        if (descriptor->subpass >= _bs_scope_.renderer->num_subpasses) {
+            bs_warnF("Pipeline subpass (%d) falls outside renderer (%d) subpass count (%d)\n",
                 descriptor->subpass,
                 _bs_scope_.renderer->head.id,
-                (_bs_args_.color_log ? BS_PRINT_CYAN : ""),
-                bs_idName(_bs_scope_.renderer->head.source_id, _bs_scope_.renderer->head.id),
-                (_bs_args_.color_log ? BS_PRINT_RESET : ""),
                 _bs_scope_.renderer->num_subpasses);
+            return NULL;
+        }
 
         for (int i = 0; i < _bs_scope_.renderer->num_outputs; i++) {
             bs_Output* output = _bs_scope_.renderer->outputs + i;
@@ -1291,7 +1290,11 @@ BSAPI bs_Pipeline* _bs_pipeline(bs_PipelineHash* descriptor) {
     pipeline_ci.basePipelineIndex = -1;
     pipeline_ci.subpass = descriptor->subpass;
 
-    bs_throwVulkan(vkCreateGraphicsPipelines(_bs_instance_->device, VK_NULL_HANDLE, 1, &pipeline_ci, NULL, &existing->pipeline));
+    VkResult vk_result = vkCreateGraphicsPipelines(_bs_instance_->device, VK_NULL_HANDLE, 1, &pipeline_ci, NULL, &existing->pipeline);
+    if (vk_result != VK_SUCCESS) {
+        bs_warnF("vkCreateGraphicsPipelines failed: %d\n", vk_result);
+        return NULL;
+    }
 
     existing->name = bs_stringF(existing->name, BS_PRINT_COLOR("%" PRIx64, BS_PRINT_BLUE_BRIGHT), pipeline.hash);
     bsi_nameHandle(existing->pipeline, VK_OBJECT_TYPE_PIPELINE, existing->name->value);

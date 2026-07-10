@@ -1614,6 +1614,16 @@ static bs_vec2 _preval_bs_textDimensions(bs_Font* font, char* name, int length) 
     return next.bs_textDimensions(font, name, length);
 }
 
+static void _preval_bs_destroyFont(bs_Font* font) {
+    if (font == NULL)
+        return;
+
+    if (font->head.source_id != BS_OBJECT_FONT)
+        return;
+
+    return next.bs_destroyFont(font);
+}
+
 static bs_Result _preval_bs_loadFont(bs_Object* object, int package_id, const char* resource_name, const char* alphabet, float spacing, bs_U32 flags) {
     if (object == NULL)
         return BS_RESULT_VALIDATION_ERROR;
@@ -1622,12 +1632,6 @@ static bs_Result _preval_bs_loadFont(bs_Object* object, int package_id, const ch
         return BS_RESULT_VALIDATION_ERROR;
 
     if (alphabet == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(package_id > 0))
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(spacing > 0.0))
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_loadFont(object, package_id, resource_name, alphabet, spacing, flags);
@@ -2170,11 +2174,14 @@ static bs_Json _preval_bs_jsonCopy(const bs_Json* root) {
     return next.bs_jsonCopy(root);
 }
 
-static char* _preval_bs_saveJson(bs_Json* json, bs_SaveJsonBits flags) {
+static bs_Result _preval_bs_saveJson(bs_Json* json, bs_SaveJsonBits flags, char** out) {
     if (json == NULL)
-        return NULL;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_saveJson(json, flags);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_saveJson(json, flags, out);
 }
 
 static bs_Json _preval_bs_emptyJson() {
@@ -2198,22 +2205,19 @@ static bs_Result _preval_bs_json(char* raw, int len, bs_Json* out_json) {
     return next.bs_json(raw, len, out_json);
 }
 
-static bs_Result _preval_bs_loadJson(char* path, bs_Json* out_json, char* value, int value_length) {
-    if (path == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
+static bs_Result _preval_bs_loadJson(bs_Json* out_json, char* value, int value_length) {
     if (out_json == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (value == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_loadJson(path, out_json, value, value_length);
+    return next.bs_loadJson(out_json, value, value_length);
 }
 
-static bs_Result _preval_bs_destroyJson(bs_Json* json) {
+static void _preval_bs_destroyJson(bs_Json* json) {
     if (json == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_destroyJson(json);
 }
@@ -2245,12 +2249,12 @@ static void _preval_bs_deleteJson(bs_Json* root, char* value, int value_length) 
     return next.bs_deleteJson(root, value, value_length);
 }
 
-static bool _preval_bs_ensureJson(bs_Json* root, bs_JsonValue value, char* value, int value_length) {
+static bs_Result _preval_bs_ensureJson(bs_Json* root, bs_JsonValue value, char* value, int value_length) {
     if (root == NULL)
-        return false;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (value == NULL)
-        return false;
+        return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_ensureJson(root, value, value, value_length);
 }
@@ -3335,17 +3339,6 @@ static bool _preval_bs_shouldLoadId(bs_U32 source_id, bs_U32 id) {
     return next.bs_shouldLoadId(source_id, id);
 }
 
-static bs_ShaderType _preval_bs_deserializeShaderType(const char* type_name) {
-    if (type_name == NULL)
-        return 0;
-
-    return next.bs_deserializeShaderType(type_name);
-}
-
-static const char* _preval_bs_serializeShaderType(bs_ShaderType type) {
-    return next.bs_serializeShaderType(type);
-}
-
 static bs_Result _preval_bs_shader(int package_id, const char* name, bs_U32 flags, bs_Resource** out) {
     if (name == NULL)
         return BS_RESULT_VALIDATION_ERROR;
@@ -3424,10 +3417,6 @@ static bs_BindType _preval_bs_deserializeBindType(const char* string) {
         return 0;
 
     return next.bs_deserializeBindType(string);
-}
-
-static const char* _preval_bs_serializeBindType(bs_BindType type) {
-    return next.bs_serializeBindType(type);
 }
 
 static void _preval_bs_loadBindings(int package_id, const char* path) {
@@ -3861,6 +3850,32 @@ static void _preval_bs_deleteDirectory(char* value, int value_length) {
     return next.bs_deleteDirectory(value, value_length);
 }
 
+static const char* _preval_bs_serializeJsonType(bs_JsonType e) {
+    return next.bs_serializeJsonType(e);
+}
+
+static const char* _preval_bs_serializeShaderType(bs_ShaderType e) {
+    return next.bs_serializeShaderType(e);
+}
+
+static bs_ShaderType _preval_bs_deserializeShaderType(const char* value) {
+    if (value == NULL)
+        return 0;
+
+    return next.bs_deserializeShaderType(value);
+}
+
+static const char* _preval_bs_serializeBindType(bs_BindType e) {
+    return next.bs_serializeBindType(e);
+}
+
+static bs_BindType _preval_bs_deserializeBindType(const char* value) {
+    if (value == NULL)
+        return 0;
+
+    return next.bs_deserializeBindType(value);
+}
+
 bs_FunctionTable _preval_bs_getFunctionTable() {
     bs_FunctionTable functions;
 
@@ -4029,6 +4044,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_kern = _preval_bs_kern;
     functions.bs_bindFont = _preval_bs_bindFont;
     functions.bs_textDimensions = _preval_bs_textDimensions;
+    functions.bs_destroyFont = _preval_bs_destroyFont;
     functions.bs_loadFont = _preval_bs_loadFont;
     functions.bs_image = _preval_bs_image;
     functions.bs_imageSwapsCount = _preval_bs_imageSwapsCount;
@@ -4235,8 +4251,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_exists = _preval_bs_exists;
     functions.bs_fetch = _preval_bs_fetch;
     functions.bs_shouldLoadId = _preval_bs_shouldLoadId;
-    functions.bs_deserializeShaderType = _preval_bs_deserializeShaderType;
-    functions.bs_serializeShaderType = _preval_bs_serializeShaderType;
     functions.bs_shader = _preval_bs_shader;
     functions.bs_destroyShader = _preval_bs_destroyShader;
     functions.bs_computePipeline = _preval_bs_computePipeline;
@@ -4248,7 +4262,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_pushConstant = _preval_bs_pushConstant;
     functions.bs_rayTracingPipeline = _preval_bs_rayTracingPipeline;
     functions.bs_deserializeBindType = _preval_bs_deserializeBindType;
-    functions.bs_serializeBindType = _preval_bs_serializeBindType;
     functions.bs_loadBindings = _preval_bs_loadBindings;
     functions.bs_bindImage = _preval_bs_bindImage;
     functions.bs_bindImages = _preval_bs_bindImages;
@@ -4317,6 +4330,11 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_deleteFile = _preval_bs_deleteFile;
     functions.bs_deleteDirectoryContents = _preval_bs_deleteDirectoryContents;
     functions.bs_deleteDirectory = _preval_bs_deleteDirectory;
+    functions.bs_serializeJsonType = _preval_bs_serializeJsonType;
+    functions.bs_serializeShaderType = _preval_bs_serializeShaderType;
+    functions.bs_deserializeShaderType = _preval_bs_deserializeShaderType;
+    functions.bs_serializeBindType = _preval_bs_serializeBindType;
+    functions.bs_deserializeBindType = _preval_bs_deserializeBindType;
 
     return functions;
 }

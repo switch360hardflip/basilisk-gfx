@@ -9,6 +9,7 @@
 #include <bs_internal.h>
 
 #define BS_FLAGSET(flag, cmp) ((flag >> cmp) & 0x01)
+#define BS_TTF_MAX_PTS 1024
 
 
 
@@ -228,41 +229,39 @@ static bs_Result bs_findTable(bs_TTF* ttf, const char tag[4], char** out) {
     return BS_RESULT_FAILED_TO_QUERY;
 }
 
- /** head */
-BSAPI void _val_bs_readHeadTable(bs_TTF* ttf) {
-    BS_VALIDATE(bs_findTable(ttf, "head", &ttf->head.buf) == BS_RESULT_OK,,);
-    return bs_readHeadTable();
-}
-
-BSAPI void _bs_readHeadTable(bs_TTF* ttf) {
+ /** 
+  'head' Table 
+  https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6head.html
+  */
+static void bs_readHeadTable(bs_TTF* ttf) {
     bs_findTable(ttf, "head", &ttf->head.buf);
     bs_U32 version = bs_memU32(ttf->head.buf, HEAD_VERSION);
     ttf->head.units_per_em = bs_memU16(ttf->head.buf, HEAD_UNITS_PER_EM);
     ttf->head.index_to_loc_format = bs_memU16(ttf->head.buf, HEAD_INDEX_TO_LOC_FORMAT);
 }
 
- /** maxp */
-BSAPI void _val_bs_readMaxpTable(bs_TTF* ttf) {
-    BS_VALIDATE(bs_findTable(ttf, "maxp", &ttf->head.buf) == BS_RESULT_OK,,);
-    return bs_readMaxpTable();
-}
-
-BSAPI void _bs_readMaxpTable(bs_TTF* ttf) {
+ /** 
+  'maxp' Table 
+  https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6maxp.html
+  */
+static void bs_readMaxpTable(bs_TTF* ttf) {
     bs_findTable(ttf, "maxp", &ttf->maxp.buf);
     ttf->maxp.num_glyphs = bs_memU16(ttf->maxp.buf, MAXP_NUM_GLYPHS);
 }
 
- /** hhea */
-BSAPI void _val_bs_readHheaTable(bs_TTF* ttf) {
-    BS_VALIDATE(bs_findTable(ttf, "hhea", &ttf->head.buf) == BS_RESULT_OK,,);
-    return bs_readHheaTable();
-}
-
-BSAPI void _bs_readHheaTable(bs_TTF* ttf) {
+ /** 
+  'hhea' Table 
+  https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6hhea.html
+  */
+static void bs_readHheaTable(bs_TTF* ttf) {
     bs_findTable(ttf, "hhea", &ttf->hhea.buf);
     ttf->hhea.num_of_long_hor_metrics = bs_memU16(ttf->hhea.buf, HHEA_NUM_OF_LONG_HOR_METRICS);
 }
 
+ /** 
+  'kern' Table 
+  https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6kern.html 
+  */
 static inline int bs_findPair(uint8_t* base, int count, uint16_t left) {
     int lo = 0;
     int hi = count;
@@ -324,11 +323,9 @@ static inline int bs_kernFormat0(bs_TTF* ttf, char* kern, int offset) {
     return sizeof(bs_U16) * 4 + sizeof(bs_U16) * 3 * pairs_count;
 }
 
-BSAPI void _bs_kern(bs_TTF* ttf) {
+BSAPI void _bs_readKernTable(bs_TTF* ttf) {
     char* buf;
-    if (bs_findTable(ttf, "kern", &buf) != BS_RESULT_OK) {
-        return;
-    }
+    bs_findTable(ttf, "kern", &buf);
     
     // TODO: these can be bs_U32 on OS X only fonts but idk how 2 check
     bs_U16 version = bs_memU16(buf, KERN_VERSION);
@@ -363,7 +360,11 @@ BSAPI void _bs_kern(bs_TTF* ttf) {
     }
 }
 
-static void bs_hmtx(bs_TTF* ttf, bs_Glyph* glyph) {
+ /**
+  'hmtx' Table
+  https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6hmtx.html
+  */
+static void bs_readHmtxTable(bs_TTF* ttf, bs_Glyph* glyph) {
     bs_findTable(ttf, "hmtx", &ttf->hmtx.buf);
 
     bs_U32 offset = glyph->index * sizeof(bs_LongHorMetric);
@@ -371,7 +372,12 @@ static void bs_hmtx(bs_TTF* ttf, bs_Glyph* glyph) {
     glyph->long_hor_metric.left_side_bearing = (bs_I16)bs_memU16(ttf->hmtx.buf, offset + 2);
 }
 
-static bs_U32 bs_loca(bs_TTF* ttf, int id) {
+
+ /**
+  'loca' Table
+  https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6loca.html
+  */
+static bs_U32 bs_readLocaTable(bs_TTF* ttf, int id) {
     bs_findTable(ttf, "loca", &ttf->loca.buf);
 
     bs_U32 offset = 0;
@@ -383,6 +389,10 @@ static bs_U32 bs_loca(bs_TTF* ttf, int id) {
     return offset;
 }
 
+ /**
+  'glyf' Table
+  https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html
+  */
 static int bs_glyfCoords(bs_Glyf* glyf, bool y, bs_U8* flags, bs_GlyfPt* pts, int offset, int num_points) {
     bs_U16 coord_prev = 0;
     for (int i = 0; i < num_points; i++) {
@@ -419,8 +429,9 @@ static int bs_glyfCoords(bs_Glyf* glyf, bool y, bs_U8* flags, bs_GlyfPt* pts, in
     return offset;
 }
 
-static void bs_glyf(bs_TTF* ttf, bs_Glyph* glyph) {
+static void bs_readGlyfTable(bs_TTF* ttf, bs_Glyph* glyph) {
     if (bs_findTable(ttf, "glyf", ttf->glyf.buf) != BS_RESULT_OK) {
+        return;
     }
 
     // get location of glyph in ttf buffer
@@ -491,6 +502,10 @@ static void bs_glyf(bs_TTF* ttf, bs_Glyph* glyph) {
     coord_offset = bs_glyfCoords(&ttf->glyf, 1, flags, glyph->coords, coord_offset, num_points);
 }
 
+ /**
+  'cmap' Table
+  https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6cmap.html
+  */
 static bs_Result bs_cmapFormat4(bs_TTF* ttf, bs_Glyph* glyph, char* subtable) {
     bs_U16 seg_count_x2 = bs_memU16(subtable, CMAP_FORMAT4_NUM_SEGMENTS_X2);
     bs_U16 seg_count = seg_count_x2 / 2;
@@ -539,7 +554,7 @@ static bs_Result bs_cmapFormat4(bs_TTF* ttf, bs_Glyph* glyph, char* subtable) {
     return BS_RESULT_OK;
 }
 
-static bool bs_cmap(bs_TTF* ttf, bs_Glyph* glyph) {
+static bool bs_readCmapTable(bs_TTF* ttf, bs_Glyph* glyph) {
     char* cmap; 
     bs_findTable(ttf, "cmap", &cmap);
 
@@ -565,7 +580,9 @@ static bool bs_cmap(bs_TTF* ttf, bs_Glyph* glyph) {
 
     switch (format) {
     case 4: bs_cmapFormat4(ttf, glyph, subtable); break;
-    default: bs_throwBasiliskF(BSX_NOT_IMPLEMENTED, "TTF format %d", format); break;
+    default: 
+        bs_warnF("TTF format %d has not been implemented yet\n", format);
+        return false;
     }
 
     return true;
@@ -726,20 +743,14 @@ BSAPI void _bs_rasterizeGlyph(bs_TTF* font, bs_Glyph* glyph, int width, int heig
     }
 }
 
-static inline bool bs_sameFont(bs_TTF* font, const char* path, const char* alphabet) {
-    return
-        font->name == path &&
-        font->alphabet == alphabet;
-}
-
 BSAPI void _bs_glyph(bs_TTF* ttf, bs_U16 code) {
     //int index = bs_glyphIndex(ttf, code);
 
     bs_Glyph* glyph = bs_pushBack(&ttf->glyphs, &(bs_Glyph) {.code = code});
 
-    bs_cmap(ttf, glyph);
-    bs_glyf(ttf, glyph);
-    bs_hmtx(ttf, glyph);
+    bs_readCmapTable(ttf, glyph);
+    bs_readGlyfTable(ttf, glyph);
+    bs_readHmtxTable(ttf, glyph);
 }
 
 BSAPI void _bs_destroyTtf(bs_TTF* ttf) {
@@ -756,9 +767,9 @@ BSAPI void _bs_ttf(bs_TTF* existing, const char* path, bs_U32 flags) {
 
     ttf.table_count = bs_memU16(ttf.buffer->value, 4);
 
-    bs_head(&ttf);
-    bs_maxp(&ttf);
-    bs_hhea(&ttf);
+    bs_readHeadTable(&ttf);
+    bs_readMaxpTable(&ttf);
+    bs_readHheaTable(&ttf);
 
     memcpy(existing, &ttf, sizeof(bs_TTF));
 }
@@ -782,14 +793,13 @@ BSAPI bs_vec2 _bs_textDimensions(bs_Font* font, char* name, int length) {
         width += spacing;
         // width += name[i] == ' ' ? font->spacing * layout_scale : bs_atlasSize(font->atlas, c).x;
     }
-    return bs_v2(
-        width,
-        font->height);
+
+    return bs_v2(width, font->height);
 }
 
 BSAPI void _bs_destroyFont(bs_Font* font) {
     if (font->atlas)
-        _bs_destroyAtlas(font->atlas);
+        bs_destroyAtlas(font->atlas);
     //	if (font->fragment_shader)
     //		bs_destroyShader(font->fragment_shader);
 
@@ -802,21 +812,29 @@ BSAPI void _bs_destroyFont(bs_Font* font) {
 }
 
 BSAPI void _bs_bindFont(bs_Font* font, bs_Sampler* sampler, int bind_set, int bind_point) {
-    _bs_bindImages(bind_set, bind_point, &(bs_ImageDescriptor) {
+    bs_bindImages(bind_set, bind_point, &(bs_ImageDescriptor) {
         .image = font->atlas->image,
         .layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         .sampler = sampler,
     }, 1);
 }
 
-bs_Result _bs_loadFont(bs_Object* object, int package_id, const char* resource_name, const char* alphabet, float spacing, bs_U32 flags) {
+BSAPI bs_Result _bs_loadFont(bs_Object* object, int package_id, const char* resource_name, const char* alphabet, float spacing, bs_U32 flags) {
+    bs_Result result;
+
     bs_Font* font = object->font;
 
-    if (object->flags & BS_OBJECT_ALREADY_EXISTS && !(object->flags & BS_OBJECT_FORCE_DESTROY)) return NULL;
+    if (object->flags & BS_OBJECT_ALREADY_EXISTS && !(object->flags & BS_OBJECT_FORCE_DESTROY)) {
+        return BS_RESULT_OK;
+    }
 
     bs_destroyFont(font);
 
-    bs_Resource* resource = bs_loadResource(package_id, resource_name, 0);
+    bs_Resource* resource;
+    result = bs_loadResource(package_id, resource_name, 0, &resource);
+    if (result != BS_RESULT_OK) {
+        return result;
+    }
 
     bs_BfntHeader* header = resource->data->value;
     if (header->magic != 0x746E6662) {

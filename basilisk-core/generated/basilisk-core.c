@@ -1332,6 +1332,12 @@ bs_vec2 bs_textDimensions(
     return next.bs_textDimensions(font, name, length);
 }
 
+void bs_destroyFont(
+    bs_Font* font)
+{
+    return next.bs_destroyFont(font);
+}
+
 bs_Result bs_loadFont(
     bs_Object* object, 
     int package_id, 
@@ -1878,11 +1884,12 @@ bs_Json bs_jsonCopy(
     return next.bs_jsonCopy(root);
 }
 
-char* bs_saveJson(
+bs_Result bs_saveJson(
     bs_Json* json, 
-    bs_SaveJsonBits flags)
+    bs_SaveJsonBits flags, 
+    char** out)
 {
-    return next.bs_saveJson(json, flags);
+    return next.bs_saveJson(json, flags, out);
 }
 
 bs_Json bs_emptyJson()
@@ -1904,39 +1911,36 @@ bs_Result bs_json(
 }
 
 bs_Result bs_loadJson(
-    char* path, 
     bs_Json* out_json, 
     char* value, 
     int value_length)
 {
-    return next.bs_loadJson(path, out_json, value, value_length);
+    return next.bs_loadJson(out_json, value, value_length);
 }
 
 bs_Result bs_loadJsonV(
-    char* path, 
     bs_Json* out_json, 
     char* format, 
     va_list args)
 {
     static bs_String* string;
     string = bs_stringV(string, format, args);
-    return bs_loadJson(path, out_json, string->value, string->len);
+    return bs_loadJson(out_json, string->value, string->len);
 }
 
 bs_Result bs_loadJsonF(
-    char* path, 
     bs_Json* out_json, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_loadJsonV(path, out_json, format, args);
+    bs_Result _return = bs_loadJsonV(out_json, format, args);
     va_end(args);
     return _return;
 }
 
-bs_Result bs_destroyJson(
+void bs_destroyJson(
     bs_Json* json)
 {
     return next.bs_destroyJson(json);
@@ -2010,7 +2014,7 @@ void bs_deleteJsonF(
     va_end(args);
 }
 
-bool bs_ensureJson(
+bs_Result bs_ensureJson(
     bs_Json* root, 
     bs_JsonValue value, 
     char* value, 
@@ -2019,7 +2023,7 @@ bool bs_ensureJson(
     return next.bs_ensureJson(root, value, value, value_length);
 }
 
-bool bs_ensureJsonV(
+bs_Result bs_ensureJsonV(
     bs_Json* root, 
     bs_JsonValue value, 
     char* format, 
@@ -2030,7 +2034,7 @@ bool bs_ensureJsonV(
     return bs_ensureJson(root, value, string->value, string->len);
 }
 
-bool bs_ensureJsonF(
+bs_Result bs_ensureJsonF(
     bs_Json* root, 
     bs_JsonValue value, 
     char* format, 
@@ -2038,7 +2042,7 @@ bool bs_ensureJsonF(
 {
     va_list args;
     va_start(args, format);
-    bool _return = bs_ensureJsonV(root, value, format, args);
+    bs_Result _return = bs_ensureJsonV(root, value, format, args);
     va_end(args);
     return _return;
 }
@@ -3316,18 +3320,6 @@ bool bs_shouldLoadId(
     return next.bs_shouldLoadId(source_id, id);
 }
 
-bs_ShaderType bs_deserializeShaderType(
-    const char* type_name)
-{
-    return next.bs_deserializeShaderType(type_name);
-}
-
-const char* bs_serializeShaderType(
-    bs_ShaderType type)
-{
-    return next.bs_serializeShaderType(type);
-}
-
 bs_Result bs_shader(
     int package_id, 
     const char* name, 
@@ -3399,12 +3391,6 @@ bs_BindType bs_deserializeBindType(
     const char* string)
 {
     return next.bs_deserializeBindType(string);
-}
-
-const char* bs_serializeBindType(
-    bs_BindType type)
-{
-    return next.bs_serializeBindType(type);
 }
 
 void bs_loadBindings(
@@ -4085,5 +4071,109 @@ void bs_deleteDirectoryF(
     va_start(args, format);
     bs_deleteDirectoryV(format, args);
     va_end(args);
+}
+
+const char* bs_serializeJsonType(
+    bs_JsonType e)
+{
+    switch (e) {
+        case BS_JSON_UNDEFINED: return "BS_JSON_UNDEFINED";
+        case BS_JSON_DONT_CARE: return "BS_JSON_DONT_CARE";
+        case BS_JSON_SYNTAX: return "BS_JSON_SYNTAX";
+        case BS_JSON_OBJECT: return "BS_JSON_OBJECT";
+        case BS_JSON_ARRAY: return "BS_JSON_ARRAY";
+        case BS_JSON_VALUE_TYPE: return "BS_JSON_VALUE_TYPE";
+        case BS_JSON_STRING: return "BS_JSON_STRING";
+        case BS_JSON_NUMBER: return "BS_JSON_NUMBER";
+        case BS_JSON_NUMBER_INTEGER: return "BS_JSON_NUMBER_INTEGER";
+        case BS_JSON_FLOAT: return "BS_JSON_FLOAT";
+        case BS_JSON_BOOL: return "BS_JSON_BOOL";
+        case BS_JSON_UCHAR: return "BS_JSON_UCHAR";
+    }
+
+    return NULL;
+}
+
+const char* bs_serializeShaderType(
+    bs_ShaderType e)
+{
+    switch (e) {
+        case BS_VERTEX_SHADER: return "BS_VERTEX_SHADER";
+        case BS_GEOMETRY_SHADER: return "BS_GEOMETRY_SHADER";
+        case BS_FRAGMENT_SHADER: return "BS_FRAGMENT_SHADER";
+        case BS_COMPUTE_SHADER: return "BS_COMPUTE_SHADER";
+        case BS_RAY_GEN_SHADER: return "BS_RAY_GEN_SHADER";
+        case BS_ANY_HIT_SHADER: return "BS_ANY_HIT_SHADER";
+        case BS_CLOSEST_HIT_SHADER: return "BS_CLOSEST_HIT_SHADER";
+        case BS_MISS_SHADER: return "BS_MISS_SHADER";
+        case BS_INTERSECTION_SHADER: return "BS_INTERSECTION_SHADER";
+    }
+
+    return NULL;
+}
+
+bs_ShaderType bs_deserializeShaderType(
+    const char* value)
+{
+    if (strcmp(value, "BS_VERTEX_SHADER") == 0) return BS_VERTEX_SHADER;
+    else if (strcmp(value, "BS_GEOMETRY_SHADER") == 0) return BS_GEOMETRY_SHADER;
+    else if (strcmp(value, "BS_FRAGMENT_SHADER") == 0) return BS_FRAGMENT_SHADER;
+    else if (strcmp(value, "BS_COMPUTE_SHADER") == 0) return BS_COMPUTE_SHADER;
+    else if (strcmp(value, "BS_RAY_GEN_SHADER") == 0) return BS_RAY_GEN_SHADER;
+    else if (strcmp(value, "BS_ANY_HIT_SHADER") == 0) return BS_ANY_HIT_SHADER;
+    else if (strcmp(value, "BS_CLOSEST_HIT_SHADER") == 0) return BS_CLOSEST_HIT_SHADER;
+    else if (strcmp(value, "BS_MISS_SHADER") == 0) return BS_MISS_SHADER;
+    else if (strcmp(value, "BS_INTERSECTION_SHADER") == 0) return BS_INTERSECTION_SHADER;
+
+    bs_warnF("Failed to deserialize enum value \"%s\"\n", value);
+    return 0;
+}
+
+const char* bs_serializeBindType(
+    bs_BindType e)
+{
+    static const char* values[BS_BIND_TYPES_COUNT] = {
+        [BS_BIND_TYPE_SAMPLER] = "BS_BIND_TYPE_SAMPLER",
+        [BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER] = "BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER",
+        [BS_BIND_TYPE_SAMPLED_IMAGE] = "BS_BIND_TYPE_SAMPLED_IMAGE",
+        [BS_BIND_TYPE_STORAGE_IMAGE] = "BS_BIND_TYPE_STORAGE_IMAGE",
+        [BS_BIND_TYPE_UNIFORM_TEXEL_BUFFER] = "BS_BIND_TYPE_UNIFORM_TEXEL_BUFFER",
+        [BS_BIND_TYPE_STORAGE_TEXEL_BUFFER] = "BS_BIND_TYPE_STORAGE_TEXEL_BUFFER",
+        [BS_BIND_TYPE_UNIFORM_BUFFER] = "BS_BIND_TYPE_UNIFORM_BUFFER",
+        [BS_BIND_TYPE_STORAGE_BUFFER] = "BS_BIND_TYPE_STORAGE_BUFFER",
+        [BS_BIND_TYPE_UNIFORM_BUFFER_DYNAMIC] = "BS_BIND_TYPE_UNIFORM_BUFFER_DYNAMIC",
+        [BS_BIND_TYPE_STORAGE_BUFFER_DYNAMIC] = "BS_BIND_TYPE_STORAGE_BUFFER_DYNAMIC",
+        [BS_BIND_TYPE_INPUT_ATTACHMENT] = "BS_BIND_TYPE_INPUT_ATTACHMENT",
+        [BS_BIND_TYPE_PUSH_CONSTANT] = "BS_BIND_TYPE_PUSH_CONSTANT",
+        [BS_BIND_TYPE_INLINE_UNIFORM_BLOCK] = "BS_BIND_TYPE_INLINE_UNIFORM_BLOCK",
+        [BS_BIND_TYPE_ACCELERATION_STRUCTURE] = "BS_BIND_TYPE_ACCELERATION_STRUCTURE",
+        [BS_BIND_TYPE_MUTABLE_VALVE] = "BS_BIND_TYPE_MUTABLE_VALVE",
+    };
+
+    return values[e];
+}
+
+bs_BindType bs_deserializeBindType(
+    const char* value)
+{
+    if (strcmp(value, "BS_BIND_TYPE_SAMPLER") == 0) return BS_BIND_TYPE_SAMPLER;
+    else if (strcmp(value, "BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER") == 0) return BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER;
+    else if (strcmp(value, "BS_BIND_TYPE_SAMPLED_IMAGE") == 0) return BS_BIND_TYPE_SAMPLED_IMAGE;
+    else if (strcmp(value, "BS_BIND_TYPE_STORAGE_IMAGE") == 0) return BS_BIND_TYPE_STORAGE_IMAGE;
+    else if (strcmp(value, "BS_BIND_TYPE_UNIFORM_TEXEL_BUFFER") == 0) return BS_BIND_TYPE_UNIFORM_TEXEL_BUFFER;
+    else if (strcmp(value, "BS_BIND_TYPE_STORAGE_TEXEL_BUFFER") == 0) return BS_BIND_TYPE_STORAGE_TEXEL_BUFFER;
+    else if (strcmp(value, "BS_BIND_TYPE_UNIFORM_BUFFER") == 0) return BS_BIND_TYPE_UNIFORM_BUFFER;
+    else if (strcmp(value, "BS_BIND_TYPE_STORAGE_BUFFER") == 0) return BS_BIND_TYPE_STORAGE_BUFFER;
+    else if (strcmp(value, "BS_BIND_TYPE_UNIFORM_BUFFER_DYNAMIC") == 0) return BS_BIND_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    else if (strcmp(value, "BS_BIND_TYPE_STORAGE_BUFFER_DYNAMIC") == 0) return BS_BIND_TYPE_STORAGE_BUFFER_DYNAMIC;
+    else if (strcmp(value, "BS_BIND_TYPE_INPUT_ATTACHMENT") == 0) return BS_BIND_TYPE_INPUT_ATTACHMENT;
+    else if (strcmp(value, "BS_BIND_TYPE_PUSH_CONSTANT") == 0) return BS_BIND_TYPE_PUSH_CONSTANT;
+    else if (strcmp(value, "BS_BIND_TYPE_INLINE_UNIFORM_BLOCK") == 0) return BS_BIND_TYPE_INLINE_UNIFORM_BLOCK;
+    else if (strcmp(value, "BS_BIND_TYPE_ACCELERATION_STRUCTURE") == 0) return BS_BIND_TYPE_ACCELERATION_STRUCTURE;
+    else if (strcmp(value, "BS_BIND_TYPE_MUTABLE_VALVE") == 0) return BS_BIND_TYPE_MUTABLE_VALVE;
+    else if (strcmp(value, "BS_BIND_TYPES_COUNT") == 0) return BS_BIND_TYPES_COUNT;
+
+    bs_warnF("Failed to deserialize enum value \"%s\"\n", value);
+    return 0;
 }
 

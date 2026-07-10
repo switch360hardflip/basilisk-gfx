@@ -503,11 +503,9 @@ BSAPI bs_Args* _bs_arguments() {
 
 BSAPI void _bs_parseArgs(int argc, char* argv[]) {
     for (int i = 0; i < argc; i++) {
-        if      (strcmp(argv[i], "--cmd-log") == 0) _bs_args_.cmd_log = true;
-        else if (strcmp(argv[i], "--color-log") == 0) _bs_args_.color_log = true;
+        if (strcmp(argv[i], "--color-log") == 0) _bs_args_.color_log = true;
         else if (strcmp(argv[i], "--use-lisk") == 0) _bs_args_.use_lisk = true;
         else if (strcmp(argv[i], "--use-validation-layers") == 0) _bs_args_.use_validation_layers = true;
-        else if (strcmp(argv[i], "--skip-log-info") == 0) _bs_args_.skip_log_info = true;
         else if (strcmp(argv[i], "--send-bugs") == 0) _bs_args_.send_bugs = true;
         else if (strcmp(argv[i], "--track-changes") == 0) _bs_args_.track_changes = true;
     }
@@ -528,8 +526,9 @@ BSAPI void _bs_queryProcedures(bs_Procedure* procedures, int count, HMODULE dll_
 
         if (data)
             memcpy(destination, &data, procedures[i].size);
-        else if (procedures[i].is_required)
-            bs_throwBasiliskF(BSX_FAILED_TO_QUERY, "Procedure \"%s\"", procedures[i].func);
+        else if (procedures[i].is_required) {
+            bs_warnF("Failed to query procedure \"%s\"\n", procedures[i].func);
+        }
 
         destination += procedures[i].size;
     }
@@ -569,8 +568,15 @@ static int bs_compareInt(const int* a, const int* b) {
 BSAPI void _bs_load(
     bs_Callback load_resources)
 {
-    if (!_bs_instance_->single_times_queue)
-        _bs_instance_->single_times_queue = bs_queue(BS_QUEUE(-1, 0, 0), BS_QUEUE_TRANSFER_BIT | BS_QUEUE_COMPUTE_BIT | BS_QUEUE_SINGLE_TIMES_BIT)->queue;
+    if (!_bs_instance_->single_times_queue) {
+        bs_Object* object = BS_QUEUE(-1, 0, 0);
+        if (bs_queue(object, BS_QUEUE_TRANSFER_BIT | BS_QUEUE_COMPUTE_BIT | BS_QUEUE_SINGLE_TIMES_BIT) != BS_RESULT_OK) {
+            bs_critical(BS_CONSTANT_STRING("Failed to create single times queue\n"));
+            return;
+        }
+
+        _bs_instance_->single_times_queue;
+    }
     _bs_scope_.queue = _bs_instance_->single_times_queue;
 
     if (load_resources)

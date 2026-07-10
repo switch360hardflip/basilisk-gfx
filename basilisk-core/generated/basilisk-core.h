@@ -163,8 +163,6 @@ typedef enum bs_Result bs_Result;
 typedef enum bs_IniFlag bs_IniFlag;
 typedef enum bs_ImageFilter bs_ImageFilter;
 typedef enum bs_PngType bs_PngType;
-typedef enum bs_JsonType bs_JsonType;
-typedef enum bs_ShaderType bs_ShaderType;
 typedef enum bs_Slot bs_Slot;
 typedef enum bs_BufferUsageFlag bs_BufferUsageFlag;
 typedef enum bs_MemoryPropertyFlag bs_MemoryPropertyFlag;
@@ -179,7 +177,6 @@ typedef enum bs_BlendFactorType bs_BlendFactorType;
 typedef enum bs_BlendOperationType bs_BlendOperationType;
 typedef enum bs_ComparisonType bs_ComparisonType;
 typedef enum bs_CullType bs_CullType;
-typedef enum bs_BindType bs_BindType;
 typedef enum bs_TopologyType bs_TopologyType;
 typedef enum bs_PolygonType bs_PolygonType;
 typedef enum bs_ColliderType bs_ColliderType;
@@ -207,6 +204,9 @@ typedef enum bs_CursorIcon bs_CursorIcon;
 typedef enum bs_ObjectType bs_ObjectType;
 typedef enum bs_SurfaceType bs_SurfaceType;
 typedef enum bs_SwapchainMode bs_SwapchainMode;
+typedef enum bs_JsonType bs_JsonType;
+typedef enum bs_ShaderType bs_ShaderType;
+typedef enum bs_BindType bs_BindType;
 
 #define BS_VALIDATE(condition, ret, format, ...)                     \
     if (!(condition)) {                                              \
@@ -1841,6 +1841,9 @@ union bs_JsonArray {
 
 struct bs_Json {
     bool is_mutable;
+    union {
+        bs_JsonObject as_object;
+    };
     void* doc;
 };
 
@@ -1848,11 +1851,31 @@ struct bs_JsonValue {
     bool found;
     bs_JsonType type;
     int size;
+    union bs_JsonValueUnion {
+        bs_JsonArray as_array;
+        bs_JsonObject as_object;
+        bs_F64 as_number;
+        char* as_string;
+        bool as_bool;
+    };
 };
 
 struct bs_JsonEnumeration {
     const char* key;
     bs_JsonValue value;
+    struct {
+        bs_U64 idx;
+        bs_U64 max;
+        void* cur;
+        union {
+            void* obj;
+            bs_JsonArray as_array;
+            struct {
+                void* mut_pre;
+                void* mut_obj;
+            };
+        };
+    }iter;
 };
 
 struct bs_Material {
@@ -2480,33 +2503,6 @@ enum bs_PngType {
     BS_PNG_GREY_ALPHA = 3,
 };
 
-enum bs_JsonType {
-    BS_JSON_UNDEFINED = 1,
-    BS_JSON_DONT_CARE = 2,
-    BS_JSON_SYNTAX = 1 << 2,
-    BS_JSON_OBJECT = 1 << 3,
-    BS_JSON_ARRAY = 1 << 4,
-    BS_JSON_VALUE_TYPE = 17,
-    BS_JSON_STRING = 1 << 5,
-    BS_JSON_NUMBER = 1 << 6,
-    BS_JSON_NUMBER_INTEGER = 1 << 8,
-    BS_JSON_FLOAT = 1 << 9,
-    BS_JSON_BOOL = 1 << 10,
-    BS_JSON_UCHAR = 1 << 11,
-};
-
-enum bs_ShaderType {
-    BS_VERTEX_SHADER = 0x00000001,
-    BS_GEOMETRY_SHADER = 0x00000008,
-    BS_FRAGMENT_SHADER = 0x00000010,
-    BS_COMPUTE_SHADER = 0x00000020,
-    BS_RAY_GEN_SHADER = 0x00000100,
-    BS_ANY_HIT_SHADER = 0x00000200,
-    BS_CLOSEST_HIT_SHADER = 0x00000400,
-    BS_MISS_SHADER = 0x00000800,
-    BS_INTERSECTION_SHADER = 0x00001000,
-};
-
 enum bs_Slot {
     BS_SLOT_NONE = 0,
     BS_SLOT_00_BIT = 1 << 0,
@@ -2967,25 +2963,6 @@ enum bs_CullType {
     BS_CULL_MODE_FRONT_AND_BACK = 0x00000003,
 };
 
-enum bs_BindType {
-    BS_BIND_TYPE_SAMPLER = 0,
-    BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER = 1,
-    BS_BIND_TYPE_SAMPLED_IMAGE = 2,
-    BS_BIND_TYPE_STORAGE_IMAGE = 3,
-    BS_BIND_TYPE_UNIFORM_TEXEL_BUFFER = 4,
-    BS_BIND_TYPE_STORAGE_TEXEL_BUFFER = 5,
-    BS_BIND_TYPE_UNIFORM_BUFFER = 6,
-    BS_BIND_TYPE_STORAGE_BUFFER = 7,
-    BS_BIND_TYPE_UNIFORM_BUFFER_DYNAMIC = 8,
-    BS_BIND_TYPE_STORAGE_BUFFER_DYNAMIC = 9,
-    BS_BIND_TYPE_INPUT_ATTACHMENT = 10,
-    BS_BIND_TYPE_PUSH_CONSTANT = 11,
-    BS_BIND_TYPE_INLINE_UNIFORM_BLOCK = 12,
-    BS_BIND_TYPE_ACCELERATION_STRUCTURE = 13,
-    BS_BIND_TYPE_MUTABLE_VALVE = 14,
-    BS_NUM_BIND_TYPES = 15,
-};
-
 enum bs_TopologyType {
     BS_TOPOLOGY_POINT_LIST = -1,
     BS_TOPOLOGY_DEFAULT = 0,
@@ -3183,6 +3160,52 @@ enum bs_SwapchainMode {
     BS_SWAPCHAIN_MODE_DOUBLE = 2,
     BS_SWAPCHAIN_MODE_TRIPLE = 3,
     BS_SWAPCHAIN_MODE_MAX = 3,
+};
+
+enum bs_JsonType {
+    BS_JSON_UNDEFINED = 1,
+    BS_JSON_DONT_CARE = 2,
+    BS_JSON_SYNTAX = 1 << 2,
+    BS_JSON_OBJECT = 1 << 3,
+    BS_JSON_ARRAY = 1 << 4,
+    BS_JSON_VALUE_TYPE = 17,
+    BS_JSON_STRING = 1 << 5,
+    BS_JSON_NUMBER = 1 << 6,
+    BS_JSON_NUMBER_INTEGER = 1 << 8,
+    BS_JSON_FLOAT = 1 << 9,
+    BS_JSON_BOOL = 1 << 10,
+    BS_JSON_UCHAR = 1 << 11,
+};
+
+enum bs_ShaderType {
+    BS_VERTEX_SHADER = 0x00000001,
+    BS_GEOMETRY_SHADER = 0x00000008,
+    BS_FRAGMENT_SHADER = 0x00000010,
+    BS_COMPUTE_SHADER = 0x00000020,
+    BS_RAY_GEN_SHADER = 0x00000100,
+    BS_ANY_HIT_SHADER = 0x00000200,
+    BS_CLOSEST_HIT_SHADER = 0x00000400,
+    BS_MISS_SHADER = 0x00000800,
+    BS_INTERSECTION_SHADER = 0x00001000,
+};
+
+enum bs_BindType {
+    BS_BIND_TYPE_SAMPLER = 0,
+    BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER = 1,
+    BS_BIND_TYPE_SAMPLED_IMAGE = 2,
+    BS_BIND_TYPE_STORAGE_IMAGE = 3,
+    BS_BIND_TYPE_UNIFORM_TEXEL_BUFFER = 4,
+    BS_BIND_TYPE_STORAGE_TEXEL_BUFFER = 5,
+    BS_BIND_TYPE_UNIFORM_BUFFER = 6,
+    BS_BIND_TYPE_STORAGE_BUFFER = 7,
+    BS_BIND_TYPE_UNIFORM_BUFFER_DYNAMIC = 8,
+    BS_BIND_TYPE_STORAGE_BUFFER_DYNAMIC = 9,
+    BS_BIND_TYPE_INPUT_ATTACHMENT = 10,
+    BS_BIND_TYPE_PUSH_CONSTANT = 11,
+    BS_BIND_TYPE_INLINE_UNIFORM_BLOCK = 12,
+    BS_BIND_TYPE_ACCELERATION_STRUCTURE = 13,
+    BS_BIND_TYPE_MUTABLE_VALVE = 14,
+    BS_BIND_TYPES_COUNT,
 };
 
  /**
@@ -5060,6 +5083,14 @@ bs_textDimensions(
     int length);
 
  /**
+  @param font
+  @return void
+  */
+BSAPI void
+bs_destroyFont(
+    bs_Font* font);
+
+ /**
   @param object
   @param package_id
   @param resource_name
@@ -5826,12 +5857,14 @@ bs_jsonCopy(
  /**
   @param json
   @param flags
-  @return char*
+  @param out
+  @return bs_Result
   */
-BSAPI char*
+BSAPI bs_Result
 bs_saveJson(
     bs_Json* json,
-    bs_SaveJsonBits flags);
+    bs_SaveJsonBits flags,
+    char** out);
 
  /**
   @return bs_Json
@@ -5858,7 +5891,6 @@ bs_json(
     bs_Json* out_json);
 
  /**
-  @param path
   @param out_json
   @param value
   @param value_length
@@ -5866,13 +5898,11 @@ bs_json(
   */
 BSAPI bs_Result
 bs_loadJson(
-    char* path,
     bs_Json* out_json,
     char* value,
     int value_length);
 
  /**
-  @param path
   @param out_json
   @param format
   @param args
@@ -5880,13 +5910,11 @@ bs_loadJson(
   */
 BSAPI bs_Result
 bs_loadJsonV(
-    char* path,
     bs_Json* out_json,
     char* format,
     va_list args);
 
  /**
-  @param path
   @param out_json
   @param format
   @param ...
@@ -5894,16 +5922,15 @@ bs_loadJsonV(
   */
 BSAPI bs_Result
 bs_loadJsonF(
-    char* path,
     bs_Json* out_json,
     char* format,
      ...);
 
  /**
   @param json
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_destroyJson(
     bs_Json* json);
 
@@ -5998,9 +6025,9 @@ bs_deleteJsonF(
   @param value
   @param value
   @param value_length
-  @return bool
+  @return bs_Result
   */
-BSAPI bool
+BSAPI bs_Result
 bs_ensureJson(
     bs_Json* root,
     bs_JsonValue value,
@@ -6012,9 +6039,9 @@ bs_ensureJson(
   @param value
   @param format
   @param args
-  @return bool
+  @return bs_Result
   */
-BSAPI bool
+BSAPI bs_Result
 bs_ensureJsonV(
     bs_Json* root,
     bs_JsonValue value,
@@ -6026,9 +6053,9 @@ bs_ensureJsonV(
   @param value
   @param format
   @param ...
-  @return bool
+  @return bs_Result
   */
-BSAPI bool
+BSAPI bs_Result
 bs_ensureJsonF(
     bs_Json* root,
     bs_JsonValue value,
@@ -7738,22 +7765,6 @@ bs_shouldLoadId(
     bs_U32 id);
 
  /**
-  @param type_name
-  @return bs_ShaderType
-  */
-BSAPI bs_ShaderType
-bs_deserializeShaderType(
-    const char* type_name);
-
- /**
-  @param type
-  @return const char*
-  */
-BSAPI const char*
-bs_serializeShaderType(
-    bs_ShaderType type);
-
- /**
   @param package_id
   @param name
   @param flags
@@ -7854,14 +7865,6 @@ bs_rayTracingPipeline(
 BSAPI bs_BindType
 bs_deserializeBindType(
     const char* string);
-
- /**
-  @param type
-  @return const char*
-  */
-BSAPI const char*
-bs_serializeBindType(
-    bs_BindType type);
 
  /**
   @param package_id
@@ -8740,6 +8743,46 @@ BSAPI void
 bs_deleteDirectoryF(
     char* format,
      ...);
+
+ /**
+  @param e
+  @return const char*
+  */
+BSAPI const char*
+bs_serializeJsonType(
+    bs_JsonType e);
+
+ /**
+  @param e
+  @return const char*
+  */
+BSAPI const char*
+bs_serializeShaderType(
+    bs_ShaderType e);
+
+ /**
+  @param value
+  @return bs_ShaderType
+  */
+BSAPI bs_ShaderType
+bs_deserializeShaderType(
+    const char* value);
+
+ /**
+  @param e
+  @return const char*
+  */
+BSAPI const char*
+bs_serializeBindType(
+    bs_BindType e);
+
+ /**
+  @param value
+  @return bs_BindType
+  */
+BSAPI bs_BindType
+bs_deserializeBindType(
+    const char* value);
 
 BSAPI extern bs_IO _bs_io_;
 BSAPI extern bs_Instance* _bs_instance_;

@@ -213,6 +213,7 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_kern = GetProcAddress(module, "_val_bs_kern");
     functions.bs_bindFont = GetProcAddress(module, "_val_bs_bindFont");
     functions.bs_textDimensions = GetProcAddress(module, "_val_bs_textDimensions");
+    functions.bs_destroyFont = GetProcAddress(module, "_val_bs_destroyFont");
     functions.bs_loadFont = GetProcAddress(module, "_val_bs_loadFont");
     functions.bs_image = GetProcAddress(module, "_val_bs_image");
     functions.bs_imageSwapsCount = GetProcAddress(module, "_val_bs_imageSwapsCount");
@@ -467,8 +468,6 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_exists = GetProcAddress(module, "_val_bs_exists");
     functions.bs_fetch = GetProcAddress(module, "_val_bs_fetch");
     functions.bs_shouldLoadId = GetProcAddress(module, "_val_bs_shouldLoadId");
-    functions.bs_deserializeShaderType = GetProcAddress(module, "_val_bs_deserializeShaderType");
-    functions.bs_serializeShaderType = GetProcAddress(module, "_val_bs_serializeShaderType");
     functions.bs_shader = GetProcAddress(module, "_val_bs_shader");
     functions.bs_destroyShader = GetProcAddress(module, "_val_bs_destroyShader");
     functions.bs_computePipeline = GetProcAddress(module, "_val_bs_computePipeline");
@@ -480,7 +479,6 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_pushConstant = GetProcAddress(module, "_val_bs_pushConstant");
     functions.bs_rayTracingPipeline = GetProcAddress(module, "_val_bs_rayTracingPipeline");
     functions.bs_deserializeBindType = GetProcAddress(module, "_val_bs_deserializeBindType");
-    functions.bs_serializeBindType = GetProcAddress(module, "_val_bs_serializeBindType");
     functions.bs_loadBindings = GetProcAddress(module, "_val_bs_loadBindings");
     functions.bs_bindImage = GetProcAddress(module, "_val_bs_bindImage");
     functions.bs_bindImages = GetProcAddress(module, "_val_bs_bindImages");
@@ -571,6 +569,11 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_deleteDirectory = GetProcAddress(module, "_val_bs_deleteDirectory");
     functions.bs_deleteDirectoryV = GetProcAddress(module, "_val_bs_deleteDirectoryV");
     functions.bs_deleteDirectoryF = GetProcAddress(module, "_val_bs_deleteDirectoryF");
+    functions.bs_serializeJsonType = GetProcAddress(module, "_val_bs_serializeJsonType");
+    functions.bs_serializeShaderType = GetProcAddress(module, "_val_bs_serializeShaderType");
+    functions.bs_deserializeShaderType = GetProcAddress(module, "_val_bs_deserializeShaderType");
+    functions.bs_serializeBindType = GetProcAddress(module, "_val_bs_serializeBindType");
+    functions.bs_deserializeBindType = GetProcAddress(module, "_val_bs_deserializeBindType");
 
     return functions;
 }
