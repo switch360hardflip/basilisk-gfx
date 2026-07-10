@@ -51,7 +51,7 @@ static bs_vec2 _preval_bs_v2() {
     return next.bs_v2();
 }
 
-static void _preval_bs_v2Add(bs_vec2* a, bs_vec2* b, bs_vec2* out) {
+static void _preval_bs_v2Add(const bs_vec2* a, const bs_vec2* b, bs_vec2* out) {
     if (a == NULL)
         return;
 
@@ -64,7 +64,7 @@ static void _preval_bs_v2Add(bs_vec2* a, bs_vec2* b, bs_vec2* out) {
     return next.bs_v2Add(a, b, out);
 }
 
-static void _preval_bs_v2Sub(bs_vec2* a, bs_vec2* b, bs_vec2* out) {
+static void _preval_bs_v2Sub(const bs_vec2* a, const bs_vec2* b, bs_vec2* out) {
     if (a == NULL)
         return;
 
@@ -77,7 +77,7 @@ static void _preval_bs_v2Sub(bs_vec2* a, bs_vec2* b, bs_vec2* out) {
     return next.bs_v2Sub(a, b, out);
 }
 
-static void _preval_bs_v2Mul(bs_vec2* a, bs_vec2* b, bs_vec2* out) {
+static void _preval_bs_v2Mul(const bs_vec2* a, const bs_vec2* b, bs_vec2* out) {
     if (a == NULL)
         return;
 
@@ -90,7 +90,7 @@ static void _preval_bs_v2Mul(bs_vec2* a, bs_vec2* b, bs_vec2* out) {
     return next.bs_v2Mul(a, b, out);
 }
 
-static void _preval_bs_v2Div(bs_vec2* a, bs_vec2* b, bs_vec2* out) {
+static void _preval_bs_v2Div(const bs_vec2* a, const bs_vec2* b, bs_vec2* out) {
     if (a == NULL)
         return;
 
@@ -103,7 +103,7 @@ static void _preval_bs_v2Div(bs_vec2* a, bs_vec2* b, bs_vec2* out) {
     return next.bs_v2Div(a, b, out);
 }
 
-static void _preval_bs_v2MulV1(bs_vec2* v, float s, bs_vec2* out) {
+static void _preval_bs_v2MulV1(const bs_vec2* v, float s, bs_vec2* out) {
     if (v == NULL)
         return;
 
@@ -113,7 +113,7 @@ static void _preval_bs_v2MulV1(bs_vec2* v, float s, bs_vec2* out) {
     return next.bs_v2MulV1(v, s, out);
 }
 
-static void _preval_bs_v2DivV1(bs_vec2* v, float s, bs_vec2* out) {
+static void _preval_bs_v2DivV1(const bs_vec2* v, float s, bs_vec2* out) {
     if (v == NULL)
         return;
 
@@ -123,7 +123,7 @@ static void _preval_bs_v2DivV1(bs_vec2* v, float s, bs_vec2* out) {
     return next.bs_v2DivV1(v, s, out);
 }
 
-static float _preval_bs_v2Dot(bs_vec2* a, bs_vec2* b) {
+static float _preval_bs_v2Dot(const bs_vec2* a, const bs_vec2* b) {
     if (a == NULL)
         return 0;
 
@@ -133,28 +133,35 @@ static float _preval_bs_v2Dot(bs_vec2* a, bs_vec2* b) {
     return next.bs_v2Dot(a, b);
 }
 
-static float _preval_bs_v2Normalize(bs_vec2* v) {
+static float _preval_bs_v2Magnitude(const bs_vec2* v) {
     if (v == NULL)
         return 0;
 
-    return next.bs_v2Normalize(v);
+    return next.bs_v2Magnitude(v);
 }
 
-static float _preval_bs_v2NormalizeTo(const bs_vec2* v, bs_vec2* out) {
+static float _preval_bs_v2MagnitudeSqrd(const bs_vec2* v) {
     if (v == NULL)
         return 0;
 
-    if (out == NULL)
-        return 0;
+    return next.bs_v2MagnitudeSqrd(v);
+}
 
-    return next.bs_v2NormalizeTo(v, out);
+static void _preval_bs_v2Normalize(const bs_vec2* v, bs_vec2* out) {
+    if (v == NULL)
+        return;
+
+    if (out == NULL)
+        return;
+
+    return next.bs_v2Normalize(v, out);
 }
 
 static bs_vec3 _preval_bs_v3() {
     return next.bs_v3();
 }
 
-static void _preval_bs_v3Add(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
+static void _preval_bs_v3Add(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
     if (a == NULL)
         return;
 
@@ -167,7 +174,7 @@ static void _preval_bs_v3Add(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
     return next.bs_v3Add(a, b, out);
 }
 
-static void _preval_bs_v3Sub(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
+static void _preval_bs_v3Sub(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
     if (a == NULL)
         return;
 
@@ -180,7 +187,7 @@ static void _preval_bs_v3Sub(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
     return next.bs_v3Sub(a, b, out);
 }
 
-static void _preval_bs_v3Mul(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
+static void _preval_bs_v3Mul(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
     if (a == NULL)
         return;
 
@@ -193,7 +200,7 @@ static void _preval_bs_v3Mul(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
     return next.bs_v3Mul(a, b, out);
 }
 
-static void _preval_bs_v3Div(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
+static void _preval_bs_v3Div(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
     if (a == NULL)
         return;
 
@@ -206,7 +213,7 @@ static void _preval_bs_v3Div(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
     return next.bs_v3Div(a, b, out);
 }
 
-static void _preval_bs_v3MulV1(bs_vec3* v, float s, bs_vec3* out) {
+static void _preval_bs_v3MulV1(const bs_vec3* v, float s, bs_vec3* out) {
     if (v == NULL)
         return;
 
@@ -216,7 +223,7 @@ static void _preval_bs_v3MulV1(bs_vec3* v, float s, bs_vec3* out) {
     return next.bs_v3MulV1(v, s, out);
 }
 
-static void _preval_bs_v3DivV1(bs_vec3* v, float s, bs_vec3* out) {
+static void _preval_bs_v3DivV1(const bs_vec3* v, float s, bs_vec3* out) {
     if (v == NULL)
         return;
 
@@ -226,7 +233,7 @@ static void _preval_bs_v3DivV1(bs_vec3* v, float s, bs_vec3* out) {
     return next.bs_v3DivV1(v, s, out);
 }
 
-static float _preval_bs_v3Dot(bs_vec3* a, bs_vec3* b) {
+static float _preval_bs_v3Dot(const bs_vec3* a, const bs_vec3* b) {
     if (a == NULL)
         return 0;
 
@@ -236,28 +243,35 @@ static float _preval_bs_v3Dot(bs_vec3* a, bs_vec3* b) {
     return next.bs_v3Dot(a, b);
 }
 
-static float _preval_bs_v3Normalize(bs_vec3* v) {
+static float _preval_bs_v3Magnitude(const bs_vec3* v) {
     if (v == NULL)
         return 0;
 
-    return next.bs_v3Normalize(v);
+    return next.bs_v3Magnitude(v);
 }
 
-static float _preval_bs_v3NormalizeTo(const bs_vec3* v, bs_vec3* out) {
+static float _preval_bs_v3MagnitudeSqrd(const bs_vec3* v) {
     if (v == NULL)
         return 0;
 
-    if (out == NULL)
-        return 0;
+    return next.bs_v3MagnitudeSqrd(v);
+}
 
-    return next.bs_v3NormalizeTo(v, out);
+static void _preval_bs_v3Normalize(const bs_vec3* v, bs_vec3* out) {
+    if (v == NULL)
+        return;
+
+    if (out == NULL)
+        return;
+
+    return next.bs_v3Normalize(v, out);
 }
 
 static bs_vec4 _preval_bs_v4() {
     return next.bs_v4();
 }
 
-static void _preval_bs_v4Add(bs_vec4* a, bs_vec4* b, bs_vec4* out) {
+static void _preval_bs_v4Add(const bs_vec4* a, const bs_vec4* b, bs_vec4* out) {
     if (a == NULL)
         return;
 
@@ -270,7 +284,7 @@ static void _preval_bs_v4Add(bs_vec4* a, bs_vec4* b, bs_vec4* out) {
     return next.bs_v4Add(a, b, out);
 }
 
-static void _preval_bs_v4Sub(bs_vec4* a, bs_vec4* b, bs_vec4* out) {
+static void _preval_bs_v4Sub(const bs_vec4* a, const bs_vec4* b, bs_vec4* out) {
     if (a == NULL)
         return;
 
@@ -283,7 +297,7 @@ static void _preval_bs_v4Sub(bs_vec4* a, bs_vec4* b, bs_vec4* out) {
     return next.bs_v4Sub(a, b, out);
 }
 
-static void _preval_bs_v4Mul(bs_vec4* a, bs_vec4* b, bs_vec4* out) {
+static void _preval_bs_v4Mul(const bs_vec4* a, const bs_vec4* b, bs_vec4* out) {
     if (a == NULL)
         return;
 
@@ -296,7 +310,7 @@ static void _preval_bs_v4Mul(bs_vec4* a, bs_vec4* b, bs_vec4* out) {
     return next.bs_v4Mul(a, b, out);
 }
 
-static void _preval_bs_v4Div(bs_vec4* a, bs_vec4* b, bs_vec4* out) {
+static void _preval_bs_v4Div(const bs_vec4* a, const bs_vec4* b, bs_vec4* out) {
     if (a == NULL)
         return;
 
@@ -309,7 +323,7 @@ static void _preval_bs_v4Div(bs_vec4* a, bs_vec4* b, bs_vec4* out) {
     return next.bs_v4Div(a, b, out);
 }
 
-static void _preval_bs_v4MulV1(bs_vec4* v, float s, bs_vec4* out) {
+static void _preval_bs_v4MulV1(const bs_vec4* v, float s, bs_vec4* out) {
     if (v == NULL)
         return;
 
@@ -319,7 +333,7 @@ static void _preval_bs_v4MulV1(bs_vec4* v, float s, bs_vec4* out) {
     return next.bs_v4MulV1(v, s, out);
 }
 
-static void _preval_bs_v4DivV1(bs_vec4* v, float s, bs_vec4* out) {
+static void _preval_bs_v4DivV1(const bs_vec4* v, float s, bs_vec4* out) {
     if (v == NULL)
         return;
 
@@ -329,7 +343,7 @@ static void _preval_bs_v4DivV1(bs_vec4* v, float s, bs_vec4* out) {
     return next.bs_v4DivV1(v, s, out);
 }
 
-static float _preval_bs_v4Dot(bs_vec4* a, bs_vec4* b) {
+static float _preval_bs_v4Dot(const bs_vec4* a, const bs_vec4* b) {
     if (a == NULL)
         return 0;
 
@@ -339,21 +353,312 @@ static float _preval_bs_v4Dot(bs_vec4* a, bs_vec4* b) {
     return next.bs_v4Dot(a, b);
 }
 
-static float _preval_bs_v4Normalize(bs_vec4* v) {
+static float _preval_bs_v4Magnitude(const bs_vec4* v) {
     if (v == NULL)
         return 0;
 
-    return next.bs_v4Normalize(v);
+    return next.bs_v4Magnitude(v);
 }
 
-static float _preval_bs_v4NormalizeTo(const bs_vec4* v, bs_vec4* out) {
+static float _preval_bs_v4MagnitudeSqrd(const bs_vec4* v) {
     if (v == NULL)
         return 0;
 
-    if (out == NULL)
-        return 0;
+    return next.bs_v4MagnitudeSqrd(v);
+}
 
-    return next.bs_v4NormalizeTo(v, out);
+static void _preval_bs_v4Normalize(const bs_vec4* v, bs_vec4* out) {
+    if (v == NULL)
+        return;
+
+    if (out == NULL)
+        return;
+
+    return next.bs_v4Normalize(v, out);
+}
+
+static void _preval_bs_m3Mul(const bs_mat3* a, const bs_mat3* b, const bs_mat3* result) {
+    if (a == NULL)
+        return;
+
+    if (b == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m3Mul(a, b, result);
+}
+
+static void _preval_bs_m3Scale(const bs_mat3* m, float s) {
+    if (m == NULL)
+        return;
+
+    return next.bs_m3Scale(m, s);
+}
+
+static void _preval_bs_m3Transpose(const bs_mat3* m, const bs_mat3* result) {
+    if (m == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m3Transpose(m, result);
+}
+
+static void _preval_bs_m3Inverse(const bs_mat3* m, const bs_mat3* result) {
+    if (m == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m3Inverse(m, result);
+}
+
+static void _preval_bs_m3MulV3(bs_mat3* m, bs_vec3* v, bs_vec3* result) {
+    if (m == NULL)
+        return;
+
+    if (v == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m3MulV3(m, v, result);
+}
+
+static void _preval_bs_m4Mul(const bs_mat4* a, const bs_mat4* b, const bs_mat4* result) {
+    if (a == NULL)
+        return;
+
+    if (b == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m4Mul(a, b, result);
+}
+
+static void _preval_bs_m4Scale(const bs_mat4* m, float s) {
+    if (m == NULL)
+        return;
+
+    return next.bs_m4Scale(m, s);
+}
+
+static void _preval_bs_m4Transpose(const bs_mat4* m, const bs_mat4* result) {
+    if (m == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m4Transpose(m, result);
+}
+
+static void _preval_bs_m4Inverse(const bs_mat4* m, const bs_mat4* result) {
+    if (m == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m4Inverse(m, result);
+}
+
+static void _preval_bs_m4MulV3(bs_mat4* m, bs_vec3* v, bs_vec3* result) {
+    if (m == NULL)
+        return;
+
+    if (v == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m4MulV3(m, v, result);
+}
+
+static void _preval_bs_m4MulV4(bs_mat4* m, bs_vec3* v, bs_mat4* result) {
+    if (m == NULL)
+        return;
+
+    if (v == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m4MulV4(m, v, result);
+}
+
+static void _preval_bs_m4Translate(bs_mat4* m, bs_vec3* v, bs_mat4* result) {
+    if (m == NULL)
+        return;
+
+    if (v == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m4Translate(m, v, result);
+}
+
+static void _preval_bs_m4Rotate(bs_mat4* m, bs_vec4* q, bs_mat4* result) {
+    if (m == NULL)
+        return;
+
+    if (q == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m4Rotate(m, q, result);
+}
+
+static void _preval_bs_m4Scale(bs_mat4* m, bs_vec3* v, bs_mat4* result) {
+    if (m == NULL)
+        return;
+
+    if (v == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m4Scale(m, v, result);
+}
+
+static void _preval_bs_m3FromQ(bs_mat3* m, bs_vec4* result) {
+    if (m == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m3FromQ(m, result);
+}
+
+static void _preval_bs_m4FromQ(bs_mat4* m, bs_vec4* result) {
+    if (m == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_m4FromQ(m, result);
+}
+
+static void _preval_bs_qFromM3(bs_mat3* m, bs_vec4* result) {
+    if (m == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_qFromM3(m, result);
+}
+
+static void _preval_bs_qFromM4(bs_mat4* m, bs_vec4* result) {
+    if (m == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_qFromM4(m, result);
+}
+
+static void _preval_bs_qNormalize(bs_vec4* q, bs_vec4* result) {
+    if (q == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_qNormalize(q, result);
+}
+
+static void _preval_bs_qSlerp(bs_vec4* from, bs_vec4* to, float t, bs_vec4* result) {
+    if (from == NULL)
+        return;
+
+    if (to == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_qSlerp(from, to, t, result);
+}
+
+static void _preval_bs_qLongSlerp(bs_vec4* from, bs_vec4* to, float t, bs_vec4* result) {
+    if (from == NULL)
+        return;
+
+    if (to == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_qLongSlerp(from, to, t, result);
+}
+
+static void _preval_bs_orthographic(float left, float right, float bottom, float top, float near, float far, bs_mat4* result) {
+    if (result == NULL)
+        return;
+
+    return next.bs_orthographic(left, right, bottom, top, near, far, result);
+}
+
+static void _preval_bs_perspective(float fov, float aspect, float near, float far, bs_mat4* result) {
+    if (result == NULL)
+        return;
+
+    return next.bs_perspective(fov, aspect, near, far, result);
+}
+
+static void _preval_bs_lookAt(const bs_vec3* eye, const bs_vec3* center, const bs_vec3* up, bs_mat4* result) {
+    if (eye == NULL)
+        return;
+
+    if (center == NULL)
+        return;
+
+    if (up == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_lookAt(eye, center, up, result);
+}
+
+static void _preval_bs_look(const bs_vec3* eye, const bs_vec3* direction, const bs_vec3* up, bs_mat4* result) {
+    if (eye == NULL)
+        return;
+
+    if (direction == NULL)
+        return;
+
+    if (up == NULL)
+        return;
+
+    if (result == NULL)
+        return;
+
+    return next.bs_look(eye, direction, up, result);
+}
+
+static float _preval_bs_abs(float v) {
+    return next.bs_abs(v);
 }
 
 static bs_Quad _preval_bs_quad(bs_vec3 position, bs_vec2 dimensions) {
@@ -401,47 +706,47 @@ static bs_Result _preval_bs_ray(bs_vec3 start, bs_vec3 direction, float length, 
     return next.bs_ray(start, direction, length, ray);
 }
 
-static bs_Result _preval_bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_RayVsObb* result) {
+static void _preval_bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_RayVsObb* result) {
     if (ray == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     if (result == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_rayVsObb(ray, position, rotation, scale, result);
 }
 
-static bs_Result _preval_bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point, bs_SphereVsPoint* result) {
+static void _preval_bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point, bs_SphereVsPoint* result) {
     if (result == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_sphereVsPoint(center, radius, point, result);
 }
 
-static bs_Result _preval_bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_SphereVsBox* result) {
+static void _preval_bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_SphereVsBox* result) {
     if (result == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_sphereVsBox(center, radius, position, rotation, scale, result);
 }
 
-static bs_Result _preval_bs_rectangleVsPoint(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point, bs_RectangleVsPoint* result) {
+static void _preval_bs_rectangleVsPoint(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point, bs_RectangleVsPoint* result) {
     if (result == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_rectangleVsPoint(position, dimensions, point, result);
 }
 
-static bs_Result _preval_bs_rectangleVsPointAbs(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point, bs_RectangleVsPoint* result) {
+static void _preval_bs_rectangleVsPointAbs(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point, bs_RectangleVsPoint* result) {
     if (result == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_rectangleVsPointAbs(position, dimensions, point, result);
 }
 
-static bs_Result _preval_bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_LineVsLine* result) {
+static void _preval_bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_LineVsLine* result) {
     if (result == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return;
 
     return next.bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, result);
 }
@@ -3889,8 +4194,9 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v2MulV1 = _preval_bs_v2MulV1;
     functions.bs_v2DivV1 = _preval_bs_v2DivV1;
     functions.bs_v2Dot = _preval_bs_v2Dot;
+    functions.bs_v2Magnitude = _preval_bs_v2Magnitude;
+    functions.bs_v2MagnitudeSqrd = _preval_bs_v2MagnitudeSqrd;
     functions.bs_v2Normalize = _preval_bs_v2Normalize;
-    functions.bs_v2NormalizeTo = _preval_bs_v2NormalizeTo;
     functions.bs_v3 = _preval_bs_v3;
     functions.bs_v3Add = _preval_bs_v3Add;
     functions.bs_v3Sub = _preval_bs_v3Sub;
@@ -3899,8 +4205,9 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v3MulV1 = _preval_bs_v3MulV1;
     functions.bs_v3DivV1 = _preval_bs_v3DivV1;
     functions.bs_v3Dot = _preval_bs_v3Dot;
+    functions.bs_v3Magnitude = _preval_bs_v3Magnitude;
+    functions.bs_v3MagnitudeSqrd = _preval_bs_v3MagnitudeSqrd;
     functions.bs_v3Normalize = _preval_bs_v3Normalize;
-    functions.bs_v3NormalizeTo = _preval_bs_v3NormalizeTo;
     functions.bs_v4 = _preval_bs_v4;
     functions.bs_v4Add = _preval_bs_v4Add;
     functions.bs_v4Sub = _preval_bs_v4Sub;
@@ -3909,8 +4216,35 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v4MulV1 = _preval_bs_v4MulV1;
     functions.bs_v4DivV1 = _preval_bs_v4DivV1;
     functions.bs_v4Dot = _preval_bs_v4Dot;
+    functions.bs_v4Magnitude = _preval_bs_v4Magnitude;
+    functions.bs_v4MagnitudeSqrd = _preval_bs_v4MagnitudeSqrd;
     functions.bs_v4Normalize = _preval_bs_v4Normalize;
-    functions.bs_v4NormalizeTo = _preval_bs_v4NormalizeTo;
+    functions.bs_m3Mul = _preval_bs_m3Mul;
+    functions.bs_m3Scale = _preval_bs_m3Scale;
+    functions.bs_m3Transpose = _preval_bs_m3Transpose;
+    functions.bs_m3Inverse = _preval_bs_m3Inverse;
+    functions.bs_m3MulV3 = _preval_bs_m3MulV3;
+    functions.bs_m4Mul = _preval_bs_m4Mul;
+    functions.bs_m4Scale = _preval_bs_m4Scale;
+    functions.bs_m4Transpose = _preval_bs_m4Transpose;
+    functions.bs_m4Inverse = _preval_bs_m4Inverse;
+    functions.bs_m4MulV3 = _preval_bs_m4MulV3;
+    functions.bs_m4MulV4 = _preval_bs_m4MulV4;
+    functions.bs_m4Translate = _preval_bs_m4Translate;
+    functions.bs_m4Rotate = _preval_bs_m4Rotate;
+    functions.bs_m4Scale = _preval_bs_m4Scale;
+    functions.bs_m3FromQ = _preval_bs_m3FromQ;
+    functions.bs_m4FromQ = _preval_bs_m4FromQ;
+    functions.bs_qFromM3 = _preval_bs_qFromM3;
+    functions.bs_qFromM4 = _preval_bs_qFromM4;
+    functions.bs_qNormalize = _preval_bs_qNormalize;
+    functions.bs_qSlerp = _preval_bs_qSlerp;
+    functions.bs_qLongSlerp = _preval_bs_qLongSlerp;
+    functions.bs_orthographic = _preval_bs_orthographic;
+    functions.bs_perspective = _preval_bs_perspective;
+    functions.bs_lookAt = _preval_bs_lookAt;
+    functions.bs_look = _preval_bs_look;
+    functions.bs_abs = _preval_bs_abs;
     functions.bs_quad = _preval_bs_quad;
     functions.bs_convertVulkanResult = _preval_bs_convertVulkanResult;
     functions.bs_convertLastError = _preval_bs_convertLastError;

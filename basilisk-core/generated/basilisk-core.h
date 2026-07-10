@@ -1422,9 +1422,9 @@ struct bs_SphereVsPoint {
 };
 
 struct bs_SphereVsBox {
-    bs_vec3* point;
-    bs_vec3* normal;
-    float* penetration;
+    bs_vec3 point;
+    bs_vec3 normal;
+    float penetration;
     bool hit;
 };
 
@@ -3234,8 +3234,8 @@ bs_v2();
   */
 BSAPI void
 bs_v2Add(
-    bs_vec2* a,
-    bs_vec2* b,
+    const bs_vec2* a,
+    const bs_vec2* b,
     bs_vec2* out);
 
  /**
@@ -3246,8 +3246,8 @@ bs_v2Add(
   */
 BSAPI void
 bs_v2Sub(
-    bs_vec2* a,
-    bs_vec2* b,
+    const bs_vec2* a,
+    const bs_vec2* b,
     bs_vec2* out);
 
  /**
@@ -3258,8 +3258,8 @@ bs_v2Sub(
   */
 BSAPI void
 bs_v2Mul(
-    bs_vec2* a,
-    bs_vec2* b,
+    const bs_vec2* a,
+    const bs_vec2* b,
     bs_vec2* out);
 
  /**
@@ -3270,8 +3270,8 @@ bs_v2Mul(
   */
 BSAPI void
 bs_v2Div(
-    bs_vec2* a,
-    bs_vec2* b,
+    const bs_vec2* a,
+    const bs_vec2* b,
     bs_vec2* out);
 
  /**
@@ -3282,7 +3282,7 @@ bs_v2Div(
   */
 BSAPI void
 bs_v2MulV1(
-    bs_vec2* v,
+    const bs_vec2* v,
     float s,
     bs_vec2* out);
 
@@ -3294,7 +3294,7 @@ bs_v2MulV1(
   */
 BSAPI void
 bs_v2DivV1(
-    bs_vec2* v,
+    const bs_vec2* v,
     float s,
     bs_vec2* out);
 
@@ -3305,24 +3305,32 @@ bs_v2DivV1(
   */
 BSAPI float
 bs_v2Dot(
-    bs_vec2* a,
-    bs_vec2* b);
+    const bs_vec2* a,
+    const bs_vec2* b);
 
  /**
   @param v
   @return float
   */
 BSAPI float
-bs_v2Normalize(
-    bs_vec2* v);
+bs_v2Magnitude(
+    const bs_vec2* v);
+
+ /**
+  @param v
+  @return float
+  */
+BSAPI float
+bs_v2MagnitudeSqrd(
+    const bs_vec2* v);
 
  /**
   @param v
   @param out
-  @return float
+  @return void
   */
-BSAPI float
-bs_v2NormalizeTo(
+BSAPI void
+bs_v2Normalize(
     const bs_vec2* v,
     bs_vec2* out);
 
@@ -3340,8 +3348,8 @@ bs_v3();
   */
 BSAPI void
 bs_v3Add(
-    bs_vec3* a,
-    bs_vec3* b,
+    const bs_vec3* a,
+    const bs_vec3* b,
     bs_vec3* out);
 
  /**
@@ -3352,8 +3360,8 @@ bs_v3Add(
   */
 BSAPI void
 bs_v3Sub(
-    bs_vec3* a,
-    bs_vec3* b,
+    const bs_vec3* a,
+    const bs_vec3* b,
     bs_vec3* out);
 
  /**
@@ -3364,8 +3372,8 @@ bs_v3Sub(
   */
 BSAPI void
 bs_v3Mul(
-    bs_vec3* a,
-    bs_vec3* b,
+    const bs_vec3* a,
+    const bs_vec3* b,
     bs_vec3* out);
 
  /**
@@ -3376,8 +3384,8 @@ bs_v3Mul(
   */
 BSAPI void
 bs_v3Div(
-    bs_vec3* a,
-    bs_vec3* b,
+    const bs_vec3* a,
+    const bs_vec3* b,
     bs_vec3* out);
 
  /**
@@ -3388,7 +3396,7 @@ bs_v3Div(
   */
 BSAPI void
 bs_v3MulV1(
-    bs_vec3* v,
+    const bs_vec3* v,
     float s,
     bs_vec3* out);
 
@@ -3400,7 +3408,7 @@ bs_v3MulV1(
   */
 BSAPI void
 bs_v3DivV1(
-    bs_vec3* v,
+    const bs_vec3* v,
     float s,
     bs_vec3* out);
 
@@ -3411,24 +3419,32 @@ bs_v3DivV1(
   */
 BSAPI float
 bs_v3Dot(
-    bs_vec3* a,
-    bs_vec3* b);
+    const bs_vec3* a,
+    const bs_vec3* b);
 
  /**
   @param v
   @return float
   */
 BSAPI float
-bs_v3Normalize(
-    bs_vec3* v);
+bs_v3Magnitude(
+    const bs_vec3* v);
+
+ /**
+  @param v
+  @return float
+  */
+BSAPI float
+bs_v3MagnitudeSqrd(
+    const bs_vec3* v);
 
  /**
   @param v
   @param out
-  @return float
+  @return void
   */
-BSAPI float
-bs_v3NormalizeTo(
+BSAPI void
+bs_v3Normalize(
     const bs_vec3* v,
     bs_vec3* out);
 
@@ -3446,8 +3462,8 @@ bs_v4();
   */
 BSAPI void
 bs_v4Add(
-    bs_vec4* a,
-    bs_vec4* b,
+    const bs_vec4* a,
+    const bs_vec4* b,
     bs_vec4* out);
 
  /**
@@ -3458,8 +3474,8 @@ bs_v4Add(
   */
 BSAPI void
 bs_v4Sub(
-    bs_vec4* a,
-    bs_vec4* b,
+    const bs_vec4* a,
+    const bs_vec4* b,
     bs_vec4* out);
 
  /**
@@ -3470,8 +3486,8 @@ bs_v4Sub(
   */
 BSAPI void
 bs_v4Mul(
-    bs_vec4* a,
-    bs_vec4* b,
+    const bs_vec4* a,
+    const bs_vec4* b,
     bs_vec4* out);
 
  /**
@@ -3482,8 +3498,8 @@ bs_v4Mul(
   */
 BSAPI void
 bs_v4Div(
-    bs_vec4* a,
-    bs_vec4* b,
+    const bs_vec4* a,
+    const bs_vec4* b,
     bs_vec4* out);
 
  /**
@@ -3494,7 +3510,7 @@ bs_v4Div(
   */
 BSAPI void
 bs_v4MulV1(
-    bs_vec4* v,
+    const bs_vec4* v,
     float s,
     bs_vec4* out);
 
@@ -3506,7 +3522,7 @@ bs_v4MulV1(
   */
 BSAPI void
 bs_v4DivV1(
-    bs_vec4* v,
+    const bs_vec4* v,
     float s,
     bs_vec4* out);
 
@@ -3517,26 +3533,340 @@ bs_v4DivV1(
   */
 BSAPI float
 bs_v4Dot(
-    bs_vec4* a,
-    bs_vec4* b);
+    const bs_vec4* a,
+    const bs_vec4* b);
 
  /**
   @param v
   @return float
   */
 BSAPI float
-bs_v4Normalize(
-    bs_vec4* v);
+bs_v4Magnitude(
+    const bs_vec4* v);
+
+ /**
+  @param v
+  @return float
+  */
+BSAPI float
+bs_v4MagnitudeSqrd(
+    const bs_vec4* v);
 
  /**
   @param v
   @param out
+  @return void
+  */
+BSAPI void
+bs_v4Normalize(
+    const bs_vec4* v,
+    bs_vec4* out);
+
+ /**
+  @param a
+  @param b
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m3Mul(
+    const bs_mat3* a,
+    const bs_mat3* b,
+    const bs_mat3* result);
+
+ /**
+  @param m
+  @param s
+  @return void
+  */
+BSAPI void
+bs_m3Scale(
+    const bs_mat3* m,
+    float s);
+
+ /**
+  @param m
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m3Transpose(
+    const bs_mat3* m,
+    const bs_mat3* result);
+
+ /**
+  @param m
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m3Inverse(
+    const bs_mat3* m,
+    const bs_mat3* result);
+
+ /**
+  @param m
+  @param v
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m3MulV3(
+    bs_mat3* m,
+    bs_vec3* v,
+    bs_vec3* result);
+
+ /**
+  @param a
+  @param b
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m4Mul(
+    const bs_mat4* a,
+    const bs_mat4* b,
+    const bs_mat4* result);
+
+ /**
+  @param m
+  @param s
+  @return void
+  */
+BSAPI void
+bs_m4Scale(
+    const bs_mat4* m,
+    float s);
+
+ /**
+  @param m
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m4Transpose(
+    const bs_mat4* m,
+    const bs_mat4* result);
+
+ /**
+  @param m
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m4Inverse(
+    const bs_mat4* m,
+    const bs_mat4* result);
+
+ /**
+  @param m
+  @param v
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m4MulV3(
+    bs_mat4* m,
+    bs_vec3* v,
+    bs_vec3* result);
+
+ /**
+  @param m
+  @param v
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m4MulV4(
+    bs_mat4* m,
+    bs_vec3* v,
+    bs_mat4* result);
+
+ /**
+  @param m
+  @param v
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m4Translate(
+    bs_mat4* m,
+    bs_vec3* v,
+    bs_mat4* result);
+
+ /**
+  @param m
+  @param q
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m4Rotate(
+    bs_mat4* m,
+    bs_vec4* q,
+    bs_mat4* result);
+
+ /**
+  @param m
+  @param v
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m4Scale(
+    bs_mat4* m,
+    bs_vec3* v,
+    bs_mat4* result);
+
+ /**
+  @param m
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m3FromQ(
+    bs_mat3* m,
+    bs_vec4* result);
+
+ /**
+  @param m
+  @param result
+  @return void
+  */
+BSAPI void
+bs_m4FromQ(
+    bs_mat4* m,
+    bs_vec4* result);
+
+ /**
+  @param m
+  @param result
+  @return void
+  */
+BSAPI void
+bs_qFromM3(
+    bs_mat3* m,
+    bs_vec4* result);
+
+ /**
+  @param m
+  @param result
+  @return void
+  */
+BSAPI void
+bs_qFromM4(
+    bs_mat4* m,
+    bs_vec4* result);
+
+ /**
+  @param q
+  @param result
+  @return void
+  */
+BSAPI void
+bs_qNormalize(
+    bs_vec4* q,
+    bs_vec4* result);
+
+ /**
+  @param from
+  @param to
+  @param t
+  @param result
+  @return void
+  */
+BSAPI void
+bs_qSlerp(
+    bs_vec4* from,
+    bs_vec4* to,
+    float t,
+    bs_vec4* result);
+
+ /**
+  @param from
+  @param to
+  @param t
+  @param result
+  @return void
+  */
+BSAPI void
+bs_qLongSlerp(
+    bs_vec4* from,
+    bs_vec4* to,
+    float t,
+    bs_vec4* result);
+
+ /**
+  @param left
+  @param right
+  @param bottom
+  @param top
+  @param near
+  @param far
+  @param result
+  @return void
+  */
+BSAPI void
+bs_orthographic(
+    float left,
+    float right,
+    float bottom,
+    float top,
+    float near,
+    float far,
+    bs_mat4* result);
+
+ /**
+  @param fov
+  @param aspect
+  @param near
+  @param far
+  @param result
+  @return void
+  */
+BSAPI void
+bs_perspective(
+    float fov,
+    float aspect,
+    float near,
+    float far,
+    bs_mat4* result);
+
+ /**
+  @param eye
+  @param center
+  @param up
+  @param result
+  @return void
+  */
+BSAPI void
+bs_lookAt(
+    const bs_vec3* eye,
+    const bs_vec3* center,
+    const bs_vec3* up,
+    bs_mat4* result);
+
+ /**
+  @param eye
+  @param direction
+  @param up
+  @param result
+  @return void
+  */
+BSAPI void
+bs_look(
+    const bs_vec3* eye,
+    const bs_vec3* direction,
+    const bs_vec3* up,
+    bs_mat4* result);
+
+ /**
+  @param v
   @return float
   */
 BSAPI float
-bs_v4NormalizeTo(
-    const bs_vec4* v,
-    bs_vec4* out);
+bs_abs(
+    float v);
 
  /**
   @param position
@@ -3620,9 +3950,9 @@ bs_ray(
   @param rotation
   @param scale
   @param result
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_rayVsObb(
     const bs_Ray* ray,
     bs_vec3 position,
@@ -3635,9 +3965,9 @@ bs_rayVsObb(
   @param radius
   @param point
   @param result
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_sphereVsPoint(
     bs_vec3 center,
     float radius,
@@ -3651,9 +3981,9 @@ bs_sphereVsPoint(
   @param rotation
   @param scale
   @param result
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_sphereVsBox(
     bs_vec3 center,
     float radius,
@@ -3667,9 +3997,9 @@ bs_sphereVsBox(
   @param dimensions
   @param point
   @param result
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_rectangleVsPoint(
     bs_vec2 position,
     bs_vec2 dimensions,
@@ -3681,9 +4011,9 @@ bs_rectangleVsPoint(
   @param dimensions
   @param point
   @param result
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_rectangleVsPointAbs(
     bs_vec2 position,
     bs_vec2 dimensions,
@@ -3696,9 +4026,9 @@ bs_rectangleVsPointAbs(
   @param l2_start
   @param l2_end
   @param result
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_lineVsLine(
     bs_vec2 l1_start,
     bs_vec2 l1_end,

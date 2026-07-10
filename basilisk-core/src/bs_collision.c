@@ -1,7 +1,33 @@
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
 #include <basilisk-core.h>
 #include <bs_internal.h>
 #include <float.h>
 #include <assert.h>
+#include <math.h>
 
 BSAPI bool _bs_rectangleVsPoint(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point) {
     return
@@ -35,7 +61,7 @@ BSAPI bs_Ray _bs_ray(bs_vec3 start, bs_vec3 direction, float length) {
     from "Graphics Gems", Academic Press, 1990
 */
 
-BSAPI bool _bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_vec3* coordinate, bs_vec3* normal, int* plane) {
+BSAPI void _bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_RayVsObb* result) {
     char inside = true;
     char quadrant[3];
     register int i;
@@ -87,13 +113,14 @@ BSAPI bool _bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, b
 
     // ray origin inside bounding box
     if (inside) {
-        if (coordinate)
-            *coordinate = ray->origin;
+        *result = (bs_RayVsObb) {
+            .coordinate = ray->origin,
+            .hit = true,
+        };
 
-        if (normal)
-            bs_v3MulV1(&ray->direction, -1.0, normal);
+        bs_v3MulV1(&ray->direction, -1.0, &result->normal);
 
-        return true;
+        return;
     }
 
     // calculate T distances to candidate planes
@@ -111,34 +138,32 @@ BSAPI bool _bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, b
             which_plane = i;
     }
 
-    if (normal) {
-        bs_vec3 normals[3] = { bs_v3(1, 0, 0), bs_v3(0, 1, 0), bs_v3(0, 0, 1) };
-        *normal = normals[which_plane];
-        *normal = bs_m3MulV3(rotation_matrix, *normal);
+    bs_vec3 normal;
+    bs_vec3 normals[3] = { bs_v3(1, 0, 0), bs_v3(0, 1, 0), bs_v3(0, 0, 1) };
+    bs_m3MulV3(&rotation_matrix, &normals[which_plane], &normal);
 
-        if (quadrant[which_plane] == LEFT)
-            bs_v3MulV1(normal, -1.0, normal);
-        bs_v3Normalize(normal);
-    }
+    if (quadrant[which_plane] == LEFT)
+        bs_v3MulV1(&normal, -1.0, &normal);
+    bs_v3Normalize(&normal, &normal);
 
     bs_vec3 coord;
     for (i = 0; i < 3; i++) {
         if (which_plane != i) {
             coord.a[i] = origin.a[i] + max_t[which_plane] * direction.a[i];
             if (coord.a[i] < min.a[i] || coord.a[i] > max.a[i])
-                return false;
+                return;
         }
         else
             coord.a[i] = candidate_plane.a[i];
     }
 
-    if (coordinate)
-        *coordinate = bs_m4MulV3(transform, coord);
+    *result = (bs_RayVsObb) {
+        .plane = which_plane,
+        .normal = normal,
+        .hit = true,
+    };
 
-    if (plane)
-        *plane = which_plane;
-
-    return true;
+    bs_m4MulV3(&transform, &coord, &result->coordinate);
 }
 
 BSAPI bool _bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point) {
@@ -153,19 +178,25 @@ BSAPI bool _bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point) {
     return false;
 }
 
-BSAPI bool _bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_vec3* point, bs_vec3* normal, float* penetration) {
+BSAPI void _bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_SphereVsBox* result) {
     bs_mat4 transform = BS_MAT4_IDENTITY;
-    bs_translateP(&transform, &position);
-    bs_rotateP(&transform, &rotation);
 
-    bs_vec3 relative_center = bs_m4MulV3(bs_m4Inverse(transform), center);
+    bs_m4Translate(&transform, &position, &transform);
+    bs_m4Rotate(&transform, &rotation, &transform);
+    bs_m4Inverse(&transform, &transform);
+
+    bs_vec3 relative_center; 
+    bs_m4MulV3(&transform, &center, &relative_center);
 
     if (bs_abs(relative_center.x) - radius > scale.x ||
         bs_abs(relative_center.y) - radius > scale.y ||
-        bs_abs(relative_center.z) - radius > scale.z)
-        return false;
+        bs_abs(relative_center.z) - radius > scale.z) 
+    {
+        *result = (bs_SphereVsBox) { 0 };
+        return;
+    }
 
-    bs_vec3 closest_point = bs_v3V1(0.0);
+    bs_vec3 closest_point = { 0.0 };
     float distance;
 
     distance = relative_center.x;
@@ -183,25 +214,39 @@ BSAPI bool _bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_ve
     if (distance < -scale.z) distance = -scale.z;
     closest_point.z = distance;
 
-    distance = bs_v3MagnitudeSqrd(bs_v3Sub(closest_point, relative_center));
-    if (distance > radius * radius) return false;
+    bs_vec3 diff;
+    bs_v3Sub(&closest_point, &relative_center, &diff);
 
-    if (point) {
-        *point = bs_m4MulV3(transform, closest_point);
-        if (normal)
-            *normal = bs_v3Normalize(bs_v3Sub(center, *point));
+    distance = bs_v3MagnitudeSqrd(&diff);
+    if (distance > radius * radius) {
+        *result = (bs_SphereVsBox){ 0 };
+        return;
     }
-    if (penetration)
-        *penetration = radius - bs_sqrt(distance);
 
-    return true;
+    *result = (bs_SphereVsBox) {
+        .hit = true,
+        .penetration = radius - bs_sqrt(distance),
+    };
+
+    bs_m4MulV3(&transform, &closest_point, &result->point);
+
+    bs_v3Sub(&center, &result->point, &result->normal);
+    bs_v3Normalize(&result->normal, &result->normal);
 }
 
-BSAPI bool _bs_sphereVsSphere(bs_Sphere* a, bs_Sphere* b, bs_Contact* result) {
-    bs_vec3 mid = bs_v3Sub(a->center, b->center);
-    float magnitude = bs_v3Magnitude(mid);
+/*
+BSAPI void _bs_sphereVsSphere(bs_Sphere* a, bs_Sphere* b, bs_Contact* result) {
+    bs_vec3 mid;
+    bs_v3Sub(&a->center, &b->center, &mid);
 
-    if (magnitude <= 0.0 || magnitude >= (a->radius + b->radius))
+    float magnitude = bs_v3Magnitude(&mid);
+
+    if (magnitude <= 0.0 || magnitude >= (a->radius + b->radius)) {
+        *result = (bs_Contact){
+
+        };
+        return;
+    }
         return false;
 
     result->normal = bs_v3MulV1(mid, 1.0 / magnitude);
@@ -210,13 +255,20 @@ BSAPI bool _bs_sphereVsSphere(bs_Sphere* a, bs_Sphere* b, bs_Contact* result) {
 
     return true;
 }
+*/
 
 // https://gist.github.com/TimSC/47203a0f5f15293d2099507ba5da44e6
 static inline double bs_determinate(float a, float b, float c, float d) {
     return a * d - b * c;
 }
 
-BSAPI bool _bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_vec2* out) {
+BSAPI void _postval_bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_LineVsLine* result) {
+    if (!isfinite(result->point.x) || !isfinite(result->point.y)) {
+        bs_warnF("bs_lineVsLine returned infinite number\n");
+    }
+}
+
+BSAPI void _bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_LineVsLine* result) {
     double detL1 = bs_determinate(l1_start.x, l1_start.y, l1_end.x, l1_end.y);
     double detL2 = bs_determinate(l2_start.x, l2_start.y, l2_end.x, l2_end.y);
     double x1mx2 = l1_start.x - l1_end.x;
@@ -230,22 +282,17 @@ BSAPI bool _bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs
 
     bs_vec2 result;
     if (denom == 0.0) {
-        result = bs_v2(NAN, NAN);
+        *result = (bs_LineVsLine) {
+            .hit = true,
+            .point = { NAN, NAN },
+        };
 
-        if (out)
-            *out = result;
-
-        return false;
+        return;
     }
 
-    result.x = xnom / denom;
-    result.y = ynom / denom;
+    *result = (bs_LineVsLine){
+        .hit = true,
+        .point = { xnom / denom, ynom / denom },
+    };
 
-    if (out)
-        *out = result;
-
-    if (!isfinite(result.x) || !isfinite(result.y))
-        return false;
-
-    return true;
 }

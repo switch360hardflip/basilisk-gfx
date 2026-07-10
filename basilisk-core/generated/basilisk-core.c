@@ -35,6 +35,11 @@
 #include <cglm/vec2.h>
 #include <cglm/vec3.h>
 #include <cglm/vec4.h>
+#include <cglm/mat3.h>
+#include <cglm/mat4.h>
+#include <cglm/quat.h>
+#include <cglm/cam.h>
+#include <math.h>
 
 bs_List* bs_packages()
 {
@@ -52,39 +57,39 @@ bs_vec2 bs_v2()
 }
 
 void bs_v2Add(
-    bs_vec2* a, 
-    bs_vec2* b, 
+    const bs_vec2* a, 
+    const bs_vec2* b, 
     bs_vec2* out)
 {
     glm_vec2_add(a->a, b->a, out->a);
 }
 
 void bs_v2Sub(
-    bs_vec2* a, 
-    bs_vec2* b, 
+    const bs_vec2* a, 
+    const bs_vec2* b, 
     bs_vec2* out)
 {
     glm_vec2_sub(a->a, b->a, out->a);
 }
 
 void bs_v2Mul(
-    bs_vec2* a, 
-    bs_vec2* b, 
+    const bs_vec2* a, 
+    const bs_vec2* b, 
     bs_vec2* out)
 {
     glm_vec2_mul(a->a, b->a, out->a);
 }
 
 void bs_v2Div(
-    bs_vec2* a, 
-    bs_vec2* b, 
+    const bs_vec2* a, 
+    const bs_vec2* b, 
     bs_vec2* out)
 {
     glm_vec2_div(a->a, b->a, out->a);
 }
 
 void bs_v2MulV1(
-    bs_vec2* v, 
+    const bs_vec2* v, 
     float s, 
     bs_vec2* out)
 {
@@ -92,7 +97,7 @@ void bs_v2MulV1(
 }
 
 void bs_v2DivV1(
-    bs_vec2* v, 
+    const bs_vec2* v, 
     float s, 
     bs_vec2* out)
 {
@@ -100,19 +105,25 @@ void bs_v2DivV1(
 }
 
 float bs_v2Dot(
-    bs_vec2* a, 
-    bs_vec2* b)
+    const bs_vec2* a, 
+    const bs_vec2* b)
 {
-    glm_vec2_dot(a->a, b->a, out->a);
+    glm_vec2_dot(a->a, b->a);
 }
 
-float bs_v2Normalize(
-    bs_vec2* v)
+float bs_v2Magnitude(
+    const bs_vec2* v)
 {
-    glm_vec2_normalize(v->a);
+    return glm_vec2_norm(v->a);
 }
 
-float bs_v2NormalizeTo(
+float bs_v2MagnitudeSqrd(
+    const bs_vec2* v)
+{
+    return glm_vec2_norm2(v->a);
+}
+
+void bs_v2Normalize(
     const bs_vec2* v, 
     bs_vec2* out)
 {
@@ -125,39 +136,39 @@ bs_vec3 bs_v3()
 }
 
 void bs_v3Add(
-    bs_vec3* a, 
-    bs_vec3* b, 
+    const bs_vec3* a, 
+    const bs_vec3* b, 
     bs_vec3* out)
 {
     glm_vec3_add(a->a, b->a, out->a);
 }
 
 void bs_v3Sub(
-    bs_vec3* a, 
-    bs_vec3* b, 
+    const bs_vec3* a, 
+    const bs_vec3* b, 
     bs_vec3* out)
 {
     glm_vec3_sub(a->a, b->a, out->a);
 }
 
 void bs_v3Mul(
-    bs_vec3* a, 
-    bs_vec3* b, 
+    const bs_vec3* a, 
+    const bs_vec3* b, 
     bs_vec3* out)
 {
     glm_vec3_mul(a->a, b->a, out->a);
 }
 
 void bs_v3Div(
-    bs_vec3* a, 
-    bs_vec3* b, 
+    const bs_vec3* a, 
+    const bs_vec3* b, 
     bs_vec3* out)
 {
     glm_vec3_div(a->a, b->a, out->a);
 }
 
 void bs_v3MulV1(
-    bs_vec3* v, 
+    const bs_vec3* v, 
     float s, 
     bs_vec3* out)
 {
@@ -165,7 +176,7 @@ void bs_v3MulV1(
 }
 
 void bs_v3DivV1(
-    bs_vec3* v, 
+    const bs_vec3* v, 
     float s, 
     bs_vec3* out)
 {
@@ -173,19 +184,25 @@ void bs_v3DivV1(
 }
 
 float bs_v3Dot(
-    bs_vec3* a, 
-    bs_vec3* b)
+    const bs_vec3* a, 
+    const bs_vec3* b)
 {
-    glm_vec3_dot(a->a, b->a, out->a);
+    glm_vec3_dot(a->a, b->a);
 }
 
-float bs_v3Normalize(
-    bs_vec3* v)
+float bs_v3Magnitude(
+    const bs_vec3* v)
 {
-    glm_vec3_normalize(v->a);
+    return glm_vec3_norm(v->a);
 }
 
-float bs_v3NormalizeTo(
+float bs_v3MagnitudeSqrd(
+    const bs_vec3* v)
+{
+    return glm_vec3_norm2(v->a);
+}
+
+void bs_v3Normalize(
     const bs_vec3* v, 
     bs_vec3* out)
 {
@@ -198,39 +215,39 @@ bs_vec4 bs_v4()
 }
 
 void bs_v4Add(
-    bs_vec4* a, 
-    bs_vec4* b, 
+    const bs_vec4* a, 
+    const bs_vec4* b, 
     bs_vec4* out)
 {
     glm_vec4_add(a->a, b->a, out->a);
 }
 
 void bs_v4Sub(
-    bs_vec4* a, 
-    bs_vec4* b, 
+    const bs_vec4* a, 
+    const bs_vec4* b, 
     bs_vec4* out)
 {
     glm_vec4_sub(a->a, b->a, out->a);
 }
 
 void bs_v4Mul(
-    bs_vec4* a, 
-    bs_vec4* b, 
+    const bs_vec4* a, 
+    const bs_vec4* b, 
     bs_vec4* out)
 {
     glm_vec4_mul(a->a, b->a, out->a);
 }
 
 void bs_v4Div(
-    bs_vec4* a, 
-    bs_vec4* b, 
+    const bs_vec4* a, 
+    const bs_vec4* b, 
     bs_vec4* out)
 {
     glm_vec4_div(a->a, b->a, out->a);
 }
 
 void bs_v4MulV1(
-    bs_vec4* v, 
+    const bs_vec4* v, 
     float s, 
     bs_vec4* out)
 {
@@ -238,7 +255,7 @@ void bs_v4MulV1(
 }
 
 void bs_v4DivV1(
-    bs_vec4* v, 
+    const bs_vec4* v, 
     float s, 
     bs_vec4* out)
 {
@@ -246,23 +263,234 @@ void bs_v4DivV1(
 }
 
 float bs_v4Dot(
-    bs_vec4* a, 
-    bs_vec4* b)
+    const bs_vec4* a, 
+    const bs_vec4* b)
 {
-    glm_vec4_dot(a->a, b->a, out->a);
+    glm_vec4_dot(a->a, b->a);
 }
 
-float bs_v4Normalize(
-    bs_vec4* v)
+float bs_v4Magnitude(
+    const bs_vec4* v)
 {
-    glm_vec4_normalize(v->a);
+    return glm_vec4_norm(v->a);
 }
 
-float bs_v4NormalizeTo(
+float bs_v4MagnitudeSqrd(
+    const bs_vec4* v)
+{
+    return glm_vec4_norm2(v->a);
+}
+
+void bs_v4Normalize(
     const bs_vec4* v, 
     bs_vec4* out)
 {
     glm_vec4_normalize_to(v->a, out->a);
+}
+
+void bs_m3Mul(
+    const bs_mat3* a, 
+    const bs_mat3* b, 
+    const bs_mat3* result)
+{
+    glm_mat3_mul(a->v, b->v, result->v);
+}
+
+void bs_m3Scale(
+    const bs_mat3* m, 
+    float s)
+{
+    glm_mat3_scale(m->v, s);
+}
+
+void bs_m3Transpose(
+    const bs_mat3* m, 
+    const bs_mat3* result)
+{
+    glm_mat3_transpose(m->v, result->v);
+}
+
+void bs_m3Inverse(
+    const bs_mat3* m, 
+    const bs_mat3* result)
+{
+    glm_mat3_inv(m->v, result->v);
+}
+
+void bs_m3MulV3(
+    bs_mat3* m, 
+    bs_vec3* v, 
+    bs_vec3* result)
+{
+    glm_mat3_mulv(m->v, v->a, result->a);
+}
+
+void bs_m4Mul(
+    const bs_mat4* a, 
+    const bs_mat4* b, 
+    const bs_mat4* result)
+{
+    glm_mat3_mul(a->v, b->v, result->v);
+}
+
+void bs_m4Scale(
+    const bs_mat4* m, 
+    float s)
+{
+    glm_mat3_scale(m->v, s);
+}
+
+void bs_m4Transpose(
+    const bs_mat4* m, 
+    const bs_mat4* result)
+{
+    glm_mat3_transpose(m->v, result->v);
+}
+
+void bs_m4Inverse(
+    const bs_mat4* m, 
+    const bs_mat4* result)
+{
+    glm_mat3_inv(m->v, result->v);
+}
+
+void bs_m4MulV3(
+    bs_mat4* m, 
+    bs_vec3* v, 
+    bs_vec3* result)
+{
+    glm_mat4_mulv3(m->v, v->a, 1.0, result->a);
+}
+
+void bs_m4MulV4(
+    bs_mat4* m, 
+    bs_vec3* v, 
+    bs_mat4* result)
+{
+    glm_mat4_mulv(m->v, v->a, result->a);
+}
+
+void bs_m4Translate(
+    bs_mat4* m, 
+    bs_vec3* v, 
+    bs_mat4* result)
+{
+    glm_translate_to(m->v, v->a, result->a);
+}
+
+void bs_m4Rotate(
+    bs_mat4* m, 
+    bs_vec4* q, 
+    bs_mat4* result)
+{
+    glm_quat_rotate(m->v, q->a, result->a);
+}
+
+void bs_m4Scale(
+    bs_mat4* m, 
+    bs_vec3* v, 
+    bs_mat4* result)
+{
+    glm_scale_to(m->v, v->a, result->a);
+}
+
+void bs_m3FromQ(
+    bs_mat3* m, 
+    bs_vec4* result)
+{
+    glm_mat3_quat(m->v, result->a);
+}
+
+void bs_m4FromQ(
+    bs_mat4* m, 
+    bs_vec4* result)
+{
+    glm_mat4_quat(m->v, result->a);
+}
+
+void bs_qFromM3(
+    bs_mat3* m, 
+    bs_vec4* result)
+{
+    glm_mat3_quat(m->v, result->a);
+}
+
+void bs_qFromM4(
+    bs_mat4* m, 
+    bs_vec4* result)
+{
+    glm_mat4_quat(m->v, result->a);
+}
+
+void bs_qNormalize(
+    bs_vec4* q, 
+    bs_vec4* result)
+{
+    glm_quat_normalize_to(q->a, result->a);
+}
+
+void bs_qSlerp(
+    bs_vec4* from, 
+    bs_vec4* to, 
+    float t, 
+    bs_vec4* result)
+{
+    glm_quat_slerp(from->a, to->a, t, result->a);
+}
+
+void bs_qLongSlerp(
+    bs_vec4* from, 
+    bs_vec4* to, 
+    float t, 
+    bs_vec4* result)
+{
+    glm_quat_slerp_longest(from->a, to->a, t, result->a);
+}
+
+void bs_orthographic(
+    float left, 
+    float right, 
+    float bottom, 
+    float top, 
+    float near, 
+    float far, 
+    bs_mat4* result)
+{
+    glm_ortho(left, right, bottom, top, near, far, result->v);
+}
+
+void bs_perspective(
+    float fov, 
+    float aspect, 
+    float near, 
+    float far, 
+    bs_mat4* result)
+{
+    glm_perspective(fov, aspect, near, far, result->v);
+}
+
+void bs_lookAt(
+    const bs_vec3* eye, 
+    const bs_vec3* center, 
+    const bs_vec3* up, 
+    bs_mat4* result)
+{
+    glm_lookat(eye->a, center->a, up->a, result->a);
+}
+
+void bs_look(
+    const bs_vec3* eye, 
+    const bs_vec3* direction, 
+    const bs_vec3* up, 
+    bs_mat4* result)
+{
+    glm_look(eye->a, direction->a, up->a, result->a);
+}
+
+float bs_abs(
+    float v)
+{
+    return fabsf(v);
 }
 
 bs_Quad bs_quad(
@@ -321,7 +549,7 @@ bs_Result bs_ray(
     return next.bs_ray(start, direction, length, ray);
 }
 
-bs_Result bs_rayVsObb(
+void bs_rayVsObb(
     const bs_Ray* ray, 
     bs_vec3 position, 
     bs_vec4 rotation, 
@@ -331,7 +559,7 @@ bs_Result bs_rayVsObb(
     return next.bs_rayVsObb(ray, position, rotation, scale, result);
 }
 
-bs_Result bs_sphereVsPoint(
+void bs_sphereVsPoint(
     bs_vec3 center, 
     float radius, 
     bs_vec3 point, 
@@ -340,7 +568,7 @@ bs_Result bs_sphereVsPoint(
     return next.bs_sphereVsPoint(center, radius, point, result);
 }
 
-bs_Result bs_sphereVsBox(
+void bs_sphereVsBox(
     bs_vec3 center, 
     float radius, 
     bs_vec3 position, 
@@ -351,7 +579,7 @@ bs_Result bs_sphereVsBox(
     return next.bs_sphereVsBox(center, radius, position, rotation, scale, result);
 }
 
-bs_Result bs_rectangleVsPoint(
+void bs_rectangleVsPoint(
     bs_vec2 position, 
     bs_vec2 dimensions, 
     bs_vec2 point, 
@@ -360,7 +588,7 @@ bs_Result bs_rectangleVsPoint(
     return next.bs_rectangleVsPoint(position, dimensions, point, result);
 }
 
-bs_Result bs_rectangleVsPointAbs(
+void bs_rectangleVsPointAbs(
     bs_vec2 position, 
     bs_vec2 dimensions, 
     bs_vec2 point, 
@@ -369,7 +597,7 @@ bs_Result bs_rectangleVsPointAbs(
     return next.bs_rectangleVsPointAbs(position, dimensions, point, result);
 }
 
-bs_Result bs_lineVsLine(
+void bs_lineVsLine(
     bs_vec2 l1_start, 
     bs_vec2 l1_end, 
     bs_vec2 l2_start, 
