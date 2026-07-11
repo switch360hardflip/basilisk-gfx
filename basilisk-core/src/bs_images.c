@@ -252,7 +252,7 @@ BSAPI void _bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout,
 BSAPI void _bs_nameImage(bs_Image* image, const char* name) {
     for (int i = 0; i < bs_imageSwapsCount(image); i++) {
         bsi_nameHandleF(image->_[i].vk_image, VK_OBJECT_TYPE_IMAGE, BS_PRINT_COLOR("%s", BS_PRINT_BLUE_BRIGHT), name);
-        bsi_nameHandleF(image->_[i].vk_view, VK_OBJECT_TYPE_IMAGE_VIEW, BS_PRINT_COLOR("%s (View)", BS_PRINT_BLUE_BRIGHT), name);
+        bsi_nameHandleF(image->_[i].vk_image_view, VK_OBJECT_TYPE_IMAGE_VIEW, BS_PRINT_COLOR("%s (View)", BS_PRINT_BLUE_BRIGHT), name);
         bsi_nameHandleF(image->_[i].vk_memory, VK_OBJECT_TYPE_DEVICE_MEMORY, BS_PRINT_COLOR("%s (Memory)", BS_PRINT_BLUE_BRIGHT), name);
     }
 }
@@ -301,7 +301,7 @@ static bs_Result bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, V
 
     vk_result = vkCreateImage(_bs_instance_->device, &image_ci, NULL, &image->_->vk_image);
     if (vk_result != VK_SUCCESS) {
-        bs_warnF("Failed to create image (%d, %d), VkResult = %d\n", source_id, id, vk_result);
+        BS_WARN_VULKAN_ERROR("vkCreateImage", result, "(%d, %d)", source_id, id);
         return bs_convertVulkanResult(vk_result);
     }
 
@@ -314,7 +314,7 @@ static bs_Result bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, V
     bs_U32 memory_type = 0;
     result = bs_queryMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memory_type);
     if (result != BS_RESULT_OK) {
-        bs_warnF("Failed to query memory type for image (%d, %d), VkResult = %d\n", source_id, id, vk_result);
+        bs_warnF("Failed to query memory type for image (%d, %d)\n", source_id, id);
         return result;
     }
 
@@ -326,13 +326,13 @@ static bs_Result bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, V
 
     vk_result = vkAllocateMemory(_bs_instance_->device, &alloc_i, NULL, &image->_->vk_memory);
     if (vk_result != VK_SUCCESS) {
-        bs_warnF("Failed to allocate image memory for image (%d, %d), VkResult = %d\n", source_id, id, vk_result);
+        BS_WARN_VULKAN_ERROR("vkAllocateMemory", result, "(%d, %d)", source_id, id);
         return bs_convertVulkanResult(vk_result);
     }
 
     vk_result = vkBindImageMemory(_bs_instance_->device, image->_->vk_image, image->_->vk_memory, 0);
     if (vk_result != VK_SUCCESS) {
-        bs_warnF("Failed to bind image memory for image (%d, %d), VkResult = %d\n", source_id, id, vk_result);
+        BS_WARN_VULKAN_ERROR("vkBindImageMemory", result, "(%d, %d)", source_id, id);
         return bs_convertVulkanResult(vk_result);
     }
 
@@ -356,9 +356,9 @@ static bs_Result bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, V
         .subresourceRange.layerCount = image->num_indices == 0 ? 1 : image->num_indices,
     };
 
-    vk_result = vkCreateImageView(_bs_instance_->device, &image_view_ci, NULL, &image->_->vk_view);
+    vk_result = vkCreateImageView(_bs_instance_->device, &image_view_ci, NULL, &image->_->vk_image_view);
     if (vk_result != VK_SUCCESS) {
-        bs_warnF("Failed to create image view for image (%d, %d), VkResult = %d\n", source_id, id, vk_result);
+        BS_WARN_VULKAN_ERROR("vkCreateImageView", result, "(%d, %d)", source_id, id);
         return bs_convertVulkanResult(vk_result);
     }
 
@@ -583,7 +583,6 @@ BSAPI bs_Result _bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs
         0);
 
     if (result != BS_RESULT_OK) {
-        bs_warnF("Failed to create staging buffer for bitmap image (Vulkan result %d)\n", result);
         bs_destroyImage(image);
         return result;
     }
@@ -615,10 +614,10 @@ BSAPI bs_Result _bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs
 BSAPI void _bs_destroyImage(bs_Image* image) {
     bs_U32 num_swaps = image->flags & BS_IMAGE_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
     for (int i = 0; i < num_swaps; i++) {
-        vkDestroyImageView(_bs_instance_->device, image->_[i].vk_view, NULL);
+        vkDestroyImageView(_bs_instance_->device, image->_[i].vk_image_view, NULL);
         vkDestroyImage(_bs_instance_->device, image->_[i].vk_image, NULL);
         vkFreeMemory(_bs_instance_->device, image->_[i].vk_memory, NULL);
-        image->_[i].vk_view = image->_[i].vk_image = image->_[i].vk_memory = 0;
+        image->_[i].vk_image_view = image->_[i].vk_image = image->_[i].vk_memory = 0;
     }
 
     // TODO: make generic
@@ -714,7 +713,7 @@ BSAPI bs_Result _bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_Sampler
 
     result = vkCreateSampler(_bs_instance_->device, &sampler_i, NULL, &sampler->_->vk_sampler);
     if (result != VK_SUCCESS) {
-        bs_warnF("Failed to create sampler (Vulkan result %d)\n", result);
+        BS_WARN_VULKAN_ERROR("vkCreateSampler", result, "(%d, %d)", sampler->head.source_id, sampler->head.id);
         return bs_convertVulkanResult(result);
     }
 

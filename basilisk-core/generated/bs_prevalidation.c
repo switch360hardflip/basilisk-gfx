@@ -2610,14 +2610,14 @@ static bs_Result _preval_bs_json(char* raw, int len, bs_Json* out_json) {
     return next.bs_json(raw, len, out_json);
 }
 
-static bs_Result _preval_bs_loadJson(bs_Json* out_json, char* value, int value_length) {
+static bs_Result _preval_bs_loadJson(bs_Json* out_json, char* path, int path_length) {
     if (out_json == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    if (value == NULL)
+    if (path == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_loadJson(out_json, value, value_length);
+    return next.bs_loadJson(out_json, path, path_length);
 }
 
 static void _preval_bs_destroyJson(bs_Json* json) {
@@ -2634,34 +2634,34 @@ static bs_JsonValue _preval_bs_parseJsonValue(char* raw) {
     return next.bs_parseJsonValue(raw);
 }
 
-static bs_JsonValue _preval_bs_fetchJson(bs_Json* root, bs_JsonType expect, char* value, int value_length) {
+static bs_JsonValue _preval_bs_fetchJson(bs_Json* root, bs_JsonType expect, char* path, int path_length) {
     if (root == NULL)
         return (bs_JsonValue) { 0 };
 
-    if (value == NULL)
+    if (path == NULL)
         return (bs_JsonValue) { 0 };
 
-    return next.bs_fetchJson(root, expect, value, value_length);
+    return next.bs_fetchJson(root, expect, path, path_length);
 }
 
-static void _preval_bs_deleteJson(bs_Json* root, char* value, int value_length) {
+static void _preval_bs_deleteJson(bs_Json* root, char* path, int path_length) {
     if (root == NULL)
         return;
 
-    if (value == NULL)
+    if (path == NULL)
         return;
 
-    return next.bs_deleteJson(root, value, value_length);
+    return next.bs_deleteJson(root, path, path_length);
 }
 
-static bs_Result _preval_bs_ensureJson(bs_Json* root, bs_JsonValue value, char* value, int value_length) {
+static bs_Result _preval_bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path, int path_length) {
     if (root == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    if (value == NULL)
+    if (path == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_ensureJson(root, value, value, value_length);
+    return next.bs_ensureJson(root, value, path, path_length);
 }
 
 static bs_JsonValue _preval_bs_jsonValueFromObject(bs_JsonObject x) {
@@ -2829,10 +2829,6 @@ static bs_Features* _preval_bs_features() {
 
 static bs_Props* _preval_bs_props() {
     return next.bs_props();
-}
-
-static bs_Settings* _preval_bs_settings() {
-    return next.bs_settings();
 }
 
 static bs_Config* _preval_bs_config() {
@@ -3014,11 +3010,11 @@ static bs_String* _preval_bs_workingDirectory() {
     return next.bs_workingDirectory();
 }
 
-static void _preval_bs_setWorkingDirectory(char* value, int value_length) {
-    if (value == NULL)
+static void _preval_bs_setWorkingDirectory(char* path, int path_length) {
+    if (path == NULL)
         return;
 
-    return next.bs_setWorkingDirectory(value, value_length);
+    return next.bs_setWorkingDirectory(path, path_length);
 }
 
 static bs_String* _preval_bs_executablePath() {
@@ -3340,48 +3336,48 @@ static void _preval_bs_appendFile(const char* path, const char* data) {
     return next.bs_appendFile(path, data);
 }
 
-static void _preval_bs_saveFile(char* data, bs_U32 data_len, char* value, int value_length) {
+static void _preval_bs_saveFile(char* data, bs_U32 data_len, char* path, int path_length) {
     if (data == NULL)
         return;
 
-    if (value == NULL)
+    if (path == NULL)
         return;
 
-    return next.bs_saveFile(data, data_len, value, value_length);
+    return next.bs_saveFile(data, data_len, path, path_length);
 }
 
-static void _preval_bs_convertWin32Path(char* value, int value_length) {
-    if (value == NULL)
+static void _preval_bs_convertWin32Path(char* path, int path_length) {
+    if (path == NULL)
         return;
 
-    return next.bs_convertWin32Path(value, value_length);
+    return next.bs_convertWin32Path(path, path_length);
 }
 
-static bs_Result _preval_bs_ensureDirectory(char* value, int value_length) {
-    if (value == NULL)
+static bs_Result _preval_bs_ensureDirectory(char* path, int path_length) {
+    if (path == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_ensureDirectory(value, value_length);
+    return next.bs_ensureDirectory(path, path_length);
 }
 
-static bs_Result _preval_bs_fileModifiedDate(bs_DateTime* out, char* value, int value_length) {
+static bs_Result _preval_bs_fileModifiedDate(bs_DateTime* out, char* path, int path_length) {
     if (out == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    if (value == NULL)
+    if (path == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_fileModifiedDate(out, value, value_length);
+    return next.bs_fileModifiedDate(out, path, path_length);
 }
 
-static bs_Result _preval_bs_setFileModifiedDate(bs_DateTime* date, char* value, int value_length) {
+static bs_Result _preval_bs_setFileModifiedDate(bs_DateTime* date, char* path, int path_length) {
     if (date == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    if (value == NULL)
+    if (path == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_setFileModifiedDate(date, value, value_length);
+    return next.bs_setFileModifiedDate(date, path, path_length);
 }
 
 static bs_String* _preval_bs_fullPath(bs_String* old, const char* path, int path_len) {
@@ -3394,11 +3390,11 @@ static bs_String* _preval_bs_fullPath(bs_String* old, const char* path, int path
     return next.bs_fullPath(old, path, path_len);
 }
 
-static bool _preval_bs_fileExists(char* value, int value_length) {
-    if (value == NULL)
+static bool _preval_bs_fileExists(char* path, int path_length) {
+    if (path == NULL)
         return false;
 
-    return next.bs_fileExists(value, value_length);
+    return next.bs_fileExists(path, path_length);
 }
 
 static bs_I64 _preval_bs_toLong(const char* str) {
@@ -3787,47 +3783,77 @@ static void _preval_bs_loadBindings(int package_id, const char* path) {
     return next.bs_loadBindings(package_id, path);
 }
 
-static void _preval_bs_bindImage(bs_U32 bind_set_slot, bs_U32 binding_slot, bs_Image* image, bs_Sampler* sampler, bs_ImageLayout layout) {
+static bs_Result _preval_bs_binding(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Descriptor* descriptors, int descriptors_count, bs_Binding** out) {
+    if (descriptors == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_binding(bind_set_slot, bind_point_slot, descriptors, descriptors_count, out);
+}
+
+static bs_Result _preval_bs_bindImage(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Image* image, bs_Sampler* sampler, bs_ImageLayout layout) {
     if (image == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (image->head.source_id != BS_OBJECT_IMAGE)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (sampler == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (sampler->head.source_id != BS_OBJECT_SAMPLER)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_bindImage(bind_set_slot, binding_slot, image, sampler, layout);
+    return next.bs_bindImage(bind_set_slot, bind_point_slot, image, sampler, layout);
 }
 
-static void _preval_bs_bindImages(bs_U32 bind_set_slot, bs_U32 slot, bs_ImageDescriptor* images, int images_count) {
+static bs_Result _preval_bs_bindImages(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_ImageDescriptor* images, int images_count) {
     if (images == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_bindImages(bind_set_slot, slot, images, images_count);
+    return next.bs_bindImages(bind_set_slot, bind_point_slot, images, images_count);
 }
 
-static void _preval_bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 binding_slot, bs_Buffer* buffer) {
+static bs_Result _preval_bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Buffer* buffer) {
     if (buffer == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (buffer->head.source_id != BS_OBJECT_BUFFER)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_bindBuffer(bind_set_slot, binding_slot, buffer);
+    return next.bs_bindBuffer(bind_set_slot, bind_point_slot, buffer);
 }
 
-static void _preval_bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 slot, bs_RayTracer* ray_tracer) {
+static bs_Result _preval_bs_bindBuffers(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Buffer** buffers, int buffers_count) {
+    if (buffers == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (buffers->head.source_id != BS_OBJECT_BUFFER)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_bindBuffers(bind_set_slot, bind_point_slot, buffers, buffers_count);
+}
+
+static bs_Result _preval_bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer* ray_tracer) {
     if (ray_tracer == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (ray_tracer->head.source_id != BS_OBJECT_RAY_TRACER)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_bindAccelerationStructure(bind_set_slot, slot, ray_tracer);
+    return next.bs_bindAccelerationStructure(bind_set_slot, bind_point_slot, ray_tracer);
+}
+
+static bs_Result _preval_bs_bindAccelerationStructures(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer** ray_tracers, int ray_tracers_count) {
+    if (ray_tracers == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (ray_tracers->head.source_id != BS_OBJECT_RAY_TRACER)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_bindAccelerationStructures(bind_set_slot, bind_point_slot, ray_tracers, ray_tracers_count);
 }
 
 static void _preval_bs_pushDescriptors() {
@@ -3842,7 +3868,7 @@ static bs_BindSet* _preval_bs_queryBindSet(bs_U32 id) {
     return next.bs_queryBindSet(id);
 }
 
-static bs_Binding* _preval_bs_queryBinding(bs_BindSet* bind_set, bs_U32 id) {
+static bs_Binding* _preval_bs_queryBinding(const bs_BindSet* bind_set, bs_U32 id) {
     if (bind_set == NULL)
         return NULL;
 
@@ -3989,22 +4015,16 @@ static int _preval_bs_scroll() {
     return next.bs_scroll();
 }
 
-static void _preval_bs_resizeWindow(bs_Window* window, bs_U32 width, bs_U32 height) {
-    if (window == NULL)
-        return;
-
-    return next.bs_resizeWindow(window, width, height);
+static void _preval_bs_resizeWindow(bs_U32 width, bs_U32 height) {
+    return next.bs_resizeWindow(width, height);
 }
 
 static bs_ivec2 _preval_bs_screenDimensions() {
     return next.bs_screenDimensions();
 }
 
-static void _preval_bs_moveWindow(bs_Window* window, int x, int y) {
-    if (window == NULL)
-        return;
-
-    return next.bs_moveWindow(window, x, y);
+static void _preval_bs_moveWindow(int x, int y) {
+    return next.bs_moveWindow(x, y);
 }
 
 static void _preval_bs_window(bs_U32 width, bs_U32 height, const char* title,  ...) {
@@ -4037,63 +4057,39 @@ static void _preval_bs_minimize() {
     return next.bs_minimize();
 }
 
-static double _preval_bs_deltaTime(bs_Window* window) {
-    if (window == NULL)
-        return 0;
-
-    return next.bs_deltaTime(window);
+static double _preval_bs_deltaTime() {
+    return next.bs_deltaTime();
 }
 
-static void _preval_bs_pause(bs_Window* window) {
-    if (window == NULL)
-        return;
-
-    return next.bs_pause(window);
+static void _preval_bs_pause() {
+    return next.bs_pause();
 }
 
-static void _preval_bs_advance(bs_Window* window) {
-    if (window == NULL)
-        return;
-
-    return next.bs_advance(window);
+static void _preval_bs_advance() {
+    return next.bs_advance();
 }
 
-static double _preval_bs_elapsedTime(bs_Window* window) {
-    if (window == NULL)
-        return 0;
-
-    return next.bs_elapsedTime(window);
+static double _preval_bs_elapsedTime() {
+    return next.bs_elapsedTime();
 }
 
-static bs_ivec2 _preval_bs_resolution(bs_Window* window) {
-    if (window == NULL)
-        return (bs_ivec2) { 0 };
-
-    return next.bs_resolution(window);
+static bs_ivec2 _preval_bs_resolution() {
+    return next.bs_resolution();
 }
 
-static void _preval_bs_titleWindow(bs_Window* window, const char* title,  ...) {
-    if (window == NULL)
-        return;
-
+static void _preval_bs_titleWindow(const char* title,  ...) {
     if (title == NULL)
         return;
 
-    return next.bs_titleWindow(window, title, ...);
+    return next.bs_titleWindow(title, ...);
 }
 
-static bool _preval_bs_inFixedTick(bs_Window* window) {
-    if (window == NULL)
-        return false;
-
-    return next.bs_inFixedTick(window);
+static bool _preval_bs_inFixedTick() {
+    return next.bs_inFixedTick();
 }
 
-static void _preval_bs_setTargetFramerate(bs_Window* window, int fps) {
-    if (window == NULL)
-        return;
-
-    return next.bs_setTargetFramerate(window, fps);
+static void _preval_bs_setTargetFramerate(int fps) {
+    return next.bs_setTargetFramerate(fps);
 }
 
 static bs_Timer _preval_bs_timer() {
@@ -4137,14 +4133,14 @@ static bs_Result _preval_bs_foreachFile( void(*x)(bs_FileInfo, void*), void* par
     return next.bs_foreachFile(void(*x)(bs_FileInfo, void*), param, value, value_length);
 }
 
-static bs_Result _preval_bs_foreachDirectory( void(*x)(bs_FileInfo, void*), void* param, char* value, int value_length) {
+static bs_Result _preval_bs_foreachDirectory( void(*x)(bs_FileInfo, void*), void* param, char* path, int path_length) {
     if (param == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    if (value == NULL)
+    if (path == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_foreachDirectory(void(*x)(bs_FileInfo, void*), param, value, value_length);
+    return next.bs_foreachDirectory(void(*x)(bs_FileInfo, void*), param, path, path_length);
 }
 
 static int _preval_bs_numFiles(char* value, int value_length) {
@@ -4527,7 +4523,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_args = _preval_bs_args;
     functions.bs_features = _preval_bs_features;
     functions.bs_props = _preval_bs_props;
-    functions.bs_settings = _preval_bs_settings;
     functions.bs_config = _preval_bs_config;
     functions.bs_system = _preval_bs_system;
     functions.bs_createThread = _preval_bs_createThread;
@@ -4649,10 +4644,13 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_rayTracingPipeline = _preval_bs_rayTracingPipeline;
     functions.bs_deserializeBindType = _preval_bs_deserializeBindType;
     functions.bs_loadBindings = _preval_bs_loadBindings;
+    functions.bs_binding = _preval_bs_binding;
     functions.bs_bindImage = _preval_bs_bindImage;
     functions.bs_bindImages = _preval_bs_bindImages;
     functions.bs_bindBuffer = _preval_bs_bindBuffer;
+    functions.bs_bindBuffers = _preval_bs_bindBuffers;
     functions.bs_bindAccelerationStructure = _preval_bs_bindAccelerationStructure;
+    functions.bs_bindAccelerationStructures = _preval_bs_bindAccelerationStructures;
     functions.bs_pushDescriptors = _preval_bs_pushDescriptors;
     functions.bs_pushBindings = _preval_bs_pushBindings;
     functions.bs_queryBindSet = _preval_bs_queryBindSet;

@@ -425,7 +425,7 @@ bs_String* bs_stringF(bs_String* old, const char* format, ...) {
   To lowercase
   */
 BSAPI void _val_bs_toLower(char* string, int len) {
-    BS_VALIDATE(len <= 0,,);
+    BS_VALIDATE(len >= 0,,);
     return bs_toLower(string, len);
 }
 
@@ -438,7 +438,7 @@ BSAPI void _bs_toLower(char* string, int len) {
   To uppercase
   */
 BSAPI void _val_bs_toUpper(char* string, int len) {
-    BS_VALIDATE(len <= 0,,);
+    BS_VALIDATE(len >= 0,,);
     return bs_toUpper(string, len);
 }
 
@@ -447,6 +447,9 @@ BSAPI void _bs_toUpper(char* string, int len) {
         string[i] = (char)toupper((unsigned char)string[i]);
 }
 
+ /**
+  Hashing
+  */
 BSAPI bs_U64 _bs_hash(unsigned char* data, size_t size) {
     bs_U64 hash = 0xcbf29ce484222325;
 

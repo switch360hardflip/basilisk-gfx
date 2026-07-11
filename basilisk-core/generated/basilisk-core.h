@@ -214,6 +214,12 @@ typedef enum bs_BindType bs_BindType;
         return ret;                                                  \
     }
 
+#define BS_WARN_VULKAN_ERROR(function, code, format, ...)            \
+    bs_warnF("%s: %s failed" __VA_OPT__(", ") format " (Vulkan result %d = \"%s\")\n", __func__, function __VA_OPT__(,) __VA_ARGS__ , code, bs_serializeVulkanResult())
+
+#define BS_CRITICAL_VULKAN_ERROR(function, code, format, ...)        \
+    bs_warnF("%s: %s failed" __VA_OPT__(", ") format " (Vulkan result %d = \"%s\")\n", __func__, function __VA_OPT__(,) __VA_ARGS__ , code, bs_serializeVulkanResult())
+
 #define BS_VALIDATE_OBJECT_TYPE(object, source_id, _return)          \
     BS_VALIDATE(((bs_ObjectSource*)bs_fetchUnit(bs_objectSources(), source_id))->type == source_id, _return,,)
 
@@ -398,7 +404,7 @@ typedef enum bs_BindType bs_BindType;
 #define BS_MAX_NUM_SUBPASS_DEPENDENCIES                              \
     6
 
-#define BS_MAX_NUM_ATTACHMENTS                                       \
+#define BS_MAX_ATTACHMENTS_COUNT                                     \
     12
 
 #define BS_TIMEOUT                                                   \
@@ -722,7 +728,7 @@ typedef enum bs_BindType bs_BindType;
     (sizeof(*((type*)NULL)->_))
 
 #define BS_SWAPS_COUNT(flags)                                        \
-    ((flags & BS_OBJECT_HAS_SWAPS_BIT) ? bs_settings()->frames_in_flight : 1)
+    ((flags & BS_OBJECT_HAS_SWAPS_BIT) ? _bs_scope_.window->frames_in_flight : 1)
 
 #define BS_OBJECT(type, source_id, id, swaps_count, flags)           \
         bs_object(source_id, id, sizeof(type), BS_SWAP_SIZE(type), swaps_count, flags)
@@ -1553,7 +1559,7 @@ struct bs_ImageIndex {
 
 struct bs_ImageSwaps {
     struct VkImage_T* vk_image;
-    struct VkImageView_T* vk_view;
+    struct VkImageView_T* vk_image_view;
     struct VkDeviceMemory_T* vk_memory;
 };
 
@@ -1665,8 +1671,11 @@ struct bs_Pipeline {
     int constant_size;
     bs_String* name;
     bs_Buffer* binding_table;
-    struct VkPipelineLayout_T* layout;
-    struct VkPipeline_T* pipeline;
+    struct VkPipelineLayout_T* vk_layout;
+    struct VkPipeline_T* vk_pipeline;
+    struct {
+        bs_Shader* shader;
+    }_[];
 };
 
 struct bs_PipelineHash {
@@ -1691,6 +1700,10 @@ struct bs_PipelineHash {
     bool skip_stencil_test;
     bool skip_depth_write;
     bool disable_blend;
+    bs_Shader* shaders[2];
+    struct {
+        bool skip_write;
+    } attachments[BS_MAX_ATTACHMENTS_COUNT];
 };
 
 struct bs_RayTracePipelineHash {
@@ -1723,6 +1736,7 @@ struct bs_Shader {
     int num_attributes;
     int constant_size;
     bs_Resource* resource;
+    struct VkShaderModule_T* vk_module;
 };
 
 struct bs_BufferSwap {
@@ -2188,6 +2202,20 @@ struct bs_Descriptor {
     int reserved;
     int bind_set;
     int bind_point;
+    union {
+        struct {
+            bs_Image* image;
+            bs_Sampler* sampler;
+            struct VkImageLayout_T* vk_image_layout;
+            struct VkImageView_T* vk_image_view;
+            struct VkSampler_T* vk_sampler;
+        }as_image;
+        struct {
+            bs_Buffer* buffer;
+            struct VkBuffer_T* vk_buffer;
+            bs_U32 vk_range;
+        }as_buffer;
+    };
 };
 
 struct bs_Binding {
@@ -2211,6 +2239,9 @@ struct bs_BindSet {
     int bound_descriptors_count;
     bs_Binding* bindings;
     bs_Descriptor* descriptors;
+    struct VkDescriptorUpdateTemplate_T* vk_update_template;
+    struct VkDescriptorSetLayout_T* vk_layout;
+    struct VkDescriptorSet_T* vk_set;
 };
 
 struct bs_ObjectSource {
@@ -2296,6 +2327,10 @@ struct bs_Instance {
     bool descriptor_pool_needs_update;
     bool alive;
     bs_vec2 screen_cursor;
+    struct {
+        int* bindings;
+        int bind_set;
+    }* descriptor_lookup;
     struct {
         enum  {
             BS_SURFACE_TYPE_UNDEFINED,
@@ -6325,15 +6360,15 @@ bs_json(
 
  /**
   @param out_json
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_loadJson(
     bs_Json* out_json,
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param out_json
@@ -6378,16 +6413,16 @@ bs_parseJsonValue(
  /**
   @param root
   @param expect
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_JsonValue
   */
 BSAPI bs_JsonValue
 bs_fetchJson(
     bs_Json* root,
     bs_JsonType expect,
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param root
@@ -6419,15 +6454,15 @@ bs_fetchJsonF(
 
  /**
   @param root
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return void
   */
 BSAPI void
 bs_deleteJson(
     bs_Json* root,
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param root
@@ -6456,16 +6491,16 @@ bs_deleteJsonF(
  /**
   @param root
   @param value
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_ensureJson(
     bs_Json* root,
     bs_JsonValue value,
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param root
@@ -6860,12 +6895,6 @@ BSAPI bs_Props*
 bs_props();
 
  /**
-  @return bs_Settings*
-  */
-BSAPI bs_Settings*
-bs_settings();
-
- /**
   @return bs_Config*
   */
 BSAPI bs_Config*
@@ -7086,14 +7115,14 @@ BSAPI bs_String*
 bs_workingDirectory();
 
  /**
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return void
   */
 BSAPI void
 bs_setWorkingDirectory(
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param format
@@ -7550,16 +7579,16 @@ bs_appendFile(
  /**
   @param data
   @param data_len
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return void
   */
 BSAPI void
 bs_saveFile(
     char* data,
     bs_U32 data_len,
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param data
@@ -7590,14 +7619,14 @@ bs_saveFileF(
      ...);
 
  /**
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return void
   */
 BSAPI void
 bs_convertWin32Path(
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param format
@@ -7620,14 +7649,14 @@ bs_convertWin32PathF(
      ...);
 
  /**
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_ensureDirectory(
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param format
@@ -7651,15 +7680,15 @@ bs_ensureDirectoryF(
 
  /**
   @param out
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_fileModifiedDate(
     bs_DateTime* out,
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param out
@@ -7687,15 +7716,15 @@ bs_fileModifiedDateF(
 
  /**
   @param date
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_setFileModifiedDate(
     bs_DateTime* date,
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param date
@@ -7734,14 +7763,14 @@ bs_fullPath(
     int path_len);
 
  /**
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bool
   */
 BSAPI bool
 bs_fileExists(
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param format
@@ -8283,57 +8312,101 @@ bs_loadBindings(
 
  /**
   @param bind_set_slot
-  @param binding_slot
+  @param bind_point_slot
+  @param descriptors
+  @param descriptors_count
+  @param out
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_binding(
+    bs_U32 bind_set_slot,
+    bs_U32 bind_point_slot,
+    bs_Descriptor* descriptors,
+    int descriptors_count,
+    bs_Binding** out);
+
+ /**
+  @param bind_set_slot
+  @param bind_point_slot
   @param image
   @param sampler
   @param layout
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_bindImage(
     bs_U32 bind_set_slot,
-    bs_U32 binding_slot,
+    bs_U32 bind_point_slot,
     bs_Image* image,
     bs_Sampler* sampler,
     bs_ImageLayout layout);
 
  /**
   @param bind_set_slot
-  @param slot
+  @param bind_point_slot
   @param images
   @param images_count
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_bindImages(
     bs_U32 bind_set_slot,
-    bs_U32 slot,
+    bs_U32 bind_point_slot,
     bs_ImageDescriptor* images,
     int images_count);
 
  /**
   @param bind_set_slot
-  @param binding_slot
+  @param bind_point_slot
   @param buffer
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_bindBuffer(
     bs_U32 bind_set_slot,
-    bs_U32 binding_slot,
+    bs_U32 bind_point_slot,
     bs_Buffer* buffer);
 
  /**
   @param bind_set_slot
-  @param slot
-  @param ray_tracer
-  @return void
+  @param bind_point_slot
+  @param buffers
+  @param buffers_count
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
+bs_bindBuffers(
+    bs_U32 bind_set_slot,
+    bs_U32 bind_point_slot,
+    bs_Buffer** buffers,
+    int buffers_count);
+
+ /**
+  @param bind_set_slot
+  @param bind_point_slot
+  @param ray_tracer
+  @return bs_Result
+  */
+BSAPI bs_Result
 bs_bindAccelerationStructure(
     bs_U32 bind_set_slot,
-    bs_U32 slot,
+    bs_U32 bind_point_slot,
     bs_RayTracer* ray_tracer);
+
+ /**
+  @param bind_set_slot
+  @param bind_point_slot
+  @param ray_tracers
+  @param ray_tracers_count
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_bindAccelerationStructures(
+    bs_U32 bind_set_slot,
+    bs_U32 bind_point_slot,
+    bs_RayTracer** ray_tracers,
+    int ray_tracers_count);
 
  /**
   @return void
@@ -8362,7 +8435,7 @@ bs_queryBindSet(
   */
 BSAPI bs_Binding*
 bs_queryBinding(
-    bs_BindSet* bind_set,
+    const bs_BindSet* bind_set,
     bs_U32 id);
 
  /**
@@ -8576,14 +8649,12 @@ BSAPI int
 bs_scroll();
 
  /**
-  @param window
   @param width
   @param height
   @return void
   */
 BSAPI void
 bs_resizeWindow(
-    bs_Window* window,
     bs_U32 width,
     bs_U32 height);
 
@@ -8594,14 +8665,12 @@ BSAPI bs_ivec2
 bs_screenDimensions();
 
  /**
-  @param window
   @param x
   @param y
   @return void
   */
 BSAPI void
 bs_moveWindow(
-    bs_Window* window,
     int x,
     int y);
 
@@ -8658,73 +8727,57 @@ BSAPI void
 bs_minimize();
 
  /**
-  @param window
   @return double
   */
 BSAPI double
-bs_deltaTime(
-    bs_Window* window);
+bs_deltaTime();
 
  /**
-  @param window
   @return void
   */
 BSAPI void
-bs_pause(
-    bs_Window* window);
+bs_pause();
 
  /**
-  @param window
   @return void
   */
 BSAPI void
-bs_advance(
-    bs_Window* window);
+bs_advance();
 
  /**
-  @param window
   @return double
   */
 BSAPI double
-bs_elapsedTime(
-    bs_Window* window);
+bs_elapsedTime();
 
  /**
-  @param window
   @return bs_ivec2
   */
 BSAPI bs_ivec2
-bs_resolution(
-    bs_Window* window);
+bs_resolution();
 
  /**
-  @param window
   @param title
   @param ...
   @return void
   */
 BSAPI void
 bs_titleWindow(
-    bs_Window* window,
     const char* title,
      ...);
 
  /**
-  @param window
   @return bool
   */
 BSAPI bool
-bs_inFixedTick(
-    bs_Window* window);
+bs_inFixedTick();
 
  /**
-  @param window
   @param fps
   @return void
   */
 BSAPI void
 bs_setTargetFramerate(
-    bs_Window* window,
     int fps);
 
  /**
@@ -8858,16 +8911,16 @@ bs_foreachFileF(
  /**
   @param void(*x)(bs_FileInfo, void*)
   @param param
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_foreachDirectory(
      void(*x)(bs_FileInfo, void*),
     void* param,
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param void(*x)(bs_FileInfo, void*)

@@ -2205,10 +2205,10 @@ bs_Result bs_json(
 
 bs_Result bs_loadJson(
     bs_Json* out_json, 
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_loadJson(out_json, value, value_length);
+    return next.bs_loadJson(out_json, path, path_length);
 }
 
 bs_Result bs_loadJsonV(
@@ -2248,10 +2248,10 @@ bs_JsonValue bs_parseJsonValue(
 bs_JsonValue bs_fetchJson(
     bs_Json* root, 
     bs_JsonType expect, 
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_fetchJson(root, expect, value, value_length);
+    return next.bs_fetchJson(root, expect, path, path_length);
 }
 
 bs_JsonValue bs_fetchJsonV(
@@ -2280,10 +2280,10 @@ bs_JsonValue bs_fetchJsonF(
 
 void bs_deleteJson(
     bs_Json* root, 
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_deleteJson(root, value, value_length);
+    return next.bs_deleteJson(root, path, path_length);
 }
 
 void bs_deleteJsonV(
@@ -2310,10 +2310,10 @@ void bs_deleteJsonF(
 bs_Result bs_ensureJson(
     bs_Json* root, 
     bs_JsonValue value, 
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_ensureJson(root, value, value, value_length);
+    return next.bs_ensureJson(root, value, path, path_length);
 }
 
 bs_Result bs_ensureJsonV(
@@ -2639,11 +2639,6 @@ bs_Props* bs_props()
     return next.bs_props();
 }
 
-bs_Settings* bs_settings()
-{
-    return next.bs_settings();
-}
-
 bs_Config* bs_config()
 {
     return next.bs_config();
@@ -2804,10 +2799,10 @@ bs_String* bs_workingDirectory()
 }
 
 void bs_setWorkingDirectory(
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_setWorkingDirectory(value, value_length);
+    return next.bs_setWorkingDirectory(path, path_length);
 }
 
 void bs_setWorkingDirectoryV(
@@ -3144,10 +3139,10 @@ void bs_appendFile(
 void bs_saveFile(
     char* data, 
     bs_U32 data_len, 
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_saveFile(data, data_len, value, value_length);
+    return next.bs_saveFile(data, data_len, path, path_length);
 }
 
 void bs_saveFileV(
@@ -3174,10 +3169,10 @@ void bs_saveFileF(
 }
 
 void bs_convertWin32Path(
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_convertWin32Path(value, value_length);
+    return next.bs_convertWin32Path(path, path_length);
 }
 
 void bs_convertWin32PathV(
@@ -3200,10 +3195,10 @@ void bs_convertWin32PathF(
 }
 
 bs_Result bs_ensureDirectory(
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_ensureDirectory(value, value_length);
+    return next.bs_ensureDirectory(path, path_length);
 }
 
 bs_Result bs_ensureDirectoryV(
@@ -3228,10 +3223,10 @@ bs_Result bs_ensureDirectoryF(
 
 bs_Result bs_fileModifiedDate(
     bs_DateTime* out, 
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_fileModifiedDate(out, value, value_length);
+    return next.bs_fileModifiedDate(out, path, path_length);
 }
 
 bs_Result bs_fileModifiedDateV(
@@ -3258,10 +3253,10 @@ bs_Result bs_fileModifiedDateF(
 
 bs_Result bs_setFileModifiedDate(
     bs_DateTime* date, 
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_setFileModifiedDate(date, value, value_length);
+    return next.bs_setFileModifiedDate(date, path, path_length);
 }
 
 bs_Result bs_setFileModifiedDateV(
@@ -3295,10 +3290,10 @@ bs_String* bs_fullPath(
 }
 
 bool bs_fileExists(
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_fileExists(value, value_length);
+    return next.bs_fileExists(path, path_length);
 }
 
 bool bs_fileExistsV(
@@ -3680,39 +3675,67 @@ void bs_loadBindings(
     return next.bs_loadBindings(package_id, path);
 }
 
-void bs_bindImage(
+bs_Result bs_binding(
     bs_U32 bind_set_slot, 
-    bs_U32 binding_slot, 
+    bs_U32 bind_point_slot, 
+    bs_Descriptor* descriptors, 
+    int descriptors_count, 
+    bs_Binding** out)
+{
+    return next.bs_binding(bind_set_slot, bind_point_slot, descriptors, descriptors_count, out);
+}
+
+bs_Result bs_bindImage(
+    bs_U32 bind_set_slot, 
+    bs_U32 bind_point_slot, 
     bs_Image* image, 
     bs_Sampler* sampler, 
     bs_ImageLayout layout)
 {
-    return next.bs_bindImage(bind_set_slot, binding_slot, image, sampler, layout);
+    return next.bs_bindImage(bind_set_slot, bind_point_slot, image, sampler, layout);
 }
 
-void bs_bindImages(
+bs_Result bs_bindImages(
     bs_U32 bind_set_slot, 
-    bs_U32 slot, 
+    bs_U32 bind_point_slot, 
     bs_ImageDescriptor* images, 
     int images_count)
 {
-    return next.bs_bindImages(bind_set_slot, slot, images, images_count);
+    return next.bs_bindImages(bind_set_slot, bind_point_slot, images, images_count);
 }
 
-void bs_bindBuffer(
+bs_Result bs_bindBuffer(
     bs_U32 bind_set_slot, 
-    bs_U32 binding_slot, 
+    bs_U32 bind_point_slot, 
     bs_Buffer* buffer)
 {
-    return next.bs_bindBuffer(bind_set_slot, binding_slot, buffer);
+    return next.bs_bindBuffer(bind_set_slot, bind_point_slot, buffer);
 }
 
-void bs_bindAccelerationStructure(
+bs_Result bs_bindBuffers(
     bs_U32 bind_set_slot, 
-    bs_U32 slot, 
+    bs_U32 bind_point_slot, 
+    bs_Buffer** buffers, 
+    int buffers_count)
+{
+    return next.bs_bindBuffers(bind_set_slot, bind_point_slot, buffers, buffers_count);
+}
+
+bs_Result bs_bindAccelerationStructure(
+    bs_U32 bind_set_slot, 
+    bs_U32 bind_point_slot, 
     bs_RayTracer* ray_tracer)
 {
-    return next.bs_bindAccelerationStructure(bind_set_slot, slot, ray_tracer);
+    return next.bs_bindAccelerationStructure(bind_set_slot, bind_point_slot, ray_tracer);
+}
+
+bs_Result bs_bindAccelerationStructures(
+    bs_U32 bind_set_slot, 
+    bs_U32 bind_point_slot, 
+    bs_RayTracer** ray_tracers, 
+    int ray_tracers_count)
+{
+    return next.bs_bindAccelerationStructures(bind_set_slot, bind_point_slot, ray_tracers, ray_tracers_count);
 }
 
 void bs_pushDescriptors()
@@ -3732,7 +3755,7 @@ bs_BindSet* bs_queryBindSet(
 }
 
 bs_Binding* bs_queryBinding(
-    bs_BindSet* bind_set, 
+    const bs_BindSet* bind_set, 
     bs_U32 id)
 {
     return next.bs_queryBinding(bind_set, id);
@@ -3902,11 +3925,10 @@ int bs_scroll()
 }
 
 void bs_resizeWindow(
-    bs_Window* window, 
     bs_U32 width, 
     bs_U32 height)
 {
-    return next.bs_resizeWindow(window, width, height);
+    return next.bs_resizeWindow(width, height);
 }
 
 bs_ivec2 bs_screenDimensions()
@@ -3915,11 +3937,10 @@ bs_ivec2 bs_screenDimensions()
 }
 
 void bs_moveWindow(
-    bs_Window* window, 
     int x, 
     int y)
 {
-    return next.bs_moveWindow(window, x, y);
+    return next.bs_moveWindow(x, y);
 }
 
 void bs_window(
@@ -3960,55 +3981,47 @@ void bs_minimize()
     return next.bs_minimize();
 }
 
-double bs_deltaTime(
-    bs_Window* window)
+double bs_deltaTime()
 {
-    return next.bs_deltaTime(window);
+    return next.bs_deltaTime();
 }
 
-void bs_pause(
-    bs_Window* window)
+void bs_pause()
 {
-    return next.bs_pause(window);
+    return next.bs_pause();
 }
 
-void bs_advance(
-    bs_Window* window)
+void bs_advance()
 {
-    return next.bs_advance(window);
+    return next.bs_advance();
 }
 
-double bs_elapsedTime(
-    bs_Window* window)
+double bs_elapsedTime()
 {
-    return next.bs_elapsedTime(window);
+    return next.bs_elapsedTime();
 }
 
-bs_ivec2 bs_resolution(
-    bs_Window* window)
+bs_ivec2 bs_resolution()
 {
-    return next.bs_resolution(window);
+    return next.bs_resolution();
 }
 
 void bs_titleWindow(
-    bs_Window* window, 
     const char* title, 
     ...)
 {
-    return next.bs_titleWindow(window, title, ...);
+    return next.bs_titleWindow(title, ...);
 }
 
-bool bs_inFixedTick(
-    bs_Window* window)
+bool bs_inFixedTick()
 {
-    return next.bs_inFixedTick(window);
+    return next.bs_inFixedTick();
 }
 
 void bs_setTargetFramerate(
-    bs_Window* window, 
     int fps)
 {
-    return next.bs_setTargetFramerate(window, fps);
+    return next.bs_setTargetFramerate(fps);
 }
 
 bs_Timer bs_timer()
@@ -4117,10 +4130,10 @@ bs_Result bs_foreachFileF(
 bs_Result bs_foreachDirectory(
     void(*x)(bs_FileInfo, void*), 
     void* param, 
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_foreachDirectory(void(*x)(bs_FileInfo, void*), param, value, value_length);
+    return next.bs_foreachDirectory(void(*x)(bs_FileInfo, void*), param, path, path_length);
 }
 
 bs_Result bs_foreachDirectoryV(

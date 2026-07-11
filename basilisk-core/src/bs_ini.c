@@ -314,7 +314,7 @@ static void bs_createSurface(bs_Window* window) {
     }
 
     if (result != VK_SUCCESS) {
-        bs_warnF("Failed to create surface for window \"%s\" (Vulkan result %d)\n", window->title, result);
+        bs_warnF("Failed to create surface for window \"%s\" (Vulkan result = %d)\n", window->title, result);
     }
 }
 
@@ -377,6 +377,8 @@ static void bs_preparePhysicalDevice() {
 }
 
 static void bs_prepareLogicalDevice() {
+    VkResult vk_result;
+
     // todo shouldnt this all be in the physical device creation
    /**
     Features & Extensions
@@ -432,9 +434,16 @@ static void bs_prepareLogicalDevice() {
     bool supported_extensions[sizeof(extensions) / sizeof(const char*)] = { 0 };
 
     bs_U32 total_extensions_count = 0;
-    bs_throwVulkan(vkEnumerateDeviceExtensionProperties(_bs_instance_->physical_device, NULL, &total_extensions_count, NULL));
+    vk_result = vkEnumerateDeviceExtensionProperties(_bs_instance_->physical_device, NULL, &total_extensions_count, NULL);
+    if (vk_result != VK_SUCCESS) {
+        BS_WARN_VULKAN_ERROR("vkEnumerateDeviceExtensionProperties", vk_result, "");
+    }
+
     VkExtensionProperties* props = bs_calloc(total_extensions_count, sizeof(VkExtensionProperties));
-    bs_throwVulkan(vkEnumerateDeviceExtensionProperties(_bs_instance_->physical_device, NULL, &total_extensions_count, props));
+    vk_result = vkEnumerateDeviceExtensionProperties(_bs_instance_->physical_device, NULL, &total_extensions_count, props);
+    if (vk_result != VK_SUCCESS) {
+        BS_WARN_VULKAN_ERROR("vkEnumerateDeviceExtensionProperties", vk_result, "");
+    }
 
     for (int i = 0; i < extensions_count; i++) {
         for (int j = 0; j < total_extensions_count; j++) {
@@ -453,7 +462,7 @@ static void bs_prepareLogicalDevice() {
             if (_bs_features_.ray_tracing && i >= 1 && i <= 8) // todo something about this
                 _bs_features_.ray_tracing = false;
 
-            bs_warnF("Extension \"%s\" is not supported!\n", extensions[i]);
+            bs_warnF("Extension \"%s\" is not supported\n", extensions[i]);
         }
     }
 
@@ -504,7 +513,10 @@ static void bs_prepareLogicalDevice() {
         .enabledLayerCount = _bs_args_.use_validation_layers ? sizeof(validation_layers) / sizeof(const char*) : 0,
     };
 
-    bs_throwVulkan(vkCreateDevice(_bs_instance_->physical_device, &ci, NULL, &_bs_instance_->device));
+    vk_result = vkCreateDevice(_bs_instance_->physical_device, &ci, NULL, &_bs_instance_->device);
+    if (vk_result != VK_SUCCESS) {
+        BS_CRITICAL_VULKAN_ERROR("vkCreateDevice", vk_result, "");
+    }
 
     //bs_nameHandlef((bs_U64)bs_instance->_.graphics_queue, VK_OBJECT_TYPE_QUEUE, "graphics queue");
     //bs_nameHandlef((bs_U64)bs_instance->_.compute_queue, VK_OBJECT_TYPE_QUEUE, "compute queue");
@@ -517,10 +529,9 @@ static void bs_prepareCommands() {
         .queueFamilyIndex = bs_queueFamily(BS_QUEUE_GRAPHICS_BIT),
     };
 
-    bs_throwVulkan(vkCreateCommandPool(_bs_instance_->device, &pool_ci, NULL, &_bs_instance_->command_pool));
+    VkResult result = vkCreateCommandPool(_bs_instance_->device, &pool_ci, NULL, &_bs_instance_->command_pool);
+    BS_CRITICAL_VULKAN_ERROR("vkCreateCommandPool", result, "");
 }
-
-
 
 BSAPI bs_Args* _bs_arguments() {
     return &_bs_args_;
@@ -559,7 +570,7 @@ BSAPI void _bs_queryProcedures(bs_Procedure* procedures, int count, HMODULE dll_
     }
 }
 
-void bs_findExecutablePaths();
+void _bs_findExecutablePaths();
 BSAPI void _bs_ini() {
     _bs_instance_ = bs_calloc(1, sizeof(bs_Instance));
 
@@ -571,16 +582,16 @@ BSAPI void _bs_ini() {
     bs_configureAttribute("bs_Weight", BS_FORMAT_R32_SFLOAT);
 
    // _bs_wnd.fixed_time = 0.025;
-    bs_findExecutablePaths();
+    _bs_findExecutablePaths();
     bs_prepareInstance();
-    bs_prepareSurface();
+    //bs_prepareSurface();
     bs_preparePhysicalDevice();
     bs_prepareLogicalDevice();
 
     bs_Procedure procedures[] = { BS_FOREACH_PROC(BS_STRING_GEN_2) };
     bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), 0, &_bs_procs_);
 
-    bs_prepareSwapchain();
+    //bs_prepareSwapchain();
     bs_prepareCommands();
 }
 

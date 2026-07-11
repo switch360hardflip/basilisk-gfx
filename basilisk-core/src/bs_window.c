@@ -207,7 +207,7 @@ static void bs_swapchain(bs_Window* window) {
             .subresourceRange.layerCount = 1,
         };
 
-        result = vkCreateImageView(_bs_instance_->device, &image_view_ci, NULL, &window->swapchain_image->image->_[i].vk_view);
+        result = vkCreateImageView(_bs_instance_->device, &image_view_ci, NULL, &window->swapchain_image->image->_[i].vk_image_view);
         if (result != VK_SUCCESS) {
             bs_warnF("Failed to create swapchain image view for window \"%s\"\n", window->title);
         }
@@ -304,7 +304,7 @@ BSAPI bool _bs_isLaterThan(const bs_DateTime* a, const bs_DateTime* b) {
 	return bs_totalSeconds(a) - bs_totalSeconds(b) > 0;
 }
 
-BSAPI void _bs_setCursor(bs_Window* window, bs_CursorIcon icon) {
+BSAPI void _bs_setCursor(bs_CursorIcon icon) {
 	bs_warnF("bs_setCursor has not been implemented yet\n");
 	/*
 	if (window->cursor_icons[icon].handle == NULL)
@@ -317,11 +317,13 @@ BSAPI void _bs_setCursor(bs_Window* window, bs_CursorIcon icon) {
 	*/
 }
 
-BSAPI void _bs_resizeWindow(bs_Window* window, bs_U32 width, bs_U32 height) {
+BSAPI void _bs_resizeWindow(bs_U32 width, bs_U32 height) {
 //	bsi_resizeObjects();
 }
 
-BSAPI void _bs_maximizeWindow(bs_Window* window) {
+BSAPI void _bs_maximizeWindow() {
+    bs_Window* window = _bs_scope_.window;
+
 #ifdef _WIN32
 	ShowWindow(window->hwnd, SW_SHOWMAXIMIZED);
 #else
@@ -329,7 +331,8 @@ BSAPI void _bs_maximizeWindow(bs_Window* window) {
 #endif
 }
 
-BSAPI void _bs_minimizeWindow(bs_Window* window) {
+BSAPI void _bs_minimizeWindow() {
+    bs_Window* window = _bs_scope_.window;
 #ifdef _WIN32
 	ShowWindow(window->hwnd, SW_SHOWMINIMIZED);
 #else
@@ -341,21 +344,24 @@ BSAPI void _bs_exit() {
     _bs_instance_->alive = false;
 }
 
-BSAPI void _bs_pause(bs_Window* window) {
+BSAPI void _bs_pause() {
+    bs_Window* window = _bs_scope_.window;
     window->paused = !window->paused;
 }
 
-BSAPI void _val_bs_advance(bs_Window* window) {
+BSAPI void _val_bs_advance() {
+    bs_Window* window = _bs_scope_.window;
     BS_VALIDATE(window->paused == true,,);
-
     return bs_advance(window);
 }
 
-BSAPI void _bs_advance(bs_Window* window) {
+BSAPI void _bs_advance() {
+    bs_Window* window = _bs_scope_.window;
     window->advance = true;
 }
 
-BSAPI double _bs_deltaTime(bs_Window* window) {
+BSAPI double _bs_deltaTime() {
+    bs_Window* window = _bs_scope_.window;
 //#ifdef _DEBUG
 //	if (bs_wnd.delta_time == 0.0)
 //		bs_throwBasiliskF(BSX_GENERAL, "Delta time is 0.0"); // some bug is ruining my life
@@ -363,15 +369,19 @@ BSAPI double _bs_deltaTime(bs_Window* window) {
 	return window->delta_time;
 }
 
-BSAPI double _bs_elapsedTime(bs_Window* window) {
-	return window->time;
+BSAPI double _bs_elapsedTime() {
+    bs_Window* window = _bs_scope_.window;
+    return window->time;
 }
 
-BSAPI bs_ivec2 _bs_resolution(bs_Window* window) {
-	return window->swapchain_image->image->dim;
+BSAPI bs_ivec2 _bs_resolution() {
+    bs_Window* window = _bs_scope_.window;
+    return window->swapchain_image->image->dim;
 }
 
-BSAPI bs_vec2 _bs_cursorPosition(bs_Window* window) {
+BSAPI bs_vec2 _bs_cursorPosition() {
+    bs_Window* window = _bs_scope_.window;
+
     bs_vec2 dim = { window->swapchain_image->image->dim.x, window->swapchain_image->image->dim.y };
     bs_vec2 pos;
 
@@ -379,7 +389,9 @@ BSAPI bs_vec2 _bs_cursorPosition(bs_Window* window) {
 	return bs_v2(pos.x, 1.0 - pos.y);
 }
 
-BSAPI bs_ivec2 _bs_windowPosition(bs_Window* window) {
+BSAPI bs_ivec2 _bs_windowPosition() {
+    bs_Window* window = _bs_scope_.window;
+
 #ifdef _WIN32
 	RECT rectangle = { 0 };
 	GetWindowRect(window->hwnd, &rectangle);
@@ -420,7 +432,8 @@ BSAPI bs_vec2 _bs_screenCursorPosition() {
 	return _bs_instance_->screen_cursor;
 }
 
-BSAPI void _bs_lockCursorPosition(bs_Window* window, bool value) {
+BSAPI void _bs_lockCursorPosition(bool value) {
+    bs_Window* window = _bs_scope_.window;
     window->lock_cursor_position = value;
 }
 
@@ -515,15 +528,18 @@ BSAPI void _bs_checkTimer(bs_Timer* timer) {
     timer->seconds = timer->microseconds / 1000000.0;
 }
 
-BSAPI void _bs_titleWindow(bs_Window* window, const char* title, ...) {
+BSAPI void _bs_titleWindow(const char* title, ...) {
+    bs_Window* window = _bs_scope_.window;
 	window->title = title; // todo
 }
 
-BSAPI bool _bs_inFixedTick(bs_Window* window) {
-	return window->in_fixed;
+BSAPI bool _bs_inFixedTick() {
+    bs_Window* window = _bs_scope_.window;
+    return window->in_fixed;
 }
 
-BSAPI void _bs_setTargetFramerate(bs_Window* window, int fps) {
+BSAPI void _bs_setTargetFramerate(int fps) {
+    bs_Window* window = _bs_scope_.window;
     window->target_frame_time = 1.0 / (double)fps;
 }
 

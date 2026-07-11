@@ -1306,12 +1306,12 @@ BSAPI void _bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offs
 
     bs_U32 vertex_swap = (batch->vertex_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_scope_.window->frame : 0;
 
-    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->vk_pipeline);
     if (pipeline->num_bind_sets != 0) {
         vkCmdBindDescriptorSets(
             command_buffer,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
-            pipeline->layout,
+            pipeline->vk_layout,
             0, pipeline->num_bind_sets, _bs_instance_->sets, 0, NULL
         );
     }
@@ -1364,8 +1364,8 @@ BSAPI bs_Result _bs_renderer(bs_Object* object, bs_RendererBits flags) {
         flags |= BSI_RENDERER_HAS_SWAPS_BIT;
 
     renderer->flags = flags;
-    renderer->inputs = bs_malloc(BS_MAX_NUM_ATTACHMENTS * sizeof(bs_Input));
-    renderer->outputs = bs_malloc(BS_MAX_NUM_ATTACHMENTS * sizeof(bs_Output));
+    renderer->inputs = bs_malloc(BS_MAX_ATTACHMENTS_COUNT * sizeof(bs_Input));
+    renderer->outputs = bs_malloc(BS_MAX_ATTACHMENTS_COUNT * sizeof(bs_Output));
     renderer->dependencies = bs_malloc(BS_MAX_NUM_SUBPASS_DEPENDENCIES * sizeof(VkSubpassDependency));
 
     // BS_MAX(_bs_scope_.window->frames_in_flight, _bs_settings_.buffer_count_min)
@@ -1378,7 +1378,7 @@ BSAPI void _bs_output(bs_Renderer* renderer, bs_Output output) {
 }
 
 BSAPI void _val_bs_input(bs_Renderer* renderer, bs_Input input) {
-    BS_VALIDATE(renderer->num_inputs >= BS_MAX_NUM_ATTACHMENTS,,);
+    BS_VALIDATE(renderer->num_inputs >= BS_MAX_ATTACHMENTS_COUNT,,);
 }
 
 BSAPI void _bs_input(bs_Renderer* renderer, bs_Input input) {
@@ -1424,13 +1424,13 @@ BSAPI void _val_bs_renderPass(bs_Renderer* renderer) {
 
 BSAPI void _bs_renderPass(bs_Renderer* renderer) {
     VkSubpassDescription subpasses[BS_MAX_NUM_SUBPASSES] = { 0 };
-    VkAttachmentDescription attachments[BS_MAX_NUM_ATTACHMENTS] = { 0 };
+    VkAttachmentDescription attachments[BS_MAX_ATTACHMENTS_COUNT] = { 0 };
 
     qsort(renderer->inputs, renderer->num_inputs, sizeof(bs_Input), bs_sortInputs);
     qsort(renderer->outputs, renderer->num_outputs, sizeof(bs_Output), bs_sortOutputs);
 
-    VkAttachmentReference attachment_references[BS_MAX_NUM_ATTACHMENTS] = { 0 };
-    VkAttachmentReference input_references[BS_MAX_NUM_ATTACHMENTS] = { 0 };
+    VkAttachmentReference attachment_references[BS_MAX_ATTACHMENTS_COUNT] = { 0 };
+    VkAttachmentReference input_references[BS_MAX_ATTACHMENTS_COUNT] = { 0 };
 
     for (int i = 0; i < renderer->num_outputs; i++) {
         bs_Output* output = renderer->outputs + i;
@@ -1520,7 +1520,7 @@ BSAPI void _val_bs_framebuffer(bs_Renderer* renderer, bs_ivec2 dim) {
 }
 
 BSAPI void _bs_framebuffer(bs_Renderer* renderer, bs_ivec2 dim) {
-    VkImageView vk_views[BS_MAX_NUM_ATTACHMENTS] = { 0 };
+    VkImageView vk_views[BS_MAX_ATTACHMENTS_COUNT] = { 0 };
     renderer->dim = dim;
 
     int swaps_count = bs_rendererSwapsCount(renderer);
@@ -1529,7 +1529,7 @@ BSAPI void _bs_framebuffer(bs_Renderer* renderer, bs_ivec2 dim) {
             bs_Output* output = renderer->outputs + j;
 
             int swap = output->image->flags & BS_IMAGE_SWAPS_BIT ? i : 0;
-            vk_views[j] = output->image->_[swap].vk_view;
+            vk_views[j] = output->image->_[swap].vk_image_view;
         }
 
         VkFramebufferCreateInfo framebuf_ci = {
@@ -1566,7 +1566,7 @@ BSAPI void _bs_beginRender(bs_Renderer* renderer) {
 
     VkCommandBuffer command_buffer = bsi_fetchCommands();
 
-    VkClearValue clear_values[BS_MAX_NUM_ATTACHMENTS] = { 0 };
+    VkClearValue clear_values[BS_MAX_ATTACHMENTS_COUNT] = { 0 };
 
     for (int i = 0; i < renderer->num_outputs; i++) {
         bs_Output* output = renderer->outputs + i;
@@ -1604,7 +1604,7 @@ BSAPI void _bs_beginRender(bs_Renderer* renderer) {
 
             attachments[i] = (VkRenderingAttachmentInfo){
                 .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-                .imageView = output->image->_[output->image->flags & BS_IMAGE_SWAPS_BIT ? _bs_image_index_ : 0].vk_view,
+                .imageView = output->image->_[output->image->flags & BS_IMAGE_SWAPS_BIT ? _bs_image_index_ : 0].vk_image_view,
                 .imageLayout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL_KHR,
                 .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
                 .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -1748,11 +1748,11 @@ BSAPI void _bs_resizeRenderer(bs_Renderer* renderer, bs_ivec2 dim) {
 BSAPI void _bs_dispatchAsync(bs_Pipeline* pipeline, bs_U32 x, bs_U32 y, bs_U32 z) {
     VkCommandBuffer command_buffer = bsi_fetchCommands();
 
-    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline->pipeline);
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline->vk_pipeline);
     vkCmdBindDescriptorSets(
         command_buffer, 
         VK_PIPELINE_BIND_POINT_COMPUTE, 
-        pipeline->layout, 
+        pipeline->vk_layout,
         0, pipeline->num_bind_sets, _bs_instance_->sets, 0, NULL);
 
     vkCmdDispatch(command_buffer, x, y, z);
@@ -1772,12 +1772,12 @@ BSAPI void _bs_dispatchAsync(bs_Pipeline* pipeline, bs_U32 x, bs_U32 y, bs_U32 z
 BSAPI void _bs_rayTrace(bs_RayTracer* ray_tracer, bs_Pipeline* pipeline, bs_U32 width, bs_U32 height, bs_U32 depth) {
     VkCommandBuffer command_buffer = bsi_fetchCommands();
 
-    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, pipeline->pipeline);
+    vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, pipeline->vk_pipeline);
     if (pipeline->num_bind_sets != 0) {
         vkCmdBindDescriptorSets(
             command_buffer,
             VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR,
-            pipeline->layout,
+            pipeline->vk_layout,
             0, pipeline->num_bind_sets, _bs_instance_->sets, 0, NULL
         );
     }
@@ -2311,7 +2311,7 @@ BSAPI bs_Result _bs_queue(bs_Object* object, bs_QueueBits flags) {
         if (!(flags & BS_QUEUE_DONT_SIGNAL)) {
             result = vkCreateSemaphore(_bs_instance_->device, &semaphore_ci, NULL, &object->queue->_[i].semaphore);
             if (result != VK_SUCCESS) {
-                bs_warnF("Failed to create queue semaphore (Vulkan result %d)\n", result);
+                BS_WARN_VULKAN_ERROR("vkCreateSemaphore", result, "");
                 return bs_convertVulkanResult(result);
             }
 
@@ -2319,13 +2319,13 @@ BSAPI bs_Result _bs_queue(bs_Object* object, bs_QueueBits flags) {
 
         result = vkCreateFence(_bs_instance_->device, &fence_ci, NULL, &object->queue->_[i].fence);
         if (result != VK_SUCCESS) {
-            bs_warnF("Failed to create queue fence (Vulkan result %d)\n", result);
+            BS_WARN_VULKAN_ERROR("vkCreateFence", result, "");
             return bs_convertVulkanResult(result);
         }
 
         result = vkResetFences(_bs_instance_->device, 1, &object->queue->_[i].fence);
         if (result != VK_SUCCESS) {
-            bs_warnF("Failed to reset queue fence (Vulkan result %d)\n", result);
+            BS_WARN_VULKAN_ERROR("vkResetFences", result, "");
             return bs_convertVulkanResult(result);
         }
     }
@@ -2549,8 +2549,8 @@ static void bs_destroySwapchain() {
     bs_Image* swapchain_image = window->swapchain_image->image;
 
     for (int i = 0; i < window->frames_in_flight; i++) {
-        vkDestroyImageView(_bs_instance_->device, swapchain_image->_[i].vk_view, NULL);
-        swapchain_image->_[i].vk_view = 0;
+        vkDestroyImageView(_bs_instance_->device, swapchain_image->_[i].vk_image_view, NULL);
+        swapchain_image->_[i].vk_image_view = 0;
     }
 
     vkDestroySwapchainKHR(_bs_instance_->device, window->swapchain, NULL);

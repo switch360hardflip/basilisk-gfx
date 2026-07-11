@@ -373,7 +373,6 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_args = GetProcAddress(module, "_val_bs_args");
     functions.bs_features = GetProcAddress(module, "_val_bs_features");
     functions.bs_props = GetProcAddress(module, "_val_bs_props");
-    functions.bs_settings = GetProcAddress(module, "_val_bs_settings");
     functions.bs_config = GetProcAddress(module, "_val_bs_config");
     functions.bs_system = GetProcAddress(module, "_val_bs_system");
     functions.bs_systemV = GetProcAddress(module, "_val_bs_systemV");
@@ -513,10 +512,13 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_rayTracingPipeline = GetProcAddress(module, "_val_bs_rayTracingPipeline");
     functions.bs_deserializeBindType = GetProcAddress(module, "_val_bs_deserializeBindType");
     functions.bs_loadBindings = GetProcAddress(module, "_val_bs_loadBindings");
+    functions.bs_binding = GetProcAddress(module, "_val_bs_binding");
     functions.bs_bindImage = GetProcAddress(module, "_val_bs_bindImage");
     functions.bs_bindImages = GetProcAddress(module, "_val_bs_bindImages");
     functions.bs_bindBuffer = GetProcAddress(module, "_val_bs_bindBuffer");
+    functions.bs_bindBuffers = GetProcAddress(module, "_val_bs_bindBuffers");
     functions.bs_bindAccelerationStructure = GetProcAddress(module, "_val_bs_bindAccelerationStructure");
+    functions.bs_bindAccelerationStructures = GetProcAddress(module, "_val_bs_bindAccelerationStructures");
     functions.bs_pushDescriptors = GetProcAddress(module, "_val_bs_pushDescriptors");
     functions.bs_pushBindings = GetProcAddress(module, "_val_bs_pushBindings");
     functions.bs_queryBindSet = GetProcAddress(module, "_val_bs_queryBindSet");
