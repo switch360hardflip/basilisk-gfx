@@ -130,6 +130,14 @@ void bs_v2Normalize(
     glm_vec2_normalize_to(v->a, out->a);
 }
 
+void bs_v2Mid(
+    const bs_vec3* a, 
+    const bs_vec3* b, 
+    bs_vec3* out)
+{
+    return next.bs_v2Mid(a, b, out);
+}
+
 bs_vec3 bs_v3()
 {
     return next.bs_v3();
@@ -207,6 +215,14 @@ void bs_v3Normalize(
     bs_vec3* out)
 {
     glm_vec3_normalize_to(v->a, out->a);
+}
+
+void bs_v3Mid(
+    const bs_vec3* a, 
+    const bs_vec3* b, 
+    bs_vec3* out)
+{
+    return next.bs_v3Mid(a, b, out);
 }
 
 bs_vec4 bs_v4()
@@ -318,11 +334,11 @@ void bs_m3Inverse(
 }
 
 void bs_m3MulV3(
-    bs_mat3* m, 
-    bs_vec3* v, 
-    bs_vec3* result)
+    const bs_mat3* m, 
+    const bs_vec3* v, 
+    bs_vec3* out)
 {
-    glm_mat3_mulv(m->v, v->a, result->a);
+    glm_mat3_mulv(m->v, v->a, out->a);
 }
 
 void bs_m4Mul(
@@ -355,96 +371,96 @@ void bs_m4Inverse(
 }
 
 void bs_m4MulV3(
-    bs_mat4* m, 
-    bs_vec3* v, 
-    bs_vec3* result)
+    const bs_mat4* m, 
+    const bs_vec3* v, 
+    bs_vec3* out)
 {
-    glm_mat4_mulv3(m->v, v->a, 1.0, result->a);
+    glm_mat4_mulv3(m->v, v->a, 1.0, out->a);
 }
 
 void bs_m4MulV4(
-    bs_mat4* m, 
-    bs_vec3* v, 
-    bs_mat4* result)
+    const bs_mat4* m, 
+    const bs_vec3* v, 
+    bs_mat4* out)
 {
-    glm_mat4_mulv(m->v, v->a, result->a);
+    glm_mat4_mulv(m->v, v->a, out->a);
 }
 
 void bs_m4Translate(
-    bs_mat4* m, 
-    bs_vec3* v, 
-    bs_mat4* result)
+    const bs_mat4* m, 
+    const bs_vec3* v, 
+    bs_mat4* out)
 {
-    glm_translate_to(m->v, v->a, result->a);
+    glm_translate_to(m->v, v->a, out->a);
 }
 
 void bs_m4Rotate(
-    bs_mat4* m, 
-    bs_vec4* q, 
-    bs_mat4* result)
+    const bs_mat4* m, 
+    const bs_vec4* q, 
+    bs_mat4* out)
 {
-    glm_quat_rotate(m->v, q->a, result->a);
+    glm_quat_rotate(m->v, q->a, out->a);
 }
 
 void bs_m4Scale(
-    bs_mat4* m, 
-    bs_vec3* v, 
-    bs_mat4* result)
+    const bs_mat4* m, 
+    const bs_vec3* v, 
+    bs_mat4* out)
 {
-    glm_scale_to(m->v, v->a, result->a);
+    glm_scale_to(m->v, v->a, out->a);
 }
 
 void bs_m3FromQ(
-    bs_mat3* m, 
-    bs_vec4* result)
+    const bs_mat3* m, 
+    bs_vec4* out)
 {
-    glm_mat3_quat(m->v, result->a);
+    glm_mat3_quat(m->v, out->a);
 }
 
 void bs_m4FromQ(
-    bs_mat4* m, 
-    bs_vec4* result)
+    const bs_mat4* m, 
+    bs_vec4* out)
 {
-    glm_mat4_quat(m->v, result->a);
+    glm_mat4_quat(m->v, out->a);
 }
 
 void bs_qFromM3(
-    bs_mat3* m, 
-    bs_vec4* result)
+    const bs_mat3* m, 
+    bs_vec4* out)
 {
-    glm_mat3_quat(m->v, result->a);
+    glm_mat3_quat(m->v, out->a);
 }
 
 void bs_qFromM4(
-    bs_mat4* m, 
-    bs_vec4* result)
+    const bs_mat4* m, 
+    bs_vec4* out)
 {
-    glm_mat4_quat(m->v, result->a);
+    glm_mat4_quat(m->v, out->a);
 }
 
 void bs_qNormalize(
-    bs_vec4* q, 
-    bs_vec4* result)
+    const bs_vec4* q, 
+    bs_vec4* out)
 {
-    glm_quat_normalize_to(q->a, result->a);
+    glm_quat_normalize_to(q->a, out->a);
 }
 
 void bs_qSlerp(
-    bs_vec4* from, 
-    bs_vec4* to, 
+    const bs_vec4* from, 
+    const bs_vec4* to, 
     float t, 
-    bs_vec4* result)
+    bs_vec4* out)
 {
-    glm_quat_slerp(from->a, to->a, t, result->a);
+    glm_quat_slerp(from->a, to->a, t, out->a);
 }
 
 void bs_qLongSlerp(
-    bs_vec4* from, 
-    bs_vec4* to, 
+    const bs_vec4* from, 
+    const bs_vec4* to, 
     float t, 
-    bs_vec4* result)
+    bs_vec4* out)
 {
-    glm_quat_slerp_longest(from->a, to->a, t, result->a);
+    glm_quat_slerp_longest(from->a, to->a, t, out->a);
 }
 
 void bs_orthographic(
@@ -454,9 +470,9 @@ void bs_orthographic(
     float top, 
     float near, 
     float far, 
-    bs_mat4* result)
+    bs_mat4* out)
 {
-    glm_ortho(left, right, bottom, top, near, far, result->v);
+    glm_ortho(left, right, bottom, top, near, far, out->v);
 }
 
 void bs_perspective(
@@ -464,27 +480,69 @@ void bs_perspective(
     float aspect, 
     float near, 
     float far, 
-    bs_mat4* result)
+    bs_mat4* out)
 {
-    glm_perspective(fov, aspect, near, far, result->v);
+    glm_perspective(fov, aspect, near, far, out->v);
 }
 
 void bs_lookAt(
     const bs_vec3* eye, 
     const bs_vec3* center, 
     const bs_vec3* up, 
-    bs_mat4* result)
+    bs_mat4* out)
 {
-    glm_lookat(eye->a, center->a, up->a, result->a);
+    glm_lookat(eye->a, center->a, up->a, out->a);
 }
 
 void bs_look(
     const bs_vec3* eye, 
     const bs_vec3* direction, 
     const bs_vec3* up, 
-    bs_mat4* result)
+    bs_mat4* out)
 {
-    glm_look(eye->a, direction->a, up->a, result->a);
+    glm_look(eye->a, direction->a, up->a, out->a);
+}
+
+float bs_v2CubicBezier(
+    const bs_vec2* p0, 
+    const bs_vec2* p1, 
+    const bs_vec2* p2, 
+    const bs_vec2* p3, 
+    bs_vec2* out, 
+    int out_length)
+{
+    return next.bs_v2CubicBezier(p0, p1, p2, p3, out, out_length);
+}
+
+float bs_v2QuadBezier(
+    const bs_vec2* p0, 
+    const bs_vec2* p1, 
+    const bs_vec2* p2, 
+    bs_vec2* out, 
+    int out_length)
+{
+    return next.bs_v2QuadBezier(p0, p1, p2, out, out_length);
+}
+
+float bs_v3CubicBezier(
+    const bs_vec3* p0, 
+    const bs_vec3* p1, 
+    const bs_vec3* p2, 
+    const bs_vec3* p3, 
+    bs_vec3* out, 
+    int out_length)
+{
+    return next.bs_v3CubicBezier(p0, p1, p2, p3, out, out_length);
+}
+
+float bs_v3QuadBezier(
+    const bs_vec3* p0, 
+    const bs_vec3* p1, 
+    const bs_vec3* p2, 
+    bs_vec3* out, 
+    int out_length)
+{
+    return next.bs_v3QuadBezier(p0, p1, p2, out, out_length);
 }
 
 float bs_abs(
@@ -506,9 +564,16 @@ bs_Result bs_convertVulkanResult(
     return next.bs_convertVulkanResult(code);
 }
 
-bs_Result bs_convertLastError()
+bs_Result bs_convertWin32Error(
+    unsigned long code)
 {
-    return next.bs_convertLastError();
+    return next.bs_convertWin32Error(code);
+}
+
+const char* bs_serializeWin32Error(
+    unsigned long code)
+{
+    return next.bs_serializeWin32Error(code);
 }
 
 bs_Result bs_convertErrno()
@@ -554,18 +619,18 @@ void bs_rayVsObb(
     bs_vec3 position, 
     bs_vec4 rotation, 
     bs_vec3 scale, 
-    bs_RayVsObb* result)
+    bs_RayVsObb* out)
 {
-    return next.bs_rayVsObb(ray, position, rotation, scale, result);
+    return next.bs_rayVsObb(ray, position, rotation, scale, out);
 }
 
 void bs_sphereVsPoint(
     bs_vec3 center, 
     float radius, 
     bs_vec3 point, 
-    bs_SphereVsPoint* result)
+    bs_SphereVsPoint* out)
 {
-    return next.bs_sphereVsPoint(center, radius, point, result);
+    return next.bs_sphereVsPoint(center, radius, point, out);
 }
 
 void bs_sphereVsBox(
@@ -574,27 +639,27 @@ void bs_sphereVsBox(
     bs_vec3 position, 
     bs_vec4 rotation, 
     bs_vec3 scale, 
-    bs_SphereVsBox* result)
+    bs_SphereVsBox* out)
 {
-    return next.bs_sphereVsBox(center, radius, position, rotation, scale, result);
+    return next.bs_sphereVsBox(center, radius, position, rotation, scale, out);
 }
 
 void bs_rectangleVsPoint(
     bs_vec2 position, 
     bs_vec2 dimensions, 
     bs_vec2 point, 
-    bs_RectangleVsPoint* result)
+    bs_RectangleVsPoint* out)
 {
-    return next.bs_rectangleVsPoint(position, dimensions, point, result);
+    return next.bs_rectangleVsPoint(position, dimensions, point, out);
 }
 
 void bs_rectangleVsPointAbs(
     bs_vec2 position, 
     bs_vec2 dimensions, 
     bs_vec2 point, 
-    bs_RectangleVsPoint* result)
+    bs_RectangleVsPoint* out)
 {
-    return next.bs_rectangleVsPointAbs(position, dimensions, point, result);
+    return next.bs_rectangleVsPointAbs(position, dimensions, point, out);
 }
 
 void bs_lineVsLine(
@@ -602,9 +667,9 @@ void bs_lineVsLine(
     bs_vec2 l1_end, 
     bs_vec2 l2_start, 
     bs_vec2 l2_end, 
-    bs_LineVsLine* result)
+    bs_LineVsLine* out)
 {
-    return next.bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, result);
+    return next.bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, out);
 }
 
 void bs_populateVertexDeclaration(
@@ -2613,33 +2678,11 @@ void bs_systemF(
     va_end(args);
 }
 
-void bs_systemAsync(
-    char* command, 
-    char* value, 
-    int value_length)
+void bs_createThread(
+    bs_ThreadFunction function, 
+    void* param)
 {
-    return next.bs_systemAsync(command, value, value_length);
-}
-
-void bs_systemAsyncV(
-    char* command, 
-    char* format, 
-    va_list args)
-{
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_systemAsync(command, string->value, string->len);
-}
-
-void bs_systemAsyncF(
-    char* command, 
-    char* format, 
-    ...)
-{
-    va_list args;
-    va_start(args, format);
-    bs_systemAsyncV(command, format, args);
-    va_end(args);
+    return next.bs_createThread(function, param);
 }
 
 const char* bs_checkStringPool(
@@ -2761,9 +2804,29 @@ bs_String* bs_workingDirectory()
 }
 
 void bs_setWorkingDirectory(
-    char* path)
+    char* value, 
+    int value_length)
 {
-    return next.bs_setWorkingDirectory(path);
+    return next.bs_setWorkingDirectory(value, value_length);
+}
+
+void bs_setWorkingDirectoryV(
+    char* format, 
+    va_list args)
+{
+    static bs_String* string;
+    string = bs_stringV(string, format, args);
+    return bs_setWorkingDirectory(string->value, string->len);
+}
+
+void bs_setWorkingDirectoryF(
+    char* format, 
+    ...)
+{
+    va_list args;
+    va_start(args, format);
+    bs_setWorkingDirectoryV(format, args);
+    va_end(args);
 }
 
 bs_String* bs_executablePath()
@@ -2977,10 +3040,10 @@ void* bs_pushBack(
 }
 
 void* bs_pushBackList(
-    bs_List* destination, 
-    bs_List* source)
+    bs_List* source, 
+    bs_List* destination)
 {
-    return next.bs_pushBackList(destination, source);
+    return next.bs_pushBackList(source, destination);
 }
 
 void bs_destroyList(
@@ -3111,45 +3174,39 @@ void bs_saveFileF(
 }
 
 void bs_convertWin32Path(
-    char* path, 
-    int len, 
     char* value, 
     int value_length)
 {
-    return next.bs_convertWin32Path(path, len, value, value_length);
+    return next.bs_convertWin32Path(value, value_length);
 }
 
 void bs_convertWin32PathV(
-    char* path, 
-    int len, 
     char* format, 
     va_list args)
 {
     static bs_String* string;
     string = bs_stringV(string, format, args);
-    return bs_convertWin32Path(path, len, string->value, string->len);
+    return bs_convertWin32Path(string->value, string->len);
 }
 
 void bs_convertWin32PathF(
-    char* path, 
-    int len, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_convertWin32PathV(path, len, format, args);
+    bs_convertWin32PathV(format, args);
     va_end(args);
 }
 
-void bs_ensureDirectory(
+bs_Result bs_ensureDirectory(
     char* value, 
     int value_length)
 {
     return next.bs_ensureDirectory(value, value_length);
 }
 
-void bs_ensureDirectoryV(
+bs_Result bs_ensureDirectoryV(
     char* format, 
     va_list args)
 {
@@ -3158,51 +3215,73 @@ void bs_ensureDirectoryV(
     return bs_ensureDirectory(string->value, string->len);
 }
 
-void bs_ensureDirectoryF(
+bs_Result bs_ensureDirectoryF(
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_ensureDirectoryV(format, args);
+    bs_Result _return = bs_ensureDirectoryV(format, args);
     va_end(args);
+    return _return;
 }
 
-bs_DateTime bs_fileModifiedDate()
-{
-    return next.bs_fileModifiedDate();
-}
-
-void bs_setFileModifiedDate(
-    const char* path, 
-    bs_DateTime* date_time)
-{
-    return next.bs_setFileModifiedDate(path, date_time);
-}
-
-bs_DateTime bs_fileModifiedDate(
+bs_Result bs_fileModifiedDate(
+    bs_DateTime* out, 
     char* value, 
     int value_length)
 {
-    return next.bs_fileModifiedDate(value, value_length);
+    return next.bs_fileModifiedDate(out, value, value_length);
 }
 
-bs_DateTime bs_fileModifiedDateV(
+bs_Result bs_fileModifiedDateV(
+    bs_DateTime* out, 
     char* format, 
     va_list args)
 {
     static bs_String* string;
     string = bs_stringV(string, format, args);
-    return bs_fileModifiedDate(string->value, string->len);
+    return bs_fileModifiedDate(out, string->value, string->len);
 }
 
-bs_DateTime bs_fileModifiedDateF(
+bs_Result bs_fileModifiedDateF(
+    bs_DateTime* out, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_DateTime _return = bs_fileModifiedDateV(format, args);
+    bs_Result _return = bs_fileModifiedDateV(out, format, args);
+    va_end(args);
+    return _return;
+}
+
+bs_Result bs_setFileModifiedDate(
+    bs_DateTime* date, 
+    char* value, 
+    int value_length)
+{
+    return next.bs_setFileModifiedDate(date, value, value_length);
+}
+
+bs_Result bs_setFileModifiedDateV(
+    bs_DateTime* date, 
+    char* format, 
+    va_list args)
+{
+    static bs_String* string;
+    string = bs_stringV(string, format, args);
+    return bs_setFileModifiedDate(date, string->value, string->len);
+}
+
+bs_Result bs_setFileModifiedDateF(
+    bs_DateTime* date, 
+    char* format, 
+    ...)
+{
+    va_list args;
+    va_start(args, format);
+    bs_Result _return = bs_setFileModifiedDateV(date, format, args);
     va_end(args);
     return _return;
 }
@@ -3213,12 +3292,6 @@ bs_String* bs_fullPath(
     int path_len)
 {
     return next.bs_fullPath(old, path, path_len);
-}
-
-bool bs_fileExists(
-    const char* path)
-{
-    return next.bs_fileExists(path);
 }
 
 bool bs_fileExists(
@@ -3264,27 +3337,6 @@ bs_F64 bs_toDouble(
     const char* str)
 {
     return next.bs_toDouble(str);
-}
-
-bs_I64* bs_toLongNull(
-    const char* str, 
-    bs_I64* inout)
-{
-    return next.bs_toLongNull(str, inout);
-}
-
-bs_U64* bs_toULongNull(
-    const char* str, 
-    bs_U64* inout)
-{
-    return next.bs_toULongNull(str, inout);
-}
-
-bs_F64* bs_toDoubleNull(
-    const char* str, 
-    bs_F64* inout)
-{
-    return next.bs_toDoubleNull(str, inout);
 }
 
 bs_Resource* bs_model(
@@ -4029,7 +4081,7 @@ bs_String* bs_appendStringF(
     return _return;
 }
 
-void bs_foreachFile(
+bs_Result bs_foreachFile(
     void(*x)(bs_FileInfo, void*), 
     void* param, 
     char* value, 
@@ -4038,7 +4090,7 @@ void bs_foreachFile(
     return next.bs_foreachFile(void(*x)(bs_FileInfo, void*), param, value, value_length);
 }
 
-void bs_foreachFileV(
+bs_Result bs_foreachFileV(
     void(*x)(bs_FileInfo, void*), 
     void* param, 
     char* format, 
@@ -4049,7 +4101,7 @@ void bs_foreachFileV(
     return bs_foreachFile(void(*x)(bs_FileInfo, void*), param, string->value, string->len);
 }
 
-void bs_foreachFileF(
+bs_Result bs_foreachFileF(
     void(*x)(bs_FileInfo, void*), 
     void* param, 
     char* format, 
@@ -4057,11 +4109,12 @@ void bs_foreachFileF(
 {
     va_list args;
     va_start(args, format);
-    bs_foreachFileV(void(*x)(bs_FileInfo, void*), param, format, args);
+    bs_Result _return = bs_foreachFileV(void(*x)(bs_FileInfo, void*), param, format, args);
     va_end(args);
+    return _return;
 }
 
-void bs_foreachDirectory(
+bs_Result bs_foreachDirectory(
     void(*x)(bs_FileInfo, void*), 
     void* param, 
     char* value, 
@@ -4070,7 +4123,7 @@ void bs_foreachDirectory(
     return next.bs_foreachDirectory(void(*x)(bs_FileInfo, void*), param, value, value_length);
 }
 
-void bs_foreachDirectoryV(
+bs_Result bs_foreachDirectoryV(
     void(*x)(bs_FileInfo, void*), 
     void* param, 
     char* format, 
@@ -4081,7 +4134,7 @@ void bs_foreachDirectoryV(
     return bs_foreachDirectory(void(*x)(bs_FileInfo, void*), param, string->value, string->len);
 }
 
-void bs_foreachDirectoryF(
+bs_Result bs_foreachDirectoryF(
     void(*x)(bs_FileInfo, void*), 
     void* param, 
     char* format, 
@@ -4089,8 +4142,9 @@ void bs_foreachDirectoryF(
 {
     va_list args;
     va_start(args, format);
-    bs_foreachDirectoryV(void(*x)(bs_FileInfo, void*), param, format, args);
+    bs_Result _return = bs_foreachDirectoryV(void(*x)(bs_FileInfo, void*), param, format, args);
     va_end(args);
+    return _return;
 }
 
 int bs_numFiles(
@@ -4217,46 +4271,40 @@ bs_Result bs_loadFileChunkF(
 }
 
 bs_Result bs_deleteFile(
-    const char* path, 
-    bs_String** out, 
     char* value, 
     int value_length)
 {
-    return next.bs_deleteFile(path, out, value, value_length);
+    return next.bs_deleteFile(value, value_length);
 }
 
 bs_Result bs_deleteFileV(
-    const char* path, 
-    bs_String** out, 
     char* format, 
     va_list args)
 {
     static bs_String* string;
     string = bs_stringV(string, format, args);
-    return bs_deleteFile(path, out, string->value, string->len);
+    return bs_deleteFile(string->value, string->len);
 }
 
 bs_Result bs_deleteFileF(
-    const char* path, 
-    bs_String** out, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_deleteFileV(path, out, format, args);
+    bs_Result _return = bs_deleteFileV(format, args);
     va_end(args);
     return _return;
 }
 
-void bs_deleteDirectoryContents(
+bs_Result bs_deleteDirectoryContents(
     char* value, 
     int value_length)
 {
     return next.bs_deleteDirectoryContents(value, value_length);
 }
 
-void bs_deleteDirectoryContentsV(
+bs_Result bs_deleteDirectoryContentsV(
     char* format, 
     va_list args)
 {
@@ -4265,24 +4313,25 @@ void bs_deleteDirectoryContentsV(
     return bs_deleteDirectoryContents(string->value, string->len);
 }
 
-void bs_deleteDirectoryContentsF(
+bs_Result bs_deleteDirectoryContentsF(
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_deleteDirectoryContentsV(format, args);
+    bs_Result _return = bs_deleteDirectoryContentsV(format, args);
     va_end(args);
+    return _return;
 }
 
-void bs_deleteDirectory(
+bs_Result bs_deleteDirectory(
     char* value, 
     int value_length)
 {
     return next.bs_deleteDirectory(value, value_length);
 }
 
-void bs_deleteDirectoryV(
+bs_Result bs_deleteDirectoryV(
     char* format, 
     va_list args)
 {
@@ -4291,14 +4340,15 @@ void bs_deleteDirectoryV(
     return bs_deleteDirectory(string->value, string->len);
 }
 
-void bs_deleteDirectoryF(
+bs_Result bs_deleteDirectoryF(
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_deleteDirectoryV(format, args);
+    bs_Result _return = bs_deleteDirectoryV(format, args);
     va_end(args);
+    return _return;
 }
 
 const char* bs_serializeJsonType(

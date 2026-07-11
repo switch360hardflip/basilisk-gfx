@@ -157,6 +157,19 @@ static void _preval_bs_v2Normalize(const bs_vec2* v, bs_vec2* out) {
     return next.bs_v2Normalize(v, out);
 }
 
+static void _preval_bs_v2Mid(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
+    if (a == NULL)
+        return;
+
+    if (b == NULL)
+        return;
+
+    if (out == NULL)
+        return;
+
+    return next.bs_v2Mid(a, b, out);
+}
+
 static bs_vec3 _preval_bs_v3() {
     return next.bs_v3();
 }
@@ -265,6 +278,19 @@ static void _preval_bs_v3Normalize(const bs_vec3* v, bs_vec3* out) {
         return;
 
     return next.bs_v3Normalize(v, out);
+}
+
+static void _preval_bs_v3Mid(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
+    if (a == NULL)
+        return;
+
+    if (b == NULL)
+        return;
+
+    if (out == NULL)
+        return;
+
+    return next.bs_v3Mid(a, b, out);
 }
 
 static bs_vec4 _preval_bs_v4() {
@@ -417,17 +443,17 @@ static void _preval_bs_m3Inverse(const bs_mat3* m, const bs_mat3* result) {
     return next.bs_m3Inverse(m, result);
 }
 
-static void _preval_bs_m3MulV3(bs_mat3* m, bs_vec3* v, bs_vec3* result) {
+static void _preval_bs_m3MulV3(const bs_mat3* m, const bs_vec3* v, bs_vec3* out) {
     if (m == NULL)
         return;
 
     if (v == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_m3MulV3(m, v, result);
+    return next.bs_m3MulV3(m, v, out);
 }
 
 static void _preval_bs_m4Mul(const bs_mat4* a, const bs_mat4* b, const bs_mat4* result) {
@@ -470,162 +496,162 @@ static void _preval_bs_m4Inverse(const bs_mat4* m, const bs_mat4* result) {
     return next.bs_m4Inverse(m, result);
 }
 
-static void _preval_bs_m4MulV3(bs_mat4* m, bs_vec3* v, bs_vec3* result) {
+static void _preval_bs_m4MulV3(const bs_mat4* m, const bs_vec3* v, bs_vec3* out) {
     if (m == NULL)
         return;
 
     if (v == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_m4MulV3(m, v, result);
+    return next.bs_m4MulV3(m, v, out);
 }
 
-static void _preval_bs_m4MulV4(bs_mat4* m, bs_vec3* v, bs_mat4* result) {
+static void _preval_bs_m4MulV4(const bs_mat4* m, const bs_vec3* v, bs_mat4* out) {
     if (m == NULL)
         return;
 
     if (v == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_m4MulV4(m, v, result);
+    return next.bs_m4MulV4(m, v, out);
 }
 
-static void _preval_bs_m4Translate(bs_mat4* m, bs_vec3* v, bs_mat4* result) {
+static void _preval_bs_m4Translate(const bs_mat4* m, const bs_vec3* v, bs_mat4* out) {
     if (m == NULL)
         return;
 
     if (v == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_m4Translate(m, v, result);
+    return next.bs_m4Translate(m, v, out);
 }
 
-static void _preval_bs_m4Rotate(bs_mat4* m, bs_vec4* q, bs_mat4* result) {
+static void _preval_bs_m4Rotate(const bs_mat4* m, const bs_vec4* q, bs_mat4* out) {
     if (m == NULL)
         return;
 
     if (q == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_m4Rotate(m, q, result);
+    return next.bs_m4Rotate(m, q, out);
 }
 
-static void _preval_bs_m4Scale(bs_mat4* m, bs_vec3* v, bs_mat4* result) {
+static void _preval_bs_m4Scale(const bs_mat4* m, const bs_vec3* v, bs_mat4* out) {
     if (m == NULL)
         return;
 
     if (v == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_m4Scale(m, v, result);
+    return next.bs_m4Scale(m, v, out);
 }
 
-static void _preval_bs_m3FromQ(bs_mat3* m, bs_vec4* result) {
+static void _preval_bs_m3FromQ(const bs_mat3* m, bs_vec4* out) {
     if (m == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_m3FromQ(m, result);
+    return next.bs_m3FromQ(m, out);
 }
 
-static void _preval_bs_m4FromQ(bs_mat4* m, bs_vec4* result) {
+static void _preval_bs_m4FromQ(const bs_mat4* m, bs_vec4* out) {
     if (m == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_m4FromQ(m, result);
+    return next.bs_m4FromQ(m, out);
 }
 
-static void _preval_bs_qFromM3(bs_mat3* m, bs_vec4* result) {
+static void _preval_bs_qFromM3(const bs_mat3* m, bs_vec4* out) {
     if (m == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_qFromM3(m, result);
+    return next.bs_qFromM3(m, out);
 }
 
-static void _preval_bs_qFromM4(bs_mat4* m, bs_vec4* result) {
+static void _preval_bs_qFromM4(const bs_mat4* m, bs_vec4* out) {
     if (m == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_qFromM4(m, result);
+    return next.bs_qFromM4(m, out);
 }
 
-static void _preval_bs_qNormalize(bs_vec4* q, bs_vec4* result) {
+static void _preval_bs_qNormalize(const bs_vec4* q, bs_vec4* out) {
     if (q == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_qNormalize(q, result);
+    return next.bs_qNormalize(q, out);
 }
 
-static void _preval_bs_qSlerp(bs_vec4* from, bs_vec4* to, float t, bs_vec4* result) {
+static void _preval_bs_qSlerp(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out) {
     if (from == NULL)
         return;
 
     if (to == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_qSlerp(from, to, t, result);
+    return next.bs_qSlerp(from, to, t, out);
 }
 
-static void _preval_bs_qLongSlerp(bs_vec4* from, bs_vec4* to, float t, bs_vec4* result) {
+static void _preval_bs_qLongSlerp(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out) {
     if (from == NULL)
         return;
 
     if (to == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_qLongSlerp(from, to, t, result);
+    return next.bs_qLongSlerp(from, to, t, out);
 }
 
-static void _preval_bs_orthographic(float left, float right, float bottom, float top, float near, float far, bs_mat4* result) {
-    if (result == NULL)
+static void _preval_bs_orthographic(float left, float right, float bottom, float top, float near, float far, bs_mat4* out) {
+    if (out == NULL)
         return;
 
-    return next.bs_orthographic(left, right, bottom, top, near, far, result);
+    return next.bs_orthographic(left, right, bottom, top, near, far, out);
 }
 
-static void _preval_bs_perspective(float fov, float aspect, float near, float far, bs_mat4* result) {
-    if (result == NULL)
+static void _preval_bs_perspective(float fov, float aspect, float near, float far, bs_mat4* out) {
+    if (out == NULL)
         return;
 
-    return next.bs_perspective(fov, aspect, near, far, result);
+    return next.bs_perspective(fov, aspect, near, far, out);
 }
 
-static void _preval_bs_lookAt(const bs_vec3* eye, const bs_vec3* center, const bs_vec3* up, bs_mat4* result) {
+static void _preval_bs_lookAt(const bs_vec3* eye, const bs_vec3* center, const bs_vec3* up, bs_mat4* out) {
     if (eye == NULL)
         return;
 
@@ -635,13 +661,13 @@ static void _preval_bs_lookAt(const bs_vec3* eye, const bs_vec3* center, const b
     if (up == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_lookAt(eye, center, up, result);
+    return next.bs_lookAt(eye, center, up, out);
 }
 
-static void _preval_bs_look(const bs_vec3* eye, const bs_vec3* direction, const bs_vec3* up, bs_mat4* result) {
+static void _preval_bs_look(const bs_vec3* eye, const bs_vec3* direction, const bs_vec3* up, bs_mat4* out) {
     if (eye == NULL)
         return;
 
@@ -651,10 +677,80 @@ static void _preval_bs_look(const bs_vec3* eye, const bs_vec3* direction, const 
     if (up == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_look(eye, direction, up, result);
+    return next.bs_look(eye, direction, up, out);
+}
+
+static float _preval_bs_v2CubicBezier(const bs_vec2* p0, const bs_vec2* p1, const bs_vec2* p2, const bs_vec2* p3, bs_vec2* out, int out_length) {
+    if (p0 == NULL)
+        return 0;
+
+    if (p1 == NULL)
+        return 0;
+
+    if (p2 == NULL)
+        return 0;
+
+    if (p3 == NULL)
+        return 0;
+
+    if (out == NULL)
+        return 0;
+
+    return next.bs_v2CubicBezier(p0, p1, p2, p3, out, out_length);
+}
+
+static float _preval_bs_v2QuadBezier(const bs_vec2* p0, const bs_vec2* p1, const bs_vec2* p2, bs_vec2* out, int out_length) {
+    if (p0 == NULL)
+        return 0;
+
+    if (p1 == NULL)
+        return 0;
+
+    if (p2 == NULL)
+        return 0;
+
+    if (out == NULL)
+        return 0;
+
+    return next.bs_v2QuadBezier(p0, p1, p2, out, out_length);
+}
+
+static float _preval_bs_v3CubicBezier(const bs_vec3* p0, const bs_vec3* p1, const bs_vec3* p2, const bs_vec3* p3, bs_vec3* out, int out_length) {
+    if (p0 == NULL)
+        return 0;
+
+    if (p1 == NULL)
+        return 0;
+
+    if (p2 == NULL)
+        return 0;
+
+    if (p3 == NULL)
+        return 0;
+
+    if (out == NULL)
+        return 0;
+
+    return next.bs_v3CubicBezier(p0, p1, p2, p3, out, out_length);
+}
+
+static float _preval_bs_v3QuadBezier(const bs_vec3* p0, const bs_vec3* p1, const bs_vec3* p2, bs_vec3* out, int out_length) {
+    if (p0 == NULL)
+        return 0;
+
+    if (p1 == NULL)
+        return 0;
+
+    if (p2 == NULL)
+        return 0;
+
+    if (out == NULL)
+        return 0;
+
+    return next.bs_v3QuadBezier(p0, p1, p2, out, out_length);
 }
 
 static float _preval_bs_abs(float v) {
@@ -669,8 +765,12 @@ static bs_Result _preval_bs_convertVulkanResult(int code) {
     return next.bs_convertVulkanResult(code);
 }
 
-static bs_Result _preval_bs_convertLastError() {
-    return next.bs_convertLastError();
+static bs_Result _preval_bs_convertWin32Error(unsigned long code) {
+    return next.bs_convertWin32Error(code);
+}
+
+static const char* _preval_bs_serializeWin32Error(unsigned long code) {
+    return next.bs_serializeWin32Error(code);
 }
 
 static bs_Result _preval_bs_convertErrno() {
@@ -706,49 +806,49 @@ static bs_Result _preval_bs_ray(bs_vec3 start, bs_vec3 direction, float length, 
     return next.bs_ray(start, direction, length, ray);
 }
 
-static void _preval_bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_RayVsObb* result) {
+static void _preval_bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_RayVsObb* out) {
     if (ray == NULL)
         return;
 
-    if (result == NULL)
+    if (out == NULL)
         return;
 
-    return next.bs_rayVsObb(ray, position, rotation, scale, result);
+    return next.bs_rayVsObb(ray, position, rotation, scale, out);
 }
 
-static void _preval_bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point, bs_SphereVsPoint* result) {
-    if (result == NULL)
+static void _preval_bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point, bs_SphereVsPoint* out) {
+    if (out == NULL)
         return;
 
-    return next.bs_sphereVsPoint(center, radius, point, result);
+    return next.bs_sphereVsPoint(center, radius, point, out);
 }
 
-static void _preval_bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_SphereVsBox* result) {
-    if (result == NULL)
+static void _preval_bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_SphereVsBox* out) {
+    if (out == NULL)
         return;
 
-    return next.bs_sphereVsBox(center, radius, position, rotation, scale, result);
+    return next.bs_sphereVsBox(center, radius, position, rotation, scale, out);
 }
 
-static void _preval_bs_rectangleVsPoint(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point, bs_RectangleVsPoint* result) {
-    if (result == NULL)
+static void _preval_bs_rectangleVsPoint(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point, bs_RectangleVsPoint* out) {
+    if (out == NULL)
         return;
 
-    return next.bs_rectangleVsPoint(position, dimensions, point, result);
+    return next.bs_rectangleVsPoint(position, dimensions, point, out);
 }
 
-static void _preval_bs_rectangleVsPointAbs(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point, bs_RectangleVsPoint* result) {
-    if (result == NULL)
+static void _preval_bs_rectangleVsPointAbs(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point, bs_RectangleVsPoint* out) {
+    if (out == NULL)
         return;
 
-    return next.bs_rectangleVsPointAbs(position, dimensions, point, result);
+    return next.bs_rectangleVsPointAbs(position, dimensions, point, out);
 }
 
-static void _preval_bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_LineVsLine* result) {
-    if (result == NULL)
+static void _preval_bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_LineVsLine* out) {
+    if (out == NULL)
         return;
 
-    return next.bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, result);
+    return next.bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, out);
 }
 
 static void _preval_bs_populateVertexDeclaration(bs_VertexDeclaration* declaration, bs_Attribute* attributes, int attributes_count) {
@@ -2749,14 +2849,11 @@ static void _preval_bs_system(char* command, char* value, int value_length) {
     return next.bs_system(command, value, value_length);
 }
 
-static void _preval_bs_systemAsync(char* command, char* value, int value_length) {
-    if (command == NULL)
+static void _preval_bs_createThread(bs_ThreadFunction function, void* param) {
+    if (param == NULL)
         return;
 
-    if (value == NULL)
-        return;
-
-    return next.bs_systemAsync(command, value, value_length);
+    return next.bs_createThread(function, param);
 }
 
 static const char* _preval_bs_checkStringPool(bs_List* pool, char* string) {
@@ -2917,11 +3014,11 @@ static bs_String* _preval_bs_workingDirectory() {
     return next.bs_workingDirectory();
 }
 
-static void _preval_bs_setWorkingDirectory(char* path) {
-    if (path == NULL)
+static void _preval_bs_setWorkingDirectory(char* value, int value_length) {
+    if (value == NULL)
         return;
 
-    return next.bs_setWorkingDirectory(path);
+    return next.bs_setWorkingDirectory(value, value_length);
 }
 
 static bs_String* _preval_bs_executablePath() {
@@ -3128,14 +3225,14 @@ static void* _preval_bs_pushBack(bs_List* list, char* data) {
     return next.bs_pushBack(list, data);
 }
 
-static void* _preval_bs_pushBackList(bs_List* destination, bs_List* source) {
-    if (destination == NULL)
-        return NULL;
-
+static void* _preval_bs_pushBackList(bs_List* source, bs_List* destination) {
     if (source == NULL)
         return NULL;
 
-    return next.bs_pushBackList(destination, source);
+    if (destination == NULL)
+        return NULL;
+
+    return next.bs_pushBackList(source, destination);
 }
 
 static void _preval_bs_destroyList(bs_List* list) {
@@ -3253,42 +3350,38 @@ static void _preval_bs_saveFile(char* data, bs_U32 data_len, char* value, int va
     return next.bs_saveFile(data, data_len, value, value_length);
 }
 
-static void _preval_bs_convertWin32Path(char* path, int len, char* value, int value_length) {
-    if (path == NULL)
-        return;
-
+static void _preval_bs_convertWin32Path(char* value, int value_length) {
     if (value == NULL)
         return;
 
-    return next.bs_convertWin32Path(path, len, value, value_length);
+    return next.bs_convertWin32Path(value, value_length);
 }
 
-static void _preval_bs_ensureDirectory(char* value, int value_length) {
+static bs_Result _preval_bs_ensureDirectory(char* value, int value_length) {
     if (value == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_ensureDirectory(value, value_length);
 }
 
-static bs_DateTime _preval_bs_fileModifiedDate() {
-    return next.bs_fileModifiedDate();
-}
+static bs_Result _preval_bs_fileModifiedDate(bs_DateTime* out, char* value, int value_length) {
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
 
-static void _preval_bs_setFileModifiedDate(const char* path, bs_DateTime* date_time) {
-    if (path == NULL)
-        return;
-
-    if (date_time == NULL)
-        return;
-
-    return next.bs_setFileModifiedDate(path, date_time);
-}
-
-static bs_DateTime _preval_bs_fileModifiedDate(char* value, int value_length) {
     if (value == NULL)
-        return (bs_DateTime) { 0 };
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_fileModifiedDate(value, value_length);
+    return next.bs_fileModifiedDate(out, value, value_length);
+}
+
+static bs_Result _preval_bs_setFileModifiedDate(bs_DateTime* date, char* value, int value_length) {
+    if (date == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (value == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_setFileModifiedDate(date, value, value_length);
 }
 
 static bs_String* _preval_bs_fullPath(bs_String* old, const char* path, int path_len) {
@@ -3299,13 +3392,6 @@ static bs_String* _preval_bs_fullPath(bs_String* old, const char* path, int path
         return NULL;
 
     return next.bs_fullPath(old, path, path_len);
-}
-
-static bool _preval_bs_fileExists(const char* path) {
-    if (path == NULL)
-        return false;
-
-    return next.bs_fileExists(path);
 }
 
 static bool _preval_bs_fileExists(char* value, int value_length) {
@@ -3334,36 +3420,6 @@ static bs_F64 _preval_bs_toDouble(const char* str) {
         return 0;
 
     return next.bs_toDouble(str);
-}
-
-static bs_I64* _preval_bs_toLongNull(const char* str, bs_I64* inout) {
-    if (str == NULL)
-        return NULL;
-
-    if (inout == NULL)
-        return NULL;
-
-    return next.bs_toLongNull(str, inout);
-}
-
-static bs_U64* _preval_bs_toULongNull(const char* str, bs_U64* inout) {
-    if (str == NULL)
-        return NULL;
-
-    if (inout == NULL)
-        return NULL;
-
-    return next.bs_toULongNull(str, inout);
-}
-
-static bs_F64* _preval_bs_toDoubleNull(const char* str, bs_F64* inout) {
-    if (str == NULL)
-        return NULL;
-
-    if (inout == NULL)
-        return NULL;
-
-    return next.bs_toDoubleNull(str, inout);
 }
 
 static bs_Resource* _preval_bs_model(int package_id, const char* name, bs_U32 flags) {
@@ -4071,22 +4127,22 @@ static bs_String* _preval_bs_appendString(bs_String* destination, char* value, i
     return next.bs_appendString(destination, value, value_length);
 }
 
-static void _preval_bs_foreachFile( void(*x)(bs_FileInfo, void*), void* param, char* value, int value_length) {
+static bs_Result _preval_bs_foreachFile( void(*x)(bs_FileInfo, void*), void* param, char* value, int value_length) {
     if (param == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (value == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_foreachFile(void(*x)(bs_FileInfo, void*), param, value, value_length);
 }
 
-static void _preval_bs_foreachDirectory( void(*x)(bs_FileInfo, void*), void* param, char* value, int value_length) {
+static bs_Result _preval_bs_foreachDirectory( void(*x)(bs_FileInfo, void*), void* param, char* value, int value_length) {
     if (param == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (value == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_foreachDirectory(void(*x)(bs_FileInfo, void*), param, value, value_length);
 }
@@ -4128,29 +4184,23 @@ static bs_Result _preval_bs_loadFileChunk(const char* path, long offset, size_t 
     return next.bs_loadFileChunk(path, offset, size, out, value, value_length);
 }
 
-static bs_Result _preval_bs_deleteFile(const char* path, bs_String** out, char* value, int value_length) {
-    if (path == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (out == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
+static bs_Result _preval_bs_deleteFile(char* value, int value_length) {
     if (value == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_deleteFile(path, out, value, value_length);
+    return next.bs_deleteFile(value, value_length);
 }
 
-static void _preval_bs_deleteDirectoryContents(char* value, int value_length) {
+static bs_Result _preval_bs_deleteDirectoryContents(char* value, int value_length) {
     if (value == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_deleteDirectoryContents(value, value_length);
 }
 
-static void _preval_bs_deleteDirectory(char* value, int value_length) {
+static bs_Result _preval_bs_deleteDirectory(char* value, int value_length) {
     if (value == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_deleteDirectory(value, value_length);
 }
@@ -4197,6 +4247,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v2Magnitude = _preval_bs_v2Magnitude;
     functions.bs_v2MagnitudeSqrd = _preval_bs_v2MagnitudeSqrd;
     functions.bs_v2Normalize = _preval_bs_v2Normalize;
+    functions.bs_v2Mid = _preval_bs_v2Mid;
     functions.bs_v3 = _preval_bs_v3;
     functions.bs_v3Add = _preval_bs_v3Add;
     functions.bs_v3Sub = _preval_bs_v3Sub;
@@ -4208,6 +4259,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v3Magnitude = _preval_bs_v3Magnitude;
     functions.bs_v3MagnitudeSqrd = _preval_bs_v3MagnitudeSqrd;
     functions.bs_v3Normalize = _preval_bs_v3Normalize;
+    functions.bs_v3Mid = _preval_bs_v3Mid;
     functions.bs_v4 = _preval_bs_v4;
     functions.bs_v4Add = _preval_bs_v4Add;
     functions.bs_v4Sub = _preval_bs_v4Sub;
@@ -4244,10 +4296,15 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_perspective = _preval_bs_perspective;
     functions.bs_lookAt = _preval_bs_lookAt;
     functions.bs_look = _preval_bs_look;
+    functions.bs_v2CubicBezier = _preval_bs_v2CubicBezier;
+    functions.bs_v2QuadBezier = _preval_bs_v2QuadBezier;
+    functions.bs_v3CubicBezier = _preval_bs_v3CubicBezier;
+    functions.bs_v3QuadBezier = _preval_bs_v3QuadBezier;
     functions.bs_abs = _preval_bs_abs;
     functions.bs_quad = _preval_bs_quad;
     functions.bs_convertVulkanResult = _preval_bs_convertVulkanResult;
-    functions.bs_convertLastError = _preval_bs_convertLastError;
+    functions.bs_convertWin32Error = _preval_bs_convertWin32Error;
+    functions.bs_serializeWin32Error = _preval_bs_serializeWin32Error;
     functions.bs_convertErrno = _preval_bs_convertErrno;
     functions.bs_serializeErrno = _preval_bs_serializeErrno;
     functions.bs_playSound = _preval_bs_playSound;
@@ -4473,7 +4530,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_settings = _preval_bs_settings;
     functions.bs_config = _preval_bs_config;
     functions.bs_system = _preval_bs_system;
-    functions.bs_systemAsync = _preval_bs_systemAsync;
+    functions.bs_createThread = _preval_bs_createThread;
     functions.bs_checkStringPool = _preval_bs_checkStringPool;
     functions.bs_stringAlloc = _preval_bs_stringAlloc;
     functions.bs_string = _preval_bs_string;
@@ -4540,16 +4597,11 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_ensureDirectory = _preval_bs_ensureDirectory;
     functions.bs_fileModifiedDate = _preval_bs_fileModifiedDate;
     functions.bs_setFileModifiedDate = _preval_bs_setFileModifiedDate;
-    functions.bs_fileModifiedDate = _preval_bs_fileModifiedDate;
     functions.bs_fullPath = _preval_bs_fullPath;
-    functions.bs_fileExists = _preval_bs_fileExists;
     functions.bs_fileExists = _preval_bs_fileExists;
     functions.bs_toLong = _preval_bs_toLong;
     functions.bs_toULong = _preval_bs_toULong;
     functions.bs_toDouble = _preval_bs_toDouble;
-    functions.bs_toLongNull = _preval_bs_toLongNull;
-    functions.bs_toULongNull = _preval_bs_toULongNull;
-    functions.bs_toDoubleNull = _preval_bs_toDoubleNull;
     functions.bs_model = _preval_bs_model;
     functions.bs_destroyModel = _preval_bs_destroyModel;
     functions.bs_interpolateRotation = _preval_bs_interpolateRotation;

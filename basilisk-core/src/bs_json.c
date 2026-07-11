@@ -34,10 +34,6 @@
 #include <bs_internal.h>
 #include <yyjson/yyjson.h>
 
-static bs_Result bs_convertJsonCode() {
-
-}
-
 BSAPI bs_Json _bs_jsonRoot(bs_Json* json, bs_JsonObject obj) {
 	yyjson_doc* doc;
 	if (!json) {

@@ -47,6 +47,79 @@
 
 
   /*==============================================================================
+   * Vectors
+   =============================================================================*/
+
+BSAPI void _bs_v2Mid(bs_vec2* a, bs_vec2* b, bs_vec2* out) {
+    *out = bs_v2((a->x + b->x) / 2.0f, (a->y + b->y) / 2.0f);
+}
+
+BSAPI void _bs_v3Mid(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
+    *out = bs_v3((a->x + b->x) / 2.0f, (a->y + b->y) / 2.0f, (a->z + b->z) / 2.0f);
+}
+
+
+
+  /*==============================================================================
+   * Bezier Curves
+   =============================================================================*/
+
+static float bs_cubicBezier(float p0, float p1, float p2, float p3, float t) {
+    float curve;
+
+    curve = powf(1.0f - t, 3.0f) * p0;
+    curve += 3 * powf(1.0f - t, 2.0f) * t * p1;
+    curve += 3 * powf(1.0f - t, 1.0f) * powf(t, 2.0f) * p2;
+    curve += powf(t, 3.0f) * p3;
+
+    return curve;
+}
+
+static float bs_quadBezier(float p0, float p1, float p2, float t) {
+    float u = 1.0f - t;
+    return u * u * p0 + 2.0f * u * t * p1 + t * t * p2;
+}
+
+static void bs_nCubicBezier(int n, const bs_vec4* p0, const bs_vec4* p1, const bs_vec4* p2, const bs_vec4* p3, bs_vec4* out, int out_length) {
+    float t = 0.0f;
+    float incr = 1.0f / (float)out_length;
+
+    for (int i = 0; i < out_length; i++, t += incr) {
+        for (int j = 0; j < n; j++)
+            out[i].a[j] = bs_cubicBezier(p0->a[j], p1->a[j], p2->a[j], p3->a[j], t);
+    }
+}
+
+static void bs_nQuadBezier(int n, const bs_vec4* p0, const bs_vec4* p1, const bs_vec4* p2, bs_vec4* out, int out_length) {
+    float t = 0.0;
+    float incr = 1.0 / (float)out_length;
+
+    for (int i = 0; i < out_length; i++, t += incr) {
+        for (int j = 0; j < n; j++)
+            out[i].a[j] = bs_quadBezier(p0->x, p1->x, p2->x, t);
+    }
+}
+
+BSAPI void _bs_v2CubicBezier(const bs_vec2* p0, const bs_vec2* p1, const bs_vec2* p2, const bs_vec2* p3, bs_vec2* out, int out_length) {
+    bs_nCubicBezier(2, p0, p1, p2, p3, out, out_length);
+}
+
+BSAPI void _bs_v2QuadBezier(const bs_vec2* p0, const bs_vec2* p1, const bs_vec2* p2, const bs_vec2* p3, bs_vec2* out, int out_length) {
+    bs_nQuadBezier(2, p0, p1, p2, out, out_length);
+}
+
+BSAPI void _bs_v3CubicBezier(const bs_vec3* p0, const bs_vec3* p1, const bs_vec3* p2, const bs_vec3* p3, bs_vec3* out, int out_length) {
+    bs_nCubicBezier(3, p0, p1, p2, p3, out, out_length);
+}
+
+BSAPI void _bs_v3QuadBezier(const bs_vec3* p0, const bs_vec3* p1, const bs_vec3* p2, const bs_vec3* p3, bs_vec3* out, int out_length) {
+    bs_nQuadBezier(3, p0, p1, p2, out, out_length);
+}
+
+
+
+
+  /*==============================================================================
    * Lines
    =============================================================================*/
 

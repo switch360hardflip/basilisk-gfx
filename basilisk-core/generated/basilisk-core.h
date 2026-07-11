@@ -210,7 +210,7 @@ typedef enum bs_BindType bs_BindType;
 
 #define BS_VALIDATE(condition, ret, format, ...)                     \
     if (!(condition)) {                                              \
-        bs_warnF(BS_PRINT_COLOR("[COREVAL]", BS_PRINT_RED) " %s: %s\n" __VA_OPT__(format) "\n", __func__, #condition __VA_OPT__(,) __VA_ARGS__); \
+        bs_warnF(BS_PRINT_COLOR("[CORE] [VAL]", BS_PRINT_RED) " %s: %s\n" __VA_OPT__(format) "\n", __func__, #condition __VA_OPT__(,) __VA_ARGS__); \
         return ret;                                                  \
     }
 
@@ -1303,6 +1303,7 @@ typedef enum bs_BindType bs_BindType;
 #define BS_APP1                                                      \
     0xB6
 
+typedef int (__cdecl* bs_ThreadFunction)(void*);
 typedef long long bs_I64;
 typedef int bs_I32;
 typedef short bs_I16;
@@ -3335,6 +3336,18 @@ bs_v2Normalize(
     bs_vec2* out);
 
  /**
+  @param a
+  @param b
+  @param out
+  @return void
+  */
+BSAPI void
+bs_v2Mid(
+    const bs_vec3* a,
+    const bs_vec3* b,
+    bs_vec3* out);
+
+ /**
   @return bs_vec3
   */
 BSAPI bs_vec3
@@ -3446,6 +3459,18 @@ bs_v3MagnitudeSqrd(
 BSAPI void
 bs_v3Normalize(
     const bs_vec3* v,
+    bs_vec3* out);
+
+ /**
+  @param a
+  @param b
+  @param out
+  @return void
+  */
+BSAPI void
+bs_v3Mid(
+    const bs_vec3* a,
+    const bs_vec3* b,
     bs_vec3* out);
 
  /**
@@ -3607,14 +3632,14 @@ bs_m3Inverse(
  /**
   @param m
   @param v
-  @param result
+  @param out
   @return void
   */
 BSAPI void
 bs_m3MulV3(
-    bs_mat3* m,
-    bs_vec3* v,
-    bs_vec3* result);
+    const bs_mat3* m,
+    const bs_vec3* v,
+    bs_vec3* out);
 
  /**
   @param a
@@ -3661,140 +3686,140 @@ bs_m4Inverse(
  /**
   @param m
   @param v
-  @param result
+  @param out
   @return void
   */
 BSAPI void
 bs_m4MulV3(
-    bs_mat4* m,
-    bs_vec3* v,
-    bs_vec3* result);
+    const bs_mat4* m,
+    const bs_vec3* v,
+    bs_vec3* out);
 
  /**
   @param m
   @param v
-  @param result
+  @param out
   @return void
   */
 BSAPI void
 bs_m4MulV4(
-    bs_mat4* m,
-    bs_vec3* v,
-    bs_mat4* result);
+    const bs_mat4* m,
+    const bs_vec3* v,
+    bs_mat4* out);
 
  /**
   @param m
   @param v
-  @param result
+  @param out
   @return void
   */
 BSAPI void
 bs_m4Translate(
-    bs_mat4* m,
-    bs_vec3* v,
-    bs_mat4* result);
+    const bs_mat4* m,
+    const bs_vec3* v,
+    bs_mat4* out);
 
  /**
   @param m
   @param q
-  @param result
+  @param out
   @return void
   */
 BSAPI void
 bs_m4Rotate(
-    bs_mat4* m,
-    bs_vec4* q,
-    bs_mat4* result);
+    const bs_mat4* m,
+    const bs_vec4* q,
+    bs_mat4* out);
 
  /**
   @param m
   @param v
-  @param result
+  @param out
   @return void
   */
 BSAPI void
 bs_m4Scale(
-    bs_mat4* m,
-    bs_vec3* v,
-    bs_mat4* result);
+    const bs_mat4* m,
+    const bs_vec3* v,
+    bs_mat4* out);
 
  /**
   @param m
-  @param result
+  @param out
   @return void
   */
 BSAPI void
 bs_m3FromQ(
-    bs_mat3* m,
-    bs_vec4* result);
+    const bs_mat3* m,
+    bs_vec4* out);
 
  /**
   @param m
-  @param result
+  @param out
   @return void
   */
 BSAPI void
 bs_m4FromQ(
-    bs_mat4* m,
-    bs_vec4* result);
+    const bs_mat4* m,
+    bs_vec4* out);
 
  /**
   @param m
-  @param result
+  @param out
   @return void
   */
 BSAPI void
 bs_qFromM3(
-    bs_mat3* m,
-    bs_vec4* result);
+    const bs_mat3* m,
+    bs_vec4* out);
 
  /**
   @param m
-  @param result
+  @param out
   @return void
   */
 BSAPI void
 bs_qFromM4(
-    bs_mat4* m,
-    bs_vec4* result);
+    const bs_mat4* m,
+    bs_vec4* out);
 
  /**
   @param q
-  @param result
+  @param out
   @return void
   */
 BSAPI void
 bs_qNormalize(
-    bs_vec4* q,
-    bs_vec4* result);
+    const bs_vec4* q,
+    bs_vec4* out);
 
  /**
   @param from
   @param to
   @param t
-  @param result
+  @param out
   @return void
   */
 BSAPI void
 bs_qSlerp(
-    bs_vec4* from,
-    bs_vec4* to,
+    const bs_vec4* from,
+    const bs_vec4* to,
     float t,
-    bs_vec4* result);
+    bs_vec4* out);
 
  /**
   @param from
   @param to
   @param t
-  @param result
+  @param out
   @return void
   */
 BSAPI void
 bs_qLongSlerp(
-    bs_vec4* from,
-    bs_vec4* to,
+    const bs_vec4* from,
+    const bs_vec4* to,
     float t,
-    bs_vec4* result);
+    bs_vec4* out);
 
  /**
   @param left
@@ -3803,7 +3828,7 @@ bs_qLongSlerp(
   @param top
   @param near
   @param far
-  @param result
+  @param out
   @return void
   */
 BSAPI void
@@ -3814,14 +3839,14 @@ bs_orthographic(
     float top,
     float near,
     float far,
-    bs_mat4* result);
+    bs_mat4* out);
 
  /**
   @param fov
   @param aspect
   @param near
   @param far
-  @param result
+  @param out
   @return void
   */
 BSAPI void
@@ -3830,13 +3855,13 @@ bs_perspective(
     float aspect,
     float near,
     float far,
-    bs_mat4* result);
+    bs_mat4* out);
 
  /**
   @param eye
   @param center
   @param up
-  @param result
+  @param out
   @return void
   */
 BSAPI void
@@ -3844,13 +3869,13 @@ bs_lookAt(
     const bs_vec3* eye,
     const bs_vec3* center,
     const bs_vec3* up,
-    bs_mat4* result);
+    bs_mat4* out);
 
  /**
   @param eye
   @param direction
   @param up
-  @param result
+  @param out
   @return void
   */
 BSAPI void
@@ -3858,7 +3883,75 @@ bs_look(
     const bs_vec3* eye,
     const bs_vec3* direction,
     const bs_vec3* up,
-    bs_mat4* result);
+    bs_mat4* out);
+
+ /**
+  @param p0
+  @param p1
+  @param p2
+  @param p3
+  @param out
+  @param out_length
+  @return float
+  */
+BSAPI float
+bs_v2CubicBezier(
+    const bs_vec2* p0,
+    const bs_vec2* p1,
+    const bs_vec2* p2,
+    const bs_vec2* p3,
+    bs_vec2* out,
+    int out_length);
+
+ /**
+  @param p0
+  @param p1
+  @param p2
+  @param out
+  @param out_length
+  @return float
+  */
+BSAPI float
+bs_v2QuadBezier(
+    const bs_vec2* p0,
+    const bs_vec2* p1,
+    const bs_vec2* p2,
+    bs_vec2* out,
+    int out_length);
+
+ /**
+  @param p0
+  @param p1
+  @param p2
+  @param p3
+  @param out
+  @param out_length
+  @return float
+  */
+BSAPI float
+bs_v3CubicBezier(
+    const bs_vec3* p0,
+    const bs_vec3* p1,
+    const bs_vec3* p2,
+    const bs_vec3* p3,
+    bs_vec3* out,
+    int out_length);
+
+ /**
+  @param p0
+  @param p1
+  @param p2
+  @param out
+  @param out_length
+  @return float
+  */
+BSAPI float
+bs_v3QuadBezier(
+    const bs_vec3* p0,
+    const bs_vec3* p1,
+    const bs_vec3* p2,
+    bs_vec3* out,
+    int out_length);
 
  /**
   @param v
@@ -3887,10 +3980,20 @@ bs_convertVulkanResult(
     int code);
 
  /**
+  @param code
   @return bs_Result
   */
 BSAPI bs_Result
-bs_convertLastError();
+bs_convertWin32Error(
+    unsigned long code);
+
+ /**
+  @param code
+  @return const char*
+  */
+BSAPI const char*
+bs_serializeWin32Error(
+    unsigned long code);
 
  /**
   @return bs_Result
@@ -3949,7 +4052,7 @@ bs_ray(
   @param position
   @param rotation
   @param scale
-  @param result
+  @param out
   @return void
   */
 BSAPI void
@@ -3958,13 +4061,13 @@ bs_rayVsObb(
     bs_vec3 position,
     bs_vec4 rotation,
     bs_vec3 scale,
-    bs_RayVsObb* result);
+    bs_RayVsObb* out);
 
  /**
   @param center
   @param radius
   @param point
-  @param result
+  @param out
   @return void
   */
 BSAPI void
@@ -3972,7 +4075,7 @@ bs_sphereVsPoint(
     bs_vec3 center,
     float radius,
     bs_vec3 point,
-    bs_SphereVsPoint* result);
+    bs_SphereVsPoint* out);
 
  /**
   @param center
@@ -3980,7 +4083,7 @@ bs_sphereVsPoint(
   @param position
   @param rotation
   @param scale
-  @param result
+  @param out
   @return void
   */
 BSAPI void
@@ -3990,13 +4093,13 @@ bs_sphereVsBox(
     bs_vec3 position,
     bs_vec4 rotation,
     bs_vec3 scale,
-    bs_SphereVsBox* result);
+    bs_SphereVsBox* out);
 
  /**
   @param position
   @param dimensions
   @param point
-  @param result
+  @param out
   @return void
   */
 BSAPI void
@@ -4004,13 +4107,13 @@ bs_rectangleVsPoint(
     bs_vec2 position,
     bs_vec2 dimensions,
     bs_vec2 point,
-    bs_RectangleVsPoint* result);
+    bs_RectangleVsPoint* out);
 
  /**
   @param position
   @param dimensions
   @param point
-  @param result
+  @param out
   @return void
   */
 BSAPI void
@@ -4018,14 +4121,14 @@ bs_rectangleVsPointAbs(
     bs_vec2 position,
     bs_vec2 dimensions,
     bs_vec2 point,
-    bs_RectangleVsPoint* result);
+    bs_RectangleVsPoint* out);
 
  /**
   @param l1_start
   @param l1_end
   @param l2_start
   @param l2_end
-  @param result
+  @param out
   @return void
   */
 BSAPI void
@@ -4034,7 +4137,7 @@ bs_lineVsLine(
     bs_vec2 l1_end,
     bs_vec2 l2_start,
     bs_vec2 l2_end,
-    bs_LineVsLine* result);
+    bs_LineVsLine* out);
 
  /**
   @param declaration
@@ -6805,40 +6908,14 @@ bs_systemF(
      ...);
 
  /**
-  @param command
-  @param value
-  @param value_length
+  @param function
+  @param param
   @return void
   */
 BSAPI void
-bs_systemAsync(
-    char* command,
-    char* value,
-    int value_length);
-
- /**
-  @param command
-  @param format
-  @param args
-  @return void
-  */
-BSAPI void
-bs_systemAsyncV(
-    char* command,
-    char* format,
-    va_list args);
-
- /**
-  @param command
-  @param format
-  @param ...
-  @return void
-  */
-BSAPI void
-bs_systemAsyncF(
-    char* command,
-    char* format,
-     ...);
+bs_createThread(
+    bs_ThreadFunction function,
+    void* param);
 
  /**
   @param pool
@@ -7009,12 +7086,34 @@ BSAPI bs_String*
 bs_workingDirectory();
 
  /**
-  @param path
+  @param value
+  @param value_length
   @return void
   */
 BSAPI void
 bs_setWorkingDirectory(
-    char* path);
+    char* value,
+    int value_length);
+
+ /**
+  @param format
+  @param args
+  @return void
+  */
+BSAPI void
+bs_setWorkingDirectoryV(
+    char* format,
+    va_list args);
+
+ /**
+  @param format
+  @param ...
+  @return void
+  */
+BSAPI void
+bs_setWorkingDirectoryF(
+    char* format,
+     ...);
 
  /**
   @return bs_String*
@@ -7309,14 +7408,14 @@ bs_pushBack(
     char* data);
 
  /**
-  @param destination
   @param source
+  @param destination
   @return void*
   */
 BSAPI void*
 bs_pushBackList(
-    bs_List* destination,
-    bs_List* source);
+    bs_List* source,
+    bs_List* destination);
 
  /**
   @param list
@@ -7491,53 +7590,41 @@ bs_saveFileF(
      ...);
 
  /**
-  @param path
-  @param len
   @param value
   @param value_length
   @return void
   */
 BSAPI void
 bs_convertWin32Path(
-    char* path,
-    int len,
     char* value,
     int value_length);
 
  /**
-  @param path
-  @param len
   @param format
   @param args
   @return void
   */
 BSAPI void
 bs_convertWin32PathV(
-    char* path,
-    int len,
     char* format,
     va_list args);
 
  /**
-  @param path
-  @param len
   @param format
   @param ...
   @return void
   */
 BSAPI void
 bs_convertWin32PathF(
-    char* path,
-    int len,
     char* format,
      ...);
 
  /**
   @param value
   @param value_length
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_ensureDirectory(
     char* value,
     int value_length);
@@ -7545,9 +7632,9 @@ bs_ensureDirectory(
  /**
   @param format
   @param args
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_ensureDirectoryV(
     char* format,
     va_list args);
@@ -7555,56 +7642,82 @@ bs_ensureDirectoryV(
  /**
   @param format
   @param ...
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_ensureDirectoryF(
     char* format,
      ...);
 
  /**
-  @return bs_DateTime
-  */
-BSAPI bs_DateTime
-bs_fileModifiedDate();
-
- /**
-  @param path
-  @param date_time
-  @return void
-  */
-BSAPI void
-bs_setFileModifiedDate(
-    const char* path,
-    bs_DateTime* date_time);
-
- /**
+  @param out
   @param value
   @param value_length
-  @return bs_DateTime
+  @return bs_Result
   */
-BSAPI bs_DateTime
+BSAPI bs_Result
 bs_fileModifiedDate(
+    bs_DateTime* out,
     char* value,
     int value_length);
 
  /**
+  @param out
   @param format
   @param args
-  @return bs_DateTime
+  @return bs_Result
   */
-BSAPI bs_DateTime
+BSAPI bs_Result
 bs_fileModifiedDateV(
+    bs_DateTime* out,
     char* format,
     va_list args);
 
  /**
+  @param out
   @param format
   @param ...
-  @return bs_DateTime
+  @return bs_Result
   */
-BSAPI bs_DateTime
+BSAPI bs_Result
 bs_fileModifiedDateF(
+    bs_DateTime* out,
+    char* format,
+     ...);
+
+ /**
+  @param date
+  @param value
+  @param value_length
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_setFileModifiedDate(
+    bs_DateTime* date,
+    char* value,
+    int value_length);
+
+ /**
+  @param date
+  @param format
+  @param args
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_setFileModifiedDateV(
+    bs_DateTime* date,
+    char* format,
+    va_list args);
+
+ /**
+  @param date
+  @param format
+  @param ...
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_setFileModifiedDateF(
+    bs_DateTime* date,
     char* format,
      ...);
 
@@ -7619,14 +7732,6 @@ bs_fullPath(
     bs_String* old,
     const char* path,
     int path_len);
-
- /**
-  @param path
-  @return bool
-  */
-BSAPI bool
-bs_fileExists(
-    const char* path);
 
  /**
   @param value
@@ -7681,36 +7786,6 @@ bs_toULong(
 BSAPI bs_F64
 bs_toDouble(
     const char* str);
-
- /**
-  @param str
-  @param inout
-  @return bs_I64*
-  */
-BSAPI bs_I64*
-bs_toLongNull(
-    const char* str,
-    bs_I64* inout);
-
- /**
-  @param str
-  @param inout
-  @return bs_U64*
-  */
-BSAPI bs_U64*
-bs_toULongNull(
-    const char* str,
-    bs_U64* inout);
-
- /**
-  @param str
-  @param inout
-  @return bs_F64*
-  */
-BSAPI bs_F64*
-bs_toDoubleNull(
-    const char* str,
-    bs_F64* inout);
 
  /**
   @param package_id
@@ -8743,9 +8818,9 @@ bs_appendStringF(
   @param param
   @param value
   @param value_length
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_foreachFile(
      void(*x)(bs_FileInfo, void*),
     void* param,
@@ -8757,9 +8832,9 @@ bs_foreachFile(
   @param param
   @param format
   @param args
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_foreachFileV(
      void(*x)(bs_FileInfo, void*),
     void* param,
@@ -8771,9 +8846,9 @@ bs_foreachFileV(
   @param param
   @param format
   @param ...
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_foreachFileF(
      void(*x)(bs_FileInfo, void*),
     void* param,
@@ -8785,9 +8860,9 @@ bs_foreachFileF(
   @param param
   @param value
   @param value_length
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_foreachDirectory(
      void(*x)(bs_FileInfo, void*),
     void* param,
@@ -8799,9 +8874,9 @@ bs_foreachDirectory(
   @param param
   @param format
   @param args
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_foreachDirectoryV(
      void(*x)(bs_FileInfo, void*),
     void* param,
@@ -8813,9 +8888,9 @@ bs_foreachDirectoryV(
   @param param
   @param format
   @param ...
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_foreachDirectoryF(
      void(*x)(bs_FileInfo, void*),
     void* param,
@@ -8973,53 +9048,41 @@ bs_loadFileChunkF(
      ...);
 
  /**
-  @param path
-  @param out
   @param value
   @param value_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_deleteFile(
-    const char* path,
-    bs_String** out,
     char* value,
     int value_length);
 
  /**
-  @param path
-  @param out
   @param format
   @param args
   @return bs_Result
   */
 BSAPI bs_Result
 bs_deleteFileV(
-    const char* path,
-    bs_String** out,
     char* format,
     va_list args);
 
  /**
-  @param path
-  @param out
   @param format
   @param ...
   @return bs_Result
   */
 BSAPI bs_Result
 bs_deleteFileF(
-    const char* path,
-    bs_String** out,
     char* format,
      ...);
 
  /**
   @param value
   @param value_length
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_deleteDirectoryContents(
     char* value,
     int value_length);
@@ -9027,9 +9090,9 @@ bs_deleteDirectoryContents(
  /**
   @param format
   @param args
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_deleteDirectoryContentsV(
     char* format,
     va_list args);
@@ -9037,9 +9100,9 @@ bs_deleteDirectoryContentsV(
  /**
   @param format
   @param ...
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_deleteDirectoryContentsF(
     char* format,
      ...);
@@ -9047,9 +9110,9 @@ bs_deleteDirectoryContentsF(
  /**
   @param value
   @param value_length
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_deleteDirectory(
     char* value,
     int value_length);
@@ -9057,9 +9120,9 @@ bs_deleteDirectory(
  /**
   @param format
   @param args
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_deleteDirectoryV(
     char* format,
     va_list args);
@@ -9067,9 +9130,9 @@ bs_deleteDirectoryV(
  /**
   @param format
   @param ...
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_deleteDirectoryF(
     char* format,
      ...);

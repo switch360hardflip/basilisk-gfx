@@ -679,10 +679,12 @@ static void bs_calculateContourCurves(bs_Glyph* glyph, int contour, bs_vec2* out
             curr_off_v = bs_v2(curr_off.x, curr_off.y);
             next_off_v = bs_v2(next_off.x, next_off.y);
 
-            bs_vec2 mid = bs_v2mid(curr_off_v, next_off_v);
+            bs_vec2 mid;
+            bs_v2Mid(&curr_off_v, &next_off_v, &mid);
 
             bs_vec2 elems[BS_TTF_DETAIL + 1];
-            bs_v2QuadBez(curr_v, curr_off_v, mid, elems, BS_TTF_DETAIL);
+            bs_v2QuadBezier(&curr_v, &curr_off_v, &mid, elems, BS_TTF_DETAIL);
+
             elems[BS_TTF_DETAIL] = mid;
             for (int i = 0; i < BS_TTF_DETAIL; i++) {
                 out[(*out_num_pts)++] = elems[i];
@@ -785,10 +787,11 @@ BSAPI void _bs_destroyTtf(bs_TTF* ttf) {
 
 BSAPI void _bs_ttf(bs_TTF* existing, const char* path, bs_U32 flags) {
     bs_TTF ttf = {
-        .buffer = bs_loadFile(path),
         .glyphs = bs_list(sizeof(bs_Glyph), 64),
         .kerning_pairs = bs_list(sizeof(bs_KerningPair), 64),
     };
+
+    bs_loadFile(&ttf.buffer, path, strlen(path));
 
     ttf.table_count = bs_memU16(ttf.buffer->value, 4);
 
