@@ -51,9 +51,11 @@ bs_List* bs_objectSources()
     return next.bs_objectSources();
 }
 
-bs_vec2 bs_v2()
+bs_vec2 bs_v2(
+    float x, 
+    float y)
 {
-    return next.bs_v2();
+    return (bs_vec2) { x, y };
 }
 
 void bs_v2Add(
@@ -130,6 +132,16 @@ void bs_v2Normalize(
     glm_vec2_normalize_to(v->a, out->a);
 }
 
+void bs_v2Lerp(
+    const bs_vec2* from, 
+    const bs_vec2* to, 
+    float t, 
+    bs_vec2* out)
+{
+    out->x = bs_lerp(from->x, to->x, t);
+    out->y = bs_lerp(from->y, to->y, t);
+}
+
 void bs_v2Mid(
     const bs_vec3* a, 
     const bs_vec3* b, 
@@ -138,9 +150,12 @@ void bs_v2Mid(
     return next.bs_v2Mid(a, b, out);
 }
 
-bs_vec3 bs_v3()
+bs_vec3 bs_v3(
+    float x, 
+    float y, 
+    float z)
 {
-    return next.bs_v3();
+    return (bs_vec3) { x, y, z };
 }
 
 void bs_v3Add(
@@ -217,6 +232,17 @@ void bs_v3Normalize(
     glm_vec3_normalize_to(v->a, out->a);
 }
 
+void bs_v3Lerp(
+    const bs_vec3* from, 
+    const bs_vec3* to, 
+    float t, 
+    bs_vec3* out)
+{
+    out->x = bs_lerp(from->x, to->x, t);
+    out->y = bs_lerp(from->y, to->y, t);
+    out->z = bs_lerp(from->z, to->z, t);
+}
+
 void bs_v3Mid(
     const bs_vec3* a, 
     const bs_vec3* b, 
@@ -225,9 +251,21 @@ void bs_v3Mid(
     return next.bs_v3Mid(a, b, out);
 }
 
-bs_vec4 bs_v4()
+void bs_v3Cross(
+    const bs_vec3* a, 
+    const bs_vec3* b, 
+    bs_vec3* out)
 {
-    return next.bs_v4();
+    return next.bs_v3Cross(a, b, out);
+}
+
+bs_vec4 bs_v4(
+    float x, 
+    float y, 
+    float z, 
+    float w)
+{
+    return (bs_vec4) { x, y, z, w };
 }
 
 void bs_v4Add(
@@ -302,6 +340,18 @@ void bs_v4Normalize(
     bs_vec4* out)
 {
     glm_vec4_normalize_to(v->a, out->a);
+}
+
+void bs_v4Lerp(
+    const bs_vec4* from, 
+    const bs_vec4* to, 
+    float t, 
+    bs_vec4* out)
+{
+    out->x = bs_lerp(from->x, to->x, t);
+    out->y = bs_lerp(from->y, to->y, t);
+    out->z = bs_lerp(from->z, to->z, t);
+    out->w = bs_lerp(from->w, to->w, t);
 }
 
 void bs_m3Mul(
@@ -380,8 +430,8 @@ void bs_m4MulV3(
 
 void bs_m4MulV4(
     const bs_mat4* m, 
-    const bs_vec3* v, 
-    bs_mat4* out)
+    const bs_vec4* v, 
+    bs_vec4* out)
 {
     glm_mat4_mulv(m->v, v->a, out->a);
 }
@@ -556,6 +606,14 @@ bs_Quad bs_quad(
     bs_vec2 dimensions)
 {
     return next.bs_quad(position, dimensions);
+}
+
+float bs_lerp(
+    float from, 
+    float to, 
+    float t)
+{
+    return glm_lerp(from, to, t);
 }
 
 bs_Result bs_convertVulkanResult(
@@ -3334,12 +3392,13 @@ bs_F64 bs_toDouble(
     return next.bs_toDouble(str);
 }
 
-bs_Resource* bs_model(
+bs_Result bs_model(
     int package_id, 
     const char* name, 
-    bs_U32 flags)
+    bs_U32 flags, 
+    bs_Resource** out)
 {
-    return next.bs_model(package_id, name, flags);
+    return next.bs_model(package_id, name, flags, out);
 }
 
 void bs_destroyModel(
@@ -3386,7 +3445,7 @@ bs_vec3 bs_bonePosition(
 bs_mat4* bs_transformBone(
     bs_Armature* armature, 
     bs_Bone* bone, 
-    bs_mat4 transform)
+    const bs_mat4* transform)
 {
     return next.bs_transformBone(armature, bone, transform);
 }
@@ -3451,11 +3510,12 @@ void bs_keyframeScale(
     return next.bs_keyframeScale(bone, timestamp, scale);
 }
 
-bs_Animation bs_loadAnimation(
+bs_Result bs_loadAnimation(
     bs_Model* model, 
-    const char* name)
+    const char* name, 
+    bs_Animation* out)
 {
-    return next.bs_loadAnimation(model, name);
+    return next.bs_loadAnimation(model, name, out);
 }
 
 int bs_queryBoneId(

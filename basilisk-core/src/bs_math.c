@@ -51,6 +51,9 @@
    * Vectors
    =============================================================================*/
 
+ /**
+  Midpoint
+  */
 BSAPI void _bs_v2Mid(bs_vec2* a, bs_vec2* b, bs_vec2* out) {
     *out = bs_v2((a->x + b->x) / 2.0f, (a->y + b->y) / 2.0f);
 }

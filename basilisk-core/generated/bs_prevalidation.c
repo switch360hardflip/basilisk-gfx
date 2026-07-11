@@ -47,8 +47,8 @@ static bs_List* _preval_bs_objectSources() {
     return next.bs_objectSources();
 }
 
-static bs_vec2 _preval_bs_v2() {
-    return next.bs_v2();
+static bs_vec2 _preval_bs_v2(float x, float y) {
+    return next.bs_v2(x, y);
 }
 
 static void _preval_bs_v2Add(const bs_vec2* a, const bs_vec2* b, bs_vec2* out) {
@@ -157,6 +157,19 @@ static void _preval_bs_v2Normalize(const bs_vec2* v, bs_vec2* out) {
     return next.bs_v2Normalize(v, out);
 }
 
+static void _preval_bs_v2Lerp(const bs_vec2* from, const bs_vec2* to, float t, bs_vec2* out) {
+    if (from == NULL)
+        return;
+
+    if (to == NULL)
+        return;
+
+    if (out == NULL)
+        return;
+
+    return next.bs_v2Lerp(from, to, t, out);
+}
+
 static void _preval_bs_v2Mid(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
     if (a == NULL)
         return;
@@ -170,8 +183,8 @@ static void _preval_bs_v2Mid(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
     return next.bs_v2Mid(a, b, out);
 }
 
-static bs_vec3 _preval_bs_v3() {
-    return next.bs_v3();
+static bs_vec3 _preval_bs_v3(float x, float y, float z) {
+    return next.bs_v3(x, y, z);
 }
 
 static void _preval_bs_v3Add(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
@@ -280,6 +293,19 @@ static void _preval_bs_v3Normalize(const bs_vec3* v, bs_vec3* out) {
     return next.bs_v3Normalize(v, out);
 }
 
+static void _preval_bs_v3Lerp(const bs_vec3* from, const bs_vec3* to, float t, bs_vec3* out) {
+    if (from == NULL)
+        return;
+
+    if (to == NULL)
+        return;
+
+    if (out == NULL)
+        return;
+
+    return next.bs_v3Lerp(from, to, t, out);
+}
+
 static void _preval_bs_v3Mid(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
     if (a == NULL)
         return;
@@ -293,8 +319,21 @@ static void _preval_bs_v3Mid(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
     return next.bs_v3Mid(a, b, out);
 }
 
-static bs_vec4 _preval_bs_v4() {
-    return next.bs_v4();
+static void _preval_bs_v3Cross(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
+    if (a == NULL)
+        return;
+
+    if (b == NULL)
+        return;
+
+    if (out == NULL)
+        return;
+
+    return next.bs_v3Cross(a, b, out);
+}
+
+static bs_vec4 _preval_bs_v4(float x, float y, float z, float w) {
+    return next.bs_v4(x, y, z, w);
 }
 
 static void _preval_bs_v4Add(const bs_vec4* a, const bs_vec4* b, bs_vec4* out) {
@@ -403,6 +442,19 @@ static void _preval_bs_v4Normalize(const bs_vec4* v, bs_vec4* out) {
     return next.bs_v4Normalize(v, out);
 }
 
+static void _preval_bs_v4Lerp(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out) {
+    if (from == NULL)
+        return;
+
+    if (to == NULL)
+        return;
+
+    if (out == NULL)
+        return;
+
+    return next.bs_v4Lerp(from, to, t, out);
+}
+
 static void _preval_bs_m3Mul(const bs_mat3* a, const bs_mat3* b, const bs_mat3* result) {
     if (a == NULL)
         return;
@@ -509,7 +561,7 @@ static void _preval_bs_m4MulV3(const bs_mat4* m, const bs_vec3* v, bs_vec3* out)
     return next.bs_m4MulV3(m, v, out);
 }
 
-static void _preval_bs_m4MulV4(const bs_mat4* m, const bs_vec3* v, bs_mat4* out) {
+static void _preval_bs_m4MulV4(const bs_mat4* m, const bs_vec4* v, bs_vec4* out) {
     if (m == NULL)
         return;
 
@@ -759,6 +811,10 @@ static float _preval_bs_abs(float v) {
 
 static bs_Quad _preval_bs_quad(bs_vec3 position, bs_vec2 dimensions) {
     return next.bs_quad(position, dimensions);
+}
+
+static float _preval_bs_lerp(float from, float to, float t) {
+    return next.bs_lerp(from, to, t);
 }
 
 static bs_Result _preval_bs_convertVulkanResult(int code) {
@@ -3418,11 +3474,14 @@ static bs_F64 _preval_bs_toDouble(const char* str) {
     return next.bs_toDouble(str);
 }
 
-static bs_Resource* _preval_bs_model(int package_id, const char* name, bs_U32 flags) {
+static bs_Result _preval_bs_model(int package_id, const char* name, bs_U32 flags, bs_Resource** out) {
     if (name == NULL)
-        return NULL;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_model(package_id, name, flags);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_model(package_id, name, flags, out);
 }
 
 static void _preval_bs_destroyModel(bs_Model* model) {
@@ -3473,11 +3532,14 @@ static bs_vec3 _preval_bs_bonePosition(bs_Armature* armature, bs_Bone* bone) {
     return next.bs_bonePosition(armature, bone);
 }
 
-static bs_mat4* _preval_bs_transformBone(bs_Armature* armature, bs_Bone* bone, bs_mat4 transform) {
+static bs_mat4* _preval_bs_transformBone(bs_Armature* armature, bs_Bone* bone, const bs_mat4* transform) {
     if (armature == NULL)
         return NULL;
 
     if (bone == NULL)
+        return NULL;
+
+    if (transform == NULL)
         return NULL;
 
     return next.bs_transformBone(armature, bone, transform);
@@ -3544,14 +3606,17 @@ static void _preval_bs_keyframeScale(bs_AnimationBone* bone, float timestamp, bs
     return next.bs_keyframeScale(bone, timestamp, scale);
 }
 
-static bs_Animation _preval_bs_loadAnimation(bs_Model* model, const char* name) {
+static bs_Result _preval_bs_loadAnimation(bs_Model* model, const char* name, bs_Animation* out) {
     if (model == NULL)
-        return (bs_Animation) { 0 };
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (name == NULL)
-        return (bs_Animation) { 0 };
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_loadAnimation(model, name);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_loadAnimation(model, name, out);
 }
 
 static int _preval_bs_queryBoneId(bs_Armature* armature, const char* name) {
@@ -4243,6 +4308,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v2Magnitude = _preval_bs_v2Magnitude;
     functions.bs_v2MagnitudeSqrd = _preval_bs_v2MagnitudeSqrd;
     functions.bs_v2Normalize = _preval_bs_v2Normalize;
+    functions.bs_v2Lerp = _preval_bs_v2Lerp;
     functions.bs_v2Mid = _preval_bs_v2Mid;
     functions.bs_v3 = _preval_bs_v3;
     functions.bs_v3Add = _preval_bs_v3Add;
@@ -4255,7 +4321,9 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v3Magnitude = _preval_bs_v3Magnitude;
     functions.bs_v3MagnitudeSqrd = _preval_bs_v3MagnitudeSqrd;
     functions.bs_v3Normalize = _preval_bs_v3Normalize;
+    functions.bs_v3Lerp = _preval_bs_v3Lerp;
     functions.bs_v3Mid = _preval_bs_v3Mid;
+    functions.bs_v3Cross = _preval_bs_v3Cross;
     functions.bs_v4 = _preval_bs_v4;
     functions.bs_v4Add = _preval_bs_v4Add;
     functions.bs_v4Sub = _preval_bs_v4Sub;
@@ -4267,6 +4335,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v4Magnitude = _preval_bs_v4Magnitude;
     functions.bs_v4MagnitudeSqrd = _preval_bs_v4MagnitudeSqrd;
     functions.bs_v4Normalize = _preval_bs_v4Normalize;
+    functions.bs_v4Lerp = _preval_bs_v4Lerp;
     functions.bs_m3Mul = _preval_bs_m3Mul;
     functions.bs_m3Scale = _preval_bs_m3Scale;
     functions.bs_m3Transpose = _preval_bs_m3Transpose;
@@ -4298,6 +4367,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v3QuadBezier = _preval_bs_v3QuadBezier;
     functions.bs_abs = _preval_bs_abs;
     functions.bs_quad = _preval_bs_quad;
+    functions.bs_lerp = _preval_bs_lerp;
     functions.bs_convertVulkanResult = _preval_bs_convertVulkanResult;
     functions.bs_convertWin32Error = _preval_bs_convertWin32Error;
     functions.bs_serializeWin32Error = _preval_bs_serializeWin32Error;

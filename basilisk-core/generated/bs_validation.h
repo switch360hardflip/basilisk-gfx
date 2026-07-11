@@ -55,6 +55,7 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_v2Magnitude = GetProcAddress(module, "_val_bs_v2Magnitude");
     functions.bs_v2MagnitudeSqrd = GetProcAddress(module, "_val_bs_v2MagnitudeSqrd");
     functions.bs_v2Normalize = GetProcAddress(module, "_val_bs_v2Normalize");
+    functions.bs_v2Lerp = GetProcAddress(module, "_val_bs_v2Lerp");
     functions.bs_v2Mid = GetProcAddress(module, "_val_bs_v2Mid");
     functions.bs_v3 = GetProcAddress(module, "_val_bs_v3");
     functions.bs_v3Add = GetProcAddress(module, "_val_bs_v3Add");
@@ -67,7 +68,9 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_v3Magnitude = GetProcAddress(module, "_val_bs_v3Magnitude");
     functions.bs_v3MagnitudeSqrd = GetProcAddress(module, "_val_bs_v3MagnitudeSqrd");
     functions.bs_v3Normalize = GetProcAddress(module, "_val_bs_v3Normalize");
+    functions.bs_v3Lerp = GetProcAddress(module, "_val_bs_v3Lerp");
     functions.bs_v3Mid = GetProcAddress(module, "_val_bs_v3Mid");
+    functions.bs_v3Cross = GetProcAddress(module, "_val_bs_v3Cross");
     functions.bs_v4 = GetProcAddress(module, "_val_bs_v4");
     functions.bs_v4Add = GetProcAddress(module, "_val_bs_v4Add");
     functions.bs_v4Sub = GetProcAddress(module, "_val_bs_v4Sub");
@@ -79,6 +82,7 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_v4Magnitude = GetProcAddress(module, "_val_bs_v4Magnitude");
     functions.bs_v4MagnitudeSqrd = GetProcAddress(module, "_val_bs_v4MagnitudeSqrd");
     functions.bs_v4Normalize = GetProcAddress(module, "_val_bs_v4Normalize");
+    functions.bs_v4Lerp = GetProcAddress(module, "_val_bs_v4Lerp");
     functions.bs_m3Mul = GetProcAddress(module, "_val_bs_m3Mul");
     functions.bs_m3Scale = GetProcAddress(module, "_val_bs_m3Scale");
     functions.bs_m3Transpose = GetProcAddress(module, "_val_bs_m3Transpose");
@@ -110,6 +114,7 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_v3QuadBezier = GetProcAddress(module, "_val_bs_v3QuadBezier");
     functions.bs_abs = GetProcAddress(module, "_val_bs_abs");
     functions.bs_quad = GetProcAddress(module, "_val_bs_quad");
+    functions.bs_lerp = GetProcAddress(module, "_val_bs_lerp");
     functions.bs_convertVulkanResult = GetProcAddress(module, "_val_bs_convertVulkanResult");
     functions.bs_convertWin32Error = GetProcAddress(module, "_val_bs_convertWin32Error");
     functions.bs_serializeWin32Error = GetProcAddress(module, "_val_bs_serializeWin32Error");

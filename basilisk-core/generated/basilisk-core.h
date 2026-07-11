@@ -1962,6 +1962,14 @@ struct bs_Bone {
 };
 
 struct bs_Armature {
+    struct {
+        float ik_length;
+        int ik_id;
+        bs_vec3 ik_direction;
+        bs_vec3 ik_position;
+        bs_mat4 matrix;
+        bs_Bone bone;
+    }* bones;
     int bones_count;
     int bones_allocated;
     char* name;
@@ -1974,6 +1982,18 @@ struct bs_AnimationBone {
     int translations_count, translations_allocated;
     int rotations_count, rotations_allocated;
     int scalings_count, scalings_allocated;
+    struct {
+        float time;
+        bs_vec3 value;
+    }* translations;
+    struct {
+        float time;
+        bs_vec4 value;
+    }* rotations;
+    struct {
+        float time;
+        bs_vec3 value;
+    }* scalings;
 };
 
 struct bs_Animation {
@@ -3257,10 +3277,14 @@ BSAPI bs_List*
 bs_objectSources();
 
  /**
+  @param x
+  @param y
   @return bs_vec2
   */
 BSAPI bs_vec2
-bs_v2();
+bs_v2(
+    float x,
+    float y);
 
  /**
   @param a
@@ -3371,6 +3395,20 @@ bs_v2Normalize(
     bs_vec2* out);
 
  /**
+  @param from
+  @param to
+  @param t
+  @param out
+  @return void
+  */
+BSAPI void
+bs_v2Lerp(
+    const bs_vec2* from,
+    const bs_vec2* to,
+    float t,
+    bs_vec2* out);
+
+ /**
   @param a
   @param b
   @param out
@@ -3383,10 +3421,16 @@ bs_v2Mid(
     bs_vec3* out);
 
  /**
+  @param x
+  @param y
+  @param z
   @return bs_vec3
   */
 BSAPI bs_vec3
-bs_v3();
+bs_v3(
+    float x,
+    float y,
+    float z);
 
  /**
   @param a
@@ -3497,6 +3541,20 @@ bs_v3Normalize(
     bs_vec3* out);
 
  /**
+  @param from
+  @param to
+  @param t
+  @param out
+  @return void
+  */
+BSAPI void
+bs_v3Lerp(
+    const bs_vec3* from,
+    const bs_vec3* to,
+    float t,
+    bs_vec3* out);
+
+ /**
   @param a
   @param b
   @param out
@@ -3509,10 +3567,30 @@ bs_v3Mid(
     bs_vec3* out);
 
  /**
+  @param a
+  @param b
+  @param out
+  @return void
+  */
+BSAPI void
+bs_v3Cross(
+    const bs_vec3* a,
+    const bs_vec3* b,
+    bs_vec3* out);
+
+ /**
+  @param x
+  @param y
+  @param z
+  @param w
   @return bs_vec4
   */
 BSAPI bs_vec4
-bs_v4();
+bs_v4(
+    float x,
+    float y,
+    float z,
+    float w);
 
  /**
   @param a
@@ -3620,6 +3698,20 @@ bs_v4MagnitudeSqrd(
 BSAPI void
 bs_v4Normalize(
     const bs_vec4* v,
+    bs_vec4* out);
+
+ /**
+  @param from
+  @param to
+  @param t
+  @param out
+  @return void
+  */
+BSAPI void
+bs_v4Lerp(
+    const bs_vec4* from,
+    const bs_vec4* to,
+    float t,
     bs_vec4* out);
 
  /**
@@ -3739,8 +3831,8 @@ bs_m4MulV3(
 BSAPI void
 bs_m4MulV4(
     const bs_mat4* m,
-    const bs_vec3* v,
-    bs_mat4* out);
+    const bs_vec4* v,
+    bs_vec4* out);
 
  /**
   @param m
@@ -4005,6 +4097,18 @@ BSAPI bs_Quad
 bs_quad(
     bs_vec3 position,
     bs_vec2 dimensions);
+
+ /**
+  @param from
+  @param to
+  @param t
+  @return float
+  */
+BSAPI float
+bs_lerp(
+    float from,
+    float to,
+    float t);
 
  /**
   @param code
@@ -7820,13 +7924,15 @@ bs_toDouble(
   @param package_id
   @param name
   @param flags
-  @return bs_Resource*
+  @param out
+  @return bs_Result
   */
-BSAPI bs_Resource*
+BSAPI bs_Result
 bs_model(
     int package_id,
     const char* name,
-    bs_U32 flags);
+    bs_U32 flags,
+    bs_Resource** out);
 
  /**
   @param model
@@ -7896,7 +8002,7 @@ BSAPI bs_mat4*
 bs_transformBone(
     bs_Armature* armature,
     bs_Bone* bone,
-    bs_mat4 transform);
+    const bs_mat4* transform);
 
  /**
   @param armature
@@ -7993,12 +8099,14 @@ bs_keyframeScale(
  /**
   @param model
   @param name
-  @return bs_Animation
+  @param out
+  @return bs_Result
   */
-BSAPI bs_Animation
+BSAPI bs_Result
 bs_loadAnimation(
     bs_Model* model,
-    const char* name);
+    const char* name,
+    bs_Animation* out);
 
  /**
   @param armature
