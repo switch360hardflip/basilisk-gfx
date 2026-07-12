@@ -34,7 +34,7 @@
 #define BS_INTERNAL_H
 
 #include <basilisk-core.h>
-#include <libloaderapi.h>
+#include <windows.h>
 #include <vulkan.h>
 
 #define BS_FOREACH_PROC(X) \
@@ -59,8 +59,6 @@ extern struct bs_Procs {
     BS_FOREACH_PROC(BS_STRUCT_GEN)
 } _bs_procs_;
 
-typedef bs_List*(__stdcall* PFN_bs_packages)();
-typedef bs_List*(__stdcall* PFN_bs_objectSources)();
 typedef bs_vec2(__stdcall* PFN_bs_v2)(float x, float y);
 typedef void(__stdcall* PFN_bs_v2Add)(const bs_vec2* a, const bs_vec2* b, bs_vec2* out);
 typedef void(__stdcall* PFN_bs_v2Sub)(const bs_vec2* a, const bs_vec2* b, bs_vec2* out);
@@ -101,12 +99,10 @@ typedef float(__stdcall* PFN_bs_v4MagnitudeSqrd)(const bs_vec4* v);
 typedef void(__stdcall* PFN_bs_v4Normalize)(const bs_vec4* v, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_v4Lerp)(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_m3Mul)(const bs_mat3* a, const bs_mat3* b, const bs_mat3* result);
-typedef void(__stdcall* PFN_bs_m3Scale)(const bs_mat3* m, float s);
 typedef void(__stdcall* PFN_bs_m3Transpose)(const bs_mat3* m, const bs_mat3* result);
 typedef void(__stdcall* PFN_bs_m3Inverse)(const bs_mat3* m, const bs_mat3* result);
 typedef void(__stdcall* PFN_bs_m3MulV3)(const bs_mat3* m, const bs_vec3* v, bs_vec3* out);
 typedef void(__stdcall* PFN_bs_m4Mul)(const bs_mat4* a, const bs_mat4* b, const bs_mat4* result);
-typedef void(__stdcall* PFN_bs_m4Scale)(const bs_mat4* m, float s);
 typedef void(__stdcall* PFN_bs_m4Transpose)(const bs_mat4* m, const bs_mat4* result);
 typedef void(__stdcall* PFN_bs_m4Inverse)(const bs_mat4* m, const bs_mat4* result);
 typedef void(__stdcall* PFN_bs_m4MulV3)(const bs_mat4* m, const bs_vec3* v, bs_vec3* out);
@@ -121,8 +117,8 @@ typedef void(__stdcall* PFN_bs_qFromM4)(const bs_mat4* m, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_qNormalize)(const bs_vec4* q, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_qSlerp)(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_qLongSlerp)(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out);
-typedef void(__stdcall* PFN_bs_orthographic)(float left, float right, float bottom, float top, float near, float far, bs_mat4* out);
-typedef void(__stdcall* PFN_bs_perspective)(float fov, float aspect, float near, float far, bs_mat4* out);
+typedef void(__stdcall* PFN_bs_orthographic)(float left, float right, float bottom, float top, float near_z, float far_z, bs_mat4* out);
+typedef void(__stdcall* PFN_bs_perspective)(float fov, float aspect, float near_z, float far_z, bs_mat4* out);
 typedef void(__stdcall* PFN_bs_lookAt)(const bs_vec3* eye, const bs_vec3* center, const bs_vec3* up, bs_mat4* out);
 typedef void(__stdcall* PFN_bs_look)(const bs_vec3* eye, const bs_vec3* direction, const bs_vec3* up, bs_mat4* out);
 typedef float(__stdcall* PFN_bs_v2CubicBezier)(const bs_vec2* p0, const bs_vec2* p1, const bs_vec2* p2, const bs_vec2* p3, bs_vec2* out, int out_length);
@@ -226,12 +222,13 @@ typedef bs_Range(__stdcall* PFN_bs_batchMesh)(bs_Batch* batch, bs_U32* offset, b
 typedef bs_Range(__stdcall* PFN_bs_pushMesh)(bs_Batch* batch, bs_Mesh* mesh);
 typedef bs_Range(__stdcall* PFN_bs_batchModel)(bs_Batch* batch, bs_U32* offset, bs_Model* model);
 typedef bs_Range(__stdcall* PFN_bs_pushModel)(bs_Batch* batch, bs_Model* model);
+typedef int(__stdcall* PFN_bs_rendererSwapsCount)(bs_Renderer* renderer);
 typedef bs_Result(__stdcall* PFN_bs_renderer)(bs_Object* object, bs_RendererBits flags);
 typedef void(__stdcall* PFN_bs_output)(bs_Renderer* renderer, bs_Output output);
 typedef void(__stdcall* PFN_bs_input)(bs_Renderer* renderer, bs_Input input);
 typedef void(__stdcall* PFN_bs_dependency)(bs_Renderer* renderer, bs_U32 src_subpass, bs_U32 dst_subpass, bs_DependencyFlags flags, bs_PipelineStage src_stage, bs_PipelineStage dst_stage, bs_AccessMask src_access, bs_AccessMask dst_access);
 typedef void(__stdcall* PFN_bs_renderPass)(bs_Renderer* renderer);
-typedef void(__stdcall* PFN_bs_framebuffer)(bs_Renderer* renderer, bs_ivec2 resolution);
+typedef bs_Result(__stdcall* PFN_bs_framebuffer)(bs_Renderer* renderer, bs_ivec2 resolution);
 typedef void(__stdcall* PFN_bs_runPass)(bs_Renderer* renderer, bs_Callback callbacks, int callbacks_count);
 typedef bool(__stdcall* PFN_bs_rendererIsDynamic)(bs_Renderer* renderer);
 typedef void(__stdcall* PFN_bs_beginRender)(bs_Renderer* renderer);
@@ -263,7 +260,6 @@ typedef void(__stdcall* PFN_bs_glyph)(bs_TTF* ttf, bs_U16 code);
 typedef void(__stdcall* PFN_bs_ttf)(bs_TTF* existing, const char* path, bs_U32 flags);
 typedef void(__stdcall* PFN_bs_rasterizeGlyph)(bs_TTF* font, bs_Glyph* glyph, int width, int height, char* out_bmp, float scale);
 typedef void(__stdcall* PFN_bs_kern)(bs_TTF* ttf);
-typedef void(__stdcall* PFN_bs_kern)(bs_TTF* ttf);
 typedef void(__stdcall* PFN_bs_bindFont)(bs_Font* font, bs_Sampler* sampler, int bind_set, int bind_point);
 typedef bs_vec2(__stdcall* PFN_bs_textDimensions)(bs_Font* font, char* name, int length);
 typedef void(__stdcall* PFN_bs_destroyFont)(bs_Font* font);
@@ -277,9 +273,8 @@ typedef unsigned char*(__stdcall* PFN_bs_loadPng)(const char* path, int channels
 typedef bs_Result(__stdcall* PFN_bs_bitmapImage)(bs_Object* existing_object, unsigned char* image_data, bs_ivec2 dim, bs_Format format, bs_ImageBits flags);
 typedef bs_Result(__stdcall* PFN_bs_savePng)(char* data, bs_ivec2 resolution, bs_PngType type, char* value, int value_length);
 typedef unsigned char*(__stdcall* PFN_bs_encodePng)(size_t* out_size, const unsigned char* data, bs_ivec2 size, bs_PngType type, char* value, int value_length);
-typedef bs_Result(__stdcall* PFN_bs_savePng)(char* data, bs_ivec2 resolution, bs_PngType type, char* value, int value_length);
 typedef void(__stdcall* PFN_bs_destroyImage)(bs_Image* image);
-typedef bs_Result(__stdcall* PFN_bs_resizeImage)(bs_Image* image, bs_ivec2 resolution, int num_indices);
+typedef bs_Result(__stdcall* PFN_bs_resizeImage)(bs_Image* image, bs_ivec2 size, int indices_count);
 typedef bs_Result(__stdcall* PFN_bs_queryImageIndexHash)(bs_Image* image, bs_U64 name_hash, int* out);
 typedef bs_Result(__stdcall* PFN_bs_queryImageIndex)(bs_Image* image, char* name, int* out);
 typedef bs_Result(__stdcall* PFN_bs_copyImageToBufferAsync)(bs_Image* image, bs_Buffer* buffer, int image_index, bs_ImageLayout layout, bs_U64 buffer_offset, bs_ivec2 offset, bs_ivec2 resolution);
@@ -301,7 +296,6 @@ typedef bs_Result(__stdcall* PFN_bs_queryAtlasHash)(bs_Atlas* atlas, bs_U64 hash
 typedef bs_Result(__stdcall* PFN_bs_queryAtlas)(bs_Atlas* atlas, const char* name, int* out);
 typedef bs_Result(__stdcall* PFN_bs_destroyAtlas)(bs_Atlas* atlas);
 typedef bs_Result(__stdcall* PFN_bs_loadAtlasMemory)(bs_Object* object, int package_id, char* resource_name, char* data, bs_U32 flags);
-typedef bs_Result(__stdcall* PFN_bs_loadAtlas)(bs_Object* object, int package_id, const char* resource_name, bs_U32 flags);
 typedef void(__stdcall* PFN_bs_parseArgs)(int argc, char* argv);
 typedef bs_Args*(__stdcall* PFN_bs_arguments)();
 typedef void(__stdcall* PFN_bs_ini)();
@@ -389,7 +383,8 @@ typedef size_t(__stdcall* PFN_bs_strnlen)(const char* src, size_t n);
 typedef char*(__stdcall* PFN_bs_strsep)(char** stringp, const char* delim);
 typedef void*(__stdcall* PFN_bs_memmem)(const void* haystack, bs_U32 haystack_len, const void* const needle, const bs_U32 needle_len);
 typedef bs_U32(__stdcall* PFN_bs_alignUp)(bs_U32 value, bs_U32 alignment);
-typedef void(__stdcall* PFN_bs_widen)(char* src, wchar_t* dst, bs_U32 dst_size);
+typedef bs_Result(__stdcall* PFN_bs_widen)(char* src, wchar_t* dst, bs_U32 dst_size);
+typedef bs_Result(__stdcall* PFN_bs_unwiden)(wchar_t* src, char* dst, bs_U32 dst_size);
 typedef char*(__stdcall* PFN_bs_charString)(char* value, int value_length);
 typedef void*(__stdcall* PFN_bs_free)(void* p);
 typedef void*(__stdcall* PFN_bs_malloc)(bs_U64 size);
@@ -467,13 +462,12 @@ typedef bs_Result(__stdcall* PFN_bs_shader)(int package_id, const char* name, bs
 typedef void(__stdcall* PFN_bs_destroyShader)(bs_Shader* shader);
 typedef bs_Pipeline*(__stdcall* PFN_bs_computePipeline)(bs_Shader* compute_shader, bs_PipelineFlags flags);
 typedef void(__stdcall* PFN_bs_destroyComputePipeline)(bs_Pipeline* pipeline);
-typedef bs_Pipeline*(__stdcall* PFN_bs_queryPipeline)(bs_U64 hash);
+typedef bs_Pipeline*(__stdcall* PFN_bs_queryPipeline)(bs_PipelineType type, bs_U64 hash);
 typedef bs_U64(__stdcall* PFN_bs_pipelineHash)(bs_PipelineHash* descriptor);
-typedef bs_Pipeline*(__stdcall* PFN_bs_pipeline)(bs_PipelineHash* descriptor);
+typedef bs_Result(__stdcall* PFN_bs_pipeline)(bs_PipelineHash* descriptor, bs_Pipeline** out);
 typedef void(__stdcall* PFN_bs_destroyPipeline)(bs_Pipeline* pipeline);
 typedef void(__stdcall* PFN_bs_pushConstant)(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 size, void* data);
 typedef bs_Pipeline*(__stdcall* PFN_bs_rayTracingPipeline)(bs_RayTracePipelineHash* pipeline_hash);
-typedef bs_BindType(__stdcall* PFN_bs_deserializeBindType)(const char* string);
 typedef void(__stdcall* PFN_bs_loadBindings)(int package_id, const char* path);
 typedef bs_Result(__stdcall* PFN_bs_binding)(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Descriptor* descriptors, int descriptors_count, bs_Binding** out);
 typedef bs_Result(__stdcall* PFN_bs_bindImage)(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Image* image, bs_Sampler* sampler, bs_ImageLayout layout);
@@ -552,8 +546,6 @@ typedef const char*(__stdcall* PFN_bs_serializeBindType)(bs_BindType e);
 typedef bs_BindType(__stdcall* PFN_bs_deserializeBindType)(const char* value);
 
 typedef struct {
-    PFN_bs_packages bs_packages;
-    PFN_bs_objectSources bs_objectSources;
     PFN_bs_v2 bs_v2;
     PFN_bs_v2Add bs_v2Add;
     PFN_bs_v2Sub bs_v2Sub;
@@ -594,12 +586,10 @@ typedef struct {
     PFN_bs_v4Normalize bs_v4Normalize;
     PFN_bs_v4Lerp bs_v4Lerp;
     PFN_bs_m3Mul bs_m3Mul;
-    PFN_bs_m3Scale bs_m3Scale;
     PFN_bs_m3Transpose bs_m3Transpose;
     PFN_bs_m3Inverse bs_m3Inverse;
     PFN_bs_m3MulV3 bs_m3MulV3;
     PFN_bs_m4Mul bs_m4Mul;
-    PFN_bs_m4Scale bs_m4Scale;
     PFN_bs_m4Transpose bs_m4Transpose;
     PFN_bs_m4Inverse bs_m4Inverse;
     PFN_bs_m4MulV3 bs_m4MulV3;
@@ -719,6 +709,7 @@ typedef struct {
     PFN_bs_pushMesh bs_pushMesh;
     PFN_bs_batchModel bs_batchModel;
     PFN_bs_pushModel bs_pushModel;
+    PFN_bs_rendererSwapsCount bs_rendererSwapsCount;
     PFN_bs_renderer bs_renderer;
     PFN_bs_output bs_output;
     PFN_bs_input bs_input;
@@ -756,7 +747,6 @@ typedef struct {
     PFN_bs_ttf bs_ttf;
     PFN_bs_rasterizeGlyph bs_rasterizeGlyph;
     PFN_bs_kern bs_kern;
-    PFN_bs_kern bs_kern;
     PFN_bs_bindFont bs_bindFont;
     PFN_bs_textDimensions bs_textDimensions;
     PFN_bs_destroyFont bs_destroyFont;
@@ -770,7 +760,6 @@ typedef struct {
     PFN_bs_bitmapImage bs_bitmapImage;
     PFN_bs_savePng bs_savePng;
     PFN_bs_encodePng bs_encodePng;
-    PFN_bs_savePng bs_savePng;
     PFN_bs_destroyImage bs_destroyImage;
     PFN_bs_resizeImage bs_resizeImage;
     PFN_bs_queryImageIndexHash bs_queryImageIndexHash;
@@ -794,7 +783,6 @@ typedef struct {
     PFN_bs_queryAtlas bs_queryAtlas;
     PFN_bs_destroyAtlas bs_destroyAtlas;
     PFN_bs_loadAtlasMemory bs_loadAtlasMemory;
-    PFN_bs_loadAtlas bs_loadAtlas;
     PFN_bs_parseArgs bs_parseArgs;
     PFN_bs_arguments bs_arguments;
     PFN_bs_ini bs_ini;
@@ -883,6 +871,7 @@ typedef struct {
     PFN_bs_memmem bs_memmem;
     PFN_bs_alignUp bs_alignUp;
     PFN_bs_widen bs_widen;
+    PFN_bs_unwiden bs_unwiden;
     PFN_bs_charString bs_charString;
     PFN_bs_free bs_free;
     PFN_bs_malloc bs_malloc;
@@ -966,7 +955,6 @@ typedef struct {
     PFN_bs_destroyPipeline bs_destroyPipeline;
     PFN_bs_pushConstant bs_pushConstant;
     PFN_bs_rayTracingPipeline bs_rayTracingPipeline;
-    PFN_bs_deserializeBindType bs_deserializeBindType;
     PFN_bs_loadBindings bs_loadBindings;
     PFN_bs_binding bs_binding;
     PFN_bs_bindImage bs_bindImage;
@@ -1045,7 +1033,7 @@ typedef struct {
     PFN_bs_deserializeBindType bs_deserializeBindType;
 } bs_FunctionTable;
 
-bs_FunctionTable _bs_getFunctions() {
+static inline bs_FunctionTable _bs_getFunctions() {
     bs_FunctionTable functions;
 
     HMODULE module = NULL;
@@ -1054,8 +1042,6 @@ bs_FunctionTable _bs_getFunctions() {
         (LPCSTR)(&_bs_getFunctions),
         &module);
 
-    functions.bs_packages = (PFN_bs_packages)GetProcAddress(module, "_bs_packages");
-    functions.bs_objectSources = (PFN_bs_objectSources)GetProcAddress(module, "_bs_objectSources");
     functions.bs_v2 = (PFN_bs_v2)GetProcAddress(module, "_bs_v2");
     functions.bs_v2Add = (PFN_bs_v2Add)GetProcAddress(module, "_bs_v2Add");
     functions.bs_v2Sub = (PFN_bs_v2Sub)GetProcAddress(module, "_bs_v2Sub");
@@ -1096,12 +1082,10 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_v4Normalize = (PFN_bs_v4Normalize)GetProcAddress(module, "_bs_v4Normalize");
     functions.bs_v4Lerp = (PFN_bs_v4Lerp)GetProcAddress(module, "_bs_v4Lerp");
     functions.bs_m3Mul = (PFN_bs_m3Mul)GetProcAddress(module, "_bs_m3Mul");
-    functions.bs_m3Scale = (PFN_bs_m3Scale)GetProcAddress(module, "_bs_m3Scale");
     functions.bs_m3Transpose = (PFN_bs_m3Transpose)GetProcAddress(module, "_bs_m3Transpose");
     functions.bs_m3Inverse = (PFN_bs_m3Inverse)GetProcAddress(module, "_bs_m3Inverse");
     functions.bs_m3MulV3 = (PFN_bs_m3MulV3)GetProcAddress(module, "_bs_m3MulV3");
     functions.bs_m4Mul = (PFN_bs_m4Mul)GetProcAddress(module, "_bs_m4Mul");
-    functions.bs_m4Scale = (PFN_bs_m4Scale)GetProcAddress(module, "_bs_m4Scale");
     functions.bs_m4Transpose = (PFN_bs_m4Transpose)GetProcAddress(module, "_bs_m4Transpose");
     functions.bs_m4Inverse = (PFN_bs_m4Inverse)GetProcAddress(module, "_bs_m4Inverse");
     functions.bs_m4MulV3 = (PFN_bs_m4MulV3)GetProcAddress(module, "_bs_m4MulV3");
@@ -1221,6 +1205,7 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_pushMesh = (PFN_bs_pushMesh)GetProcAddress(module, "_bs_pushMesh");
     functions.bs_batchModel = (PFN_bs_batchModel)GetProcAddress(module, "_bs_batchModel");
     functions.bs_pushModel = (PFN_bs_pushModel)GetProcAddress(module, "_bs_pushModel");
+    functions.bs_rendererSwapsCount = (PFN_bs_rendererSwapsCount)GetProcAddress(module, "_bs_rendererSwapsCount");
     functions.bs_renderer = (PFN_bs_renderer)GetProcAddress(module, "_bs_renderer");
     functions.bs_output = (PFN_bs_output)GetProcAddress(module, "_bs_output");
     functions.bs_input = (PFN_bs_input)GetProcAddress(module, "_bs_input");
@@ -1258,7 +1243,6 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_ttf = (PFN_bs_ttf)GetProcAddress(module, "_bs_ttf");
     functions.bs_rasterizeGlyph = (PFN_bs_rasterizeGlyph)GetProcAddress(module, "_bs_rasterizeGlyph");
     functions.bs_kern = (PFN_bs_kern)GetProcAddress(module, "_bs_kern");
-    functions.bs_kern = (PFN_bs_kern)GetProcAddress(module, "_bs_kern");
     functions.bs_bindFont = (PFN_bs_bindFont)GetProcAddress(module, "_bs_bindFont");
     functions.bs_textDimensions = (PFN_bs_textDimensions)GetProcAddress(module, "_bs_textDimensions");
     functions.bs_destroyFont = (PFN_bs_destroyFont)GetProcAddress(module, "_bs_destroyFont");
@@ -1272,7 +1256,6 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_bitmapImage = (PFN_bs_bitmapImage)GetProcAddress(module, "_bs_bitmapImage");
     functions.bs_savePng = (PFN_bs_savePng)GetProcAddress(module, "_bs_savePng");
     functions.bs_encodePng = (PFN_bs_encodePng)GetProcAddress(module, "_bs_encodePng");
-    functions.bs_savePng = (PFN_bs_savePng)GetProcAddress(module, "_bs_savePng");
     functions.bs_destroyImage = (PFN_bs_destroyImage)GetProcAddress(module, "_bs_destroyImage");
     functions.bs_resizeImage = (PFN_bs_resizeImage)GetProcAddress(module, "_bs_resizeImage");
     functions.bs_queryImageIndexHash = (PFN_bs_queryImageIndexHash)GetProcAddress(module, "_bs_queryImageIndexHash");
@@ -1296,7 +1279,6 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_queryAtlas = (PFN_bs_queryAtlas)GetProcAddress(module, "_bs_queryAtlas");
     functions.bs_destroyAtlas = (PFN_bs_destroyAtlas)GetProcAddress(module, "_bs_destroyAtlas");
     functions.bs_loadAtlasMemory = (PFN_bs_loadAtlasMemory)GetProcAddress(module, "_bs_loadAtlasMemory");
-    functions.bs_loadAtlas = (PFN_bs_loadAtlas)GetProcAddress(module, "_bs_loadAtlas");
     functions.bs_parseArgs = (PFN_bs_parseArgs)GetProcAddress(module, "_bs_parseArgs");
     functions.bs_arguments = (PFN_bs_arguments)GetProcAddress(module, "_bs_arguments");
     functions.bs_ini = (PFN_bs_ini)GetProcAddress(module, "_bs_ini");
@@ -1385,6 +1367,7 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_memmem = (PFN_bs_memmem)GetProcAddress(module, "_bs_memmem");
     functions.bs_alignUp = (PFN_bs_alignUp)GetProcAddress(module, "_bs_alignUp");
     functions.bs_widen = (PFN_bs_widen)GetProcAddress(module, "_bs_widen");
+    functions.bs_unwiden = (PFN_bs_unwiden)GetProcAddress(module, "_bs_unwiden");
     functions.bs_charString = (PFN_bs_charString)GetProcAddress(module, "_bs_charString");
     functions.bs_free = (PFN_bs_free)GetProcAddress(module, "_bs_free");
     functions.bs_malloc = (PFN_bs_malloc)GetProcAddress(module, "_bs_malloc");
@@ -1468,7 +1451,6 @@ bs_FunctionTable _bs_getFunctions() {
     functions.bs_destroyPipeline = (PFN_bs_destroyPipeline)GetProcAddress(module, "_bs_destroyPipeline");
     functions.bs_pushConstant = (PFN_bs_pushConstant)GetProcAddress(module, "_bs_pushConstant");
     functions.bs_rayTracingPipeline = (PFN_bs_rayTracingPipeline)GetProcAddress(module, "_bs_rayTracingPipeline");
-    functions.bs_deserializeBindType = (PFN_bs_deserializeBindType)GetProcAddress(module, "_bs_deserializeBindType");
     functions.bs_loadBindings = (PFN_bs_loadBindings)GetProcAddress(module, "_bs_loadBindings");
     functions.bs_binding = (PFN_bs_binding)GetProcAddress(module, "_bs_binding");
     functions.bs_bindImage = (PFN_bs_bindImage)GetProcAddress(module, "_bs_bindImage");

@@ -87,7 +87,8 @@ BSAPI bs_Result _bs_saveJson(bs_Json* json, bs_SaveJsonBits flags, char** out) {
 		return ;
 	}
 
-	return result;
+	*out = result;
+	return BS_RESULT_OK;
 }
 
 BSAPI bs_Json _bs_emptyJson() {

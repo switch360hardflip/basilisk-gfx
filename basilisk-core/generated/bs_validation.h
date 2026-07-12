@@ -35,9 +35,9 @@
 
 #include <basilisk-core.h>
 #include <bs_internal.h>
-#include <libloaderapi.h>
+#include <windows.h>
 
-bs_FunctionTable _val_bs_getFunctions() {
+static inline bs_FunctionTable _val_bs_getFunctions() {
     bs_FunctionTable functions;
 
     HMODULE module = NULL;
@@ -46,8 +46,6 @@ bs_FunctionTable _val_bs_getFunctions() {
         (LPCSTR)(&_val_bs_getFunctions),
         &module);
 
-    functions.bs_packages = (PFN_bs_packages)GetProcAddress(module, "_val_bs_packages");
-    functions.bs_objectSources = (PFN_bs_objectSources)GetProcAddress(module, "_val_bs_objectSources");
     functions.bs_v2 = (PFN_bs_v2)GetProcAddress(module, "_val_bs_v2");
     functions.bs_v2Add = (PFN_bs_v2Add)GetProcAddress(module, "_val_bs_v2Add");
     functions.bs_v2Sub = (PFN_bs_v2Sub)GetProcAddress(module, "_val_bs_v2Sub");
@@ -88,12 +86,10 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_v4Normalize = (PFN_bs_v4Normalize)GetProcAddress(module, "_val_bs_v4Normalize");
     functions.bs_v4Lerp = (PFN_bs_v4Lerp)GetProcAddress(module, "_val_bs_v4Lerp");
     functions.bs_m3Mul = (PFN_bs_m3Mul)GetProcAddress(module, "_val_bs_m3Mul");
-    functions.bs_m3Scale = (PFN_bs_m3Scale)GetProcAddress(module, "_val_bs_m3Scale");
     functions.bs_m3Transpose = (PFN_bs_m3Transpose)GetProcAddress(module, "_val_bs_m3Transpose");
     functions.bs_m3Inverse = (PFN_bs_m3Inverse)GetProcAddress(module, "_val_bs_m3Inverse");
     functions.bs_m3MulV3 = (PFN_bs_m3MulV3)GetProcAddress(module, "_val_bs_m3MulV3");
     functions.bs_m4Mul = (PFN_bs_m4Mul)GetProcAddress(module, "_val_bs_m4Mul");
-    functions.bs_m4Scale = (PFN_bs_m4Scale)GetProcAddress(module, "_val_bs_m4Scale");
     functions.bs_m4Transpose = (PFN_bs_m4Transpose)GetProcAddress(module, "_val_bs_m4Transpose");
     functions.bs_m4Inverse = (PFN_bs_m4Inverse)GetProcAddress(module, "_val_bs_m4Inverse");
     functions.bs_m4MulV3 = (PFN_bs_m4MulV3)GetProcAddress(module, "_val_bs_m4MulV3");
@@ -213,6 +209,7 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_pushMesh = (PFN_bs_pushMesh)GetProcAddress(module, "_val_bs_pushMesh");
     functions.bs_batchModel = (PFN_bs_batchModel)GetProcAddress(module, "_val_bs_batchModel");
     functions.bs_pushModel = (PFN_bs_pushModel)GetProcAddress(module, "_val_bs_pushModel");
+    functions.bs_rendererSwapsCount = (PFN_bs_rendererSwapsCount)GetProcAddress(module, "_val_bs_rendererSwapsCount");
     functions.bs_renderer = (PFN_bs_renderer)GetProcAddress(module, "_val_bs_renderer");
     functions.bs_output = (PFN_bs_output)GetProcAddress(module, "_val_bs_output");
     functions.bs_input = (PFN_bs_input)GetProcAddress(module, "_val_bs_input");
@@ -250,7 +247,6 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_ttf = (PFN_bs_ttf)GetProcAddress(module, "_val_bs_ttf");
     functions.bs_rasterizeGlyph = (PFN_bs_rasterizeGlyph)GetProcAddress(module, "_val_bs_rasterizeGlyph");
     functions.bs_kern = (PFN_bs_kern)GetProcAddress(module, "_val_bs_kern");
-    functions.bs_kern = (PFN_bs_kern)GetProcAddress(module, "_val_bs_kern");
     functions.bs_bindFont = (PFN_bs_bindFont)GetProcAddress(module, "_val_bs_bindFont");
     functions.bs_textDimensions = (PFN_bs_textDimensions)GetProcAddress(module, "_val_bs_textDimensions");
     functions.bs_destroyFont = (PFN_bs_destroyFont)GetProcAddress(module, "_val_bs_destroyFont");
@@ -264,7 +260,6 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_bitmapImage = (PFN_bs_bitmapImage)GetProcAddress(module, "_val_bs_bitmapImage");
     functions.bs_savePng = (PFN_bs_savePng)GetProcAddress(module, "_val_bs_savePng");
     functions.bs_encodePng = (PFN_bs_encodePng)GetProcAddress(module, "_val_bs_encodePng");
-    functions.bs_savePng = (PFN_bs_savePng)GetProcAddress(module, "_val_bs_savePng");
     functions.bs_destroyImage = (PFN_bs_destroyImage)GetProcAddress(module, "_val_bs_destroyImage");
     functions.bs_resizeImage = (PFN_bs_resizeImage)GetProcAddress(module, "_val_bs_resizeImage");
     functions.bs_queryImageIndexHash = (PFN_bs_queryImageIndexHash)GetProcAddress(module, "_val_bs_queryImageIndexHash");
@@ -288,7 +283,6 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_queryAtlas = (PFN_bs_queryAtlas)GetProcAddress(module, "_val_bs_queryAtlas");
     functions.bs_destroyAtlas = (PFN_bs_destroyAtlas)GetProcAddress(module, "_val_bs_destroyAtlas");
     functions.bs_loadAtlasMemory = (PFN_bs_loadAtlasMemory)GetProcAddress(module, "_val_bs_loadAtlasMemory");
-    functions.bs_loadAtlas = (PFN_bs_loadAtlas)GetProcAddress(module, "_val_bs_loadAtlas");
     functions.bs_parseArgs = (PFN_bs_parseArgs)GetProcAddress(module, "_val_bs_parseArgs");
     functions.bs_arguments = (PFN_bs_arguments)GetProcAddress(module, "_val_bs_arguments");
     functions.bs_ini = (PFN_bs_ini)GetProcAddress(module, "_val_bs_ini");
@@ -377,6 +371,7 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_memmem = (PFN_bs_memmem)GetProcAddress(module, "_val_bs_memmem");
     functions.bs_alignUp = (PFN_bs_alignUp)GetProcAddress(module, "_val_bs_alignUp");
     functions.bs_widen = (PFN_bs_widen)GetProcAddress(module, "_val_bs_widen");
+    functions.bs_unwiden = (PFN_bs_unwiden)GetProcAddress(module, "_val_bs_unwiden");
     functions.bs_charString = (PFN_bs_charString)GetProcAddress(module, "_val_bs_charString");
     functions.bs_free = (PFN_bs_free)GetProcAddress(module, "_val_bs_free");
     functions.bs_malloc = (PFN_bs_malloc)GetProcAddress(module, "_val_bs_malloc");
@@ -460,7 +455,6 @@ bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_destroyPipeline = (PFN_bs_destroyPipeline)GetProcAddress(module, "_val_bs_destroyPipeline");
     functions.bs_pushConstant = (PFN_bs_pushConstant)GetProcAddress(module, "_val_bs_pushConstant");
     functions.bs_rayTracingPipeline = (PFN_bs_rayTracingPipeline)GetProcAddress(module, "_val_bs_rayTracingPipeline");
-    functions.bs_deserializeBindType = (PFN_bs_deserializeBindType)GetProcAddress(module, "_val_bs_deserializeBindType");
     functions.bs_loadBindings = (PFN_bs_loadBindings)GetProcAddress(module, "_val_bs_loadBindings");
     functions.bs_binding = (PFN_bs_binding)GetProcAddress(module, "_val_bs_binding");
     functions.bs_bindImage = (PFN_bs_bindImage)GetProcAddress(module, "_val_bs_bindImage");

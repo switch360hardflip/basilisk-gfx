@@ -5,16 +5,21 @@ project(basilisk-core)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+file(GLOB_RECURSE LODEPNG_FILES "${CMAKE_SOURCE_DIR}/external/lodepng/*.c")
+file(GLOB_RECURSE YYJSON_FILES "${CMAKE_SOURCE_DIR}/external/yyjson/*.c")
 file(GLOB_RECURSE SOURCE_FILES "src/*.c")
 file(GLOB_RECURSE HEADER_FILES "include/*.h")
 file(GLOB_RECURSE GENERATED_FILES "generated/*.*")
 
 add_library(${PROJECT_NAME} SHARED
+    ${LODEPNG_FILES}
+    ${YYJSON_FILES}
     ${SOURCE_FILES}
     ${HEADER_FILES}
     ${GENERATED_FILES}
 )
 
+source_group("External Files" FILES ${LODEPNG_FILES} ${YYJSON_FILES})
 source_group("Source Files" FILES ${SOURCE_FILES})
 source_group("Header Files" FILES ${HEADER_FILES})
 source_group("Generated Files" FILES ${GENERATED_FILES})
@@ -23,6 +28,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     include/
     generated/
     ${CMAKE_SOURCE_DIR}/external/
+    ${CMAKE_SOURCE_DIR}/external/lodepng
+    ${CMAKE_SOURCE_DIR}/external/yyjson
     ${CMAKE_SOURCE_DIR}/external/cglm-0.9.6/include
     ${CMAKE_SOURCE_DIR}/external/vulkan
 )
@@ -53,29 +60,29 @@ SET(COPY_BASILISK_DLL_DEBUG_TO_TEST ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR
 SET(COPY_BASILISK_DLL_RELEASE_TO_TEST ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-core/Release/basilisk-core.dll" "${CMAKE_SOURCE_DIR}/build/basilisk-test-runner/Release")
 SET(COPY_BASILISK_DLL_RELEASE_DEBUG_TO_TEST ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-core/RelWithDebInfo/basilisk-core.dll" "${CMAKE_SOURCE_DIR}/build/basilisk-test-runner/RelWithDebInfo")
 
-add_custom_command(
-    TARGET ${PROJECT_NAME} 
-    POST_BUILD
-    COMMAND "$<$<CONFIG:Debug>:${COPY_BASILISK_DLL_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk.dll/"
-    COMMAND "$<$<CONFIG:Debug>:${COPY_BASILISK_DLL_DEBUG_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk.dll/ to test"
-	COMMAND_EXPAND_LISTS
-    CONFIGURATIONS Debug
-)
+#add_custom_command(
+#    TARGET ${PROJECT_NAME} 
+#    POST_BUILD
+#    COMMAND "$<$<CONFIG:Debug>:${COPY_BASILISK_DLL_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk.dll/"
+#    COMMAND "$<$<CONFIG:Debug>:${COPY_BASILISK_DLL_DEBUG_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk.dll/ to test"
+#	COMMAND_EXPAND_LISTS
+#    CONFIGURATIONS Debug
+#)
 
-add_custom_command(
-    TARGET ${PROJECT_NAME} 
-    POST_BUILD
-    COMMAND "$<$<CONFIG:Release>:${COPY_BASILISK_DLL_RELEASE}>" COMMENT "POST_BUILD: Copying basilisk.dll/"
-    COMMAND "$<$<CONFIG:Release>:${COPY_BASILISK_DLL_RELEASE_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk.dll/ to test"
-	COMMAND_EXPAND_LISTS
-    CONFIGURATIONS Release
-)
+#add_custom_command(
+#    TARGET ${PROJECT_NAME} 
+#    POST_BUILD
+#    COMMAND "$<$<CONFIG:Release>:${COPY_BASILISK_DLL_RELEASE}>" COMMENT "POST_BUILD: Copying basilisk.dll/"
+#    COMMAND "$<$<CONFIG:Release>:${COPY_BASILISK_DLL_RELEASE_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk.dll/ to test"
+#	COMMAND_EXPAND_LISTS
+#    CONFIGURATIONS Release
+#)
 
-add_custom_command(
-    TARGET ${PROJECT_NAME} 
-    POST_BUILD
-    COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_BASILISK_DLL_RELEASE_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk.dll/"
-    COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_BASILISK_DLL_RELEASE_DEBUG_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk.dll/ to test"
-	COMMAND_EXPAND_LISTS
-    CONFIGURATIONS RelWithDebInfo
-)
+#add_custom_command(
+#    TARGET ${PROJECT_NAME} 
+#    POST_BUILD
+#    COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_BASILISK_DLL_RELEASE_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk.dll/"
+#    COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_BASILISK_DLL_RELEASE_DEBUG_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk.dll/ to test"
+#	COMMAND_EXPAND_LISTS
+#    CONFIGURATIONS RelWithDebInfo
+#)

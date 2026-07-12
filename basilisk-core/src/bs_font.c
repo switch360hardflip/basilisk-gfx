@@ -460,7 +460,7 @@ static void bs_readGlyfTable(bs_TTF* ttf, bs_Glyph* glyph) {
     }
 
     // get location of glyph in ttf buffer
-    bs_U32 loc = bs_loca(ttf, glyph->index);
+    bs_U32 loc = bs_readLocaTable(ttf, glyph->index);
     ttf->glyf.buf += loc;
 
     // get bounding boxes
@@ -919,5 +919,5 @@ BSAPI bs_Result _bs_loadFont(bs_Object* object, int package_id, const char* reso
     memcpy(font->table, header->ascii_table, 256);
 
     resource->font = font;
-    return object;
+    return BS_RESULT_OK;
 }

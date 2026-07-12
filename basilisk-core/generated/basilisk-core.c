@@ -44,16 +44,6 @@
 
 bs_FunctionTable next = { 0 };
 
-bs_List* bs_packages()
-{
-    return next.bs_packages();
-}
-
-bs_List* bs_objectSources()
-{
-    return next.bs_objectSources();
-}
-
 bs_vec2 bs_v2(
     float x, 
     float y)
@@ -365,18 +355,11 @@ void bs_m3Mul(
     glm_mat3_mul(a->v, b->v, result->v);
 }
 
-void bs_m3Scale(
-    const bs_mat3* m, 
-    float s)
-{
-    glm_mat3_scale(m->v, s);
-}
-
 void bs_m3Transpose(
     const bs_mat3* m, 
     const bs_mat3* result)
 {
-    glm_mat3_transpose(m->v, result->v);
+    glm_mat3_transpose_to(m->v, result->v);
 }
 
 void bs_m3Inverse(
@@ -399,28 +382,21 @@ void bs_m4Mul(
     const bs_mat4* b, 
     const bs_mat4* result)
 {
-    glm_mat3_mul(a->v, b->v, result->v);
-}
-
-void bs_m4Scale(
-    const bs_mat4* m, 
-    float s)
-{
-    glm_mat3_scale(m->v, s);
+    glm_mat4_mul(a->v, b->v, result->v);
 }
 
 void bs_m4Transpose(
     const bs_mat4* m, 
     const bs_mat4* result)
 {
-    glm_mat3_transpose(m->v, result->v);
+    glm_mat4_transpose_to(m->v, result->v);
 }
 
 void bs_m4Inverse(
     const bs_mat4* m, 
     const bs_mat4* result)
 {
-    glm_mat3_inv(m->v, result->v);
+    glm_mat4_inv(m->v, result->v);
 }
 
 void bs_m4MulV3(
@@ -521,21 +497,21 @@ void bs_orthographic(
     float right, 
     float bottom, 
     float top, 
-    float near, 
-    float far, 
+    float near_z, 
+    float far_z, 
     bs_mat4* out)
 {
-    glm_ortho(left, right, bottom, top, near, far, out->v);
+    glm_ortho(left, right, bottom, top, near_z, far_z, out->v);
 }
 
 void bs_perspective(
     float fov, 
     float aspect, 
-    float near, 
-    float far, 
+    float near_z, 
+    float far_z, 
     bs_mat4* out)
 {
-    glm_perspective(fov, aspect, near, far, out->v);
+    glm_perspective(fov, aspect, near_z, far_z, out->v);
 }
 
 void bs_lookAt(
@@ -1433,6 +1409,12 @@ bs_Range bs_pushModel(
     return next.bs_pushModel(batch, model);
 }
 
+int bs_rendererSwapsCount(
+    bs_Renderer* renderer)
+{
+    return next.bs_rendererSwapsCount(renderer);
+}
+
 bs_Result bs_renderer(
     bs_Object* object, 
     bs_RendererBits flags)
@@ -1473,7 +1455,7 @@ void bs_renderPass(
     return next.bs_renderPass(renderer);
 }
 
-void bs_framebuffer(
+bs_Result bs_framebuffer(
     bs_Renderer* renderer, 
     bs_ivec2 resolution)
 {
@@ -1675,12 +1657,6 @@ void bs_kern(
     return next.bs_kern(ttf);
 }
 
-void bs_kern(
-    bs_TTF* ttf)
-{
-    return next.bs_kern(ttf);
-}
-
 void bs_bindFont(
     bs_Font* font, 
     bs_Sampler* sampler, 
@@ -1851,43 +1827,6 @@ unsigned char* bs_encodePngF(
     return _return;
 }
 
-bs_Result bs_savePng(
-    char* data, 
-    bs_ivec2 resolution, 
-    bs_PngType type, 
-    char* value, 
-    int value_length)
-{
-    return next.bs_savePng(data, resolution, type, value, value_length);
-}
-
-bs_Result bs_savePngV(
-    char* data, 
-    bs_ivec2 resolution, 
-    bs_PngType type, 
-    char* format, 
-    va_list args)
-{
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_savePng(data, resolution, type, _formatted, _length);
-}
-
-bs_Result bs_savePngF(
-    char* data, 
-    bs_ivec2 resolution, 
-    bs_PngType type, 
-    char* format, 
-    ...)
-{
-    va_list args;
-    va_start(args, format);
-    bs_Result _return = bs_savePngV(data, resolution, type, format, args);
-    va_end(args);
-    return _return;
-}
-
 void bs_destroyImage(
     bs_Image* image)
 {
@@ -1896,10 +1835,10 @@ void bs_destroyImage(
 
 bs_Result bs_resizeImage(
     bs_Image* image, 
-    bs_ivec2 resolution, 
-    int num_indices)
+    bs_ivec2 size, 
+    int indices_count)
 {
-    return next.bs_resizeImage(image, resolution, num_indices);
+    return next.bs_resizeImage(image, size, indices_count);
 }
 
 bs_Result bs_queryImageIndexHash(
@@ -2115,15 +2054,6 @@ bs_Result bs_loadAtlasMemory(
     bs_U32 flags)
 {
     return next.bs_loadAtlasMemory(object, package_id, resource_name, data, flags);
-}
-
-bs_Result bs_loadAtlas(
-    bs_Object* object, 
-    int package_id, 
-    const char* resource_name, 
-    bs_U32 flags)
-{
-    return next.bs_loadAtlas(object, package_id, resource_name, flags);
 }
 
 void bs_parseArgs(
@@ -3011,12 +2941,20 @@ bs_U32 bs_alignUp(
     return next.bs_alignUp(value, alignment);
 }
 
-void bs_widen(
+bs_Result bs_widen(
     char* src, 
     wchar_t* dst, 
     bs_U32 dst_size)
 {
     return next.bs_widen(src, dst, dst_size);
+}
+
+bs_Result bs_unwiden(
+    wchar_t* src, 
+    char* dst, 
+    bs_U32 dst_size)
+{
+    return next.bs_unwiden(src, dst, dst_size);
 }
 
 char* bs_charString(
@@ -3719,9 +3657,10 @@ void bs_destroyComputePipeline(
 }
 
 bs_Pipeline* bs_queryPipeline(
+    bs_PipelineType type, 
     bs_U64 hash)
 {
-    return next.bs_queryPipeline(hash);
+    return next.bs_queryPipeline(type, hash);
 }
 
 bs_U64 bs_pipelineHash(
@@ -3730,10 +3669,11 @@ bs_U64 bs_pipelineHash(
     return next.bs_pipelineHash(descriptor);
 }
 
-bs_Pipeline* bs_pipeline(
-    bs_PipelineHash* descriptor)
+bs_Result bs_pipeline(
+    bs_PipelineHash* descriptor, 
+    bs_Pipeline** out)
 {
-    return next.bs_pipeline(descriptor);
+    return next.bs_pipeline(descriptor, out);
 }
 
 void bs_destroyPipeline(
@@ -3755,12 +3695,6 @@ bs_Pipeline* bs_rayTracingPipeline(
     bs_RayTracePipelineHash* pipeline_hash)
 {
     return next.bs_rayTracingPipeline(pipeline_hash);
-}
-
-bs_BindType bs_deserializeBindType(
-    const char* string)
-{
-    return next.bs_deserializeBindType(string);
 }
 
 void bs_loadBindings(

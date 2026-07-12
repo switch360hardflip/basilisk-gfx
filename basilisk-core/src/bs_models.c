@@ -192,8 +192,8 @@ static void bs_loadMeshes(bs_Model* model, bs_Json* root) {
         bs_Mesh* mesh = model->meshes + id;
         *mesh = (bs_Mesh) {
             .model = model,
-            .aabb.max = bs_v3V1(-FLT_MAX),
-            .aabb.min = bs_v3V1(FLT_MAX),
+            .aabb.max = { -FLT_MAX, -FLT_MAX, -FLT_MAX },
+            .aabb.min = { FLT_MAX, FLT_MAX, FLT_MAX },
             .name = strdup(bs_fetchJson(&node, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string),
             .primitives = bs_malloc(primitives.size * sizeof(bs_Primitive)),
             .primitives_count = primitives.size,
@@ -293,7 +293,7 @@ BSAPI void _val_bs_blendPose(bs_Armature* armature, bs_Animation* animation_a, b
         animation_a->name, animation_a->bones_count, 
         animation_b->name, animation_b->bones_count);
 
-    return _bs_blendPose(armature, animation_a, animation_b, factor, time_a, time_b);
+    return bs_blendPose(armature, animation_a, animation_b, factor, time_a, time_b);
 }
 
 BSAPI void _bs_blendPose(bs_Armature* armature, bs_Animation* animation_a, bs_Animation* animation_b, float factor, float time_a, float time_b) {
@@ -498,7 +498,7 @@ BSAPI bs_Result _bs_loadAnimation(bs_Model* model, const char* name, bs_Animatio
 
         animation.frames_count = BS_MAX(animation.frames_count, num_inputs);
         for (int j = 0; j < num_inputs; j++)
-            animation.length = bs_max(animation.length, inputs[j]);
+            animation.length = BS_MAX(animation.length, inputs[j]);
 
         int path_len = strlen(path);
         if ((sizeof("translation") - 1) == path_len && strncmp(path, "translation", path_len) == 0) {
@@ -682,8 +682,8 @@ static void bs_loadMaterials(bs_Model* model, bs_Json* root) {
    * GLTF Models
    =============================================================================*/
 
-static inline bs_vec3 bs_v3MinBound(bs_vec3 a, bs_vec3 b) { return bs_v3(bs_min(a.x, b.x), bs_min(a.y, b.y), bs_min(a.z, b.z)); }
-static inline bs_vec3 bs_v3MaxBound(bs_vec3 a, bs_vec3 b) { return bs_v3(bs_max(a.x, b.x), bs_max(a.y, b.y), bs_max(a.z, b.z)); }
+static inline bs_vec3 bs_v3MinBound(bs_vec3 a, bs_vec3 b) { return bs_v3(BS_MIN(a.x, b.x), BS_MIN(a.y, b.y), BS_MIN(a.z, b.z)); }
+static inline bs_vec3 bs_v3MaxBound(bs_vec3 a, bs_vec3 b) { return bs_v3(BS_MAX(a.x, b.x), BS_MAX(a.y, b.y), BS_MAX(a.z, b.z)); }
 static void bs_calculateModelBounds(bs_Model* model) {
     if (model->aabb.min.x != FLT_MAX) return;
 
@@ -768,7 +768,7 @@ BSAPI bs_Result _bs_model(int package_id, const char* name, bs_U32 flags, bs_Res
         }
         else {
             bs_warnF("%s: Unknown chunk type 0x%08X\n", __func__, chunk->type);
-            return NULL;
+            return BS_RESULT_CORRUPTED;
         }
 
         offset += chunk->length + sizeof(*chunk);

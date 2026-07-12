@@ -59,7 +59,7 @@ static bs_Result bs_querySwapchainFormat(bs_Window* window, VkFormat candidates[
         for (int j = 0; j < num_formats; j++) {
             if (candidate == formats[j].format) {
                 VkSurfaceFormatKHR result = formats[j];
-                window->surface_format = result;
+                memcpy(&window->surface_format, &result, sizeof(window->surface_format));
                 bs_free(formats);
                 return BS_RESULT_OK;
             }
@@ -139,7 +139,7 @@ static void bs_swapchain(bs_Window* window) {
 
     const bool same_family = true; // TODO: this shouldn't always be true
 
-    window->color_space = window->surface_format.colorSpace;
+    window->color_space = window->surface_format.color_space;
     window->swapchain_image = window->swapchain_image ? window->swapchain_image : NULL;
 
     bs_ivec2 resolution = { capabilities.minImageExtent.width, capabilities.minImageExtent.height };
@@ -170,7 +170,7 @@ static void bs_swapchain(bs_Window* window) {
         .preTransform = capabilities.currentTransform,
         .presentMode = window->present_mode,
         .imageFormat = window->surface_format.format,
-        .imageColorSpace = window->surface_format.colorSpace,
+        .imageColorSpace = window->surface_format.color_space,
     };
 
     result = vkCreateSwapchainKHR(_bs_instance_->device, &swapchain_ci, NULL, &window->swapchain);
@@ -241,7 +241,7 @@ BSAPI bs_Result _bs_timeZoneBias(int* out) {
 	DWORD time_zone_id = 0;
 	if ((time_zone_id = GetTimeZoneInformation(&info)) == TIME_ZONE_ID_INVALID) {
 		bs_warnF("GetTimeZoneInformation failed (GetLastError() = %d)\n", GetLastError());
-		return bs_convertLastError();
+		return bs_convertWin32Error(GetLastError());
 	}
 
 	*out = info.Bias / 60;
@@ -712,7 +712,7 @@ BSAPI bs_Result _bs_window(bs_Object* object, bs_U32 width, bs_U32 height, const
     window->dimensions = (bs_ivec2) { width, height };
 
     bs_Timer timer = bs_timer();
-    bs_setTargetFramerate(object->window, 60);
+    bs_setTargetFramerate(60);
 
     const char class_name[] = "class";
     HINSTANCE hinstance = GetModuleHandle(0);
@@ -731,8 +731,10 @@ BSAPI bs_Result _bs_window(bs_Object* object, bs_U32 width, bs_U32 height, const
         .hIconSm = LoadIcon(NULL, IDI_APPLICATION),
     };
 
-    if (!RegisterClassEx(&wc))
-        bs_throwLastWin32Error(NULL);
+    if (!RegisterClassEx(&wc)) {
+        BS_WARN_WIN32_PATH("RegisterClassEx", title);
+        return bs_convertWin32Error(GetLastError());
+    }
 
     window->hwnd = CreateWindowEx(
 		WS_EX_CLIENTEDGE,
@@ -745,8 +747,8 @@ BSAPI bs_Result _bs_window(bs_Object* object, bs_U32 width, bs_U32 height, const
         NULL, NULL, hinstance, NULL);
 
     if (!window->hwnd) {
-        bs_warnF("Failed to create window\n");
-        return bs_convertLastError();
+        BS_WARN_WIN32_PATH("CreateWindowEx", title);
+        return bs_convertWin32Error(GetLastError());
     }
 
     PIXELFORMATDESCRIPTOR pixel_format_descriptor = {

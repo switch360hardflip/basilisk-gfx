@@ -33,13 +33,14 @@
 #include <assert.h>
 
 #ifdef WIN32
+#include <windows.h>
 #include <io.h>
-#include <shlobj_core.h >
+#include <shlobj_core.h>
 #else
 #include <unistd.h>
 #endif
 
-#include <basilisk-core.h>s
+#include <basilisk-core.h>
 #include <bs_internal.h>
 #include <vulkan.h>
 
@@ -136,6 +137,7 @@ BSAPI bs_Result _bs_queryPackage(const char* name, int* out) {
     //else
     //    bs_free(existing->resource->data);
     bs_Result result = bs_loadFileChunkF(
+        package->path,
         existing->header.offset, 
         existing->header.size, 
         &existing->resource->data, 
@@ -453,7 +455,7 @@ BSAPI bs_Object* _bs_object(bs_U32 source_id, bs_U32 id, size_t size, size_t fle
     if (result && result->head) {
         result->flags = flags | BS_OBJECT_ALREADY_EXISTS;
         if (flags & BS_OBJECT_FORCE_DESTROY)
-            bs_logObjectUpdated(source, result);
+            bs_logObjectUpdated(source_id, id);
 
         return result;
     }

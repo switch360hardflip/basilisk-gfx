@@ -33,26 +33,22 @@
 #include <threads.h>
 
 #ifdef WIN32
+#include <windows.h>
 #include <io.h>
 #include <shlobj_core.h>
 #else
 #include <unistd.h>
 #endif
 
-#include <basilisk-core.h>s
+#include <basilisk-core.h>
 #include <bs_internal.h>
 #include <vulkan.h>
 
-bs_Instance* _bs_instance;
-bs_IO _bs_io;
+bs_Scope _bs_scope_ = { 0 };
+bs_Instance* _bs_instance_ = NULL;
+bs_IO _bs_io_ = { 0 };
 int _bs_image_index_ = 0;
 
-#ifdef _WIN32
-#define BS_WARN_WIN32_PATH(function, path) \
-    bs_warnF("%s: %s failed for \"%s\" (Win32 error %lu = \"%s\")\n", __func__, function, path, GetLastError(), bs_serializeWin32Error(GetLastError()))
-#endif
-#define BS_WARN_ERRNO_PATH(function, path) \
-    bs_warnF("%s: %s failed for \"%s\" (errno %d = \"%s\")\n", __func__, function, path, errno, bs_serializeErrno())
 
 
   /*==============================================================================
@@ -401,35 +397,6 @@ BSAPI void _bs_replaceCharOccurrences(char* string, int string_len, char a, char
     }
 }
 
-bs_String* bs_stringV(bs_String* old, const char* format, va_list args) {
-    va_list args_copy;
-    va_copy(args_copy, args);
-    int len = vsnprintf(NULL, 0, format, args_copy);
-    va_end(args_copy);
-
-    if (len < 0) {
-        bs_warnF("vsnprintf format = \"%s\" returned a negative number (Errno %d = \"%s\")\n", format, errno, bs_serializeErrno());
-        return NULL;
-    }
-
-    bs_String* string = bs_stringAlloc(old, len);
-    string->len = len;
-
-    vsnprintf(string->value, len + 1, format, args);
-
-    return string;
-}
-
-bs_String* bs_stringF(bs_String* old, const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-
-    bs_String* string = bs_stringV(old, format, args);
-
-    va_end(args);
-    return string;
-}
-
  /**
   To lowercase
   */
@@ -558,10 +525,6 @@ BSAPI void* _val_bs_fetchUnit(bs_List* list, bs_U32 offset) {
     return bs_fetchUnit(list, offset);
 }
 
-BSAPI void* _bs_fetchUnit(bs_List* list, bs_U32 offset) {
-    return ((bs_U8*)list->data) + offset * list->unit_size;
-}
-
 BSAPI void* _val_bs_seekList(bs_List* list, bs_U32 offset) {
     BS_VALIDATE(list->data != NULL, NULL, );
     BS_VALIDATE(offset < list->capacity, NULL, );
@@ -587,7 +550,7 @@ BSAPI void _bs_ensureSize(bs_List* list, bs_U32 num_units) {
         return;
 
     bs_U32 prev_capacity = list->capacity;
-    list->capacity += bs_imax(num_units, list->increment);
+    list->capacity += BS_MAX(num_units, list->increment);
     list->data = bs_realloc(list->data, list->capacity * list->unit_size);
 
     bs_U32 size = (list->capacity - prev_capacity) * list->unit_size;
@@ -1029,7 +992,8 @@ BSAPI bs_Result _bs_loadFileChunk(long offset, size_t size, const char* path, bs
 
     fclose(file);
 
-    return buffer;
+    *out = buffer;
+    return BS_RESULT_OK;
 }
 
    /**

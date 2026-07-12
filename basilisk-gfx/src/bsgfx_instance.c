@@ -325,7 +325,7 @@ void bsgfx_instanceHiResMesh(bs_Mesh* mesh, bs_vec3 position, bs_vec4 rotation, 
 	bs_vec3 max = mesh->aabb.max;
 	bs_vec3 size = bs_v3Sub(max, min);
 
-	float max_dim = bs_max(bs_max(size.x, size.y), size.z);
+	float max_dim = BS_MAX(BS_MAX(size.x, size.y), size.z);
 
 	float s = scale / max_dim;
 	bs_vec3 sc = bs_v3V1(s);

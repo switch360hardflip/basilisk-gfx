@@ -118,7 +118,7 @@ static void bs_destroyDescriptors() {
 
 } 
 
-static inline VkDescriptorType _bs_convertBindType(bs_BindType type) {
+static inline VkDescriptorType bs_convertBindType(bs_BindType type) {
     switch (type) {
     case BS_BIND_TYPE_INLINE_UNIFORM_BLOCK: return VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK;
     case BS_BIND_TYPE_ACCELERATION_STRUCTURE: return VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
@@ -288,8 +288,8 @@ static inline bs_Result bs_validateBinding(bs_U32 bind_set_slot, bs_U32 bind_poi
     bs_BindSet* bind_set;
     bs_Binding* binding;
 
-    BS_VALIDATE(bs_queryBindSet(bind_set_slot, &bind_set) == BS_RESULT_OK, BS_RESULT_VALIDATION_ERROR, );
-    BS_VALIDATE(bs_queryBinding(bind_set, bind_point_slot, &binding) == BS_RESULT_OK, BS_RESULT_VALIDATION_ERROR, "Binding (%d, %d) is not used by any shader", bind_set_slot, bind_point_slot);
+    BS_VALIDATE(bs_queryBindSet(bind_set_slot) != NULL, BS_RESULT_VALIDATION_ERROR, );
+    BS_VALIDATE(bs_queryBinding(bind_set, bind_point_slot) != NULL, BS_RESULT_VALIDATION_ERROR, "Binding (%d, %d) is not used by any shader", bind_set_slot, bind_point_slot);
 
     if (!binding->in_use) {
         BS_VALIDATE(descriptors_count <= binding->descriptors_count, BS_RESULT_VALIDATION_ERROR, );
@@ -306,13 +306,8 @@ BSAPI bs_Result _val_bs_binding(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs
 BSAPI bs_Result _bs_binding(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Descriptor* descriptors, int descriptors_count, bs_Binding** out) {
    // bs_pushDescriptorPools();
 
-    bs_Result result;
-
-    bs_BindSet* bind_set;
-    bs_Binding* binding;
-
-    result = bs_queryBindSet(bind_set_slot, &bind_set);
-    result = bs_queryBinding(bind_set, bind_point_slot, &binding);
+    bs_BindSet* bind_set = bs_queryBindSet(bind_set_slot);
+    bs_Binding* binding = bs_queryBinding(bind_set, bind_point_slot);
 
     if (!binding->in_use) {
         binding->location = bind_set->bound_descriptors_count * sizeof(bs_Descriptor);
@@ -328,7 +323,8 @@ BSAPI bs_Result _bs_binding(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Des
 
     bind_set->needs_update = true;
 
-    return binding;
+    *out = binding;
+    return BS_RESULT_OK;
 }
 
  /**
@@ -359,7 +355,7 @@ BSAPI bs_Result _bs_bindImages(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_
 
         descriptors[i] = (bs_Descriptor) {
             .as_image = {
-                .vk_image_layout = descriptor->layout,
+                .vk_image_layout = (struct VkImageLayout_T*)descriptor->layout,
                 .vk_image_view = descriptor->image->_[descriptor->image->flags & BS_IMAGE_SWAPS_BIT ? _bs_scope_.window->frame : 0].vk_image_view,
                 .vk_sampler = descriptor->sampler ? descriptor->sampler->_->vk_sampler : VK_NULL_HANDLE,
                 .image = descriptor->image,
@@ -391,7 +387,7 @@ BSAPI bs_Result _bs_bindImage(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_I
   */
 BSAPI bs_Result _val_bs_bindBuffers(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Buffer** buffers, int buffers_count) {
     BS_VALIDATE(bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK, BS_RESULT_VALIDATION_ERROR, );
-    return bs_bindBuffer(bind_set_slot, bind_point_slot, buffers, buffers_count);
+    return bs_bindBuffers(bind_set_slot, bind_point_slot, buffers, buffers_count);
 }
 
 BSAPI bs_Result _bs_bindBuffers(bs_U32 bind_set_slot, bs_U32 slot, bs_Buffer** buffers, int buffers_count) {
@@ -437,7 +433,7 @@ BSAPI void _bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Buffe
   */
 BSAPI void _val_bs_bindAccelerationStructures(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer** ray_tracers, int ray_tracers_count) {
     BS_VALIDATE(bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK, BS_RESULT_VALIDATION_ERROR, );
-    return _bs_bindAccelerationStructures(bind_set_slot, bind_point_slot, ray_tracers, ray_tracers_count);
+    return bs_bindAccelerationStructures(bind_set_slot, bind_point_slot, ray_tracers, ray_tracers_count);
 }
 
 BSAPI void _bs_bindAccelerationStructures(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer** ray_tracers, int ray_tracers_count) {
@@ -446,7 +442,7 @@ BSAPI void _bs_bindAccelerationStructures(bs_U32 bind_set_slot, bs_U32 bind_poin
 
 BSAPI void _val_bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer* ray_tracer) {
     BS_VALIDATE(bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK, BS_RESULT_VALIDATION_ERROR, );
-    return _bs_bindAccelerationStructure(bind_set_slot, bind_point_slot, ray_tracer);
+    return bs_bindAccelerationStructure(bind_set_slot, bind_point_slot, ray_tracer);
 }
 
 BSAPI void _bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer* ray_tracer) {
@@ -456,12 +452,12 @@ BSAPI void _bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 bind_point
  /**
   Query bind set
   */
-BSAPI bs_BindSet* _val_bs_queryBindSet(bs_U32 id, bs_BindSet* out) {
+BSAPI bs_BindSet* _val_bs_queryBindSet(bs_U32 id) {
     BS_VALIDATE(id <= _bs_instance_->max_bind_set, NULL, );
-    return bs_queryBindSet(id, out);
+    return bs_queryBindSet(id);
 }
 
-BSAPI bs_BindSet* _postval_bs_queryBindSet(bs_U32 id, bs_BindSet* out, bs_BindSet* _return) {
+BSAPI bs_BindSet* _postval_bs_queryBindSet(bs_U32 id, bs_BindSet* _return) {
     BS_VALIDATE(_return->slot == id, NULL, );
     return _return;
 }
@@ -929,7 +925,7 @@ BSAPI void _bs_destroyShader(bs_Shader* shader) {
    * Pipelines
    *============================================================================*/
 
-static inline bs_Pipeline* bs_queryPipeline(bs_PipelineType type, bs_U64 hash) {
+BSAPI bs_Pipeline* _bs_queryPipeline(bs_PipelineType type, bs_U64 hash) {
     for (int i = 0; i < bs_pipelines[type].count; i++) {
         bs_Pipeline* pipeline = *(bs_Pipeline**)bs_fetchUnit(bs_pipelines + type, i);
 
@@ -947,7 +943,7 @@ BSAPI void _val_bs_pushConstant(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 siz
     BS_VALIDATE(pipeline != NULL, ,);
     BS_VALIDATE((offset + size) <= pipeline->constant_size, , "Push constant %d + %d > %d", offset, size, pipeline->constant_size);
 
-    return _bs_pushConstant(pipeline, offset, size, data);
+    return bs_pushConstant(pipeline, offset, size, data);
 }
 
 BSAPI void _bs_pushConstant(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 size, void* data) {
@@ -1103,7 +1099,7 @@ BSAPI bs_Result _bs_computePipeline(bs_Shader* compute_shader, bs_PipelineFlags 
     VkResult vk_result = vkCreateComputePipelines(_bs_instance_->device, VK_NULL_HANDLE, 1, &pipeline_ci, NULL, &pipeline->vk_pipeline);
     if (vk_result != VK_SUCCESS) {
         BS_WARN_VULKAN_ERROR("vkCreateComputePipelines", vk_result, "");
-        return NULL;
+        return bs_convertVulkanResult(vk_result);
     }
 
     const char* blue = (_bs_args_.color_log ? BS_PRINT_BLUE_BRIGHT : "");
@@ -1118,7 +1114,7 @@ BSAPI bs_Result _bs_computePipeline(bs_Shader* compute_shader, bs_PipelineFlags 
         (compute_shader->head.id == 0 ? "" : bs_idName(compute_shader->head.source_id, compute_shader->head.id)),
         reset);
 
-    return pipeline;
+    return BS_RESULT_OK;
 }
 
 static inline VkStencilOpState bs_mapStencilOpState(bs_StencilOperation op) {
@@ -1161,9 +1157,9 @@ static void bs_defaultDescriptor(bs_PipelineHash* descriptor) {
 }
 
 BSAPI bs_Result _val_bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
-    BS_VALIDATE(_bs_scope_.renderer != NULL, NULL, "Pipelines must be created within a renderer");
-    BS_VALIDATE(descriptor->shaders[0]->type == BS_VERTEX_SHADER, NULL,);
-    BS_VALIDATE(descriptor->shaders[1]->type == BS_FRAGMENT_SHADER, NULL,);
+    BS_VALIDATE(_bs_scope_.renderer != NULL, BS_RESULT_VALIDATION_ERROR, "Pipelines must be created within a renderer");
+    BS_VALIDATE(descriptor->shaders[0]->type == BS_VERTEX_SHADER, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(descriptor->shaders[1]->type == BS_FRAGMENT_SHADER, BS_RESULT_VALIDATION_ERROR,);
 
     bool is_dynamic_renderer = bs_rendererIsDynamic(_bs_scope_.renderer);
     if (!is_dynamic_renderer) {
@@ -1174,7 +1170,7 @@ BSAPI bs_Result _val_bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out)
             _bs_scope_.renderer->num_subpasses);
     }
 
-    return _bs_pipeline(descriptor, out);
+    return bs_pipeline(descriptor, out);
 }
 
 BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
@@ -1405,7 +1401,7 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
     pipeline_ci.basePipelineIndex = -1;
     pipeline_ci.subpass = descriptor->subpass;
 
-    VkResult vk_result = vkCreateGraphicsPipelines(_bs_instance_->device, VK_NULL_HANDLE, 1, &pipeline_ci, NULL, &pipeline->vk_pipeline);
+    vk_result = vkCreateGraphicsPipelines(_bs_instance_->device, VK_NULL_HANDLE, 1, &pipeline_ci, NULL, &pipeline->vk_pipeline);
     if (vk_result != VK_SUCCESS) {
         BS_WARN_VULKAN_ERROR("vkCreateGraphicsPipelines", vk_result, "");
         return bs_convertVulkanResult(vk_result);

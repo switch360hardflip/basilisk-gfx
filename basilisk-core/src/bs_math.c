@@ -371,7 +371,7 @@ BSAPI void _bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_ve
 
     *result = (bs_SphereVsBox){
         .hit = true,
-        .penetration = radius - bs_sqrt(distance),
+        .penetration = radius - sqrtf(distance),
     };
 
     bs_m4MulV3(&transform, &closest_point, &result->point);

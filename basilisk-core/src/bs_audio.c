@@ -222,7 +222,7 @@ BSAPI bs_Result _bs_iniAudio() {
     if (FAILED(result))
         return BS_RESULT_GENERAL_ERROR;
 
-    result = bs_XAudio2Create(&px_audio_2, 0, XAUDIO2_DEFAULT_PROCESSOR);
+    result = XAudio2Create(&px_audio_2, 0, XAUDIO2_DEFAULT_PROCESSOR);
 
     if (FAILED(result))
         return BS_RESULT_GENERAL_ERROR;

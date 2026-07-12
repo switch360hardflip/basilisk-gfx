@@ -38,6 +38,19 @@
 #include <string.h>
 #include <stdbool.h>
         
+typedef union bs_vec2 bs_vec2;
+typedef union bs_vec3 bs_vec3;
+typedef union bs_vec4 bs_vec4;
+typedef union bs_ivec2 bs_ivec2;
+typedef union bs_ivec3 bs_ivec3;
+typedef union bs_ivec4 bs_ivec4;
+typedef union bs_mat2 bs_mat2;
+typedef union bs_mat3 bs_mat3;
+typedef union bs_mat4 bs_mat4;
+typedef union bs_mat4x3 bs_mat4x3;
+typedef union bs_RGBA bs_RGBA;
+typedef union bs_RGB bs_RGB;
+typedef union bs_BigInt bs_BigInt;
 typedef struct bs_Aabb bs_Aabb;
 typedef struct bs_Sphere bs_Sphere;
 typedef struct bs_Rectangle bs_Rectangle;
@@ -65,8 +78,8 @@ typedef struct bs_Header bs_Header;
 typedef struct bs_Object bs_Object;
 typedef struct bs_ResourceParams bs_ResourceParams;
 typedef struct bs_Resource bs_Resource;
-typedef struct bs_ResourceHeader bs_ResourceHeader;
 typedef struct bs_ResourceHeaderData bs_ResourceHeaderData;
+typedef struct bs_ResourceHeader bs_ResourceHeader;
 typedef struct bs_Package bs_Package;
 typedef struct bs_BlitOperation bs_BlitOperation;
 typedef struct bs_ImageIndex bs_ImageIndex;
@@ -95,8 +108,8 @@ typedef struct bs_Renderer bs_Renderer;
 typedef struct bs_Batch bs_Batch;
 typedef struct bs_QueueSwaps bs_QueueSwaps;
 typedef struct bs_Queue bs_Queue;
-typedef struct bs_RayTracer bs_RayTracer;
 typedef struct bs_ShaderGroup bs_ShaderGroup;
+typedef struct bs_RayTracer bs_RayTracer;
 typedef union bs_JsonArray bs_JsonArray;
 typedef struct bs_Json bs_Json;
 typedef struct bs_JsonValue bs_JsonValue;
@@ -145,19 +158,6 @@ typedef struct bs_Scope bs_Scope;
 typedef struct bs_Args bs_Args;
 typedef struct bs_Features bs_Features;
 typedef struct bs_Props bs_Props;
-typedef union bs_vec2 bs_vec2;
-typedef union bs_vec3 bs_vec3;
-typedef union bs_vec4 bs_vec4;
-typedef union bs_ivec2 bs_ivec2;
-typedef union bs_ivec3 bs_ivec3;
-typedef union bs_ivec4 bs_ivec4;
-typedef union bs_mat2 bs_mat2;
-typedef union bs_mat3 bs_mat3;
-typedef union bs_mat4 bs_mat4;
-typedef union bs_mat4x3 bs_mat4x3;
-typedef union bs_RGBA bs_RGBA;
-typedef union bs_RGB bs_RGB;
-typedef union bs_BigInt bs_BigInt;
 
 typedef enum bs_Result bs_Result;
 typedef enum bs_IniFlag bs_IniFlag;
@@ -216,6 +216,14 @@ typedef enum bs_BindType bs_BindType;
     alloca
 #endif
 
+#ifdef _WIN32
+#define BS_WARN_WIN32_PATH(function, path)                           \
+    bs_warnF("%s: %s failed for \"%s\" (Win32 error %lu = \"%s\")\n", __func__, function, path, GetLastError(), bs_serializeWin32Error(GetLastError()))
+#endif
+
+#define BS_WARN_ERRNO_PATH(function, path)                           \
+    bs_warnF("%s: %s failed for \"%s\" (errno %d = \"%s\")\n", __func__, function, path, errno, bs_serializeErrno())
+
 #define BS_VALIDATE(condition, ret, format, ...)                     \
     if (!(condition)) {                                              \
         bs_warnF(BS_PRINT_COLOR("[CORE] [VAL]", BS_PRINT_RED) " %s: %s\n" __VA_OPT__(format) "\n", __func__, #condition __VA_OPT__(,) __VA_ARGS__); \
@@ -223,10 +231,10 @@ typedef enum bs_BindType bs_BindType;
     }
 
 #define BS_WARN_VULKAN_ERROR(function, code, format, ...)            \
-    bs_warnF("%s: %s failed" __VA_OPT__(", ") format " (Vulkan result %d = \"%s\")\n", __func__, function __VA_OPT__(,) __VA_ARGS__ , code, bs_serializeVulkanResult())
+    bs_warnF("%s: %s failed" __VA_OPT__(", ") format " (Vulkan result %d\n", __func__, function __VA_OPT__(,) __VA_ARGS__, code)
 
 #define BS_CRITICAL_VULKAN_ERROR(function, code, format, ...)        \
-    bs_warnF("%s: %s failed" __VA_OPT__(", ") format " (Vulkan result %d = \"%s\")\n", __func__, function __VA_OPT__(,) __VA_ARGS__ , code, bs_serializeVulkanResult())
+    bs_warnF("%s: %s failed" __VA_OPT__(", ") format " (Vulkan result %d)\n", __func__, function __VA_OPT__(,) __VA_ARGS__, code)
 
 #define BS_VALIDATE_OBJECT_TYPE(object, source_id, _return)          \
     BS_VALIDATE(((bs_ObjectSource*)bs_fetchUnit(bs_objectSources(), source_id))->type == source_id, _return,,)
@@ -1353,6 +1361,120 @@ typedef bs_U32 bs_AnimationFlags;
 typedef bs_U32 bs_SaveJsonBits;
 typedef void (*bs_Callback)();
 typedef BS_VERTEX_DECLARATION_STRUCTURE() bs_VertexDeclaration;
+union bs_vec2 {
+    float a[2];
+    struct {
+        float x;
+        float y;
+    };
+};
+
+union bs_vec3 {
+    float a[3];
+    struct {
+        float x;
+        float y;
+        float z;
+    };
+    bs_vec2 xy;
+    bs_vec2 yz;
+};
+
+union bs_vec4 {
+    float a[4];
+    struct {
+        float x;
+        float y;
+        float z;
+        float w;
+    };
+    bs_vec2 xy;
+    bs_vec2 zw;
+    bs_vec3 xyz;
+};
+
+union bs_ivec2 {
+    int a[2];
+    struct {
+        int x;
+        int y;
+    };
+};
+
+union bs_ivec3 {
+    int a[3];
+    struct {
+        int x;
+        int y;
+        int z;
+    };
+    bs_ivec2 xy;
+    bs_ivec2 yz;
+};
+
+union bs_ivec4 {
+    int a[4];
+    struct {
+        int x;
+        int y;
+        int z;
+        int w;
+    };
+    bs_ivec2 xy;
+    bs_ivec2 zw;
+    bs_ivec3 xyz;
+};
+
+union bs_mat2 {
+    bs_vec2 v[2];
+    float f[4];
+    float a[2][2];
+};
+
+union bs_mat3 {
+    bs_vec3 v[3];
+    float f[9];
+    float a[3][3];
+};
+
+union bs_mat4 {
+    bs_vec4 v[4];
+    float f[16];
+    float a[4][4];
+};
+
+union bs_mat4x3 {
+    bs_vec3 v[4];
+    float f[12];
+    float a[4][3];
+};
+
+union bs_RGBA {
+    struct {
+        unsigned char r;
+        unsigned char g;
+        unsigned char b;
+        unsigned char a;
+    };
+    bs_U32 hex;
+    unsigned char array[4];
+};
+
+union bs_RGB {
+    struct {
+        unsigned char r;
+        unsigned char g;
+        unsigned char b;
+    };
+    bs_U32 hex;
+};
+
+union bs_BigInt {
+    unsigned long low_part;
+    long high_part;
+    long long quad_part;
+};
+
 struct bs_Aabb {
     bs_vec3 min;
     bs_vec3 max;
@@ -1531,18 +1653,18 @@ struct bs_Resource {
     };
 };
 
-struct bs_ResourceHeader {
-    bs_ResourceHeaderData header;
-    char* name;
-    bs_Resource* resource;
-};
-
 struct bs_ResourceHeaderData {
     bs_U64 name_hash;
     int chunk;
     int offset;
     int size;
     int name_length;
+};
+
+struct bs_ResourceHeader {
+    bs_ResourceHeaderData header;
+    char* name;
+    bs_Resource* resource;
 };
 
 struct bs_Package {
@@ -1799,7 +1921,6 @@ struct bs_Renderer {
     int num_subpasses;
     int num_dependencies;
     bs_ivec2 dim;
-    bs_ivec2 dim;
     struct VkRenderPass_T* render_pass;
     bs_RendererSwaps _[];
 };
@@ -1831,6 +1952,10 @@ struct bs_Queue {
     bs_QueueSwaps _[];
 };
 
+struct bs_ShaderGroup {
+    bs_Shader* shader;
+};
+
 struct bs_RayTracer {
     bs_Header head;
     bs_List aabbs;
@@ -1844,10 +1969,6 @@ struct bs_RayTracer {
     struct VkAccelerationStructureKHR_T* BLAS;
     struct VkAccelerationStructureKHR_T* TLAS;
     bs_ShaderGroup _[];
-};
-
-struct bs_ShaderGroup {
-    bs_Shader* shader;
 };
 
 union bs_JsonArray {
@@ -2328,7 +2449,10 @@ struct bs_Window {
     bs_CursorIcon cursor_icon;
     bool paused;
     bool advance;
-    struct VkSurfaceFormatKHR surface_format;
+    struct {
+        bs_Format format;
+        enum VkColorSpaceKHR color_space;
+    } surface_format;
     enum VkColorSpaceKHR color_space;
     enum VkPresentModeKHR present_mode;
     struct VkSurfaceKHR_T* surface;
@@ -2361,13 +2485,7 @@ struct bs_Instance {
         int bind_set;
     }* descriptor_lookup;
     struct {
-        enum  {
-            BS_SURFACE_TYPE_UNDEFINED,
-            BS_SURFACE_TYPE_WIN32,
-            BS_SURFACE_TYPE_WAYLAND,
-            BS_SURFACE_TYPE_X11,
-            BS_SURFACE_TYPE_HEADLESS,
-        } surface_type;
+        bs_SurfaceType surface_type;
     } extensions;
     struct VkDescriptorSet_T* sets[BS_MAX_NUM_BIND_SETS];
     struct VkDescriptorSetLayout_T* layouts[BS_MAX_NUM_BIND_SETS];
@@ -2414,120 +2532,6 @@ struct bs_Props {
     bs_U32 shader_group_handle_size;
     bs_U32 shader_group_base_alignment;
     bs_U32 min_acceleration_structure_scratch_offset_alignment;
-};
-
-union bs_vec2 {
-    float a[2];
-    struct {
-        float x;
-        float y;
-    };
-};
-
-union bs_vec3 {
-    float a[3];
-    struct {
-        float x;
-        float y;
-        float z;
-    };
-    bs_vec2 xy;
-    bs_vec2 yz;
-};
-
-union bs_vec4 {
-    float a[4];
-    struct {
-        float x;
-        float y;
-        float z;
-        float w;
-    };
-    bs_vec2 xy;
-    bs_vec2 zw;
-    bs_vec3 xyz;
-};
-
-union bs_ivec2 {
-    int a[2];
-    struct {
-        int x;
-        int y;
-    };
-};
-
-union bs_ivec3 {
-    int a[3];
-    struct {
-        int x;
-        int y;
-        int z;
-    };
-    bs_ivec2 xy;
-    bs_ivec2 yz;
-};
-
-union bs_ivec4 {
-    int a[4];
-    struct {
-        int x;
-        int y;
-        int z;
-        int w;
-    };
-    bs_ivec2 xy;
-    bs_ivec2 zw;
-    bs_ivec3 xyz;
-};
-
-union bs_mat2 {
-    bs_vec2 v[2];
-    float f[4];
-    float a[2][2];
-};
-
-union bs_mat3 {
-    bs_vec3 v[3];
-    float f[9];
-    float a[3][3];
-};
-
-union bs_mat4 {
-    bs_vec4 v[4];
-    float f[16];
-    float a[4][4];
-};
-
-union bs_mat4x3 {
-    bs_vec3 v[4];
-    float f[12];
-    float a[4][3];
-};
-
-union bs_RGBA {
-    struct {
-        unsigned char r;
-        unsigned char g;
-        unsigned char b;
-        unsigned char a;
-    };
-    bs_U32 hex;
-    unsigned char array[4];
-};
-
-union bs_RGB {
-    struct {
-        unsigned char r;
-        unsigned char g;
-        unsigned char b;
-    };
-    bs_U32 hex;
-};
-
-union bs_BigInt {
-    unsigned long low_part;
-    long high_part;
-    long long quad_part;
 };
 
 enum bs_Result {
@@ -3274,18 +3278,6 @@ enum bs_BindType {
 };
 
  /**
-  @return bs_List*
-  */
-BSAPI bs_List*
-bs_packages();
-
- /**
-  @return bs_List*
-  */
-BSAPI bs_List*
-bs_objectSources();
-
- /**
   @param x
   @param y
   @return bs_vec2
@@ -3737,16 +3729,6 @@ bs_m3Mul(
 
  /**
   @param m
-  @param s
-  @return void
-  */
-BSAPI void
-bs_m3Scale(
-    const bs_mat3* m,
-    float s);
-
- /**
-  @param m
   @param result
   @return void
   */
@@ -3788,16 +3770,6 @@ bs_m4Mul(
     const bs_mat4* a,
     const bs_mat4* b,
     const bs_mat4* result);
-
- /**
-  @param m
-  @param s
-  @return void
-  */
-BSAPI void
-bs_m4Scale(
-    const bs_mat4* m,
-    float s);
 
  /**
   @param m
@@ -3962,8 +3934,8 @@ bs_qLongSlerp(
   @param right
   @param bottom
   @param top
-  @param near
-  @param far
+  @param near_z
+  @param far_z
   @param out
   @return void
   */
@@ -3973,15 +3945,15 @@ bs_orthographic(
     float right,
     float bottom,
     float top,
-    float near,
-    float far,
+    float near_z,
+    float far_z,
     bs_mat4* out);
 
  /**
   @param fov
   @param aspect
-  @param near
-  @param far
+  @param near_z
+  @param far_z
   @param out
   @return void
   */
@@ -3989,8 +3961,8 @@ BSAPI void
 bs_perspective(
     float fov,
     float aspect,
-    float near,
-    float far,
+    float near_z,
+    float far_z,
     bs_mat4* out);
 
  /**
@@ -4492,7 +4464,7 @@ BSAPI bs_Result
 bs_rayTracer(
     bs_Object* object,
     bs_U32 flags,
-    bs_Shader* shaders,
+    bs_Shader* shaders[],
     int shaders_count);
 
  /**
@@ -4870,7 +4842,7 @@ bs_pushIndex(
 BSAPI void
 bs_pushIndices(
     bs_Batch* batch,
-    int indices,
+    int indices[],
     bs_U32 indices_count);
 
  /**
@@ -5308,6 +5280,14 @@ bs_pushModel(
     bs_Model* model);
 
  /**
+  @param renderer
+  @return int
+  */
+BSAPI int
+bs_rendererSwapsCount(
+    bs_Renderer* renderer);
+
+ /**
   @param object
   @param flags
   @return bs_Result
@@ -5370,9 +5350,9 @@ bs_renderPass(
  /**
   @param renderer
   @param resolution
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_framebuffer(
     bs_Renderer* renderer,
     bs_ivec2 resolution);
@@ -5386,7 +5366,7 @@ bs_framebuffer(
 BSAPI void
 bs_runPass(
     bs_Renderer* renderer,
-    bs_Callback callbacks,
+    bs_Callback callbacks[],
     int callbacks_count);
 
  /**
@@ -5454,7 +5434,7 @@ bs_queueFamily(
 BSAPI bs_Result
 bs_present(
     bs_Queue* queue,
-    bs_Queue* wait_queues,
+    bs_Queue* wait_queues[],
     int wait_queues_count);
 
  /**
@@ -5634,14 +5614,6 @@ bs_rasterizeGlyph(
     int height,
     char* out_bmp,
     float scale);
-
- /**
-  @param ttf
-  @return void
-  */
-BSAPI void
-bs_kern(
-    bs_TTF* ttf);
 
  /**
   @param ttf
@@ -5896,54 +5868,6 @@ bs_encodePngF(
      ...);
 
  /**
-  @param data
-  @param resolution
-  @param type
-  @param value
-  @param value_length
-  @return bs_Result
-  */
-BSAPI bs_Result
-bs_savePng(
-    char* data,
-    bs_ivec2 resolution,
-    bs_PngType type,
-    char* value,
-    int value_length);
-
- /**
-  @param data
-  @param resolution
-  @param type
-  @param format
-  @param args
-  @return bs_Result
-  */
-BSAPI bs_Result
-bs_savePngV(
-    char* data,
-    bs_ivec2 resolution,
-    bs_PngType type,
-    char* format,
-    va_list args);
-
- /**
-  @param data
-  @param resolution
-  @param type
-  @param format
-  @param ...
-  @return bs_Result
-  */
-BSAPI bs_Result
-bs_savePngF(
-    char* data,
-    bs_ivec2 resolution,
-    bs_PngType type,
-    char* format,
-     ...);
-
- /**
   @param image
   @return void
   */
@@ -5953,15 +5877,15 @@ bs_destroyImage(
 
  /**
   @param image
-  @param resolution
-  @param num_indices
+  @param size
+  @param indices_count
   @return bs_Result
   */
 BSAPI bs_Result
 bs_resizeImage(
     bs_Image* image,
-    bs_ivec2 resolution,
-    int num_indices);
+    bs_ivec2 size,
+    int indices_count);
 
  /**
   @param image
@@ -6266,20 +6190,6 @@ bs_loadAtlasMemory(
     bs_U32 flags);
 
  /**
-  @param object
-  @param package_id
-  @param resource_name
-  @param flags
-  @return bs_Result
-  */
-BSAPI bs_Result
-bs_loadAtlas(
-    bs_Object* object,
-    int package_id,
-    const char* resource_name,
-    bs_U32 flags);
-
- /**
   @param argc
   @param argv
   @return void
@@ -6287,7 +6197,7 @@ bs_loadAtlas(
 BSAPI void
 bs_parseArgs(
     int argc,
-    char* argv);
+    char* argv[]);
 
  /**
   @return bs_Args*
@@ -7405,12 +7315,24 @@ bs_alignUp(
   @param src
   @param dst
   @param dst_size
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_widen(
     char* src,
     wchar_t* dst,
+    bs_U32 dst_size);
+
+ /**
+  @param src
+  @param dst
+  @param dst_size
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_unwiden(
+    wchar_t* src,
+    char* dst,
     bs_U32 dst_size);
 
  /**
@@ -7601,7 +7523,7 @@ bs_list(
 BSAPI void
 bs_guidToString(
     bs_GUID* guid,
-    char out);
+    char out[37]);
 
  /**
   @param str
@@ -8354,11 +8276,13 @@ bs_destroyComputePipeline(
     bs_Pipeline* pipeline);
 
  /**
+  @param type
   @param hash
   @return bs_Pipeline*
   */
 BSAPI bs_Pipeline*
 bs_queryPipeline(
+    bs_PipelineType type,
     bs_U64 hash);
 
  /**
@@ -8371,11 +8295,13 @@ bs_pipelineHash(
 
  /**
   @param descriptor
-  @return bs_Pipeline*
+  @param out
+  @return bs_Result
   */
-BSAPI bs_Pipeline*
+BSAPI bs_Result
 bs_pipeline(
-    bs_PipelineHash* descriptor);
+    bs_PipelineHash* descriptor,
+    bs_Pipeline** out);
 
  /**
   @param pipeline
@@ -8406,14 +8332,6 @@ bs_pushConstant(
 BSAPI bs_Pipeline*
 bs_rayTracingPipeline(
     bs_RayTracePipelineHash* pipeline_hash);
-
- /**
-  @param string
-  @return bs_BindType
-  */
-BSAPI bs_BindType
-bs_deserializeBindType(
-    const char* string);
 
  /**
   @param package_id

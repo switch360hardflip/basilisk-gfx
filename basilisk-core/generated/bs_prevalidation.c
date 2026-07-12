@@ -39,14 +39,6 @@ void _preval_bs_setFunctions(bs_FunctionTable functions) {
     next = functions;
 }
 
-static bs_List* _preval_bs_packages() {
-    return next.bs_packages();
-}
-
-static bs_List* _preval_bs_objectSources() {
-    return next.bs_objectSources();
-}
-
 static bs_vec2 _preval_bs_v2(float x, float y) {
     return next.bs_v2(x, y);
 }
@@ -468,13 +460,6 @@ static void _preval_bs_m3Mul(const bs_mat3* a, const bs_mat3* b, const bs_mat3* 
     return next.bs_m3Mul(a, b, result);
 }
 
-static void _preval_bs_m3Scale(const bs_mat3* m, float s) {
-    if (m == NULL)
-        return;
-
-    return next.bs_m3Scale(m, s);
-}
-
 static void _preval_bs_m3Transpose(const bs_mat3* m, const bs_mat3* result) {
     if (m == NULL)
         return;
@@ -519,13 +504,6 @@ static void _preval_bs_m4Mul(const bs_mat4* a, const bs_mat4* b, const bs_mat4* 
         return;
 
     return next.bs_m4Mul(a, b, result);
-}
-
-static void _preval_bs_m4Scale(const bs_mat4* m, float s) {
-    if (m == NULL)
-        return;
-
-    return next.bs_m4Scale(m, s);
 }
 
 static void _preval_bs_m4Transpose(const bs_mat4* m, const bs_mat4* result) {
@@ -689,18 +667,18 @@ static void _preval_bs_qLongSlerp(const bs_vec4* from, const bs_vec4* to, float 
     return next.bs_qLongSlerp(from, to, t, out);
 }
 
-static void _preval_bs_orthographic(float left, float right, float bottom, float top, float near, float far, bs_mat4* out) {
+static void _preval_bs_orthographic(float left, float right, float bottom, float top, float near_z, float far_z, bs_mat4* out) {
     if (out == NULL)
         return;
 
-    return next.bs_orthographic(left, right, bottom, top, near, far, out);
+    return next.bs_orthographic(left, right, bottom, top, near_z, far_z, out);
 }
 
-static void _preval_bs_perspective(float fov, float aspect, float near, float far, bs_mat4* out) {
+static void _preval_bs_perspective(float fov, float aspect, float near_z, float far_z, bs_mat4* out) {
     if (out == NULL)
         return;
 
-    return next.bs_perspective(fov, aspect, near, far, out);
+    return next.bs_perspective(fov, aspect, near_z, far_z, out);
 }
 
 static void _preval_bs_lookAt(const bs_vec3* eye, const bs_vec3* center, const bs_vec3* up, bs_mat4* out) {
@@ -1733,6 +1711,16 @@ static bs_Range _preval_bs_pushModel(bs_Batch* batch, bs_Model* model) {
     return next.bs_pushModel(batch, model);
 }
 
+static int _preval_bs_rendererSwapsCount(bs_Renderer* renderer) {
+    if (renderer == NULL)
+        return 0;
+
+    if (renderer->head.source_id != BS_OBJECT_RENDERER)
+        return 0;
+
+    return next.bs_rendererSwapsCount(renderer);
+}
+
 static bs_Result _preval_bs_renderer(bs_Object* object, bs_RendererBits flags) {
     if (object == NULL)
         return BS_RESULT_VALIDATION_ERROR;
@@ -1780,12 +1768,12 @@ static void _preval_bs_renderPass(bs_Renderer* renderer) {
     return next.bs_renderPass(renderer);
 }
 
-static void _preval_bs_framebuffer(bs_Renderer* renderer, bs_ivec2 resolution) {
+static bs_Result _preval_bs_framebuffer(bs_Renderer* renderer, bs_ivec2 resolution) {
     if (renderer == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (renderer->head.source_id != BS_OBJECT_RENDERER)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_framebuffer(renderer, resolution);
 }
@@ -2055,13 +2043,6 @@ static void _preval_bs_kern(bs_TTF* ttf) {
     return next.bs_kern(ttf);
 }
 
-static void _preval_bs_kern(bs_TTF* ttf) {
-    if (ttf == NULL)
-        return;
-
-    return next.bs_kern(ttf);
-}
-
 static void _preval_bs_bindFont(bs_Font* font, bs_Sampler* sampler, int bind_set, int bind_point) {
     if (font == NULL)
         return;
@@ -2170,12 +2151,6 @@ static unsigned char* _preval_bs_loadPngData(char* data, size_t size, int channe
     if (out_png_data == NULL)
         return NULL;
 
-    if (!(channels_count <= 4))
-        return NULL;
-
-    if (!(channels_count > 0))
-        return NULL;
-
     return next.bs_loadPngData(data, size, channels_count, out_png_data);
 }
 
@@ -2184,12 +2159,6 @@ static unsigned char* _preval_bs_loadPng(const char* path, int channels_count, b
         return NULL;
 
     if (out_png_data == NULL)
-        return NULL;
-
-    if (!(channels_count <= 4))
-        return NULL;
-
-    if (!(channels_count > 0))
         return NULL;
 
     return next.bs_loadPng(path, channels_count, out_png_data);
@@ -2202,15 +2171,6 @@ static bs_Result _preval_bs_bitmapImage(bs_Object* existing_object, unsigned cha
     if (image_data == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    if (!(_bs_validateObject(existing_object)))
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(dim.y > 0))
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(dim.x > 0))
-        return BS_RESULT_VALIDATION_ERROR;
-
     return next.bs_bitmapImage(existing_object, image_data, dim, format, flags);
 }
 
@@ -2219,12 +2179,6 @@ static bs_Result _preval_bs_savePng(char* data, bs_ivec2 resolution, bs_PngType 
         return BS_RESULT_VALIDATION_ERROR;
 
     if (value == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(resolution.y > 0))
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(resolution.x > 0))
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_savePng(data, resolution, type, value, value_length);
@@ -2240,29 +2194,7 @@ static unsigned char* _preval_bs_encodePng(size_t* out_size, const unsigned char
     if (value == NULL)
         return NULL;
 
-    if (!(size.y > 0))
-        return NULL;
-
-    if (!(size.x > 0))
-        return NULL;
-
     return next.bs_encodePng(out_size, data, size, type, value, value_length);
-}
-
-static bs_Result _preval_bs_savePng(char* data, bs_ivec2 resolution, bs_PngType type, char* value, int value_length) {
-    if (data == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (value == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(resolution.y > 0))
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(resolution.x > 0))
-        return BS_RESULT_VALIDATION_ERROR;
-
-    return next.bs_savePng(data, resolution, type, value, value_length);
 }
 
 static void _preval_bs_destroyImage(bs_Image* image) {
@@ -2275,17 +2207,14 @@ static void _preval_bs_destroyImage(bs_Image* image) {
     return next.bs_destroyImage(image);
 }
 
-static bs_Result _preval_bs_resizeImage(bs_Image* image, bs_ivec2 resolution, int num_indices) {
+static bs_Result _preval_bs_resizeImage(bs_Image* image, bs_ivec2 size, int indices_count) {
     if (image == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (image->head.source_id != BS_OBJECT_IMAGE)
         return BS_RESULT_VALIDATION_ERROR;
 
-    if (!(_bs_validateImageBounds(image, resolution)))
-        return BS_RESULT_VALIDATION_ERROR;
-
-    return next.bs_resizeImage(image, resolution, num_indices);
+    return next.bs_resizeImage(image, size, indices_count);
 }
 
 static bs_Result _preval_bs_queryImageIndexHash(bs_Image* image, bs_U64 name_hash, int* out) {
@@ -2333,12 +2262,6 @@ static bs_Result _preval_bs_copyImageToBufferAsync(bs_Image* image, bs_Buffer* b
     if (!(image_index >= 0))
         return BS_RESULT_VALIDATION_ERROR;
 
-    if (!(_bs_validateImageOffset(image, offset)))
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(_bs_validateImageBounds(image, resolution)))
-        return BS_RESULT_VALIDATION_ERROR;
-
     return next.bs_copyImageToBufferAsync(image, buffer, image_index, layout, buffer_offset, offset, resolution);
 }
 
@@ -2370,12 +2293,6 @@ static bs_Result _preval_bs_loadImage(bs_Object* object, int package_id, bs_Imag
         return BS_RESULT_VALIDATION_ERROR;
 
     if (value == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(_bs_validateObject(object)))
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(package_id >= 0))
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_loadImage(object, package_id, flags, value, value_length);
@@ -2513,29 +2430,7 @@ static bs_Result _preval_bs_loadAtlasMemory(bs_Object* object, int package_id, c
     if (data == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    if (!(_bs_validateObject(object)))
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(package_id >= 0))
-        return BS_RESULT_VALIDATION_ERROR;
-
     return next.bs_loadAtlasMemory(object, package_id, resource_name, data, flags);
-}
-
-static bs_Result _preval_bs_loadAtlas(bs_Object* object, int package_id, const char* resource_name, bs_U32 flags) {
-    if (object == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (resource_name == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(_bs_validateObject(object)))
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (!(package_id >= 0))
-        return BS_RESULT_VALIDATION_ERROR;
-
-    return next.bs_loadAtlas(object, package_id, resource_name, flags);
 }
 
 static void _preval_bs_parseArgs(int argc, char* argv) {
@@ -3162,14 +3057,24 @@ static bs_U32 _preval_bs_alignUp(bs_U32 value, bs_U32 alignment) {
     return next.bs_alignUp(value, alignment);
 }
 
-static void _preval_bs_widen(char* src, wchar_t* dst, bs_U32 dst_size) {
+static bs_Result _preval_bs_widen(char* src, wchar_t* dst, bs_U32 dst_size) {
     if (src == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     if (dst == NULL)
-        return;
+        return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_widen(src, dst, dst_size);
+}
+
+static bs_Result _preval_bs_unwiden(wchar_t* src, char* dst, bs_U32 dst_size) {
+    if (src == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (dst == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_unwiden(src, dst, dst_size);
 }
 
 static char* _preval_bs_charString(char* value, int value_length) {
@@ -3771,8 +3676,8 @@ static void _preval_bs_destroyComputePipeline(bs_Pipeline* pipeline) {
     return next.bs_destroyComputePipeline(pipeline);
 }
 
-static bs_Pipeline* _preval_bs_queryPipeline(bs_U64 hash) {
-    return next.bs_queryPipeline(hash);
+static bs_Pipeline* _preval_bs_queryPipeline(bs_PipelineType type, bs_U64 hash) {
+    return next.bs_queryPipeline(type, hash);
 }
 
 static bs_U64 _preval_bs_pipelineHash(bs_PipelineHash* descriptor) {
@@ -3782,11 +3687,14 @@ static bs_U64 _preval_bs_pipelineHash(bs_PipelineHash* descriptor) {
     return next.bs_pipelineHash(descriptor);
 }
 
-static bs_Pipeline* _preval_bs_pipeline(bs_PipelineHash* descriptor) {
+static bs_Result _preval_bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
     if (descriptor == NULL)
-        return NULL;
+        return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_pipeline(descriptor);
+    if (out == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_pipeline(descriptor, out);
 }
 
 static void _preval_bs_destroyPipeline(bs_Pipeline* pipeline) {
@@ -3811,13 +3719,6 @@ static bs_Pipeline* _preval_bs_rayTracingPipeline(bs_RayTracePipelineHash* pipel
         return NULL;
 
     return next.bs_rayTracingPipeline(pipeline_hash);
-}
-
-static bs_BindType _preval_bs_deserializeBindType(const char* string) {
-    if (string == NULL)
-        return 0;
-
-    return next.bs_deserializeBindType(string);
 }
 
 static void _preval_bs_loadBindings(int package_id, const char* path) {
@@ -4268,8 +4169,6 @@ static bs_BindType _preval_bs_deserializeBindType(const char* value) {
 bs_FunctionTable _preval_bs_getFunctionTable() {
     bs_FunctionTable functions;
 
-    functions.bs_packages = _preval_bs_packages;
-    functions.bs_objectSources = _preval_bs_objectSources;
     functions.bs_v2 = _preval_bs_v2;
     functions.bs_v2Add = _preval_bs_v2Add;
     functions.bs_v2Sub = _preval_bs_v2Sub;
@@ -4310,12 +4209,10 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v4Normalize = _preval_bs_v4Normalize;
     functions.bs_v4Lerp = _preval_bs_v4Lerp;
     functions.bs_m3Mul = _preval_bs_m3Mul;
-    functions.bs_m3Scale = _preval_bs_m3Scale;
     functions.bs_m3Transpose = _preval_bs_m3Transpose;
     functions.bs_m3Inverse = _preval_bs_m3Inverse;
     functions.bs_m3MulV3 = _preval_bs_m3MulV3;
     functions.bs_m4Mul = _preval_bs_m4Mul;
-    functions.bs_m4Scale = _preval_bs_m4Scale;
     functions.bs_m4Transpose = _preval_bs_m4Transpose;
     functions.bs_m4Inverse = _preval_bs_m4Inverse;
     functions.bs_m4MulV3 = _preval_bs_m4MulV3;
@@ -4435,6 +4332,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_pushMesh = _preval_bs_pushMesh;
     functions.bs_batchModel = _preval_bs_batchModel;
     functions.bs_pushModel = _preval_bs_pushModel;
+    functions.bs_rendererSwapsCount = _preval_bs_rendererSwapsCount;
     functions.bs_renderer = _preval_bs_renderer;
     functions.bs_output = _preval_bs_output;
     functions.bs_input = _preval_bs_input;
@@ -4472,7 +4370,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_ttf = _preval_bs_ttf;
     functions.bs_rasterizeGlyph = _preval_bs_rasterizeGlyph;
     functions.bs_kern = _preval_bs_kern;
-    functions.bs_kern = _preval_bs_kern;
     functions.bs_bindFont = _preval_bs_bindFont;
     functions.bs_textDimensions = _preval_bs_textDimensions;
     functions.bs_destroyFont = _preval_bs_destroyFont;
@@ -4486,7 +4383,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_bitmapImage = _preval_bs_bitmapImage;
     functions.bs_savePng = _preval_bs_savePng;
     functions.bs_encodePng = _preval_bs_encodePng;
-    functions.bs_savePng = _preval_bs_savePng;
     functions.bs_destroyImage = _preval_bs_destroyImage;
     functions.bs_resizeImage = _preval_bs_resizeImage;
     functions.bs_queryImageIndexHash = _preval_bs_queryImageIndexHash;
@@ -4510,7 +4406,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_queryAtlas = _preval_bs_queryAtlas;
     functions.bs_destroyAtlas = _preval_bs_destroyAtlas;
     functions.bs_loadAtlasMemory = _preval_bs_loadAtlasMemory;
-    functions.bs_loadAtlas = _preval_bs_loadAtlas;
     functions.bs_parseArgs = _preval_bs_parseArgs;
     functions.bs_arguments = _preval_bs_arguments;
     functions.bs_ini = _preval_bs_ini;
@@ -4599,6 +4494,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_memmem = _preval_bs_memmem;
     functions.bs_alignUp = _preval_bs_alignUp;
     functions.bs_widen = _preval_bs_widen;
+    functions.bs_unwiden = _preval_bs_unwiden;
     functions.bs_charString = _preval_bs_charString;
     functions.bs_free = _preval_bs_free;
     functions.bs_malloc = _preval_bs_malloc;
@@ -4682,7 +4578,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_destroyPipeline = _preval_bs_destroyPipeline;
     functions.bs_pushConstant = _preval_bs_pushConstant;
     functions.bs_rayTracingPipeline = _preval_bs_rayTracingPipeline;
-    functions.bs_deserializeBindType = _preval_bs_deserializeBindType;
     functions.bs_loadBindings = _preval_bs_loadBindings;
     functions.bs_binding = _preval_bs_binding;
     functions.bs_bindImage = _preval_bs_bindImage;

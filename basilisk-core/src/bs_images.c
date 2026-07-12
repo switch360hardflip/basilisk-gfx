@@ -446,7 +446,7 @@ BSAPI bs_Result _bs_encodePng(size_t* out_size, const unsigned char* data, bs_iv
         return BS_RESULT_FAILED_TO_ENCODE;
     }
 
-    return out;
+    return BS_RESULT_OK;
 }
 
 BSAPI bs_Result _bs_savePng(char* data, bs_ivec2 dim, bs_PngType type, char* name) {
@@ -491,8 +491,10 @@ BSAPI bs_Result _bs_inspectPng(const char* path, int* width, int* height, size_t
         return BS_RESULT_FAILED_TO_INSPECT;
     }
 
-    return data;
+    return BS_RESULT_OK;
 }
+
+BSAPI bs_Result _bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out);
 
 BSAPI bs_Result _val_bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out) {
     BS_VALIDATE(channels_count == 3 || channels_count == 4, BS_RESULT_VALIDATION_ERROR,);
@@ -952,7 +954,7 @@ static bs_vec4 bs_calculateAtlasCoordinates(bs_Atlas* atlas, int texture_id, int
  /**
   Atlas coordinates
   */
-BSAPI bs_vec4 _bs_atlasCoordinates(bs_Atlas* atlas, int texture_id) {
+BSAPI bs_vec4 _val_bs_atlasCoordinates(bs_Atlas* atlas, int texture_id) {
     BS_VALIDATE(texture_id >= 0, (bs_vec4) { 0 },);
     BS_VALIDATE(texture_id < atlas->count, (bs_vec4) { 0 },);
 
@@ -1087,7 +1089,12 @@ BSAPI bs_Result _bs_loadAtlasMemory(bs_Object* object, int package_id, char* res
             BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | BS_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             0);
 
-        atlas->mapped = bs_mapBuffer(atlas->buffer, BS_U32_MAX);
+        atlas->mapped = bs_malloc(atlas->count * sizeof(*atlas->mapped));
+        result = bs_mapBuffer(atlas->buffer, atlas->count * sizeof(*atlas->mapped));
+        if (result != BS_RESULT_OK) {
+            bs_warnF("Failed to map buffer for atlas \"%s\"\n", resource_name);
+            return result;
+        }
     }
     else {
         atlas->mapped = old_mapped;
