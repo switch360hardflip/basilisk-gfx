@@ -40,6 +40,9 @@
 #include <cglm/quat.h>
 #include <cglm/cam.h>
 #include <math.h>
+#include <stdio.h>
+
+bs_FunctionTable next = { 0 };
 
 bs_List* bs_packages()
 {
@@ -754,9 +757,10 @@ void bs_beginCommentV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_beginComment(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_beginComment(_formatted, _length);
 }
 
 void bs_beginCommentF(
@@ -871,9 +875,10 @@ bs_Result bs_rayTrace(
 bs_Result bs_rayTracer(
     bs_Object* object, 
     bs_U32 flags, 
-    ...)
+    bs_Shader* shaders[], 
+    int shaders_count)
 {
-    return next.bs_rayTracer(object, flags, ...);
+    return next.bs_rayTracer(object, flags, shaders, shaders_count);
 }
 
 bs_Result bs_accelerateAabb(
@@ -930,9 +935,10 @@ bs_Result bs_nameBufferV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_nameBuffer(buffer, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_nameBuffer(buffer, _formatted, _length);
 }
 
 bs_Result bs_nameBufferF(
@@ -1051,9 +1057,10 @@ bs_Attribute* bs_queryAttributeV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_queryAttribute(batch, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_queryAttribute(batch, _formatted, _length);
 }
 
 bs_Attribute* bs_queryAttributeF(
@@ -1136,17 +1143,17 @@ bs_Range bs_batchRange(
 
 void bs_pushIndex(
     bs_Batch* batch, 
-    bs_U32 index)
+    int index)
 {
     return next.bs_pushIndex(batch, index);
 }
 
-void bs_pushIndexV(
+void bs_pushIndices(
     bs_Batch* batch, 
-    bs_U32 num_indices, 
-    ...)
+    int indices[], 
+    bs_U32 indices_count)
 {
-    return next.bs_pushIndexV(batch, num_indices, ...);
+    return next.bs_pushIndices(batch, indices, indices_count);
 }
 
 bs_Range bs_batchCube(
@@ -1475,9 +1482,10 @@ void bs_framebuffer(
 
 void bs_runPass(
     bs_Renderer* renderer, 
-    ...)
+    bs_Callback callbacks[], 
+    int callbacks_count)
 {
-    return next.bs_runPass(renderer, ...);
+    return next.bs_runPass(renderer, callbacks, callbacks_count);
 }
 
 bool bs_rendererIsDynamic(
@@ -1524,14 +1532,21 @@ bs_I32 bs_queueFamily(
 
 bs_Result bs_present(
     bs_Queue* queue, 
-    ...)
+    bs_Queue* wait_queues[], 
+    int wait_queues_count)
 {
-    return next.bs_present(queue, ...);
+    return next.bs_present(queue, wait_queues, wait_queues_count);
 }
 
 bs_Result bs_acquire()
 {
     return next.bs_acquire();
+}
+
+int bs_queueSwap(
+    bs_Queue* queue)
+{
+    return next.bs_queueSwap(queue);
 }
 
 void bs_awaitQueue(
@@ -1623,9 +1638,9 @@ void bs_setScope(
 }
 
 void bs_runSingle(
-    void (*function)())
+    bs_Callback function)
 {
-    return next.bs_runSingle(void (*function)());
+    return next.bs_runSingle(function);
 }
 
 void bs_glyph(
@@ -1776,9 +1791,10 @@ bs_Result bs_savePngV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_savePng(data, resolution, type, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_savePng(data, resolution, type, _formatted, _length);
 }
 
 bs_Result bs_savePngF(
@@ -1814,9 +1830,10 @@ unsigned char* bs_encodePngV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_encodePng(out_size, data, size, type, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_encodePng(out_size, data, size, type, _formatted, _length);
 }
 
 unsigned char* bs_encodePngF(
@@ -1851,9 +1868,10 @@ bs_Result bs_savePngV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_savePng(data, resolution, type, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_savePng(data, resolution, type, _formatted, _length);
 }
 
 bs_Result bs_savePngF(
@@ -1944,9 +1962,10 @@ bs_Result bs_loadImageV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_loadImage(object, package_id, flags, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_loadImage(object, package_id, flags, _formatted, _length);
 }
 
 bs_Result bs_loadImageF(
@@ -2019,9 +2038,10 @@ bs_Result bs_loadAtlasV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_loadAtlas(object, package_id, flags, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_loadAtlas(object, package_id, flags, _formatted, _length);
 }
 
 bs_Result bs_loadAtlasF(
@@ -2108,7 +2128,7 @@ bs_Result bs_loadAtlas(
 
 void bs_parseArgs(
     int argc, 
-    char* argv)
+    char* argv[])
 {
     return next.bs_parseArgs(argc, argv);
 }
@@ -2180,9 +2200,10 @@ bs_Result bsi_nameHandleV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bsi_nameHandle(handle, type, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bsi_nameHandle(handle, type, _formatted, _length);
 }
 
 bs_Result bsi_nameHandleF(
@@ -2196,11 +2217,6 @@ bs_Result bsi_nameHandleF(
     bs_Result _return = bsi_nameHandleV(handle, type, format, args);
     va_end(args);
     return _return;
-}
-
-bs_Procs* bs_procs()
-{
-    return next.bs_procs();
 }
 
 bs_JsonEnumeration bs_beginEnumeration(
@@ -2274,9 +2290,10 @@ bs_Result bs_loadJsonV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_loadJson(out_json, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_loadJson(out_json, _formatted, _length);
 }
 
 bs_Result bs_loadJsonF(
@@ -2318,9 +2335,10 @@ bs_JsonValue bs_fetchJsonV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_fetchJson(root, expect, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_fetchJson(root, expect, _formatted, _length);
 }
 
 bs_JsonValue bs_fetchJsonF(
@@ -2349,9 +2367,10 @@ void bs_deleteJsonV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_deleteJson(root, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_deleteJson(root, _formatted, _length);
 }
 
 void bs_deleteJsonF(
@@ -2380,9 +2399,10 @@ bs_Result bs_ensureJsonV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_ensureJson(root, value, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_ensureJson(root, value, _formatted, _length);
 }
 
 bs_Result bs_ensureJsonF(
@@ -2495,9 +2515,10 @@ char* bs_logSectionV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_logSection(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_logSection(_formatted, _length);
 }
 
 char* bs_logSectionF(
@@ -2531,9 +2552,10 @@ char* bs_logWithTimestampV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_logWithTimestamp(type, type_len, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_logWithTimestamp(type, type_len, _formatted, _length);
 }
 
 char* bs_logWithTimestampF(
@@ -2560,9 +2582,10 @@ char* bs_logV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_log(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_log(_formatted, _length);
 }
 
 char* bs_logF(
@@ -2587,9 +2610,10 @@ char* bs_infoV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_info(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_info(_formatted, _length);
 }
 
 char* bs_infoF(
@@ -2614,9 +2638,10 @@ char* bs_warnV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_warn(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_warn(_formatted, _length);
 }
 
 char* bs_warnF(
@@ -2641,9 +2666,10 @@ void bs_criticalV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_critical(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_critical(_formatted, _length);
 }
 
 void bs_criticalF(
@@ -2715,9 +2741,10 @@ void bs_systemV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_system(command, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_system(command, _formatted, _length);
 }
 
 void bs_systemF(
@@ -2738,6 +2765,13 @@ void bs_createThread(
     return next.bs_createThread(function, param);
 }
 
+int bs_formatStringLength(
+    const char* format, 
+    va_list args)
+{
+    return next.bs_formatStringLength(format, args);
+}
+
 const char* bs_checkStringPool(
     bs_List* pool, 
     char* string)
@@ -2752,13 +2786,6 @@ bs_String* bs_stringAlloc(
     return next.bs_stringAlloc(old, len);
 }
 
-bs_String* bs_string(
-    bs_String* old, 
-    char* data)
-{
-    return next.bs_string(old, data);
-}
-
 bs_String* bs_emptyString(
     bs_String* old)
 {
@@ -2767,25 +2794,10 @@ bs_String* bs_emptyString(
 
 bs_String* bs_string(
     bs_String* old, 
-    char* value)
-{
-    return next.bs_string(old, value);
-}
-
-bs_String* bs_stringN(
-    bs_String* old, 
     char* value, 
     int value_length)
 {
-    return next.bs_stringN(old, value, value_length);
-}
-
-bs_String* bs_stringF(
-    bs_String* old, 
-    char* format, 
-    ...)
-{
-    return next.bs_stringF(old, format, ...);
+    return next.bs_string(old, value, value_length);
 }
 
 bs_String* bs_stringV(
@@ -2793,7 +2805,22 @@ bs_String* bs_stringV(
     char* format, 
     va_list args)
 {
-    return next.bs_stringV(old, format, args);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_string(old, _formatted, _length);
+}
+
+bs_String* bs_stringF(
+    bs_String* old, 
+    char* format, 
+    ...)
+{
+    va_list args;
+    va_start(args, format);
+    bs_String* _return = bs_stringV(old, format, args);
+    va_end(args);
+    return _return;
 }
 
 bs_Result bs_toUpper(
@@ -2867,9 +2894,10 @@ void bs_setWorkingDirectoryV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_setWorkingDirectory(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_setWorkingDirectory(_formatted, _length);
 }
 
 void bs_setWorkingDirectoryF(
@@ -3002,9 +3030,10 @@ char* bs_charStringV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_charString(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_charString(_formatted, _length);
 }
 
 char* bs_charStringF(
@@ -3127,9 +3156,9 @@ bs_List bs_list(
 
 void bs_guidToString(
     bs_GUID* guid, 
-    char out)
+    char out[37])
 {
-    return next.bs_guidToString(guid, char out);
+    return next.bs_guidToString(guid, out);
 }
 
 bs_GUID bs_stringToGuid(
@@ -3209,9 +3238,10 @@ void bs_saveFileV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_saveFile(data, data_len, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_saveFile(data, data_len, _formatted, _length);
 }
 
 void bs_saveFileF(
@@ -3237,9 +3267,10 @@ void bs_convertWin32PathV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_convertWin32Path(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_convertWin32Path(_formatted, _length);
 }
 
 void bs_convertWin32PathF(
@@ -3263,9 +3294,10 @@ bs_Result bs_ensureDirectoryV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_ensureDirectory(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_ensureDirectory(_formatted, _length);
 }
 
 bs_Result bs_ensureDirectoryF(
@@ -3292,9 +3324,10 @@ bs_Result bs_fileModifiedDateV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_fileModifiedDate(out, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_fileModifiedDate(out, _formatted, _length);
 }
 
 bs_Result bs_fileModifiedDateF(
@@ -3322,9 +3355,10 @@ bs_Result bs_setFileModifiedDateV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_setFileModifiedDate(date, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_setFileModifiedDate(date, _formatted, _length);
 }
 
 bs_Result bs_setFileModifiedDateF(
@@ -3358,9 +3392,10 @@ bool bs_fileExistsV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_fileExists(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_fileExists(_formatted, _length);
 }
 
 bool bs_fileExistsF(
@@ -4006,10 +4041,9 @@ void bs_moveWindow(
 void bs_window(
     bs_U32 width, 
     bs_U32 height, 
-    const char* title, 
-    ...)
+    const char* title)
 {
-    return next.bs_window(width, height, title, ...);
+    return next.bs_window(width, height, title);
 }
 
 void bs_tick(
@@ -4067,10 +4101,30 @@ bs_ivec2 bs_resolution()
 }
 
 void bs_titleWindow(
-    const char* title, 
+    char* name, 
+    int name_length)
+{
+    return next.bs_titleWindow(name, name_length);
+}
+
+void bs_titleWindowV(
+    char* format, 
+    va_list args)
+{
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_titleWindow(_formatted, _length);
+}
+
+void bs_titleWindowF(
+    char* format, 
     ...)
 {
-    return next.bs_titleWindow(title, ...);
+    va_list args;
+    va_start(args, format);
+    bs_titleWindowV(format, args);
+    va_end(args);
 }
 
 bool bs_inFixedTick()
@@ -4108,9 +4162,10 @@ void bs_copyToClipboardV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_copyToClipboard(timer, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_copyToClipboard(timer, _formatted, _length);
 }
 
 void bs_copyToClipboardF(
@@ -4137,9 +4192,10 @@ bs_String* bs_appendStringV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_appendString(destination, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_appendString(destination, _formatted, _length);
 }
 
 bs_String* bs_appendStringF(
@@ -4155,67 +4211,69 @@ bs_String* bs_appendStringF(
 }
 
 bs_Result bs_foreachFile(
-    void(*x)(bs_FileInfo, void*), 
+    bs_ForeachDocumentFunction x, 
     void* param, 
     char* value, 
     int value_length)
 {
-    return next.bs_foreachFile(void(*x)(bs_FileInfo, void*), param, value, value_length);
+    return next.bs_foreachFile(x, param, value, value_length);
 }
 
 bs_Result bs_foreachFileV(
-    void(*x)(bs_FileInfo, void*), 
+    bs_ForeachDocumentFunction x, 
     void* param, 
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_foreachFile(void(*x)(bs_FileInfo, void*), param, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_foreachFile(x, param, _formatted, _length);
 }
 
 bs_Result bs_foreachFileF(
-    void(*x)(bs_FileInfo, void*), 
+    bs_ForeachDocumentFunction x, 
     void* param, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_foreachFileV(void(*x)(bs_FileInfo, void*), param, format, args);
+    bs_Result _return = bs_foreachFileV(x, param, format, args);
     va_end(args);
     return _return;
 }
 
 bs_Result bs_foreachDirectory(
-    void(*x)(bs_FileInfo, void*), 
+    bs_ForeachDocumentFunction x, 
     void* param, 
     char* path, 
     int path_length)
 {
-    return next.bs_foreachDirectory(void(*x)(bs_FileInfo, void*), param, path, path_length);
+    return next.bs_foreachDirectory(x, param, path, path_length);
 }
 
 bs_Result bs_foreachDirectoryV(
-    void(*x)(bs_FileInfo, void*), 
+    bs_ForeachDocumentFunction x, 
     void* param, 
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_foreachDirectory(void(*x)(bs_FileInfo, void*), param, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_foreachDirectory(x, param, _formatted, _length);
 }
 
 bs_Result bs_foreachDirectoryF(
-    void(*x)(bs_FileInfo, void*), 
+    bs_ForeachDocumentFunction x, 
     void* param, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_foreachDirectoryV(void(*x)(bs_FileInfo, void*), param, format, args);
+    bs_Result _return = bs_foreachDirectoryV(x, param, format, args);
     va_end(args);
     return _return;
 }
@@ -4231,9 +4289,10 @@ int bs_numFilesV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_numFiles(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_numFiles(_formatted, _length);
 }
 
 int bs_numFilesF(
@@ -4258,9 +4317,10 @@ int bs_numDirectoriesV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_numDirectories(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_numDirectories(_formatted, _length);
 }
 
 int bs_numDirectoriesF(
@@ -4287,9 +4347,10 @@ bs_Result bs_loadFileV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_loadFile(out, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_loadFile(out, _formatted, _length);
 }
 
 bs_Result bs_loadFileF(
@@ -4323,9 +4384,10 @@ bs_Result bs_loadFileChunkV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_loadFileChunk(path, offset, size, out, string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_loadFileChunk(path, offset, size, out, _formatted, _length);
 }
 
 bs_Result bs_loadFileChunkF(
@@ -4354,9 +4416,10 @@ bs_Result bs_deleteFileV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_deleteFile(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_deleteFile(_formatted, _length);
 }
 
 bs_Result bs_deleteFileF(
@@ -4381,9 +4444,10 @@ bs_Result bs_deleteDirectoryContentsV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_deleteDirectoryContents(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_deleteDirectoryContents(_formatted, _length);
 }
 
 bs_Result bs_deleteDirectoryContentsF(
@@ -4408,9 +4472,10 @@ bs_Result bs_deleteDirectoryV(
     char* format, 
     va_list args)
 {
-    static bs_String* string;
-    string = bs_stringV(string, format, args);
-    return bs_deleteDirectory(string->value, string->len);
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_deleteDirectory(_formatted, _length);
 }
 
 bs_Result bs_deleteDirectoryF(

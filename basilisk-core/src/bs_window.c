@@ -70,7 +70,7 @@ static bs_Result bs_querySwapchainFormat(bs_Window* window, VkFormat candidates[
     for (int i = 0; i < num_formats; i++)
         bs_infoF("%d\n", formats[i].format);
 
-    bs_warnF("Failed to query swapchain surface format, available formats\n");
+    bs_warn(BS_CONSTANT_STRING("Failed to query swapchain surface format, available formats\n"));
 
     return BS_RESULT_FAILED_TO_QUERY;
 }

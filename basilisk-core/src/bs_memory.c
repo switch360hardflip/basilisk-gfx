@@ -231,6 +231,15 @@ BSAPI void* _bs_fetchUnit(bs_List* list, bs_U32 offset) {
 
 #define BS_STRING_OVERHEAD (128)
 
+BSAPI int _bs_formatStringLength(const char* format, va_list args) {
+    va_list args_copy;
+    va_copy(args_copy, args);
+    int len = vsnprintf(NULL, 0, format, args_copy);
+    va_end(args_copy);
+    assert(len >= 0);
+    return len;
+}
+
 BSAPI const char* _bs_checkStringPool(bs_List* pool, char* string) {
     bs_U64 hash = bs_stringHash(string);
 

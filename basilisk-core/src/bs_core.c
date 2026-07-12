@@ -498,7 +498,7 @@ BSAPI void _bs_ensureBatchSize(bs_Batch* batch, bs_U32 num_indices, bs_U32 num_v
         bs_ensureSize(&batch->indices, num_indices);
 }
 
-BSAPI void _bs_pushIndex(bs_Batch* batch, bs_U32 index) {
+BSAPI void _bs_pushIndex(bs_Batch* batch, int index) {
     bs_List* indices = &batch->indices;
 
     index += batch->vertices.count;
@@ -507,21 +507,11 @@ BSAPI void _bs_pushIndex(bs_Batch* batch, bs_U32 index) {
     indices->count++;
 }
 
-BSAPI void _bs_pushIndices(bs_Batch* batch, bs_U32* indices, bs_U32 num_indices) {
-    for (int i = 0; i < num_indices; i++)
-        bs_pushIndex(batch, indices[i]);
-}
-
-BSAPI void _bs_pushIndexV(bs_Batch* batch, bs_U32 num_indices, ...) {
-    va_list args;
-    va_start(args, num_indices);
-
-    for (int i = 0; i < num_indices; i++) {
-        bs_U32 value = va_arg(args, bs_U32);
+BSAPI void bs_pushIndices(bs_Batch* batch, int indices[], int indices_count) {
+    for (int i = 0; i < indices_count; i++) {
+        int value = indices[i];
         bs_pushIndex(batch, value);
     }
-
-    va_end(args);
 }
 
 // vertex
@@ -1670,16 +1660,24 @@ BSAPI void _bs_endRender(bs_Renderer* renderer) {
     _bs_scope_.subpass = 0;
 }
 
-BSAPI void _bs_runPass(bs_Renderer* renderer, ...) {
+BSAPI void _val_bs_runPass(bs_Renderer* renderer, bs_Callback subpasses[], int subpasses_count) {
+    BS_VALIDATE(subpasses_count <= renderer->num_subpasses,,);
+
+    for (int i = 0; i < subpasses_count; i++) {
+        BS_VALIDATE(subpasses[i] != NULL,,);
+    }
+
+    return bs_runPass(renderer, subpasses, subpasses_count);
+}
+
+BSAPI void _bs_runPass(bs_Renderer* renderer, bs_Callback callbacks[], int callbacks_count) {
     bs_beginRender(renderer);
     VkCommandBuffer command_buffer = bsi_fetchCommands();
 
     if (renderer->render_pass) {
-        va_list args;
-        va_start(args, renderer);
         for (int i = 0; i < renderer->num_subpasses; i++) {
-            bs_Callback callback = va_arg(args, bs_Callback);
-            if (!callback) break;
+            bs_Callback callback = callbacks[i];
+
             if (i != 0) {
                 _bs_scope_.subpass = i;
                 vkCmdNextSubpass(command_buffer, VK_SUBPASS_CONTENTS_INLINE);
@@ -1687,17 +1685,10 @@ BSAPI void _bs_runPass(bs_Renderer* renderer, ...) {
 
             callback();
         }
-        va_end(args);
     }
     else {
-        va_list args;
-        va_start(args, renderer);
-
-        bs_Callback callback = NULL;
-        while (callback = va_arg(args, bs_Callback))
-            callback();
-
-        va_end(args);
+        for (int i = 0; i < callbacks_count; i++)
+            callbacks[i]();
     }
     bs_endRender(renderer);
 }
@@ -1811,30 +1802,28 @@ BSAPI void _bs_rayTrace(bs_RayTracer* ray_tracer, bs_Pipeline* pipeline, bs_U32 
     _bs_procs_.vkCmdTraceRaysKHR(command_buffer, tables + 0, tables + 1, tables + 2, tables + 3, width, height, depth);
 }
 
-BSAPI bs_Result _bs_rayTracer(bs_Object* object, bs_U32 flags, ...) {
+BSAPI bs_Result _bs_rayTracer(bs_Object* object, bs_U32 flags, bs_Shader* shaders[], int shaders_count) {
     bs_RayTracer* ray_tracer = object->ray_tracer;
 
-    if (!ray_tracer) return NULL;
-    if (object->flags & BS_OBJECT_ALREADY_EXISTS && !(object->flags & BS_OBJECT_FORCE_DESTROY)) return NULL;
+    if (!ray_tracer) 
+        return BS_RESULT_OK;
+
+    if (object->flags & BS_OBJECT_ALREADY_EXISTS && !(object->flags & BS_OBJECT_FORCE_DESTROY)) 
+        return BS_RESULT_OK;
 
     bs_destroyRayTracer(ray_tracer);
 
     ray_tracer->aabbs = bs_list(sizeof(VkAabbPositionsKHR), 128);
     ray_tracer->batches = bs_list(sizeof(bs_Batch*), 16);
+    ray_tracer->groups_count = shaders_count;
 
-    va_list args;
-    va_start(args, flags);
-    for (; va_arg(args, bs_Shader*); ray_tracer->groups_count++) { }
-    va_end(args);
+    for (int i = 0; i < shaders_count; i++) {
+        bs_Shader* shader = shaders[i];
 
-    va_start(args, flags);
-    for (int i = 0; i < ray_tracer->groups_count; i++) {
-        bs_Shader* shader = va_arg(args, bs_Shader*);
         object->ray_tracer->_[i] = (struct bs_ShaderGroup) {
             .shader = shader
         };
     }
-    va_end(args);
 
     return object;
 }
@@ -2643,21 +2632,27 @@ void bsi_resizeObjects() {
 }
 */
 
-BSAPI void _bs_present(bs_Queue* queue, ...) {
+BSAPI void _val_bs_present(bs_Queue* queue, bs_Queue* wait_queues[], int wait_queues_count) {
+    for (int i = 0; i < wait_queues_count; i++) {
+        BS_VALIDATE(wait_queues[i] != NULL,,);
+        BS_VALIDATE(wait_queues[i]->head.source_id == BS_OBJECT_QUEUE,,);
+    }
+
+    return bs_present(queue, wait_queues, wait_queues_count);
+}
+
+BSAPI void _bs_present(bs_Queue* queue, bs_Queue* wait_queues[], int wait_queues_count) {
     bs_Window* window = _bs_scope_.window;
 
     VkSemaphore wait_semaphores[BS_MAX_NUM_WAITS];
     bs_U32 num_wait_semaphores = 0;
 
-    va_list args;
-    va_start(args, queue);
-    while (1) {
-        bs_Queue* wait_queue = va_arg(args, bs_Queue*);
-        if (!wait_queue) break;
-        int swap = bs_queueSwap(queue);
+    for (int i = 0; i < wait_queues_count; i++) {
+        bs_Queue* wait_queue = wait_queues[i];
+
+        int swap = bs_queueSwap(wait_queue);
         wait_semaphores[num_wait_semaphores++] = wait_queue->_[swap].semaphore;
     }
-    va_end(args);
 
     VkPresentInfoKHR present_i = {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,

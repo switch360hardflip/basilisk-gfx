@@ -800,7 +800,7 @@ static VkImageAspectFlags bs_imageAspectFlags(bs_Image* image) {
     return VK_IMAGE_ASPECT_COLOR_BIT;
 }
 
-void bs_blit(bs_BlitOperation operation)  {
+BSAPI void _bs_blit(bs_BlitOperation operation)  {
     VkCommandBuffer commands = bsi_fetchCommands();
 
     VkImageBlit region = {

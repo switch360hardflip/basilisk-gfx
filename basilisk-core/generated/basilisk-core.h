@@ -208,6 +208,14 @@ typedef enum bs_JsonType bs_JsonType;
 typedef enum bs_ShaderType bs_ShaderType;
 typedef enum bs_BindType bs_BindType;
 
+#ifdef _WIN32
+#define bs_alloca                                                    \
+    _alloca
+#else
+#define bs_alloca                                                    \
+    alloca
+#endif
+
 #define BS_VALIDATE(condition, ret, format, ...)                     \
     if (!(condition)) {                                              \
         bs_warnF(BS_PRINT_COLOR("[CORE] [VAL]", BS_PRINT_RED) " %s: %s\n" __VA_OPT__(format) "\n", __func__, #condition __VA_OPT__(,) __VA_ARGS__); \
@@ -1310,6 +1318,7 @@ typedef enum bs_BindType bs_BindType;
     0xB6
 
 typedef int (__cdecl* bs_ThreadFunction)(void*);
+typedef void* (__cdecl* bs_ForeachDocumentFunction)(bs_FileInfo, void*);
 typedef long long bs_I64;
 typedef int bs_I32;
 typedef short bs_I16;
@@ -2409,7 +2418,7 @@ struct bs_Props {
 
 union bs_vec2 {
     float a[2];
-    struct test {
+    struct {
         float x;
         float y;
     };
@@ -4475,14 +4484,16 @@ bs_rayTrace(
  /**
   @param object
   @param flags
-  @param ...
+  @param shaders
+  @param shaders_count
   @return bs_Result
   */
 BSAPI bs_Result
 bs_rayTracer(
     bs_Object* object,
     bs_U32 flags,
-     ...);
+    bs_Shader* shaders,
+    int shaders_count);
 
  /**
   @param ray_tracer
@@ -4848,19 +4859,19 @@ bs_batchRange(
 BSAPI void
 bs_pushIndex(
     bs_Batch* batch,
-    bs_U32 index);
+    int index);
 
  /**
   @param batch
-  @param num_indices
-  @param ...
+  @param indices
+  @param indices_count
   @return void
   */
 BSAPI void
-bs_pushIndexV(
+bs_pushIndices(
     bs_Batch* batch,
-    bs_U32 num_indices,
-     ...);
+    int indices,
+    bs_U32 indices_count);
 
  /**
   @param batch
@@ -5368,13 +5379,15 @@ bs_framebuffer(
 
  /**
   @param renderer
-  @param ...
+  @param callbacks
+  @param callbacks_count
   @return void
   */
 BSAPI void
 bs_runPass(
     bs_Renderer* renderer,
-     ...);
+    bs_Callback callbacks,
+    int callbacks_count);
 
  /**
   @param renderer
@@ -5434,19 +5447,29 @@ bs_queueFamily(
 
  /**
   @param queue
-  @param ...
+  @param wait_queues
+  @param wait_queues_count
   @return bs_Result
   */
 BSAPI bs_Result
 bs_present(
     bs_Queue* queue,
-     ...);
+    bs_Queue* wait_queues,
+    int wait_queues_count);
 
  /**
   @return bs_Result
   */
 BSAPI bs_Result
 bs_acquire();
+
+ /**
+  @param queue
+  @return int
+  */
+BSAPI int
+bs_queueSwap(
+    bs_Queue* queue);
 
  /**
   @param queue
@@ -5565,12 +5588,12 @@ bs_setScope(
     bs_Scope* scope);
 
  /**
-  @param void (*function)()
+  @param function
   @return void
   */
 BSAPI void
 bs_runSingle(
-     void (*function)());
+    bs_Callback function);
 
  /**
   @param ttf
@@ -6377,12 +6400,6 @@ bsi_nameHandleF(
      ...);
 
  /**
-  @return bs_Procs*
-  */
-BSAPI bs_Procs*
-bs_procs();
-
- /**
   @param json
   @return bs_JsonEnumeration
   */
@@ -7051,6 +7068,16 @@ bs_createThread(
     void* param);
 
  /**
+  @param format
+  @param args
+  @return int
+  */
+BSAPI int
+bs_formatStringLength(
+    const char* format,
+    va_list args);
+
+ /**
   @param pool
   @param string
   @return const char*
@@ -7072,16 +7099,6 @@ bs_stringAlloc(
 
  /**
   @param old
-  @param data
-  @return bs_String*
-  */
-BSAPI bs_String*
-bs_string(
-    bs_String* old,
-    char* data);
-
- /**
-  @param old
   @return bs_String*
   */
 BSAPI bs_String*
@@ -7091,36 +7108,14 @@ bs_emptyString(
  /**
   @param old
   @param value
+  @param value_length
   @return bs_String*
   */
 BSAPI bs_String*
 bs_string(
     bs_String* old,
-    char* value);
-
- /**
-  @param old
-  @param value
-  @param value_length
-  @return bs_String*
-  */
-BSAPI bs_String*
-bs_stringN(
-    bs_String* old,
     char* value,
     int value_length);
-
- /**
-  @param old
-  @param format
-  @param ...
-  @return bs_String*
-  */
-BSAPI bs_String*
-bs_stringF(
-    bs_String* old,
-    char* format,
-     ...);
 
  /**
   @param old
@@ -7133,6 +7128,18 @@ bs_stringV(
     bs_String* old,
     char* format,
     va_list args);
+
+ /**
+  @param old
+  @param format
+  @param ...
+  @return bs_String*
+  */
+BSAPI bs_String*
+bs_stringF(
+    bs_String* old,
+    char* format,
+     ...);
 
  /**
   @param string
@@ -7588,13 +7595,13 @@ bs_list(
 
  /**
   @param guid
-  @param char out
+  @param out
   @return void
   */
 BSAPI void
 bs_guidToString(
     bs_GUID* guid,
-     char out);
+    char out);
 
  /**
   @param str
@@ -8786,15 +8793,13 @@ bs_moveWindow(
   @param width
   @param height
   @param title
-  @param ...
   @return void
   */
 BSAPI void
 bs_window(
     bs_U32 width,
     bs_U32 height,
-    const char* title,
-     ...);
+    const char* title);
 
  /**
   @param window
@@ -8865,13 +8870,33 @@ BSAPI bs_ivec2
 bs_resolution();
 
  /**
-  @param title
-  @param ...
+  @param name
+  @param name_length
   @return void
   */
 BSAPI void
 bs_titleWindow(
-    const char* title,
+    char* name,
+    int name_length);
+
+ /**
+  @param format
+  @param args
+  @return void
+  */
+BSAPI void
+bs_titleWindowV(
+    char* format,
+    va_list args);
+
+ /**
+  @param format
+  @param ...
+  @return void
+  */
+BSAPI void
+bs_titleWindowF(
+    char* format,
      ...);
 
  /**
@@ -8975,7 +9000,7 @@ bs_appendStringF(
      ...);
 
  /**
-  @param void(*x)(bs_FileInfo, void*)
+  @param x
   @param param
   @param value
   @param value_length
@@ -8983,13 +9008,13 @@ bs_appendStringF(
   */
 BSAPI bs_Result
 bs_foreachFile(
-     void(*x)(bs_FileInfo, void*),
+    bs_ForeachDocumentFunction x,
     void* param,
     char* value,
     int value_length);
 
  /**
-  @param void(*x)(bs_FileInfo, void*)
+  @param x
   @param param
   @param format
   @param args
@@ -8997,13 +9022,13 @@ bs_foreachFile(
   */
 BSAPI bs_Result
 bs_foreachFileV(
-     void(*x)(bs_FileInfo, void*),
+    bs_ForeachDocumentFunction x,
     void* param,
     char* format,
     va_list args);
 
  /**
-  @param void(*x)(bs_FileInfo, void*)
+  @param x
   @param param
   @param format
   @param ...
@@ -9011,13 +9036,13 @@ bs_foreachFileV(
   */
 BSAPI bs_Result
 bs_foreachFileF(
-     void(*x)(bs_FileInfo, void*),
+    bs_ForeachDocumentFunction x,
     void* param,
     char* format,
      ...);
 
  /**
-  @param void(*x)(bs_FileInfo, void*)
+  @param x
   @param param
   @param path
   @param path_length
@@ -9025,13 +9050,13 @@ bs_foreachFileF(
   */
 BSAPI bs_Result
 bs_foreachDirectory(
-     void(*x)(bs_FileInfo, void*),
+    bs_ForeachDocumentFunction x,
     void* param,
     char* path,
     int path_length);
 
  /**
-  @param void(*x)(bs_FileInfo, void*)
+  @param x
   @param param
   @param format
   @param args
@@ -9039,13 +9064,13 @@ bs_foreachDirectory(
   */
 BSAPI bs_Result
 bs_foreachDirectoryV(
-     void(*x)(bs_FileInfo, void*),
+    bs_ForeachDocumentFunction x,
     void* param,
     char* format,
     va_list args);
 
  /**
-  @param void(*x)(bs_FileInfo, void*)
+  @param x
   @param param
   @param format
   @param ...
@@ -9053,7 +9078,7 @@ bs_foreachDirectoryV(
   */
 BSAPI bs_Result
 bs_foreachDirectoryF(
-     void(*x)(bs_FileInfo, void*),
+    bs_ForeachDocumentFunction x,
     void* param,
     char* format,
      ...);
@@ -9345,7 +9370,6 @@ BSAPI extern bs_Config _bs_config_;
 BSAPI extern bs_Args _bs_args_;
 BSAPI extern bs_Features _bs_features_;
 BSAPI extern bs_Props _bs_props_;
-BSAPI extern bs_Procs _bs_procs_;
 BSAPI extern bs_Scope _bs_scope_;
 BSAPI extern int _bs_image_index_;
 

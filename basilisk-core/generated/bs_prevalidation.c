@@ -1007,11 +1007,14 @@ static bs_Result _preval_bs_rayTrace(bs_RayTracer* ray_tracer, bs_Pipeline* pipe
     return next.bs_rayTrace(ray_tracer, pipeline, width, height, depth);
 }
 
-static bs_Result _preval_bs_rayTracer(bs_Object* object, bs_U32 flags,  ...) {
+static bs_Result _preval_bs_rayTracer(bs_Object* object, bs_U32 flags, bs_Shader* shaders, int shaders_count) {
     if (object == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_rayTracer(object, flags, ...);
+    if (shaders == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_rayTracer(object, flags, shaders, shaders_count);
 }
 
 static bs_Result _preval_bs_accelerateAabb(bs_RayTracer* ray_tracer, bs_Aabb aabb) {
@@ -1335,7 +1338,7 @@ static bs_Range _preval_bs_batchRange(bs_Batch* batch, bs_U32 offset) {
     return next.bs_batchRange(batch, offset);
 }
 
-static void _preval_bs_pushIndex(bs_Batch* batch, bs_U32 index) {
+static void _preval_bs_pushIndex(bs_Batch* batch, int index) {
     if (batch == NULL)
         return;
 
@@ -1345,14 +1348,14 @@ static void _preval_bs_pushIndex(bs_Batch* batch, bs_U32 index) {
     return next.bs_pushIndex(batch, index);
 }
 
-static void _preval_bs_pushIndexV(bs_Batch* batch, bs_U32 num_indices,  ...) {
+static void _preval_bs_pushIndices(bs_Batch* batch, int indices, bs_U32 indices_count) {
     if (batch == NULL)
         return;
 
     if (batch->head.source_id != BS_OBJECT_BATCH)
         return;
 
-    return next.bs_pushIndexV(batch, num_indices, ...);
+    return next.bs_pushIndices(batch, indices, indices_count);
 }
 
 static bs_Range _preval_bs_batchCube(bs_Batch* batch, bs_U32* offset, bs_RGBA color) {
@@ -1787,14 +1790,14 @@ static void _preval_bs_framebuffer(bs_Renderer* renderer, bs_ivec2 resolution) {
     return next.bs_framebuffer(renderer, resolution);
 }
 
-static void _preval_bs_runPass(bs_Renderer* renderer,  ...) {
+static void _preval_bs_runPass(bs_Renderer* renderer, bs_Callback callbacks, int callbacks_count) {
     if (renderer == NULL)
         return;
 
     if (renderer->head.source_id != BS_OBJECT_RENDERER)
         return;
 
-    return next.bs_runPass(renderer, ...);
+    return next.bs_runPass(renderer, callbacks, callbacks_count);
 }
 
 static bool _preval_bs_rendererIsDynamic(bs_Renderer* renderer) {
@@ -1861,18 +1864,34 @@ static bs_I32 _preval_bs_queueFamily(bs_QueueBits flags) {
     return next.bs_queueFamily(flags);
 }
 
-static bs_Result _preval_bs_present(bs_Queue* queue,  ...) {
+static bs_Result _preval_bs_present(bs_Queue* queue, bs_Queue* wait_queues, int wait_queues_count) {
     if (queue == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (queue->head.source_id != BS_OBJECT_QUEUE)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_present(queue, ...);
+    if (wait_queues == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    if (wait_queues->head.source_id != BS_OBJECT_QUEUE)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_present(queue, wait_queues, wait_queues_count);
 }
 
 static bs_Result _preval_bs_acquire() {
     return next.bs_acquire();
+}
+
+static int _preval_bs_queueSwap(bs_Queue* queue) {
+    if (queue == NULL)
+        return 0;
+
+    if (queue->head.source_id != BS_OBJECT_QUEUE)
+        return 0;
+
+    return next.bs_queueSwap(queue);
 }
 
 static void _preval_bs_awaitQueue(bs_Queue* queue, bs_PipelineStage stage) {
@@ -1986,8 +2005,8 @@ static void _preval_bs_setScope(bs_Scope* scope) {
     return next.bs_setScope(scope);
 }
 
-static void _preval_bs_runSingle( void (*function)()) {
-    return next.bs_runSingle(void (*function)());
+static void _preval_bs_runSingle(bs_Callback function) {
+    return next.bs_runSingle(function);
 }
 
 static void _preval_bs_glyph(bs_TTF* ttf, bs_U16 code) {
@@ -2593,10 +2612,6 @@ static bs_Result _preval_bsi_nameHandle(bs_U64 handle, bs_U32 type, char* value,
     return next.bsi_nameHandle(handle, type, value, value_length);
 }
 
-static bs_Procs* _preval_bs_procs() {
-    return next.bs_procs();
-}
-
 static bs_JsonEnumeration _preval_bs_beginEnumeration(bs_Json* json) {
     if (json == NULL)
         return (bs_JsonEnumeration) { 0 };
@@ -2908,6 +2923,13 @@ static void _preval_bs_createThread(bs_ThreadFunction function, void* param) {
     return next.bs_createThread(function, param);
 }
 
+static int _preval_bs_formatStringLength(const char* format, va_list args) {
+    if (format == NULL)
+        return 0;
+
+    return next.bs_formatStringLength(format, args);
+}
+
 static const char* _preval_bs_checkStringPool(bs_List* pool, char* string) {
     if (pool == NULL)
         return NULL;
@@ -2928,16 +2950,6 @@ static bs_String* _preval_bs_stringAlloc(bs_String* old, int len) {
     return next.bs_stringAlloc(old, len);
 }
 
-static bs_String* _preval_bs_string(bs_String* old, char* data) {
-    if (old == NULL)
-        return NULL;
-
-    if (data == NULL)
-        return NULL;
-
-    return next.bs_string(old, data);
-}
-
 static bs_String* _preval_bs_emptyString(bs_String* old) {
     if (old == NULL)
         return NULL;
@@ -2945,47 +2957,14 @@ static bs_String* _preval_bs_emptyString(bs_String* old) {
     return next.bs_emptyString(old);
 }
 
-static bs_String* _preval_bs_string(bs_String* old, char* value) {
+static bs_String* _preval_bs_string(bs_String* old, char* value, int value_length) {
     if (old == NULL)
         return NULL;
 
     if (value == NULL)
         return NULL;
 
-    return next.bs_string(old, value);
-}
-
-static bs_String* _preval_bs_stringN(bs_String* old, char* value, int value_length) {
-    if (old == NULL)
-        return NULL;
-
-    if (value == NULL)
-        return NULL;
-
-    if (!(value_length >= 0))
-        return NULL;
-
-    return next.bs_stringN(old, value, value_length);
-}
-
-static bs_String* _preval_bs_stringF(bs_String* old, char* format,  ...) {
-    if (old == NULL)
-        return NULL;
-
-    if (format == NULL)
-        return NULL;
-
-    return next.bs_stringF(old, format, ...);
-}
-
-static bs_String* _preval_bs_stringV(bs_String* old, char* format, va_list args) {
-    if (old == NULL)
-        return NULL;
-
-    if (format == NULL)
-        return NULL;
-
-    return next.bs_stringV(old, format, args);
+    return next.bs_string(old, value, value_length);
 }
 
 static bs_Result _preval_bs_toUpper(char* string, int len) {
@@ -3312,11 +3291,11 @@ static bs_List _preval_bs_list(int unit_size, int increment) {
     return next.bs_list(unit_size, increment);
 }
 
-static void _preval_bs_guidToString(bs_GUID* guid,  char out) {
+static void _preval_bs_guidToString(bs_GUID* guid, char out) {
     if (guid == NULL)
         return;
 
-    return next.bs_guidToString(guid, char out);
+    return next.bs_guidToString(guid, out);
 }
 
 static bs_GUID _preval_bs_stringToGuid(const char* str) {
@@ -3895,9 +3874,6 @@ static bs_Result _preval_bs_bindBuffers(bs_U32 bind_set_slot, bs_U32 bind_point_
     if (buffers == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    if (buffers->head.source_id != BS_OBJECT_BUFFER)
-        return BS_RESULT_VALIDATION_ERROR;
-
     return next.bs_bindBuffers(bind_set_slot, bind_point_slot, buffers, buffers_count);
 }
 
@@ -3913,9 +3889,6 @@ static bs_Result _preval_bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U
 
 static bs_Result _preval_bs_bindAccelerationStructures(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer** ray_tracers, int ray_tracers_count) {
     if (ray_tracers == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (ray_tracers->head.source_id != BS_OBJECT_RAY_TRACER)
         return BS_RESULT_VALIDATION_ERROR;
 
     return next.bs_bindAccelerationStructures(bind_set_slot, bind_point_slot, ray_tracers, ray_tracers_count);
@@ -4092,11 +4065,11 @@ static void _preval_bs_moveWindow(int x, int y) {
     return next.bs_moveWindow(x, y);
 }
 
-static void _preval_bs_window(bs_U32 width, bs_U32 height, const char* title,  ...) {
+static void _preval_bs_window(bs_U32 width, bs_U32 height, const char* title) {
     if (title == NULL)
         return;
 
-    return next.bs_window(width, height, title, ...);
+    return next.bs_window(width, height, title);
 }
 
 static void _preval_bs_tick(bs_Window* window, bs_Callback tick, bs_Callback fixed_tick) {
@@ -4142,11 +4115,11 @@ static bs_ivec2 _preval_bs_resolution() {
     return next.bs_resolution();
 }
 
-static void _preval_bs_titleWindow(const char* title,  ...) {
-    if (title == NULL)
+static void _preval_bs_titleWindow(char* name, int name_length) {
+    if (name == NULL)
         return;
 
-    return next.bs_titleWindow(title, ...);
+    return next.bs_titleWindow(name, name_length);
 }
 
 static bool _preval_bs_inFixedTick() {
@@ -4188,24 +4161,24 @@ static bs_String* _preval_bs_appendString(bs_String* destination, char* value, i
     return next.bs_appendString(destination, value, value_length);
 }
 
-static bs_Result _preval_bs_foreachFile( void(*x)(bs_FileInfo, void*), void* param, char* value, int value_length) {
+static bs_Result _preval_bs_foreachFile(bs_ForeachDocumentFunction x, void* param, char* value, int value_length) {
     if (param == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (value == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_foreachFile(void(*x)(bs_FileInfo, void*), param, value, value_length);
+    return next.bs_foreachFile(x, param, value, value_length);
 }
 
-static bs_Result _preval_bs_foreachDirectory( void(*x)(bs_FileInfo, void*), void* param, char* path, int path_length) {
+static bs_Result _preval_bs_foreachDirectory(bs_ForeachDocumentFunction x, void* param, char* path, int path_length) {
     if (param == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
     if (path == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_foreachDirectory(void(*x)(bs_FileInfo, void*), param, path, path_length);
+    return next.bs_foreachDirectory(x, param, path, path_length);
 }
 
 static int _preval_bs_numFiles(char* value, int value_length) {
@@ -4431,7 +4404,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_batchVertex = _preval_bs_batchVertex;
     functions.bs_batchRange = _preval_bs_batchRange;
     functions.bs_pushIndex = _preval_bs_pushIndex;
-    functions.bs_pushIndexV = _preval_bs_pushIndexV;
+    functions.bs_pushIndices = _preval_bs_pushIndices;
     functions.bs_batchCube = _preval_bs_batchCube;
     functions.bs_pushCube = _preval_bs_pushCube;
     functions.bs_batchCone = _preval_bs_batchCone;
@@ -4478,6 +4451,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_queueFamily = _preval_bs_queueFamily;
     functions.bs_present = _preval_bs_present;
     functions.bs_acquire = _preval_bs_acquire;
+    functions.bs_queueSwap = _preval_bs_queueSwap;
     functions.bs_awaitQueue = _preval_bs_awaitQueue;
     functions.bs_awaitAcquisition = _preval_bs_awaitAcquisition;
     functions.bs_enqueue = _preval_bs_enqueue;
@@ -4548,7 +4522,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_resetQueue = _preval_bs_resetQueue;
     functions.bs_pushQueue = _preval_bs_pushQueue;
     functions.bsi_nameHandle = _preval_bsi_nameHandle;
-    functions.bs_procs = _preval_bs_procs;
     functions.bs_beginEnumeration = _preval_bs_beginEnumeration;
     functions.bs_enumerateJson = _preval_bs_enumerateJson;
     functions.bs_jsonRoot = _preval_bs_jsonRoot;
@@ -4596,14 +4569,11 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_config = _preval_bs_config;
     functions.bs_system = _preval_bs_system;
     functions.bs_createThread = _preval_bs_createThread;
+    functions.bs_formatStringLength = _preval_bs_formatStringLength;
     functions.bs_checkStringPool = _preval_bs_checkStringPool;
     functions.bs_stringAlloc = _preval_bs_stringAlloc;
-    functions.bs_string = _preval_bs_string;
     functions.bs_emptyString = _preval_bs_emptyString;
     functions.bs_string = _preval_bs_string;
-    functions.bs_stringN = _preval_bs_stringN;
-    functions.bs_stringF = _preval_bs_stringF;
-    functions.bs_stringV = _preval_bs_stringV;
     functions.bs_toUpper = _preval_bs_toUpper;
     functions.bs_toLower = _preval_bs_toLower;
     functions.bs_hash = _preval_bs_hash;
