@@ -63,7 +63,7 @@
 			<line><name>BSGFX_SUBTYPE_TILE_2</name></line>
 			<line><name>BSGFX_SUBTYPE_64_HI</name></line>
 			<line><name>BSGFX_SUBTYPE_256_HI</name></line>
-			<line><name>BSGFX_SUBTYPE_ATLAS_HI</name></line>
+			<line><name>BSGFX_SUBTYPE_ATLAS_ICON</name></line>
 			<line><name>BSGFX_SUBTYPE_UI</name></line>
 			<line><name>BSGFX_SUBTYPE_UI_COLOR</name></line>
 			<line><name>BSGFX_SUBTYPE_UI_STENCIL</name></line>
@@ -72,7 +72,7 @@
 			<line><name>BSGFX_SUBTYPE_COLOR_PICKER_ALPHA</name></line>
 			<line><name>BSGFX_SUBTYPE_DITHER</name></line>
 			<line><name>BSGFX_SUBTYPE_CORNER_GRADIENT</name></line>
-			<line><name>BSGFX_SUBTYPE_TILE_HI</name></line>
+			<line><name>BSGFX_SUBTYPE_TILE_ICON</name></line>
 			<line><name>BSGFX_SUBTYPE_QUAD_MATERIAL_TEXTURE</name></line>
 			<line><name>BSGFX_SUBTYPE_PRIMITIVE_HI</name></line>
 			<line><name>BSGFX_SUBTYPE_ATLAS_PREFAB</name></line>
@@ -246,7 +246,15 @@
         <macro><name>#define BSGFX_ENUM_GEN(ENUM)</name><line>ENUM,</line></macro>
         <macro><name>#define BSGFX_STRING_GEN(STRING)</name><line>#STRING,</line></macro>
 
-        <macro>
+		<macro>
+			<name>#define BSGFX_VALIDATE(condition, ret, format, ...)</name>
+			<line>if (!(condition)) {</line>
+			<line>    bs_warnF(BS_PRINT_COLOR("[GFX] [VAL]", BS_PRINT_RED) " %s: %s\n" __VA_OPT__(format) "\n", __func__, #condition __VA_OPT__(,) __VA_ARGS__);</line>
+			<line>    return ret; </line>
+			<line>}</line>
+		</macro>
+
+		<macro>
             <name>#define BSGFX_IMAGE_IDS(X)</name>
             <line>X(BSGFX_IMAGE_LO_RES_0_DEPTH)</line>
             <line>X(BSGFX_IMAGE_LO_RES_0_COLOR)</line>
@@ -665,15 +673,7 @@
 		</structure>
 
 		<structure name="bsgfx_Settings">
-			<field><type>bool</type><name>draw_spheres</name></field>
-			<field><type>bool</type><name>draw_lines</name></field>
 			<field><type>bool</type><name>cull_backfaces</name></field>
-			<field><type>bool</type><name>draw_tiles</name></field>
-			<field><type>bool</type><name>draw_primitives</name></field>
-			<field><type>bool</type><name>draw_foliage</name></field>
-			<field><type>bool</type><name>draw_sprites</name></field>
-			<field><type>bool</type><name>draw_shadows</name></field>
-			<field><type>bool</type><name>draw_spawners</name></field>
 			<field><type>float</type><name>master_volume</name></field>
 			<field><type>bool</type><name>music</name></field>
 		</structure>

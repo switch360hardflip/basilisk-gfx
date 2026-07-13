@@ -3,17 +3,41 @@
 
 #include <string.h>
 
-int bsgfx_animationFrame(bs_Animation* animation, float time, int num_frames) {
-    return time / animation->length * (float)(num_frames);
+ /**
+  Current frame
+  */
+BSGFXAPI int _val_bsgfx_animationFrame(bs_Animation* animation, float time, int frames_count) {
+    BSGFX_VALIDATE(frames_count > 0,,);
+    return bsgfx_animationFrame(animation, time, frames_count);
 }
 
-int bsgfx_animationFrameCount(bs_Animation* animation, float time_scale) {
+BSGFXAPI int _bsgfx_animationFrame(bs_Animation* animation, float time, int frames_count) {
+    return time / animation->length * (float)(frames_count);
+}
+
+ /**
+  Frame count
+  */
+BSGFXAPI int _val_bsgfx_animationFrameCount(bs_Animation* animation, float time_scale) {
+    BSGFX_VALIDATE(time_scale != 0.0,,);
+    return bsgfx_animationFrameCount(animation, time_scale);
+}
+
+BSGFXAPI int _bsgfx_animationFrameCount(bs_Animation* animation, float time_scale) {
     return (int)(animation->length / time_scale);
 }
 
-void bsgfx_applyAnimationVelocity(bsgfx_Animator* animator, bs_vec3* velocity, bs_vec2 input) {
-    assert(animator->current_animation_id >= 0);
-    assert(animator->current_animation_id < animator->animations_count);
+ /**
+  Apply animation velocity
+  */
+BSGFXAPI void _val_bsgfx_applyAnimationVelocity(bsgfx_Animator* animator, bs_vec3* velocity, bs_vec2 input) {
+    BS_VALIDATE(animator->current_animation_id >= 0,,);
+    BS_VALIDATE(animator->current_animation_id < animator->animations_count,,);
+
+    return bsgfx_applyAnimationVelocity(animator, velocity, input);
+}
+
+BSGFXAPI void _bsgfx_applyAnimationVelocity(bsgfx_Animator* animator, bs_vec3* velocity, bs_vec2 input) {
 
     bs_Animation* animation = animator->animations + animator->current_animation_id;
 
@@ -52,7 +76,7 @@ void bsgfx_applyAnimationVelocity(bsgfx_Animator* animator, bs_vec3* velocity, b
 
     bs_vec3 translation_diff;
     bs_v3Sub(&current_translation, &previous_translation, &translation_diff);
-    bs_v3MulV1(&translation_diff, -1, &translation_diff);
+    bs_v3MulS(&translation_diff, -1, &translation_diff);
 
     velocity->x += input.x * translation_diff.z;
     //  velocity.y += -diff.y;
@@ -98,16 +122,21 @@ static inline void bsgfx_animatePoseDefault(bsgfx_Animator* animator) {
     bs_blendPose(animator->armature, animation_a, animation_b, animator->blend_factor, animator->time, animator->time);
 }
 
-void bsgfx_queueAnimation(bsgfx_Animator* animator, int animation_id) {
+BSGFXAPI void _bsgfx_queueAnimation(bsgfx_Animator* animator, int animation_id) {
     animator->queued_animation_id = animation_id;
 }
 
-void bsgfx_runAnimator(bsgfx_Animator* animator, bsgfx_AnimatorCallbacks callbacks) {
-    assert(animator->current_animation_id >= 0);
-    assert(animator->current_animation_id < animator->animations_count);
-    assert(animator->queued_animation_id >= 0);
-    assert(animator->queued_animation_id < animator->animations_count);
+BSGFXAPI void _val_bsgfx_runAnimator(bsgfx_Animator* animator, bsgfx_AnimatorCallbacks callbacks) {
+    BSGFX_VALIDATE(animator->current_animation_id >= 0,,);
+    BSGFX_VALIDATE(animator->current_animation_id < animator->animations_count,,);
+    BSGFX_VALIDATE(animator->queued_animation_id >= 0,,);
+    BSGFX_VALIDATE(animator->queued_animation_id < animator->animations_count, , );
+    BSGFX_VALIDATE(_bsgfx_shader_joints_ != NULL, , );
 
+    return bsgfx_runAnimator(animator, callbacks);
+}
+
+BSGFXAPI void _bsgfx_runAnimator(bsgfx_Animator* animator, bsgfx_AnimatorCallbacks callbacks) {
     bs_Animation* queued_animation = animator->animations + animator->queued_animation_id;
     bs_Animation* blend_animation = animator->animations + animator->current_blend_animation_id; // dangling but its fine just do checks pussy
     float length = queued_animation->length;
@@ -144,22 +173,29 @@ void bsgfx_runAnimator(bsgfx_Animator* animator, bsgfx_AnimatorCallbacks callbac
 
     bs_Animation* animation = animator->animations + animator->current_animation_id;
     bs_Armature* armature = animator->armature;
-    bs_except(BSX_FAILED_TO_QUERY);
     int root_id = bs_queryBoneId(armature, "Root");
-    if (!bs_except(BSX_FAILED_TO_QUERY))
+    if (root_id >= 0)
         animation->bones[root_id].translations_count =
         animation->bones[root_id].rotations_count =
         animation->bones[root_id].scalings_count = 0;
 
-    assert(_bsgfx_shader_joints_ != NULL);
     for (int i = 0; i < BS_MIN(animation->bones_count, armature->bones_count); i++)
         _bsgfx_shader_joints_[animator->skeleton + i] = armature->bones[i].matrix;
 
     animator->exit = callbacks.once_per_exit;
 }
 
-int bsgfx_skeleton(bs_Armature* armature) {
-    assert(_bsgfx_shader_joints_);
+ /**
+  Create skeleton
+  */
+BSGFXAPI int _val_bsgfx_skeleton(bs_Armature* armature) {
+    BSGFX_VALIDATE(_bsgfx_shader_joints_ != NULL, -1, );
+    BSGFX_VALIDATE((_bsgfx_num_shader_joints_ + armature->bones_count) <= BSGFX_MAX_NUM_JOINTS, -1, );
+
+    return bsgfx_skeleton(armature);
+}
+
+BSGFXAPI int _bsgfx_skeleton(bs_Armature* armature) {
     for (int i = 0; i < armature->bones_count; i++)
         _bsgfx_shader_joints_[_bsgfx_num_shader_joints_ + i] = BS_MAT4_IDENTITY;
     _bsgfx_num_shader_joints_ += armature->bones_count;
@@ -168,7 +204,7 @@ int bsgfx_skeleton(bs_Armature* armature) {
     return _bsgfx_num_shader_joints_ - armature->bones_count;
 }
 
-bsgfx_Animator bsgfx_animator(bs_Armature* armature, int resting_animation_id, int animations_count) {
+BSGFXAPI bsgfx_Animator _bsgfx_animator(bs_Armature* armature, int resting_animation_id, int animations_count) {
     int skeleton = bsgfx_skeleton(armature);
 
     //bs_blendPose(armature, resting_animation, NULL, 0.0, 0.0, 0.0);

@@ -203,78 +203,91 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     </xsl:template>
 
     <xsl:template match="vectorTemplate">
-		<function name="bs_v{n}">
-            <return>bs_vec<xsl:value-of select="n"/></return>
-            <xsl:for-each select="components/component">
-                <param><type>float</type><name><xsl:value-of select="."/></name></param>
-            </xsl:for-each>
-            <body>    return (bs_vec<xsl:value-of select="n"/>) { <xsl:for-each select="components/component"><xsl:value-of select="."/><xsl:if test="not(position() = last())">, </xsl:if></xsl:for-each> };</body>
-		</function>
-		<function name="bs_v{n}Add">
+		<function name="bs_v{n}Add" comment="Add two {n}D vectors">
 			<return>void</return>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>a</name></param>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>b</name></param>
 			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
 			<body>    glm_vec<xsl:value-of select="n"/>_add(a->a, b->a, out->a);</body>
 		</function>
-		<function name="bs_v{n}Sub">
+		<function name="bs_v{n}Sub" comment="Subtract two {n}D vectors">
 			<return>void</return>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>a</name></param>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>b</name></param>
 			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
 			<body>    glm_vec<xsl:value-of select="n"/>_sub(a->a, b->a, out->a);</body>
 		</function>
-		<function name="bs_v{n}Mul">
+		<function name="bs_v{n}Mul" comment="Multiply two {n}D vectors">
 			<return>void</return>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>a</name></param>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>b</name></param>
 			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
 			<body>    glm_vec<xsl:value-of select="n"/>_mul(a->a, b->a, out->a);</body>
 		</function>
-		<function name="bs_v{n}Div">
+		<function name="bs_v{n}Div" comment="Divide two {n}D vectors">
 			<return>void</return>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>a</name></param>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>b</name></param>
 			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
 			<body>    glm_vec<xsl:value-of select="n"/>_div(a->a, b->a, out->a);</body>
 		</function>
-		<function name="bs_v{n}MulV1">
+		<function name="bs_v{n}AddS" comment="Add all components of a {n}D vector with a scalar value">
+			<return>void</return>
+            <param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
+            <param><type>float</type><name>s</name></param>
+			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
+            <body>    *out = BS_V<xsl:value-of select="n"/>(<xsl:for-each select="components/component">v-><xsl:value-of select="."/> + s<xsl:if test="not(position() = last())">, </xsl:if></xsl:for-each>);</body>
+		</function>
+	    <function name="bs_v{n}SubS" comment="Subtract all components of a {n}D vector by a scalar value">
+			<return>void</return>
+            <param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
+            <param><type>float</type><name>s</name></param>
+			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
+            <body>    *out = BS_V<xsl:value-of select="n"/>(<xsl:for-each select="components/component">v-><xsl:value-of select="."/> - s<xsl:if test="not(position() = last())">, </xsl:if></xsl:for-each>);</body>
+		</function>
+		<function name="bs_v{n}MulS" comment="Multiply all components of a {n}D vector with a scalar value">
 			<return>void</return>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
 			<param><type>float</type><name>s</name></param>
 			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
 			<body>    glm_vec<xsl:value-of select="n"/>_scale(v->a, s, out->a);</body>
 		</function>
-		<function name="bs_v{n}DivV1">
+		<function name="bs_v{n}DivS" comment="Divide all components of a {n}D vector by a scalar value">
 			<return>void</return>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
 			<param><type>float</type><name>s</name></param>
 			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
 			<body>    glm_vec<xsl:value-of select="n"/>_scale(v->a, 1.0 / s, out->a);</body>
 		</function>
-		<function name="bs_v{n}Dot">
+		<function name="bs_v{n}Dot"  comment="Dot product">
 			<return>float</return>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>a</name></param>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>b</name></param>
 			<body>    glm_vec<xsl:value-of select="n"/>_dot(a->a, b->a);</body>
         </function>
-		<function name="bs_v{n}Magnitude">
+		<function name="bs_v{n}Distance" comment="Distance between two {n}D vectors">
+			<return>float</return>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>a</name></param>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>b</name></param>
+			<body>    return glm_vec<xsl:value-of select="n"/>_distance(a->a, b->a);</body>
+        </function>
+		<function name="bs_v{n}Magnitude" comment="Magnitude of a {n}D vector">
 			<return>float</return>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
 			<body>    return glm_vec<xsl:value-of select="n"/>_norm(v->a);</body>
         </function>
-		<function name="bs_v{n}MagnitudeSqrd">
+		<function name="bs_v{n}MagnitudeSqrd" comment="Squared magnitude of a {n}D vector (avoid square root cost)">
 			<return>float</return>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
 			<body>    return glm_vec<xsl:value-of select="n"/>_norm2(v->a);</body>
 		</function>
-		<function name="bs_v{n}Normalize">
+		<function name="bs_v{n}Normalize" comment="Normalize a {n}D vector">
 			<return>void</return>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
 			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
 			<body>    glm_vec<xsl:value-of select="n"/>_normalize_to(v->a, out->a);</body>
         </function>
-		<function name="bs_v{n}Lerp">
+		<function name="bs_v{n}Lerp" comment="Linear interpolation between two {n}D vectors">
 			<return>void</return>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>from</name></param>
             <param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>to</name></param>

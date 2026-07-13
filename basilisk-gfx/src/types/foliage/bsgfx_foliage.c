@@ -43,33 +43,33 @@ static void bsgfx_loadFoliage(bsgfx_Foliage* foliage, bs_String* binary) {
     );
 
     //	bs_mat4 transform = bs_transform(position, rotation, scale);
-    bs_mat3 rotation = bs_qToMat3(bs_qFromRadians(bs_v3(bs_radians(0), bs_radians(0), bs_radians(-45))));
+    bs_mat3 rotation = bs_qToMat3(bs_qFromRadians(BS_V3(bs_radians(0), bs_radians(0), bs_radians(-45))));
     for (int i = 0; i < num_vertices; i++) {
         int texture = bs_randRangeI(0, foliage->textures_count - 1);
         bs_vec4 coords = foliage->textures[texture].coords;
         bs_vec2 size = foliage->textures[texture].size;
 
-        bs_Quad q = bs_quad(bs_v3(-size.x / 2.0, size.y / 2.0, 0.0), size);
+        bs_Quad q = bs_quad(BS_V3(-size.x / 2.0, size.y / 2.0, 0.0), size);
         bs_m3MulV3(&rotation, &q.a, &q.a);
         bs_m3MulV3(&rotation, &q.b, &q.b);
         bs_m3MulV3(&rotation, &q.c, &q.c);
         bs_m3MulV3(&rotation, &q.d, &q.d);
-        bs_vec3 offset_75 = bs_v3(0, 0, .75);
+        bs_vec3 offset_75 = BS_V3(0, 0, .75);
         bs_vec3 moved_position;
         bs_v3Add(&vertices[i], &offset_75, &moved_position);
         bs_moveQuad(&q, moved_position);
 
         if (normals[i].z < -0.1) {
-            q.cb = bs_v2(coords.x, coords.w);
-            q.ca = bs_v2(coords.z, coords.w);
-            q.cd = bs_v2(coords.x, coords.y);
-            q.cc = bs_v2(coords.z, coords.y);
+            q.cb = BS_V2(coords.x, coords.w);
+            q.ca = BS_V2(coords.z, coords.w);
+            q.cd = BS_V2(coords.x, coords.y);
+            q.cc = BS_V2(coords.z, coords.y);
         }
         else {
-            q.cb = bs_v2(coords.x, coords.y);
-            q.ca = bs_v2(coords.z, coords.y);
-            q.cd = bs_v2(coords.x, coords.w);
-            q.cc = bs_v2(coords.z, coords.w);
+            q.cb = BS_V2(coords.x, coords.y);
+            q.ca = BS_V2(coords.z, coords.y);
+            q.cd = BS_V2(coords.x, coords.w);
+            q.cc = BS_V2(coords.z, coords.w);
         }
 
         float random = bs_randRange(0, atlas->mapped[foliage->textures[texture].id].split);

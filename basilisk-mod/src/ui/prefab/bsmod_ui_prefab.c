@@ -35,13 +35,13 @@ bool bsmod_instancePrefabPreview(bsgfx_Widget* widget, bs_vec2* position, int id
         return false;
     }
 
-    bs_vec4 rotation = bs_qFromRadians(bs_v3(bs_radians(-45), bs_radians(-45), bs_radians(45)));
+    bs_vec4 rotation = bs_qFromRadians(BS_V3(bs_radians(-45), bs_radians(-45), bs_radians(45)));
 
     const float scale = 1.0; // todo figure out AABB fitting with rotation instead
     bsgfx_instanceHiResMesh(
         model->meshes + id,
-        bs_v3(position->x + widget->grid.size.x / 2.0, position->y + widget->grid.size.x / 2.0, 0),
-        //bsgfx_adjustPosition(bs_v3(position->x + widget->grid.size.x, position->y, 13), hovering, id),
+        BS_V3(position->x + widget->grid.size.x / 2.0, position->y + widget->grid.size.x / 2.0, 0),
+        //bsgfx_adjustPosition(BS_V3(position->x + widget->grid.size.x, position->y, 13), hovering, id),
         rotation,
         widget->grid.size.x * scale,
         BSGFX_PREFAB_SUBTYPE_MESH_HI_RES_SCREEN,
@@ -112,7 +112,7 @@ void bsmod_rasterizePrefabIcons() {
     } push_const = {
         .camera = bs_m4x3(bs_m4Mul(
             bs_ortho(0, render_size.x, 0, render_size.y, -500.0, 500.0),
-            bs_lookAt(bs_v3(0, 0, 1), bs_v3(0, 0, 0), bs_v3(0, 1, 0))
+            bs_lookAt(BS_V3(0, 0, 1), BS_V3(0, 0, 0), BS_V3(0, 1, 0))
         )),
     };
 

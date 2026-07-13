@@ -81,7 +81,7 @@ void bsgfx_allocateMaterials() {
     bs_bindBuffer(BSGFX_SET_MATERIALS, BSGFX_BINDING_MATERIALS, materials_buffer);
 
     bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials, bsgfx_material(BS_CONSTANT_STRING("blank"))->id);
-    material->contract->color = bs_v4(1.0, 1.0, 1.0, 1.0);
+    material->contract->color = BS_V4(1.0, 1.0, 1.0, 1.0);
 }
 
 void bsgfx_loadMaterials() {

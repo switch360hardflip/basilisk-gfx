@@ -381,7 +381,7 @@ BSAPI void _bs_fabrik(bs_Armature* armature, int end_effector_id, bs_vec3 target
         armature->bones[num].ik_position = current;
         armature->bones[num].bone;
 
-        bs_v3MulV1(&direction, armature->bones[num].ik_length, &direction);
+        bs_v3MulS(&direction, armature->bones[num].ik_length, &direction);
         bs_v3Add(&current, &direction, &current);
 
         last_bone_id = bone->id;
@@ -394,7 +394,7 @@ BSAPI void _bs_fabrik(bs_Armature* armature, int end_effector_id, bs_vec3 target
         bs_v3Sub(&armature->bones[i].ik_position, &current, &direction);
         bs_v3Normalize(&direction, &direction);
 
-        bs_vec3 up = bs_v3(0, 1, 0);
+        bs_vec3 up = BS_V3(0, 1, 0);
         bs_vec3 axis;
         bs_v3Cross(&up, &direction, &axis);
 
@@ -409,7 +409,7 @@ BSAPI void _bs_fabrik(bs_Armature* armature, int end_effector_id, bs_vec3 target
 
         bs_m4Mul(&transform, &armature->bones[armature->bones[i].ik_id].bone.bind_matrix_inverse, &armature->bones[armature->bones[i].ik_id].matrix);
 
-        bs_v3MulV1(&direction, armature->bones[i].ik_length, &direction);
+        bs_v3MulS(&direction, armature->bones[i].ik_length, &direction);
 
         bs_v3Add(&current, &direction, &current);
     }
@@ -682,8 +682,8 @@ static void bs_loadMaterials(bs_Model* model, bs_Json* root) {
    * GLTF Models
    =============================================================================*/
 
-static inline bs_vec3 bs_v3MinBound(bs_vec3 a, bs_vec3 b) { return bs_v3(BS_MIN(a.x, b.x), BS_MIN(a.y, b.y), BS_MIN(a.z, b.z)); }
-static inline bs_vec3 bs_v3MaxBound(bs_vec3 a, bs_vec3 b) { return bs_v3(BS_MAX(a.x, b.x), BS_MAX(a.y, b.y), BS_MAX(a.z, b.z)); }
+static inline bs_vec3 bs_v3MinBound(bs_vec3 a, bs_vec3 b) { return BS_V3(BS_MIN(a.x, b.x), BS_MIN(a.y, b.y), BS_MIN(a.z, b.z)); }
+static inline bs_vec3 bs_v3MaxBound(bs_vec3 a, bs_vec3 b) { return BS_V3(BS_MAX(a.x, b.x), BS_MAX(a.y, b.y), BS_MAX(a.z, b.z)); }
 static void bs_calculateModelBounds(bs_Model* model) {
     if (model->aabb.min.x != FLT_MAX) return;
 
@@ -836,7 +836,7 @@ BSAPI int _bs_bone(bs_Armature* armature, bs_mat4 local_transform, int parent_id
     }
 
     armature->bones[armature->bones_count].ik_id = 0;
-    armature->bones[armature->bones_count].ik_position = bs_v3(0.0, 0.0, 0.0);
+    armature->bones[armature->bones_count].ik_position = BS_V3(0.0, 0.0, 0.0);
     armature->bones[armature->bones_count].bone = (bs_Bone) {
         .bind_matrix_inverse = bind_matrix,
         .id = armature->bones_count,

@@ -11,8 +11,8 @@
 bool bsmod_instancePrimitivePreview(bsgfx_Widget* widget, bs_vec2* position, int id, bool hovering) {
     float scale = 0.25; // todo figure out AABB fitting with rotation instead
 
-    bs_vec4 rotation = bs_qFromRadians(bs_v3(bs_radians(-45), bs_radians(-45), bs_radians(45)));
-    bs_mat4 transform = bs_transform(bs_v3(position->x + widget->grid.size.x / 2.0, position->y + widget->grid.size.y / 2.0, 0.0), rotation, bs_v3V1(widget->grid.size.x * scale));
+    bs_vec4 rotation = bs_qFromRadians(BS_V3(bs_radians(-45), bs_radians(-45), bs_radians(45)));
+    bs_mat4 transform = bs_transform(BS_V3(position->x + widget->grid.size.x / 2.0, position->y + widget->grid.size.y / 2.0, 0.0), rotation, bs_v3V1(widget->grid.size.x * scale));
 
     int subtype = bsgfx_primitiveSubtype(id);
     bsgfx_instancePrimitive(subtype, transform, 0, 0, 0);
@@ -85,7 +85,7 @@ BSMODAPI void bsmod_rasterizePrimitiveIcons() {
     } push_const = {
         .camera = bs_m4x3(bs_m4Mul(
             bs_ortho(0, render_size.x, 0, render_size.y, -500.0, 500.0),
-            bs_lookAt(bs_v3(0, 0, 1), bs_v3(0, 0, 0), bs_v3(0, 1, 0))
+            bs_lookAt(BS_V3(0, 0, 1), BS_V3(0, 0, 0), BS_V3(0, 1, 0))
         )),
     };
 
@@ -103,7 +103,7 @@ BSMODAPI void bsmod_rasterizePrimitiveIcons() {
 
         const float sphere_padding = 12.0;
         bs_mat4 transform = i == BSGFX_PRIMITIVE_TYPE_SPHERE ?
-            bs_transform(bs_v3(render_size.x / 2, render_size.y / 2, 0.0), rotation, bs_v3V1(render_size.x / 2.0 - sphere_padding)) :
+            bs_transform(BS_V3(render_size.x / 2, render_size.y / 2, 0.0), rotation, bs_v3V1(render_size.x / 2.0 - sphere_padding)) :
             bs_fitAabb(aabb, bs_v2Iv2(render_size), rotation);
 
         push_const.color = material->contract->color;

@@ -350,7 +350,7 @@ void bsgfx_loadPrefabs(int package_id, bs_Model* model) {
 //        bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, BSGFX_VOLUME_DOWN_KEY + BSGFX_MODEL_SKATEBOARD, BSGFX_BATCH_MESH_INSTANCED, bsgfx_subtypes[BSGFX_SUBTYPE_HAS_SHADOWS, skateboard_range, true);
 //        bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, BSGFX_MESH_KEY_SKATEBOARD_WHEELS, BSGFX_BATCH_MESH_INSTANCED, bsgfx_subtypes[BSGFX_SUBTYPE_HAS_SHADOWS, bs_pushMesh(batch, bs_queryMesh(skateboard, "wheels")), true);
 
-        bs_Quad plane = bs_quad(bs_v3(0, 0, 0), bs_v2(1, 1));
+        bs_Quad plane = bs_quad(BS_V3(0, 0, 0), BS_V2(1, 1));
         _bsgfx_subtypes_[BSGFX_SUBTYPE_PLANE_MESH] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, batch, BSGFX_SUBTYPE_HAS_SHADOWS, bs_pushQuad(batch, plane, BS_WHITE));
         bs_except(0);
     }
@@ -409,11 +409,11 @@ int bsgfx_instancePrefab(int id, bsgfx_PrefabSubtype prefab_subtype) {
         bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 
         bs_vec2 size = bs_atlasSize(atlas, texture);
-        bs_mat4 quad_transform = bs_transform(bs_v3(
+        bs_mat4 quad_transform = bs_transform(BS_V3(
             prefab->position.x * BSGFX_TILE_SIZE.x / 2.0,
             -(prefab->position.z - prefab->position.y) * BSGFX_TILE_SIZE.y / 2.0,
             prefab->position.z
-        ), BS_QUAT_IDENTITY, bs_v3(size.x, size.y, 0.0));
+        ), BS_QUAT_IDENTITY, BS_V3(size.x, size.y, 0.0));
 
         if (prefab_subtype != BSGFX_PREFAB_SUBTYPE_MESH_POLYGON_OUTLINE) { // theres betterr .. yeah
             bs_vec4 coords = bs_atlasCoordinates(atlas, texture, 0);
@@ -484,7 +484,7 @@ void bsgfx_renderScenePrefabs() {
             $fs_bsgfx_model(),
         },
         // BSGFX_REQUIRED_FOR_SHADOW_VOLUMES,
-        .cull_type = _bsgfx_settings.cull_backfaces ? BS_CULL_MODE_DEFAULT : BS_CULL_MODE_NONE,
+        .cull_type = _bsgfx_settings_.cull_backfaces ? BS_CULL_MODE_DEFAULT : BS_CULL_MODE_NONE,
         //.attachments[0].skip_write = true,
         //  .cull_type = BS_CULL_MODE_NONE,
         // .attachments = {

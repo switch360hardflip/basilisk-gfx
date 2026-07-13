@@ -118,7 +118,8 @@ static void bsgfx_tick() {
     float day_fraction = (float)_poser_->time / 86400.0f;
     float angle = day_fraction * 2.0f * BS_PI;
 
-    _poser_->sun_direction = bs_v3NormalizeV3(-sinf(angle), cosf(angle), -0.48);
+    _poser_->sun_direction = BS_V3(-sinf(angle), cosf(angle), -0.48);
+    bs_v3Normalize(&_poser_->sun_direction, &_poser_->sun_direction);
 
     bssteam_pollActions();
     
@@ -305,7 +306,7 @@ void bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc, char* ar
     if (_bsgfx_callbacks__.ini)
         _bsgfx_callbacks__.ini();
 
-    bs_tick(bsgfx_tick, bsgfx_fixedTick);
+    bs_tick(NULL, bsgfx_tick, bsgfx_fixedTick);// TODO
 
     if (bs_exists(BSGFX_RAY_TRACERS, BSGFX_RAY_TRACER_MAIN))
         bs_destroyRayTracer(bs_fetch(BSGFX_RAY_TRACERS, BSGFX_RAY_TRACER_MAIN)->ray_tracer);

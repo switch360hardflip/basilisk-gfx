@@ -166,10 +166,10 @@ bs_vec3 bsgfx_tilePosition(bsgfx_Primitive* primitive, int axis, int x, int y) {
 
     bs_vec3 tile_origin = start;
     bs_vec3 right_scaled;
-    bs_v3MulV1(&right, (float)x, &right_scaled);
+    bs_v3MulS(&right, (float)x, &right_scaled);
     bs_v3Add(&tile_origin, &right_scaled, &tile_origin);
     bs_vec3 up_scaled;
-    bs_v3MulV1(&up, (float)y, &up_scaled);
+    bs_v3MulS(&up, (float)y, &up_scaled);
     bs_v3Add(&tile_origin, &up_scaled, &tile_origin);
 
     return tile_origin;
@@ -194,15 +194,15 @@ bs_vec4 bsgfx_tileRotation(int axis) {
 
 bs_vec3 bsgfx_tileEulerRotation(int axis) {
     switch (axis) {
-    case 0: return bs_v3(0, 90, 0);
-    case 1: return bs_v3(0, -90, 0);
-    case 2: return bs_v3(90, 0, 0);
-    case 3: return bs_v3(0, 0, 0);
-    case 4: return bs_v3(0, 90, 0);
-    case 5: return bs_v3(0, 0, 0);
+    case 0: return BS_V3(0, 90, 0);
+    case 1: return BS_V3(0, -90, 0);
+    case 2: return BS_V3(90, 0, 0);
+    case 3: return BS_V3(0, 0, 0);
+    case 4: return BS_V3(0, 90, 0);
+    case 5: return BS_V3(0, 0, 0);
     }
 
-    return bs_v3(0, 0, 0);
+    return BS_V3(0, 0, 0);
 }
 
 
@@ -261,10 +261,10 @@ bs_U32 bsgfx_pushTileAt(
 
     bs_vec3 tile_origin = start;
     bs_vec3 right_scaled;
-    bs_v3MulV1(&right, (float)x, &right_scaled);
+    bs_v3MulS(&right, (float)x, &right_scaled);
     bs_v3Add(&tile_origin, &right_scaled, &tile_origin);
     bs_vec3 up_scaled;
-    bs_v3MulV1(&up, (float)y, &up_scaled);
+    bs_v3MulS(&up, (float)y, &up_scaled);
     bs_v3Add(&tile_origin, &up_scaled, &tile_origin);
 
     bs_vec3 a = tile_origin;

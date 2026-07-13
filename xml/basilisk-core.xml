@@ -808,7 +808,22 @@
         </ifdef>
         <endif/>
 
-        <macro>
+		<macro>
+			<name>#define BS_V2(x, y)</name>
+			<line>(bs_vec2) { x, y }</line>
+		</macro>
+
+		<macro>
+			<name>#define BS_V3(x, y, z)</name>
+			<line>(bs_vec3) { x, y, z }</line>
+		</macro>
+
+		<macro>
+			<name>#define BS_V4(x, y, z, w)</name>
+			<line>(bs_vec4) { x, y, z, w }</line>
+		</macro>
+
+		<macro>
             <name>#define BS_FLT_MAX</name>
             <line>3.402823466e+38F</line>
         </macro>
@@ -2465,7 +2480,12 @@
             <param><type>const bs_vec3*</type><name>b</name></param>
             <param><type>bs_vec3*</type><name>out</name></param>
         </function>
-
+		<function name="bs_v2Angle" comment="Angle (radians) between two 2D vectors">
+            <return>float</return>
+            <param><type>const bs_vec2*</type><name>a</name></param>
+            <param><type>const bs_vec2*</type><name>b</name></param>
+			<body>    return glm_vec2_angle(a->v, b->v);</body>
+        </function>
         <vectorTemplate>
             <n>3</n>
             <components>
@@ -2480,11 +2500,18 @@
             <param><type>const bs_vec3*</type><name>b</name></param>
             <param><type>bs_vec3*</type><name>out</name></param>
         </function>
-        <function name="bs_v3Cross" comment="Cross product of two vectors">
+        <function name="bs_v3Cross" comment="Cross product of two 3D vectors">
             <return>void</return>
             <param><type>const bs_vec3*</type><name>a</name></param>
             <param><type>const bs_vec3*</type><name>b</name></param>
             <param><type>bs_vec3*</type><name>out</name></param>
+			<body>    glm_vec3_cross(a->v, b->v, out->v);</body>
+        </function>
+		<function name="bs_v3Angle" comment="Angle (radians) between two 3D vectors">
+            <return>float</return>
+            <param><type>const bs_vec3*</type><name>a</name></param>
+            <param><type>const bs_vec3*</type><name>b</name></param>
+			<body>    return glm_vec3_angle(a->v, b->v);</body>
         </function>
 
         <vectorTemplate>
@@ -2684,6 +2711,30 @@
             <param><type>float</type><name>v</name></param>
             <body>    return fabsf(v);</body>
         </function>
+		
+		<function name="bs_sin">
+            <return>float</return>
+            <param><type>float</type><name>v</name></param>
+            <body>    return sinf(v);</body>
+        </function>
+		
+		<function name="bs_cos">
+            <return>float</return>
+            <param><type>float</type><name>v</name></param>
+            <body>    return cosf(v);</body>
+        </function>
+		
+		<function name="bs_tan">
+            <return>float</return>
+            <param><type>float</type><name>v</name></param>
+            <body>    return tanf(v);</body>
+        </function>
+		
+		<function name="bs_sign" comment="Returns -1 if the value is negative, 1 if positive, 0 if the value is 0">
+            <return>int</return>
+            <param><type>float</type><name>v</name></param>
+            <body>    return (x &gt; 0.0f) - (x &lt; 0.0f);</body>
+        </function>
 
         <function name="bs_quad">
             <return>bs_Quad</return>
@@ -2698,7 +2749,19 @@
             <param comment="Interpolant (amount) clamped between 0 and 1"><type>float</type><name>t</name></param>
             <body>    return glm_lerp(from, to, t);</body>
         </function>
+		
+		<function name="bs_degrees" comment="Convert radians to degrees">
+            <return>float</return>
+            <param><type>float</type><name>radians</name></param>
+			<body>    return return rad * (180.0f / BS_PI);</body>
+        </function>
 
+		<function name="bs_radians" comment="Convert degrees to radians">
+            <return>float</return>
+            <param><type>float</type><name>degrees</name></param>
+			<body>    return degrees * BS_PI / 180.0f;</body>
+        </function>
+		
         <function name="bs_convertVulkanResult">
             <return>bs_Result</return>
             <param><type>int</type><name>code</name></param>
@@ -2740,9 +2803,9 @@
         <function name="bs_rayVsObb">
             <return>void</return>
             <param><type>const bs_Ray*</type><name>ray</name></param>
-            <param><type>bs_vec3</type><name>position</name></param>
-            <param><type>bs_vec4</type><name>rotation</name></param>
-            <param><type>bs_vec3</type><name>scale</name></param>
+            <param><type>const bs_vec3*</type><name>position</name></param>
+            <param><type>const bs_vec4*</type><name>rotation</name></param>
+            <param><type>const bs_vec3*</type><name>scale</name></param>
             <param><type>bs_RayVsObb*</type><name>out</name></param>
         </function>
         <function name="bs_sphereVsPoint">
@@ -2754,11 +2817,11 @@
         </function>
         <function name="bs_sphereVsBox">
             <return>void</return>
-            <param><type>bs_vec3</type><name>center</name></param>
+            <param><type>const bs_vec3*</type><name>center</name></param>
             <param><type>float</type><name>radius</name></param>
-            <param><type>bs_vec3</type><name>position</name></param>
-            <param><type>bs_vec4</type><name>rotation</name></param>
-            <param><type>bs_vec3</type><name>scale</name></param>
+            <param><type>const bs_vec3*</type><name>position</name></param>
+            <param><type>const bs_vec4*</type><name>rotation</name></param>
+            <param><type>const bs_vec3*</type><name>scale</name></param>
             <param><type>bs_SphereVsBox*</type><name>out</name></param>
         </function>
         <function name="bs_rectangleVsPoint">
@@ -4281,8 +4344,9 @@
             <param><type>void*</type><name>data</name></param>
         </function>
         <function name="bs_rayTracingPipeline">
-            <return>bs_Pipeline*</return>
+            <return>bs_Result</return>
             <param><type>bs_RayTracePipelineHash*</type><name>pipeline_hash</name></param>
+            <param><type>bs_Pipeline**</type><name>out</name></param>
         </function>
         <function name="bs_loadBindings">
             <return>void</return>

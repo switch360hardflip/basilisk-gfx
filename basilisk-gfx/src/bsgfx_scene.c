@@ -227,7 +227,7 @@ static void bsgfx_loadResources() {
     bs_sampler(BS_SAMPLER(BSGFX_SAMPLERS, BSGFX_SAMPLER_LINEAR, 0), BS_FILTER_LINEAR, 0);
 
     bs_Object* joints_buffer = bs_buffer(BS_BUFFER(BSGFX_BUFFERS, BSGFX_BUFFER_JOINTS, false), 
-        1024 * sizeof(bs_mat4), 
+        BSGFX_MAX_NUM_JOINTS * sizeof(bs_mat4), 
         BS_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
         BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | BS_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         0);
@@ -273,13 +273,13 @@ static void bsgfx_loadResources() {
         _bsgfx_subtypes_[BSGFX_SUBTYPE_COLOR_PICKER_ALPHA] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_DITHER] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_QUAD_MATERIAL_TEXTURE] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_HI] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_ICON] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_PREFAB] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_PREFAB_TRANSPARENT] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_TILE] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_TILE_2] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_TILE_HI] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_TILE_ICON] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_64_HI] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_256_HI] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
 
@@ -301,7 +301,7 @@ static void bsgfx_loadResources() {
         bs_pushQuad(screen_batch->batch, bs_quad((bs_vec3) { 0 }, (bs_vec2) { 1.0, 1.0 }), BS_WHITE);
         bs_pushQuad(screen_batch->batch, bs_quad((bs_vec3) { 0 }, (bs_vec2) { 1.0, 1.0 }), BS_WHITE);
        // const float offset = 0.75;
-       // bs_pushQuad(screen_batch, bs_quad(bs_v3(0.125, 0.125, 0.0), bs_v2V1(offset)), BS_WHITE);
+       // bs_pushQuad(screen_batch, bs_quad(BS_V3(0.125, 0.125, 0.0), bs_v2V1(offset)), BS_WHITE);
         bs_pushBatch(screen_batch->batch, BS_U32_MAX, BS_U32_MAX);
     }
 
@@ -330,7 +330,7 @@ static void bsgfx_loadResources() {
     for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
         bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
         bs_Aabb aabb = {
-            .min = bs_v3Add(primitive->position, bs_v3MulV1(primitive->scale, -1)),
+            .min = bs_v3Add(primitive->position, bs_v3MulS(primitive->scale, -1)),
             .max = bs_v3Add(primitive->position, primitive->scale),
         };
         bs_accelerateAabb(ray_tracer, aabb);
@@ -358,7 +358,7 @@ static void bsgfx_loadResources() {
     if (line_batch && !bs_batchIsPushed(line_batch->batch) && bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)) {
         bsgfx_instanceType(BSGFX_INSTANCE_TYPE_LINE, BSGFX_LINE_INSTANCE_COUNT, BSGFX_SET_LINE_INSTANCES, BSGFX_BINDING_LINE_INSTANCES);
 
-        bs_Range range = bs_pushLine(line_batch->batch, (bs_vec3) { 0 }, bs_v3(0, 1.0, 0.0), BS_WHITE);
+        bs_Range range = bs_pushLine(line_batch->batch, (bs_vec3) { 0 }, BS_V3(0, 1.0, 0.0), BS_WHITE);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_LINE_2D] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_LINE, line_batch->batch, 0, range);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_LINE] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_LINE, line_batch->batch, 0, range);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_LINE_DEPTHLESS] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_LINE, line_batch->batch, 0, range);

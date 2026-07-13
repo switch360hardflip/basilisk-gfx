@@ -44,13 +44,6 @@
 
 bs_FunctionTable next = { 0 };
 
-bs_vec2 bs_v2(
-    float x, 
-    float y)
-{
-    return (bs_vec2) { x, y };
-}
-
 void bs_v2Add(
     const bs_vec2* a, 
     const bs_vec2* b, 
@@ -83,7 +76,23 @@ void bs_v2Div(
     glm_vec2_div(a->a, b->a, out->a);
 }
 
-void bs_v2MulV1(
+void bs_v2AddS(
+    const bs_vec2* v, 
+    float s, 
+    bs_vec2* out)
+{
+    *out = BS_V2(v->x + s, v->y + s);
+}
+
+void bs_v2SubS(
+    const bs_vec2* v, 
+    float s, 
+    bs_vec2* out)
+{
+    *out = BS_V2(v->x - s, v->y - s);
+}
+
+void bs_v2MulS(
     const bs_vec2* v, 
     float s, 
     bs_vec2* out)
@@ -91,7 +100,7 @@ void bs_v2MulV1(
     glm_vec2_scale(v->a, s, out->a);
 }
 
-void bs_v2DivV1(
+void bs_v2DivS(
     const bs_vec2* v, 
     float s, 
     bs_vec2* out)
@@ -104,6 +113,13 @@ float bs_v2Dot(
     const bs_vec2* b)
 {
     glm_vec2_dot(a->a, b->a);
+}
+
+float bs_v2Distance(
+    const bs_vec2* a, 
+    const bs_vec2* b)
+{
+    return glm_vec2_distance(a->a, b->a);
 }
 
 float bs_v2Magnitude(
@@ -143,12 +159,11 @@ void bs_v2Mid(
     return next.bs_v2Mid(a, b, out);
 }
 
-bs_vec3 bs_v3(
-    float x, 
-    float y, 
-    float z)
+float bs_v2Angle(
+    const bs_vec2* a, 
+    const bs_vec2* b)
 {
-    return (bs_vec3) { x, y, z };
+    return glm_vec2_angle(a->v, b->v);
 }
 
 void bs_v3Add(
@@ -183,7 +198,23 @@ void bs_v3Div(
     glm_vec3_div(a->a, b->a, out->a);
 }
 
-void bs_v3MulV1(
+void bs_v3AddS(
+    const bs_vec3* v, 
+    float s, 
+    bs_vec3* out)
+{
+    *out = BS_V3(v->x + s, v->y + s, v->z + s);
+}
+
+void bs_v3SubS(
+    const bs_vec3* v, 
+    float s, 
+    bs_vec3* out)
+{
+    *out = BS_V3(v->x - s, v->y - s, v->z - s);
+}
+
+void bs_v3MulS(
     const bs_vec3* v, 
     float s, 
     bs_vec3* out)
@@ -191,7 +222,7 @@ void bs_v3MulV1(
     glm_vec3_scale(v->a, s, out->a);
 }
 
-void bs_v3DivV1(
+void bs_v3DivS(
     const bs_vec3* v, 
     float s, 
     bs_vec3* out)
@@ -204,6 +235,13 @@ float bs_v3Dot(
     const bs_vec3* b)
 {
     glm_vec3_dot(a->a, b->a);
+}
+
+float bs_v3Distance(
+    const bs_vec3* a, 
+    const bs_vec3* b)
+{
+    return glm_vec3_distance(a->a, b->a);
 }
 
 float bs_v3Magnitude(
@@ -249,16 +287,14 @@ void bs_v3Cross(
     const bs_vec3* b, 
     bs_vec3* out)
 {
-    return next.bs_v3Cross(a, b, out);
+    glm_vec3_cross(a->v, b->v, out->v);
 }
 
-bs_vec4 bs_v4(
-    float x, 
-    float y, 
-    float z, 
-    float w)
+float bs_v3Angle(
+    const bs_vec3* a, 
+    const bs_vec3* b)
 {
-    return (bs_vec4) { x, y, z, w };
+    return glm_vec3_angle(a->v, b->v);
 }
 
 void bs_v4Add(
@@ -293,7 +329,23 @@ void bs_v4Div(
     glm_vec4_div(a->a, b->a, out->a);
 }
 
-void bs_v4MulV1(
+void bs_v4AddS(
+    const bs_vec4* v, 
+    float s, 
+    bs_vec4* out)
+{
+    *out = BS_V4(v->x + s, v->y + s, v->z + s, v->w + s);
+}
+
+void bs_v4SubS(
+    const bs_vec4* v, 
+    float s, 
+    bs_vec4* out)
+{
+    *out = BS_V4(v->x - s, v->y - s, v->z - s, v->w - s);
+}
+
+void bs_v4MulS(
     const bs_vec4* v, 
     float s, 
     bs_vec4* out)
@@ -301,7 +353,7 @@ void bs_v4MulV1(
     glm_vec4_scale(v->a, s, out->a);
 }
 
-void bs_v4DivV1(
+void bs_v4DivS(
     const bs_vec4* v, 
     float s, 
     bs_vec4* out)
@@ -314,6 +366,13 @@ float bs_v4Dot(
     const bs_vec4* b)
 {
     glm_vec4_dot(a->a, b->a);
+}
+
+float bs_v4Distance(
+    const bs_vec4* a, 
+    const bs_vec4* b)
+{
+    return glm_vec4_distance(a->a, b->a);
 }
 
 float bs_v4Magnitude(
@@ -580,6 +639,30 @@ float bs_abs(
     return fabsf(v);
 }
 
+float bs_sin(
+    float v)
+{
+    return sinf(v);
+}
+
+float bs_cos(
+    float v)
+{
+    return cosf(v);
+}
+
+float bs_tan(
+    float v)
+{
+    return tanf(v);
+}
+
+int bs_sign(
+    float v)
+{
+    return (x > 0.0f) - (x < 0.0f);
+}
+
 bs_Quad bs_quad(
     bs_vec3 position, 
     bs_vec2 dimensions)
@@ -593,6 +676,18 @@ float bs_lerp(
     float t)
 {
     return glm_lerp(from, to, t);
+}
+
+float bs_degrees(
+    float radians)
+{
+    return return rad * (180.0f / BS_PI);
+}
+
+float bs_radians(
+    float degrees)
+{
+    return degrees * BS_PI / 180.0f;
 }
 
 bs_Result bs_convertVulkanResult(
@@ -653,9 +748,9 @@ bs_Result bs_ray(
 
 void bs_rayVsObb(
     const bs_Ray* ray, 
-    bs_vec3 position, 
-    bs_vec4 rotation, 
-    bs_vec3 scale, 
+    const bs_vec3* position, 
+    const bs_vec4* rotation, 
+    const bs_vec3* scale, 
     bs_RayVsObb* out)
 {
     return next.bs_rayVsObb(ray, position, rotation, scale, out);
@@ -3696,10 +3791,11 @@ void bs_pushConstant(
     return next.bs_pushConstant(pipeline, offset, size, data);
 }
 
-bs_Pipeline* bs_rayTracingPipeline(
-    bs_RayTracePipelineHash* pipeline_hash)
+bs_Result bs_rayTracingPipeline(
+    bs_RayTracePipelineHash* pipeline_hash, 
+    bs_Pipeline** out)
 {
-    return next.bs_rayTracingPipeline(pipeline_hash);
+    return next.bs_rayTracingPipeline(pipeline_hash, out);
 }
 
 void bs_loadBindings(

@@ -944,7 +944,7 @@ static bs_vec4 bs_calculateAtlasCoordinates(bs_Atlas* atlas, int texture_id, int
     float width = (float)mapped->w / (float)atlas->image->dim.x;
     width /= (float)mapped->split;
 
-    return bs_v4(
+    return BS_V4(
         (float)mapped->x / (float)atlas->image->dim.x + width * (float)(frame % mapped->split),
         (float)mapped->y / (float)atlas->image->dim.y,
         width,
@@ -970,7 +970,7 @@ BSAPI bs_vec4 _bs_atlasCoordinates(bs_Atlas* atlas, int texture_id) {
   Mirror UV coordinates (horizontal)
   */
 BSAPI bs_vec4 _bs_mirrorUV(bs_vec4 uv) {
-    return bs_v4(uv.x + uv.z, uv.y, -uv.z, uv.w);
+    return BS_V4(uv.x + uv.z, uv.y, -uv.z, uv.w);
 }
 
  /**
@@ -978,7 +978,7 @@ BSAPI bs_vec4 _bs_mirrorUV(bs_vec4 uv) {
   */
 BSAPI bs_vec4 _bs_flipUV(bs_vec4 uv) {
 #define EPSILON 0.00001f // scuffed
-    return bs_v4(uv.x, uv.y + uv.w + EPSILON, uv.z, -uv.w);
+    return BS_V4(uv.x, uv.y + uv.w + EPSILON, uv.z, -uv.w);
 }
 
  /**
@@ -992,7 +992,7 @@ BSAPI bs_vec2 _val_bs_atlasSize(bs_Atlas* atlas, int texture) {
 }
 
 BSAPI bs_vec2 _bs_atlasSize(bs_Atlas* atlas, int texture) {
-    return bs_v2(atlas->mapped[texture].w / atlas->mapped[texture].split, atlas->mapped[texture].h);
+    return BS_V2(atlas->mapped[texture].w / atlas->mapped[texture].split, atlas->mapped[texture].h);
 }
 
 BSAPI bs_Result _bs_queryAtlasHash(bs_Atlas* atlas, bs_U64 hash, const char* name, int* out) {

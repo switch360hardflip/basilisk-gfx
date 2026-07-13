@@ -290,8 +290,8 @@ static bool bsmod_instanceGridPreview(bsgfx_Widget* widget, bs_vec2* position, i
         bsgfx_instanceQuad(
             bsgfx_subtypes()[BSGFX_SUBTYPE_UI],
             bsgfx_matrix(
-                bs_v3(position->x, position->y, 50.0),
-                bs_v3(widget->grid.size.x, widget->grid.size.y, 0.0)
+                BS_V3(position->x, position->y, 50.0),
+                BS_V3(widget->grid.size.x, widget->grid.size.y, 0.0)
             ),
             $BSMOD_ATLAS_UI_grid_hover()->coords,
             0, 0, 0);
@@ -333,8 +333,8 @@ static void bsmod_checkHoverGrid(bsgfx_Widget* widget, bsgfx_GridParams* grid) {
         bsgfx_instanceQuad(
             bsgfx_subtypes()[BSGFX_SUBTYPE_UI],
             bsgfx_matrix(
-                bs_v3(grid->position->x, grid->position->y, 50.0),
-                bs_v3(widget->grid.size.x, widget->grid.size.y, 0.0)
+                BS_V3(grid->position->x, grid->position->y, 50.0),
+                BS_V3(widget->grid.size.x, widget->grid.size.y, 0.0)
             ),
             $BSMOD_ATLAS_UI_grid_hover()->coords,
             0, 0, 0);
@@ -384,8 +384,8 @@ static bool bsmod_instanceAtlasPreview(bsgfx_Widget* widget, bsgfx_GridParams gr
     bsgfx_instanceQuad(
         params->subtype,
         bsgfx_matrix(
-            bs_v3(grid.position->x, grid.position->y, 60.0),
-            bs_v3(widget->grid.size.x, widget->grid.size.y, 0.0)
+            BS_V3(grid.position->x, grid.position->y, 60.0),
+            BS_V3(widget->grid.size.x, widget->grid.size.y, 0.0)
         ),
         bs_atlasCoordinates(atlas, grid.index, 0),
         0, 0, 0);
@@ -401,14 +401,14 @@ static bool bsmod_instanceImageArrayPreview(bsgfx_Widget* widget, bsgfx_GridPara
 
     bs_Image* image = bs_fetch(_bsmod_images, params->object_id)->image;
     bs_mat4x3 matrix = bsgfx_matrix(
-        bs_v3(grid.position->x, grid.position->y, 60.0),
-        bs_v3(widget->grid.size.x, widget->grid.size.y, 0.0)
+        BS_V3(grid.position->x, grid.position->y, 60.0),
+        BS_V3(widget->grid.size.x, widget->grid.size.y, 0.0)
     );
     matrix.f[8] = grid.index;
     bsgfx_instanceQuad(
         params->subtype,
         matrix,
-        bs_v4(0.0, 0.0, 1.0, 1.0),
+        BS_V4(0.0, 0.0, 1.0, 1.0),
         0, 0, 0);
 
     bsmod_checkHoverGrid(widget, &grid);
@@ -495,7 +495,7 @@ void bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
 
     if (widget.grid.count > 0) {
         if (atlas) {
-            widget.grid.size = bs_v2(atlas->mapped[0].w, atlas->mapped[0].h);
+            widget.grid.size = BS_V2(atlas->mapped[0].w, atlas->mapped[0].h);
             assert(atlas->count == widget.grid.count);
         }
         else if (image_array) {

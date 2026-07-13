@@ -6,13 +6,6 @@ scp xml\* "%USERNAME%@%SERVER%:%REMOTE_DIR%/"
 
 ssh %USERNAME%@%SERVER% "sudo /usr/bin/systemctl reload basilisk-nginx"
 
-if errorlevel 1 (
-    echo Reload failed.
-    exit /b 1
-) else (
-    echo Reload succeeded.
-)
-
 curl http://192.168.1.100:8080/generate/source?addons=core,gfx -o generated.zip
 
 rmdir /s /q temp_extract 2>nul

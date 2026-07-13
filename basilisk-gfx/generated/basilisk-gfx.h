@@ -91,6 +91,12 @@ typedef enum bsgfx_Pipe bsgfx_Pipe;
 #define BSGFX_STRING_GEN(STRING)                                     \
     #STRING,
 
+#define BSGFX_VALIDATE(condition, ret, format, ...)                  \
+    if (!(condition)) {                                              \
+        bs_warnF(BS_PRINT_COLOR("[GFX] [VAL]", BS_PRINT_RED) " %s: %s\n" __VA_OPT__(format) "\n", __func__, #condition __VA_OPT__(,) __VA_ARGS__); \
+        return ret;                                                  \
+    }
+
 #define BSGFX_IMAGE_IDS(X)                                           \
     X(BSGFX_IMAGE_LO_RES_0_DEPTH)                                    \
     X(BSGFX_IMAGE_LO_RES_0_COLOR)                                    \
@@ -504,15 +510,7 @@ struct bsgfx_Text {
 };
 
 struct bsgfx_Settings {
-    bool draw_spheres;
-    bool draw_lines;
     bool cull_backfaces;
-    bool draw_tiles;
-    bool draw_primitives;
-    bool draw_foliage;
-    bool draw_sprites;
-    bool draw_shadows;
-    bool draw_spawners;
     float master_volume;
     bool music;
 };
@@ -574,7 +572,7 @@ enum bsgfx_Subtype {
     BSGFX_SUBTYPE_TILE_2,
     BSGFX_SUBTYPE_64_HI,
     BSGFX_SUBTYPE_256_HI,
-    BSGFX_SUBTYPE_ATLAS_HI,
+    BSGFX_SUBTYPE_ATLAS_ICON,
     BSGFX_SUBTYPE_UI,
     BSGFX_SUBTYPE_UI_COLOR,
     BSGFX_SUBTYPE_UI_STENCIL,
@@ -583,7 +581,7 @@ enum bsgfx_Subtype {
     BSGFX_SUBTYPE_COLOR_PICKER_ALPHA,
     BSGFX_SUBTYPE_DITHER,
     BSGFX_SUBTYPE_CORNER_GRADIENT,
-    BSGFX_SUBTYPE_TILE_HI,
+    BSGFX_SUBTYPE_TILE_ICON,
     BSGFX_SUBTYPE_QUAD_MATERIAL_TEXTURE,
     BSGFX_SUBTYPE_PRIMITIVE_HI,
     BSGFX_SUBTYPE_ATLAS_PREFAB,

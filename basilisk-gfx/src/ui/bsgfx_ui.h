@@ -6,7 +6,7 @@
 #include <types/bsgfx_type.h>
 #include <bsgfx.h>
 
-#define BSGFX_LIST_ROW_DIMENSIONS bs_v2(320, 6.0 * BSGFX_PIXEL_SCALE)
+#define BSGFX_LIST_ROW_DIMENSIONS BS_V2(320, 6.0 * BSGFX_PIXEL_SCALE)
 #define BSGFX_BACKGROUND_Z_COUNT 3
 
 typedef struct bsgfx_ButtonParams bsgfx_ButtonParams;

@@ -95,7 +95,7 @@ static bool bsgfx_instanceSpawner(bs_vec3 position, int id, const char* material
 }
 
 void bsgfx_instanceSpawners() {
-    if (!_bsgfx_settings.draw_spawners)
+    if (!_bsgfx_settings_.draw_spawners)
         return;
 
     const float rotation_speed = 30.0;

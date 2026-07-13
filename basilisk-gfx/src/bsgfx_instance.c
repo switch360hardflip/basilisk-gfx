@@ -331,13 +331,13 @@ void bsgfx_instanceHiResMesh(bs_Mesh* mesh, bs_vec3 position, bs_vec4 rotation, 
 
 	bs_vec3 center;
 	bs_v3Add(&min, &max, &center);
-	bs_v3MulV1(&center, 0.5f, &center);
+	bs_v3MulS(&center, 0.5f, &center);
 
 	bs_mat4 transform = bs_transform(position, rotation, sc);
 
 	if (!origin_at_center) {
 		bs_vec3 offset;
-		bs_v3MulV1(&center, -1, &offset);
+		bs_v3MulS(&center, -1, &offset);
 		bs_translateP(&transform, &offset);
 	}
 

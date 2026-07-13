@@ -55,11 +55,11 @@
   Midpoint
   */
 BSAPI void _bs_v2Mid(bs_vec2* a, bs_vec2* b, bs_vec2* out) {
-    *out = bs_v2((a->x + b->x) / 2.0f, (a->y + b->y) / 2.0f);
+    *out = BS_V2((a->x + b->x) / 2.0f, (a->y + b->y) / 2.0f);
 }
 
 BSAPI void _bs_v3Mid(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
-    *out = bs_v3((a->x + b->x) / 2.0f, (a->y + b->y) / 2.0f, (a->z + b->z) / 2.0f);
+    *out = BS_V3((a->x + b->x) / 2.0f, (a->y + b->y) / 2.0f, (a->z + b->z) / 2.0f);
 }
 
 
@@ -201,7 +201,9 @@ BSAPI bool _bs_rectangleVsPointAbs(bs_vec2 position, bs_vec2 dimensions, bs_vec2
   by Andrew Woo
   from "Graphics Gems", Academic Press, 1990
   */
-BSAPI void _bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_RayVsObb* result) {
+BSAPI void _bs_rayVsObb(const bs_Ray* ray, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_RayVsObb* result) {
+    result->hit = false;
+
     char inside = true;
     char quadrant[3];
     register int i;
@@ -215,10 +217,10 @@ BSAPI void _bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, b
     bs_mat3 rotation_matrix;
     bs_mat3 rotation_matrix_inverse;
 
-    bs_m4Translate(&transform, &position, &transform);
-    bs_m4Rotate(&transform, &rotation, &transform);
+    bs_m4Translate(&transform, position, &transform);
+    bs_m4Rotate(&transform, rotation, &transform);
 
-    bs_m3FromQ(&rotation, &rotation_matrix);
+    bs_m3FromQ(rotation, &rotation_matrix);
     bs_m3Inverse(&rotation_matrix, &rotation_matrix_inverse);
 
     bs_vec3 origin;
@@ -226,13 +228,13 @@ BSAPI void _bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, b
     bs_vec3 min, max;
 
     bs_vec3 s;
-    bs_v3Sub(&ray->origin, &position, &s);
+    bs_v3Sub(&ray->origin, position, &s);
 
     bs_m3MulV3(&rotation_matrix_inverse, &s, &origin);
     bs_m3MulV3(&rotation_matrix_inverse, &ray->direction, &direction);
 
-    bs_v3MulV1(&scale, -1.0, &min);
-    max = scale;
+    bs_v3MulS(scale, -1.0, &min);
+    max = *scale;
 
     // find candidate planes; this loop can be avoided if
     // rays cast all from the eye(assume perpsective view)
@@ -258,7 +260,7 @@ BSAPI void _bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, b
             .hit = true,
         };
 
-        bs_v3MulV1(&ray->direction, -1.0, &result->normal);
+        bs_v3MulS(&ray->direction, -1.0, &result->normal);
 
         return;
     }
@@ -279,11 +281,11 @@ BSAPI void _bs_rayVsObb(const bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, b
     }
 
     bs_vec3 normal;
-    bs_vec3 normals[3] = { bs_v3(1, 0, 0), bs_v3(0, 1, 0), bs_v3(0, 0, 1) };
+    bs_vec3 normals[3] = { BS_V3(1, 0, 0), BS_V3(0, 1, 0), BS_V3(0, 0, 1) };
     bs_m3MulV3(&rotation_matrix, &normals[which_plane], &normal);
 
     if (quadrant[which_plane] == LEFT)
-        bs_v3MulV1(&normal, -1.0, &normal);
+        bs_v3MulS(&normal, -1.0, &normal);
     bs_v3Normalize(&normal, &normal);
 
     bs_vec3 coord;
@@ -324,40 +326,40 @@ BSAPI bool _bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point) {
  /**
   Sphere vs Box
   */
-BSAPI void _bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_SphereVsBox* result) {
+
+BSAPI bool _bs_sphereVsBox(bs_vec3 center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale) {
     bs_mat4 transform = BS_MAT4_IDENTITY;
 
-    bs_m4Translate(&transform, &position, &transform);
-    bs_m4Rotate(&transform, &rotation, &transform);
+    bs_m4Translate(&transform, position, &transform);
+    bs_m4Rotate(&transform, rotation, &transform);
     bs_m4Inverse(&transform, &transform);
 
     bs_vec3 relative_center;
     bs_m4MulV3(&transform, &center, &relative_center);
 
-    if (bs_abs(relative_center.x) - radius > scale.x ||
-        bs_abs(relative_center.y) - radius > scale.y ||
-        bs_abs(relative_center.z) - radius > scale.z)
+    if (bs_abs(relative_center.x) - radius > scale->x ||
+        bs_abs(relative_center.y) - radius > scale->y ||
+        bs_abs(relative_center.z) - radius > scale->z)
     {
-        *result = (bs_SphereVsBox){ 0 };
-        return;
+        return false;
     }
 
     bs_vec3 closest_point = { 0.0 };
     float distance;
 
     distance = relative_center.x;
-    if (distance > scale.x) distance = scale.x;
-    if (distance < -scale.x) distance = -scale.x;
+    if (distance > scale->x) distance = scale->x;
+    if (distance < -scale->x) distance = -scale->x;
     closest_point.x = distance;
 
     distance = relative_center.y;
-    if (distance > scale.y) distance = scale.y;
-    if (distance < -scale.y) distance = -scale.y;
+    if (distance > scale->y) distance = scale->y;
+    if (distance < -scale->y) distance = -scale->y;
     closest_point.y = distance;
 
     distance = relative_center.z;
-    if (distance > scale.z) distance = scale.z;
-    if (distance < -scale.z) distance = -scale.z;
+    if (distance > scale->z) distance = scale->z;
+    if (distance < -scale->z) distance = -scale->z;
     closest_point.z = distance;
 
     bs_vec3 diff;
@@ -365,15 +367,13 @@ BSAPI void _bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_ve
 
     distance = bs_v3MagnitudeSqrd(&diff);
     if (distance > radius * radius) {
-        *result = (bs_SphereVsBox){ 0 };
-        return;
+        return false;
     }
 
-    *result = (bs_SphereVsBox){
-        .hit = true,
-        .penetration = radius - sqrtf(distance),
-    };
+    return true;
+}
 
+BSAPI void _bs_sphereVsBox(bs_vec3 center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_SphereVsBox* result) {
     bs_m4MulV3(&transform, &closest_point, &result->point);
 
     bs_v3Sub(&center, &result->point, &result->normal);
@@ -395,8 +395,8 @@ BSAPI void _bs_sphereVsSphere(bs_Sphere* a, bs_Sphere* b, bs_Contact* result) {
     }
         return false;
 
-    result->normal = bs_v3MulV1(mid, 1.0 / magnitude);
-    result->point = bs_v3Add(a->center, bs_v3MulV1(mid, 0.5));
+    result->normal = bs_v3MulS(mid, 1.0 / magnitude);
+    result->point = bs_v3Add(a->center, bs_v3MulS(mid, 0.5));
     result->penetration = a->radius + b->radius - magnitude;
 
     return true;

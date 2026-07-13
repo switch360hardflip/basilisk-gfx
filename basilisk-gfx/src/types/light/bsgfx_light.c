@@ -6,7 +6,7 @@ static void bsgfx_mapLight(const bsgfx_RawLight* unmapped, bsgfx_Light* mapped) 
 
     *mapped = (bsgfx_Light) {
         .position = unmapped->position,
-        .direction = bs_qMulV3(q, bs_v3(0, -1, 0)),
+        .direction = bs_qMulV3(q, BS_V3(0, -1, 0)),
         .type = unmapped->type,
     };
 }

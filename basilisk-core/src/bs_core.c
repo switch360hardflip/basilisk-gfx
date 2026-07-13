@@ -535,14 +535,14 @@ static inline void bs_batchVertex(bs_Batch* batch, bs_U32* offset, const bs_Vert
 // cube
 BSAPI void _bs_batchCube(bs_Batch* batch, bs_U32* offset, bs_RGBA color) {
     //if (smooth_shade) {
-    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = bs_v3(-1.0, -1.0, 1.0), .color = color, .normal = bs_v3(-1.0, -1.0, 1.0) });
-    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = bs_v3(1.0, -1.0, 1.0), .color = color, .normal = bs_v3(1.0, -1.0, 1.0) });
-    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = bs_v3(-1.0, 1.0, 1.0), .color = color, .normal = bs_v3(-1.0, 1.0, 1.0) });
-    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = bs_v3(1.0, 1.0, 1.0), .color = color, .normal = bs_v3(1.0, 1.0, 1.0) });
-    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = bs_v3(-1.0, -1.0, -1.0), .color = color, .normal = bs_v3(-1.0, -1.0, -1.0) });
-    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = bs_v3(1.0, -1.0, -1.0), .color = color, .normal = bs_v3(1.0, -1.0, -1.0) });
-    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = bs_v3(-1.0, 1.0, -1.0), .color = color, .normal = bs_v3(-1.0, 1.0, -1.0) });
-    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = bs_v3(1.0, 1.0, -1.0), .color = color, .normal = bs_v3(1.0, 1.0, -1.0) });
+    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = BS_V3(-1.0, -1.0, 1.0), .color = color, .normal = BS_V3(-1.0, -1.0, 1.0) });
+    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = BS_V3(1.0, -1.0, 1.0), .color = color, .normal = BS_V3(1.0, -1.0, 1.0) });
+    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = BS_V3(-1.0, 1.0, 1.0), .color = color, .normal = BS_V3(-1.0, 1.0, 1.0) });
+    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = BS_V3(1.0, 1.0, 1.0), .color = color, .normal = BS_V3(1.0, 1.0, 1.0) });
+    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = BS_V3(-1.0, -1.0, -1.0), .color = color, .normal = BS_V3(-1.0, -1.0, -1.0) });
+    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = BS_V3(1.0, -1.0, -1.0), .color = color, .normal = BS_V3(1.0, -1.0, -1.0) });
+    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = BS_V3(-1.0, 1.0, -1.0), .color = color, .normal = BS_V3(-1.0, 1.0, -1.0) });
+    //    bs_batchVertex(batch, offset, &(bs_Vertex) { .position.xyz = BS_V3(1.0, 1.0, -1.0), .color = color, .normal = BS_V3(1.0, 1.0, -1.0) });
     //
     //}
     //else {
@@ -726,9 +726,9 @@ BSAPI void _bs_batchTriangle(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3
         bs_RGBA, bs_Color
     );
 
-    bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = a, .bs_Texture = bs_v2(0.0, 0.0), .bs_Color = color });
-    bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = b, .bs_Texture = bs_v2(1.0, 0.0), .bs_Color = color });
-    bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = c, .bs_Texture = bs_v2(0.0, 1.0), .bs_Color = color });
+    bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = a, .bs_Texture = BS_V2(0.0, 0.0), .bs_Color = color });
+    bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = b, .bs_Texture = BS_V2(1.0, 0.0), .bs_Color = color });
+    bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = c, .bs_Texture = BS_V2(0.0, 1.0), .bs_Color = color });
 }
 
 BSAPI void _bs_batchLine(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, bs_RGBA color) {
@@ -739,8 +739,8 @@ BSAPI void _bs_batchLine(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, 
         bs_RGBA, bs_Color
     );
 
-    bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = a, .bs_Texture = bs_v2(0.0, 0.0), .bs_Color = color });
-    bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = b, .bs_Texture = bs_v2(1.0, 0.0), .bs_Color = color });
+    bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = a, .bs_Texture = BS_V2(0.0, 0.0), .bs_Color = color });
+    bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = b, .bs_Texture = BS_V2(1.0, 0.0), .bs_Color = color });
 }
 
 BSAPI void _bs_batchPoint(bs_Batch* batch, bs_U32* offset, bs_vec3 pos, bs_RGBA color) {
@@ -756,20 +756,20 @@ BSAPI void _bs_batchPoint(bs_Batch* batch, bs_U32* offset, bs_vec3 pos, bs_RGBA 
 
 BSAPI void _bs_batchAabb(bs_Batch* batch, bs_U32* offset, bs_Aabb* aabb, bs_RGBA color) {
     // top
-    bs_batchLine(batch, offset, aabb->min, bs_v3(aabb->max.x, aabb->min.y, aabb->min.z), color);
-    bs_batchLine(batch, offset, aabb->min, bs_v3(aabb->min.x, aabb->min.y, aabb->max.z), color);
-    bs_batchLine(batch, offset, bs_v3(aabb->max.x, aabb->min.y, aabb->max.z), bs_v3(aabb->max.x, aabb->min.y, aabb->min.z), color);
-    bs_batchLine(batch, offset, bs_v3(aabb->max.x, aabb->min.y, aabb->max.z), bs_v3(aabb->min.x, aabb->min.y, aabb->max.z), color);
+    bs_batchLine(batch, offset, aabb->min, BS_V3(aabb->max.x, aabb->min.y, aabb->min.z), color);
+    bs_batchLine(batch, offset, aabb->min, BS_V3(aabb->min.x, aabb->min.y, aabb->max.z), color);
+    bs_batchLine(batch, offset, BS_V3(aabb->max.x, aabb->min.y, aabb->max.z), BS_V3(aabb->max.x, aabb->min.y, aabb->min.z), color);
+    bs_batchLine(batch, offset, BS_V3(aabb->max.x, aabb->min.y, aabb->max.z), BS_V3(aabb->min.x, aabb->min.y, aabb->max.z), color);
     // bottom
-    bs_batchLine(batch, offset, aabb->max, bs_v3(aabb->min.x, aabb->max.y, aabb->max.z), color);
-    bs_batchLine(batch, offset, aabb->max, bs_v3(aabb->max.x, aabb->max.y, aabb->min.z), color);
-    bs_batchLine(batch, offset, bs_v3(aabb->min.x, aabb->max.y, aabb->min.z), bs_v3(aabb->min.x, aabb->max.y, aabb->max.z), color);
-    bs_batchLine(batch, offset, bs_v3(aabb->min.x, aabb->max.y, aabb->min.z), bs_v3(aabb->max.x, aabb->max.y, aabb->min.z), color);
+    bs_batchLine(batch, offset, aabb->max, BS_V3(aabb->min.x, aabb->max.y, aabb->max.z), color);
+    bs_batchLine(batch, offset, aabb->max, BS_V3(aabb->max.x, aabb->max.y, aabb->min.z), color);
+    bs_batchLine(batch, offset, BS_V3(aabb->min.x, aabb->max.y, aabb->min.z), BS_V3(aabb->min.x, aabb->max.y, aabb->max.z), color);
+    bs_batchLine(batch, offset, BS_V3(aabb->min.x, aabb->max.y, aabb->min.z), BS_V3(aabb->max.x, aabb->max.y, aabb->min.z), color);
     // sides
-    bs_batchLine(batch, offset, aabb->min, bs_v3(aabb->min.x, aabb->max.y, aabb->min.z), color);
-    bs_batchLine(batch, offset, bs_v3(aabb->min.x, aabb->min.y, aabb->max.z), bs_v3(aabb->min.x, aabb->max.y, aabb->max.z), color);
-    bs_batchLine(batch, offset, bs_v3(aabb->max.x, aabb->min.y, aabb->min.z), bs_v3(aabb->max.x, aabb->max.y, aabb->min.z), color);
-    bs_batchLine(batch, offset, bs_v3(aabb->max.x, aabb->min.y, aabb->max.z), bs_v3(aabb->max.x, aabb->max.y, aabb->max.z), color);
+    bs_batchLine(batch, offset, aabb->min, BS_V3(aabb->min.x, aabb->max.y, aabb->min.z), color);
+    bs_batchLine(batch, offset, BS_V3(aabb->min.x, aabb->min.y, aabb->max.z), BS_V3(aabb->min.x, aabb->max.y, aabb->max.z), color);
+    bs_batchLine(batch, offset, BS_V3(aabb->max.x, aabb->min.y, aabb->min.z), BS_V3(aabb->max.x, aabb->max.y, aabb->min.z), color);
+    bs_batchLine(batch, offset, BS_V3(aabb->max.x, aabb->min.y, aabb->max.z), BS_V3(aabb->max.x, aabb->max.y, aabb->max.z), color);
 }
 
 BSAPI void _bs_batchSphere(bs_Batch* batch, bs_U32* offset, bs_vec3 position, float radius, bs_U32 lats, bs_U32 longs, bs_RGBA color) {
@@ -802,7 +802,7 @@ BSAPI void _bs_batchSphere(bs_Batch* batch, bs_U32* offset, bs_vec3 position, fl
             };
 
             bs_v3Add(&position, &v, &vertex.bs_Position);
-            bs_v3MulV1(&v, length_inverse, &vertex.bs_Normal);
+            bs_v3MulS(&v, length_inverse, &vertex.bs_Normal);
 
             bs_batchVertex(&declaration, &vertex);
         }
@@ -816,10 +816,10 @@ BSAPI void _bs_batchSphere(bs_Batch* batch, bs_U32* offset, bs_vec3 position, fl
    *============================================================================*/
 
 static inline void bs_quadTextureCoords(bs_Quad* q, bs_vec2 offset, bs_vec2 coords) {
-    q->ca = bs_v2(offset.x, offset.y);
-    q->cb = bs_v2(coords.x, offset.y);
-    q->cc = bs_v2(offset.x, coords.y);
-    q->cd = bs_v2(coords.x, coords.y);
+    q->ca = BS_V2(offset.x, offset.y);
+    q->cb = BS_V2(coords.x, offset.y);
+    q->cc = BS_V2(offset.x, coords.y);
+    q->cd = BS_V2(coords.x, coords.y);
 }
 
 BSAPI bs_Range _bs_pushRectangle(
@@ -881,7 +881,7 @@ BSAPI bs_Range _bs_pushRay(
     bs_Batch* batch, bs_Ray* ray, bs_RGBA color
 ) {
     bs_vec3 end;
-    bs_v3MulV1(&ray->direction, ray->length, &end);
+    bs_v3MulS(&ray->direction, ray->length, &end);
     bs_v3Add(&ray->origin, &end, &end);
     return bs_pushLine(batch, ray->origin, end, color);
 }
@@ -1073,7 +1073,7 @@ BSAPI bs_Range _bs_pushModel(bs_Batch* batch, bs_Model* model) {
 void bs_pushGlyph(bs_Batch* batch, bs_Font* font, bs_Glyph* glyph, bs_vec3 pos, bs_RGBA col, float scale) {
     pos.y += (float)glyph->y_min * font->scale;
 
-    bs_Quad quad = bs_quad(pos, bs_v2MulV1(bs_v2(glyph->width, BS_TTF_DIM), scale));
+    bs_Quad quad = bs_quad(pos, bs_v2MulV1(BS_V2(glyph->width, BS_TTF_DIM), scale));
     bs_quadTextureCoords(&quad, glyph->tex_offset, glyph->tex_coord);
     bs_pushQuad(batch, quad, col, NULL);
 }

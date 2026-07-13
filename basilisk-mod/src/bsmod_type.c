@@ -578,7 +578,7 @@ void bsmod_readHoveringVertex() {
 		bsmod.hovering.closest_primitive = bsmod.hovering.instance_id;
 
 	bs_RGBA position = *(bs_RGBA*)(data + BSGFX_LO_SUBPASS_0_OUT_POSITION_LOCAL);
-	bs_vec3 normal = bs_v3((position.r / 255.0 - 0.5) * 2.0, (position.g / 255.0 - 0.5) * 2.0, (position.b / 255.0 - 0.5) * 2.0);
+	bs_vec3 normal = BS_V3((position.r / 255.0 - 0.5) * 2.0, (position.g / 255.0 - 0.5) * 2.0, (position.b / 255.0 - 0.5) * 2.0);
 	normal.x = (normal.x == 0.0f) ? 0.0f : (normal.x > 0.0f ? 1.0f : -1.0f);
 	normal.y = (normal.y == 0.0f) ? 0.0f : (normal.y > 0.0f ? 1.0f : -1.0f);
 	normal.z = (normal.z == 0.0f) ? 0.0f : (normal.z > 0.0f ? 1.0f : -1.0f);
@@ -599,7 +599,7 @@ void bsmod_readHoveringOutputs() {
 	bs_U32* data = buffer->_->data ? bs_bufferMap(buffer) : bs_mapBuffer(buffer, buffer->num_bytes);
 
 	bs_RGBA* normal_color = data + BSGFX_LO_SUBPASS_0_OUT_NORMAL;
-	bsmod.hovering.normal = bs_v3((float)normal_color->r / 255.0, (float)normal_color->g / 255.0, (float)normal_color->b / 255.0);
+	bsmod.hovering.normal = BS_V3((float)normal_color->r / 255.0, (float)normal_color->g / 255.0, (float)normal_color->b / 255.0);
 	bsmod.hovering.color = *(bs_RGBA*)(data + BSGFX_LO_SUBPASS_0_OUT_COLOR);
 	bsmod.hovering.index = data[BSGFX_LO_SUBPASS_0_OUT_INDEX];
 	bsmod.hovering.flags = data[BSGFX_LO_SUBPASS_0_OUT_FLAGS];

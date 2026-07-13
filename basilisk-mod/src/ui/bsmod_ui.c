@@ -46,7 +46,7 @@ void bsmod_pushInputWidget(
         bs_pushBack(widgets, &(bsgfx_Widget) {
             //.name = "",
             .type = BSGFX_WIDGET_ICON,
-            .offset = bs_v3Add(offset, bs_v3(width - increment->size.x - button_padding, -button_padding, 10.0)),
+            .offset = bs_v3Add(offset, BS_V3(width - increment->size.x - button_padding, -button_padding, 10.0)),
             .icon = {
                 .atlas = bs_fetch(BSMOD_ATLASES, BSMOD_ATLAS_UI)->atlas,
                 .atlas_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_UI],
@@ -63,7 +63,7 @@ void bsmod_pushInputWidget(
         bs_pushBack(widgets, &(bsgfx_Widget) {
            // .name = "",
             .type = BSGFX_WIDGET_ICON,
-            .offset = bs_v3Add(offset, bs_v3(width - increment->size.x - button_padding, -BSMOD_INPUT_HEIGHT + increment->size.y + button_padding, 10.0)),
+            .offset = bs_v3Add(offset, BS_V3(width - increment->size.x - button_padding, -BSMOD_INPUT_HEIGHT + increment->size.y + button_padding, 10.0)),
             .icon = {
                 .atlas = bs_fetch(BSMOD_ATLASES, BSMOD_ATLAS_UI)->atlas,
                 .atlas_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_UI],
@@ -226,8 +226,8 @@ static void bsmod_instanceDraggingIcon() {
     bsgfx_instanceQuad(
         bsgfx_subtypes()[BSGFX_SUBTYPE_UI],
         bsgfx_matrix(
-            bs_v3(cursor.x, cursor.y, 101.0),
-            bs_v3(cache->size.x, cache->size.y, 0.0)
+            BS_V3(cursor.x, cursor.y, 101.0),
+            BS_V3(cache->size.x, cache->size.y, 0.0)
         ),
         cache->coords,
         0, 0, 0);
@@ -293,7 +293,7 @@ void bsmod_instanceUI() {
         right_clicked = false;
 
     if (right_clicked) {
-        bs_vec3 p = bs_v3(position.x, position.y, 20.0);
+        bs_vec3 p = BS_V3(position.x, position.y, 20.0);
         bs_vec2 s = { 200.0, 300.0 };
 
         float d = p.y - s.y;
@@ -341,7 +341,7 @@ void bsmod_instanceUI() {
 
         center.x += dimensions.x;
         center.x += BSMOD_GRID_SIDE_MENU_SPACE;
-        bsmod_instanceSideMenu(center, bs_v2(side_menu_width, dimensions.y));
+        bsmod_instanceSideMenu(center, BS_V2(side_menu_width, dimensions.y));
     }
 
     if (bsmod.dragging_subtype >= 0) {

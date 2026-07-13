@@ -45,7 +45,7 @@ static bsmod_GridClickParams bsmod_click_params;
 static void bsgfx_onChangeColor(struct bsgfx_Widget* widget, bs_RGBA color) {
     bsmod_material_color_input = color;
     bsmod_hex_input = bs_stringF(bsmod_hex_input, "#%02X%02X%02X%02X", color.r, color.g, color.b, color.a);
-    bsmod_selected_material->contract->color = bs_v4(color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
+    bsmod_selected_material->contract->color = BS_V4(color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
     if (widget)
         bsmod_selected_material->contract->hsva = bsmod_material_hsva;
 }
@@ -174,7 +174,7 @@ void bsmod_rasterizeMaterialIcons() {
     } push_const = {
         .camera = bs_m4x3(bs_m4Mul(
             bs_ortho(0, render_size.x, 0, render_size.y, -500.0, 500.0),
-            bs_lookAt(bs_v3(0, 0, 1), bs_v3(0, 0, 0), bs_v3(0, 1, 0))
+            bs_lookAt(BS_V3(0, 0, 1), BS_V3(0, 0, 0), BS_V3(0, 1, 0))
         )),
     };
 
@@ -183,7 +183,7 @@ void bsmod_rasterizeMaterialIcons() {
     int sphere_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_PRIMITIVE_SPHERE];
 
     bs_List* materials = bsgfx_materials();
-    bs_mat4x3 transform = bs_m4x3(bs_transform(bs_v3(render_size.x / 2, render_size.y / 2, 0.0), BS_QUAT_IDENTITY, bs_v3V1(render_size.x / 2.0 - 4.0)));
+    bs_mat4x3 transform = bs_m4x3(bs_transform(BS_V3(render_size.x / 2, render_size.y / 2, 0.0), BS_QUAT_IDENTITY, bs_v3V1(render_size.x / 2.0 - 4.0)));
 
     for (int i = 0; i < materials->count; i++) {
         bsgfx_Material* material = bs_fetchUnit(materials, i);

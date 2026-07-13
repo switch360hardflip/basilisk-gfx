@@ -386,7 +386,7 @@ BSAPI bs_vec2 _bs_cursorPosition() {
     bs_vec2 pos;
 
     bs_v2Div(&window->cursor, &dim, &pos);
-	return bs_v2(pos.x, 1.0 - pos.y);
+	return BS_V2(pos.x, 1.0 - pos.y);
 }
 
 BSAPI bs_ivec2 _bs_windowPosition() {
@@ -602,9 +602,9 @@ BSAPI void _bs_tickWindow(bs_Window* window, bs_Callback tick, bs_Callback fixed
 
     POINT p;
     if (GetCursorPos(&p)) {
-        _bs_instance_->screen_cursor = bs_v2(p.x, p.y);
+        _bs_instance_->screen_cursor = BS_V2(p.x, p.y);
         if (ScreenToClient(window->hwnd, &p))
-            window->cursor = bs_v2(p.x, p.y);
+            window->cursor = BS_V2(p.x, p.y);
     }
 
     bs_checkTimer(&window->timer);

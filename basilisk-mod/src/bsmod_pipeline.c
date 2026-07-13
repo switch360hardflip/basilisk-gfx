@@ -114,7 +114,7 @@ static void bsmod_renderPreviousPass() {
         bs_vec2 resolution;
     } push_const = {
         .inv_proj = bs_m4Inverse(poser()->camera.proj),
-        .selected_color = bs_v3(1.0, 1.0, 1.0),
+        .selected_color = BS_V3(1.0, 1.0, 1.0),
         .elapsed = bs_elapsedTime(),
         .light_direction = poser()->sun_direction,
         .resolution = bs_v2MulV1(bs_v2Iv2(bs_resolution()), 0.5),
@@ -142,7 +142,7 @@ static void bsmod_renderUIPost() {
         bs_vec2 resolution;
     } push_const = {
         .inv_proj = bs_m4Inverse(poser()->camera.proj),
-        .selected_color = bs_v3(1.0, 1.0, 1.0),
+        .selected_color = BS_V3(1.0, 1.0, 1.0),
         .elapsed = bs_elapsedTime(),
         .light_direction = poser()->sun_direction,
         .resolution = bs_v2MulV1(bs_v2Iv2(bs_resolution()), 0.5),
@@ -196,7 +196,7 @@ static void bsmod_renderTiles() {
     });
 
     bs_pushConstant(pipeline, 0, sizeof(poser()->screen_camera.result), &poser()->screen_camera.result);
-    bsgfx_renderSubtype(bsgfx_subtypes()[BSGFX_SUBTYPE_TILE_HI], pipeline);
+    bsgfx_renderSubtype(bsgfx_subtypes()[BSGFX_SUBTYPE_TILE_ICON], pipeline);
 }
 
 static void bsmod_renderFontSubtype(int subtype, bsgfx_Id font_id, bs_Shader* fragment_shader) {
@@ -288,7 +288,7 @@ static void bsmod_renderRoundedQuads() {
         }
     });
     bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
-    bsgfx_renderSubtype(bsgfx_subtypes()[BSGFX_SUBTYPE_ATLAS_HI], pipeline);
+    bsgfx_renderSubtype(bsgfx_subtypes()[BSGFX_SUBTYPE_ATLAS_ICON], pipeline);
     bs_endComment();
 }
 

@@ -98,8 +98,8 @@ static void bsmod_instanceAxisFace(
 
     start = bs_v3Add(start, primitive->position);
 
-    bs_vec3 full_right = bs_v3MulV1(right, (float)width);
-    bs_vec3 full_up = bs_v3MulV1(up, (float)height);
+    bs_vec3 full_right = bs_v3MulS(right, (float)width);
+    bs_vec3 full_up = bs_v3MulS(up, (float)height);
 
     bs_vec3 a = start;
     bs_vec3 b = bs_v3Add(a, full_right);
@@ -287,20 +287,20 @@ static void bsmod_computeFlyCamera() {
     static bs_vec3 camera_position = { 7.7, 12.7, 18.0 };
 
     camera_direction = bs_v3Normalize(forward);
-    bs_vec3 right = bs_v3Normalize(bs_v3Cross(camera_direction, bs_v3(0.0, 1.0, 0.0)));
-    bs_vec3 up = bs_v3(0.0, 1.0, 0.0);
+    bs_vec3 right = bs_v3Normalize(bs_v3Cross(camera_direction, BS_V3(0.0, 1.0, 0.0)));
+    bs_vec3 up = BS_V3(0.0, 1.0, 0.0);
 
     if (bsmod_keyDown(BS_KEY_W))
-        camera_position = bs_v3Add(camera_position, bs_v3MulV1(camera_direction, move_speed));
+        camera_position = bs_v3Add(camera_position, bs_v3MulS(camera_direction, move_speed));
 
     if (bsmod_keyDown(BS_KEY_S))
-        camera_position = bs_v3Sub(camera_position, bs_v3MulV1(camera_direction, move_speed));
+        camera_position = bs_v3Sub(camera_position, bs_v3MulS(camera_direction, move_speed));
 
     if (bsmod_keyDown(BS_KEY_D))
-        camera_position = bs_v3Add(camera_position, bs_v3MulV1(right, move_speed));
+        camera_position = bs_v3Add(camera_position, bs_v3MulS(right, move_speed));
 
     if (bsmod_keyDown(BS_KEY_A))
-        camera_position = bs_v3Sub(camera_position, bs_v3MulV1(right, move_speed));
+        camera_position = bs_v3Sub(camera_position, bs_v3MulS(right, move_speed));
 
     bs_mat4 proj = bs_perspective(
         bs_radians(50.0),
@@ -312,7 +312,7 @@ static void bsmod_computeFlyCamera() {
     bs_mat4 view = bs_lookAt(
         camera_position,
         bs_v3Add(camera_position, camera_direction),
-        bs_v3(0.0, 1.0, 0.0)
+        BS_V3(0.0, 1.0, 0.0)
     );
 
     bsgfx_setCamera(&proj, &view);
@@ -487,7 +487,7 @@ void bsmod_onLoad() {
 
     bs_Object* batch = bs_batch(BS_BATCH(BSMOD_BATCHES, BSMOD_BATCH_TILE, 0), sizeof(int), $vs_bsgfx_tile_static(), BS_BATCH_KEEP_DATA);
     if (batch && !bs_batchIsPushed(batch->batch)) {
-        bsgfx_pushTile(batch->batch, bs_quad(bs_v3(0, 0, 0), bs_v2(1, 1)), bs_v3(0, 0, 0), 0, 0);
+        bsgfx_pushTile(batch->batch, bs_quad(BS_V3(0, 0, 0), BS_V2(1, 1)), BS_V3(0, 0, 0), 0, 0);
         bs_pushBatch(batch->batch, BS_U32_MAX, BS_U32_MAX);
     }
 

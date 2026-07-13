@@ -57,7 +57,7 @@ void bsmod_pushDropdownWidget(bs_List* widgets, bs_vec3 offset) {
         .offset = { 0.0, -height, 0.0 },
     });
 
-    bsmod_pushDividerWidget(widgets, bs_v3(0.0, offset.y, offset.z));
+    bsmod_pushDividerWidget(widgets, BS_V3(0.0, offset.y, offset.z));
 }
 
 void bsmod_pushTileMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
@@ -79,12 +79,12 @@ void bsmod_pushTileMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
         .offset = { 0, -8.0, 0.0 },
     });
 
-    bsmod_pushDividerWidget(widgets, bs_v3(0.0, 0.0, 0.0));
+    bsmod_pushDividerWidget(widgets, BS_V3(0.0, 0.0, 0.0));
 
     for (int i = 0; i < bsmod.selected_ids.count; i++) {
         bsgfx_Tile* tile = bsgfx_get(BSGFX_TYPE_TILE, i);
 
-        bsmod_pushDropdownWidget(widgets, bs_v3(indent, 0, 0));
+        bsmod_pushDropdownWidget(widgets, BS_V3(indent, 0, 0));
     }
 }
 
@@ -102,9 +102,9 @@ bool bsmod_instanceTilePreview(bsgfx_Widget* widget, bs_vec2* position, int id, 
         return false;
     }
 
-    bs_mat4x3 transform = bsgfx_matrix(bs_v3(position->x, position->y, 0.0), bs_v3(widget->grid.size.x, widget->grid.size.y, 0));
+    bs_mat4x3 transform = bsgfx_matrix(BS_V3(position->x, position->y, 0.0), BS_V3(widget->grid.size.x, widget->grid.size.y, 0));
     transform.f[8] = id;
-    bsgfx_instanceQuad(bsgfx_subtypes()[BSGFX_SUBTYPE_TILE_HI], transform, bs_v4(0, 0, 1, 1), 0, 0, $white_material()->id);
+    bsgfx_instanceQuad(bsgfx_subtypes()[BSGFX_SUBTYPE_TILE_ICON], transform, BS_V4(0, 0, 1, 1), 0, 0, $white_material()->id);
 
     return true;
 }

@@ -220,6 +220,15 @@ typedef enum bs_BindType bs_BindType;
     bs_warnF("%s: %s failed for \"%s\" (Win32 error %lu = \"%s\")\n", __func__, function, path, GetLastError(), bs_serializeWin32Error(GetLastError()))
 #endif
 
+#define BS_V2(x, y)                                                  \
+    (bs_vec2) { x, y }
+
+#define BS_V3(x, y, z)                                               \
+    (bs_vec3) { x, y, z }
+
+#define BS_V4(x, y, z, w)                                            \
+    (bs_vec4) { x, y, z, w }
+
 #define BS_FLT_MAX                                                   \
     3.402823466e+38F
 
@@ -1562,6 +1571,9 @@ struct bs_SphereVsPoint {
 };
 
 struct bs_SphereVsBox {
+    bs_vec3 closest_point;
+    bs_mat4 transform;
+
     bs_vec3 point;
     bs_vec3 normal;
     float penetration;
@@ -3283,16 +3295,6 @@ enum bs_BindType {
 };
 
  /**
-  @param x
-  @param y
-  @return bs_vec2
-  */
-BSAPI bs_vec2
-bs_v2(
-    float x,
-    float y);
-
- /**
   @param a
   @param b
   @param out
@@ -3347,7 +3349,7 @@ bs_v2Div(
   @return void
   */
 BSAPI void
-bs_v2MulV1(
+bs_v2AddS(
     const bs_vec2* v,
     float s,
     bs_vec2* out);
@@ -3359,7 +3361,31 @@ bs_v2MulV1(
   @return void
   */
 BSAPI void
-bs_v2DivV1(
+bs_v2SubS(
+    const bs_vec2* v,
+    float s,
+    bs_vec2* out);
+
+ /**
+  @param v
+  @param s
+  @param out
+  @return void
+  */
+BSAPI void
+bs_v2MulS(
+    const bs_vec2* v,
+    float s,
+    bs_vec2* out);
+
+ /**
+  @param v
+  @param s
+  @param out
+  @return void
+  */
+BSAPI void
+bs_v2DivS(
     const bs_vec2* v,
     float s,
     bs_vec2* out);
@@ -3371,6 +3397,16 @@ bs_v2DivV1(
   */
 BSAPI float
 bs_v2Dot(
+    const bs_vec2* a,
+    const bs_vec2* b);
+
+ /**
+  @param a
+  @param b
+  @return float
+  */
+BSAPI float
+bs_v2Distance(
     const bs_vec2* a,
     const bs_vec2* b);
 
@@ -3427,16 +3463,14 @@ bs_v2Mid(
     bs_vec3* out);
 
  /**
-  @param x
-  @param y
-  @param z
-  @return bs_vec3
+  @param a
+  @param b
+  @return float
   */
-BSAPI bs_vec3
-bs_v3(
-    float x,
-    float y,
-    float z);
+BSAPI float
+bs_v2Angle(
+    const bs_vec2* a,
+    const bs_vec2* b);
 
  /**
   @param a
@@ -3493,7 +3527,7 @@ bs_v3Div(
   @return void
   */
 BSAPI void
-bs_v3MulV1(
+bs_v3AddS(
     const bs_vec3* v,
     float s,
     bs_vec3* out);
@@ -3505,7 +3539,31 @@ bs_v3MulV1(
   @return void
   */
 BSAPI void
-bs_v3DivV1(
+bs_v3SubS(
+    const bs_vec3* v,
+    float s,
+    bs_vec3* out);
+
+ /**
+  @param v
+  @param s
+  @param out
+  @return void
+  */
+BSAPI void
+bs_v3MulS(
+    const bs_vec3* v,
+    float s,
+    bs_vec3* out);
+
+ /**
+  @param v
+  @param s
+  @param out
+  @return void
+  */
+BSAPI void
+bs_v3DivS(
     const bs_vec3* v,
     float s,
     bs_vec3* out);
@@ -3517,6 +3575,16 @@ bs_v3DivV1(
   */
 BSAPI float
 bs_v3Dot(
+    const bs_vec3* a,
+    const bs_vec3* b);
+
+ /**
+  @param a
+  @param b
+  @return float
+  */
+BSAPI float
+bs_v3Distance(
     const bs_vec3* a,
     const bs_vec3* b);
 
@@ -3585,18 +3653,14 @@ bs_v3Cross(
     bs_vec3* out);
 
  /**
-  @param x
-  @param y
-  @param z
-  @param w
-  @return bs_vec4
+  @param a
+  @param b
+  @return float
   */
-BSAPI bs_vec4
-bs_v4(
-    float x,
-    float y,
-    float z,
-    float w);
+BSAPI float
+bs_v3Angle(
+    const bs_vec3* a,
+    const bs_vec3* b);
 
  /**
   @param a
@@ -3653,7 +3717,7 @@ bs_v4Div(
   @return void
   */
 BSAPI void
-bs_v4MulV1(
+bs_v4AddS(
     const bs_vec4* v,
     float s,
     bs_vec4* out);
@@ -3665,7 +3729,31 @@ bs_v4MulV1(
   @return void
   */
 BSAPI void
-bs_v4DivV1(
+bs_v4SubS(
+    const bs_vec4* v,
+    float s,
+    bs_vec4* out);
+
+ /**
+  @param v
+  @param s
+  @param out
+  @return void
+  */
+BSAPI void
+bs_v4MulS(
+    const bs_vec4* v,
+    float s,
+    bs_vec4* out);
+
+ /**
+  @param v
+  @param s
+  @param out
+  @return void
+  */
+BSAPI void
+bs_v4DivS(
     const bs_vec4* v,
     float s,
     bs_vec4* out);
@@ -3677,6 +3765,16 @@ bs_v4DivV1(
   */
 BSAPI float
 bs_v4Dot(
+    const bs_vec4* a,
+    const bs_vec4* b);
+
+ /**
+  @param a
+  @param b
+  @return float
+  */
+BSAPI float
+bs_v4Distance(
     const bs_vec4* a,
     const bs_vec4* b);
 
@@ -4075,6 +4173,38 @@ bs_abs(
     float v);
 
  /**
+  @param v
+  @return float
+  */
+BSAPI float
+bs_sin(
+    float v);
+
+ /**
+  @param v
+  @return float
+  */
+BSAPI float
+bs_cos(
+    float v);
+
+ /**
+  @param v
+  @return float
+  */
+BSAPI float
+bs_tan(
+    float v);
+
+ /**
+  @param v
+  @return int
+  */
+BSAPI int
+bs_sign(
+    float v);
+
+ /**
   @param position
   @param dimensions
   @return bs_Quad
@@ -4095,6 +4225,22 @@ bs_lerp(
     float from,
     float to,
     float t);
+
+ /**
+  @param radians
+  @return float
+  */
+BSAPI float
+bs_degrees(
+    float radians);
+
+ /**
+  @param degrees
+  @return float
+  */
+BSAPI float
+bs_radians(
+    float degrees);
 
  /**
   @param code
@@ -4183,9 +4329,9 @@ bs_ray(
 BSAPI void
 bs_rayVsObb(
     const bs_Ray* ray,
-    bs_vec3 position,
-    bs_vec4 rotation,
-    bs_vec3 scale,
+    const bs_vec3* position,
+    const bs_vec4* rotation,
+    const bs_vec3* scale,
     bs_RayVsObb* out);
 
  /**
@@ -8338,11 +8484,13 @@ bs_pushConstant(
 
  /**
   @param pipeline_hash
-  @return bs_Pipeline*
+  @param out
+  @return bs_Result
   */
-BSAPI bs_Pipeline*
+BSAPI bs_Result
 bs_rayTracingPipeline(
-    bs_RayTracePipelineHash* pipeline_hash);
+    bs_RayTracePipelineHash* pipeline_hash,
+    bs_Pipeline** out);
 
  /**
   @param package_id

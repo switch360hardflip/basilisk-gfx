@@ -48,7 +48,7 @@ void bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, bs_vec3 ic
     });
     bsgfx_AtlasCache* expand = $BSMOD_ATLAS_UI_expand();
 
-    bsgfx_Widget expand_widget = bsmod_iconWidget(expand, align_height, bs_v3(menu_size.x - padding * 2 - expand->size.x, 0.0, 0.0), 0);
+    bsgfx_Widget expand_widget = bsmod_iconWidget(expand, align_height, BS_V3(menu_size.x - padding * 2 - expand->size.x, 0.0, 0.0), 0);
     bsgfx_Widget icon_widget = bsmod_iconWidget(icon, align_height, bs_v3AddX(icon_offset, padding), BSGFX_WIDGET_ADVANCE_RIGHT);
 
     if (expandable)
@@ -90,7 +90,7 @@ void bsmod_instanceTileContextMenu(bs_vec3 position, bs_vec2 size) {
     bsgfx_Widget divider = bsmod_dividerWidget(size.x, indent_0);
     bs_pushBack(&widgets, &divider);
 
-    bsmod_pushContextMenuButton(&widgets, size, bs_v3(0, -1, 0), $BSMOD_ATLAS_UI_light_add(), "Light", indent_1, bsmod_onAddLightTick, true);
+    bsmod_pushContextMenuButton(&widgets, size, BS_V3(0, -1, 0), $BSMOD_ATLAS_UI_light_add(), "Light", indent_1, bsmod_onAddLightTick, true);
 
     bsmod_instanceContextMenu(&widgets, position, size);
 }

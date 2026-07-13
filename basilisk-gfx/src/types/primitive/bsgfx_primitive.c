@@ -45,8 +45,8 @@ void bsgfx_loadPrimitives(int package_id) {
 
         if (bs_batchIsPushed(mesh_instanced_batch)) {
             bs_Range box_range = bs_pushCube(mesh_instanced_batch, BS_WHITE);
-            bs_Range sphere_range = bs_pushSphere(mesh_instanced_batch, bs_v3(0, 0, 0), 1.0, 16, 16, BS_WHITE);
-            bs_Range sphere_high_quality_range = bs_pushSphere(mesh_instanced_batch, bs_v3(0, 0, 0), 1.0, 64, 64, BS_WHITE);
+            bs_Range sphere_range = bs_pushSphere(mesh_instanced_batch, BS_V3(0, 0, 0), 1.0, 16, 16, BS_WHITE);
+            bs_Range sphere_high_quality_range = bs_pushSphere(mesh_instanced_batch, BS_V3(0, 0, 0), 1.0, 64, 64, BS_WHITE);
 
             _bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_BOX] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, mesh_instanced_batch, BSGFX_SUBTYPE_HAS_SHADOWS, box_range);
             _bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_SPHERE] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, mesh_instanced_batch, BSGFX_SUBTYPE_HAS_SHADOWS, sphere_range);

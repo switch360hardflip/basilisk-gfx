@@ -666,7 +666,7 @@ static void bs_calculateContourCurves(bs_Glyph* glyph, int contour, bs_vec2* out
         curr_off = glyph->coords[idx];
         if (!curr.on_curve) continue;
 
-        bs_vec2 curr_off_v, next_off_v, curr_v = bs_v2(curr.x, curr.y);
+        bs_vec2 curr_off_v, next_off_v, curr_v = BS_V2(curr.x, curr.y);
         if (curr_off.on_curve) {
             out[(*out_num_pts)++] = curr_v;
             continue;
@@ -676,8 +676,8 @@ static void bs_calculateContourCurves(bs_Glyph* glyph, int contour, bs_vec2* out
             next_off = glyph->coords[((j + 2) >= last) ? ((j + 2) - last + first) : (j + 2)];
             if (next_off.on_curve) break;
 
-            curr_off_v = bs_v2(curr_off.x, curr_off.y);
-            next_off_v = bs_v2(next_off.x, next_off.y);
+            curr_off_v = BS_V2(curr_off.x, curr_off.y);
+            next_off_v = BS_V2(next_off.x, next_off.y);
 
             bs_vec2 mid;
             bs_v2Mid(&curr_off_v, &next_off_v, &mid);
@@ -698,8 +698,8 @@ static void bs_calculateContourCurves(bs_Glyph* glyph, int contour, bs_vec2* out
 
         curr_off = glyph->coords[((j + 1) >= last) ? ((j + 1) - last + first) : (j + 1)];
         next_off = glyph->coords[((j + 2) >= last) ? ((j + 2) - last + first) : (j + 2)];
-        curr_off_v = bs_v2(curr_off.x, curr_off.y);
-        next_off_v = bs_v2(next_off.x, next_off.y);
+        curr_off_v = BS_V2(curr_off.x, curr_off.y);
+        next_off_v = BS_V2(next_off.x, next_off.y);
 
         double t = 0.0;
         double incr = 1.0 / (double)BS_TTF_DETAIL;
@@ -711,7 +711,7 @@ static void bs_calculateContourCurves(bs_Glyph* glyph, int contour, bs_vec2* out
             out[(*out_num_pts)++] = v;
         }
     }
-    out[(*out_num_pts)++] = bs_v2(glyph->coords[first].x, glyph->coords[first].y);
+    out[(*out_num_pts)++] = BS_V2(glyph->coords[first].x, glyph->coords[first].y);
 }
 
 #define AA_SAMPLES 4
@@ -760,7 +760,7 @@ BSAPI void _bs_rasterizeGlyph(bs_TTF* font, bs_Glyph* glyph, int width, int heig
 
                 for (int x = start; x <= end; x++) {
                     if (x >= 0 && x < glyph->width) {
-                        int z = bs_glyphWindingOrder(glyph, bs_v2(x, y), pts, num_pts);
+                        int z = bs_glyphWindingOrder(glyph, BS_V2(x, y), pts, num_pts);
 
                         out_bmp[y * glyph->width + x] = z == -1 ? 255 : 0;
                     }
@@ -822,7 +822,7 @@ BSAPI bs_vec2 _bs_textDimensions(bs_Font* font, char* name, int length) {
         // width += name[i] == ' ' ? font->spacing * layout_scale : bs_atlasSize(font->atlas, c).x;
     }
 
-    return bs_v2(width, font->height);
+    return BS_V2(width, font->height);
 }
 
 BSAPI void _bs_destroyFont(bs_Font* font) {

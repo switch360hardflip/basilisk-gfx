@@ -7,6 +7,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 file(GLOB_RECURSE GENERATED_FILES "generated/*.*")
 
 file(GLOB SOURCE_FILES "src/*.c")
+file(GLOB XML_FILES "../xml/*.*")
 
 file(GLOB TYPE_FILES "src/types/*.*")
 
@@ -40,6 +41,7 @@ file(GLOB PROJECT_FILES "./*" LIST_DIRECTORIES false)
 
 add_library(${PROJECT_NAME} SHARED
     bsgfx_contracts.h
+    ${XML_FILES}
     ${SOURCE_FILES}
     ${HEADER_FILES}
     ${GENERATED_FILES}
@@ -70,6 +72,7 @@ add_library(${PROJECT_NAME} SHARED
 source_group("Views" FILES ${VIEWS})
 source_group("Source Files" FILES ${SOURCE_FILES})
 source_group("Generated Files" FILES ${GENERATED_FILES})
+source_group("XML Files" FILES ${XML_FILES})
 
 source_group("Source Files/Objects/Atlas" FILES ${ATLAS_FILES})
 source_group("Source Files/Objects/Clothing" FILES ${CLOTHING_FILES})

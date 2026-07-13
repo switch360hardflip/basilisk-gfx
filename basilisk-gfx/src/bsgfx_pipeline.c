@@ -54,54 +54,66 @@ static void bsgfx_computePipe() {
    * Render Pipe
    *============================================================================*/
 
-static inline int bsgfx_queryLoResImageIndex(int id) {
-    bs_Renderer* renderer = bs_fetch(BSGFX_RENDERERS, BSGFX_RENDERER_LO_RES)->renderer;
-    for (int i = 0; i < renderer->num_outputs; i++) {
-        if (renderer->outputs[i].image->head.id == id)
-            return i;
-    }
+static void bsgfx_renderPrimitiveTiles() {
+    if (!bs_exists(BSGFX_BATCHES, BSGFX_BATCH_PRIMITIVE_TILES))
+        return;
 
-    bs_throwBasilisk(BSX_FAILED_TO_QUERY);
-    return -1;
+    bs_PipelineHash hash = {
+        .shaders = {
+            $vs_bsgfx_tile_static(),
+            $fs_bsgfx_tile(),
+        },
+    };
+
+    bs_Pipeline* pipeline;
+    if (bs_pipeline(&hash, &pipeline) != BS_RESULT_OK)
+        return;
+
+    struct {
+        bs_mat4 camera;
+    } push_const = {
+        .camera = _poser_->camera.result,
+    };
+
+    bs_beginComment(BS_CONSTANT_STRING("Tiles"));
+
+    bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
+    bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_PRIMITIVE_TILES)->batch, pipeline, 0, BS_U32_MAX, 0, 1);
+    bsgfx_renderPrimitives(_poser_->camera.result);
+
+    bs_endComment();
 }
 
-static void bsgfx_onTileFinishedRender() {
+static void bsgfx_renderAtlas() {
+    bs_PipelineHash hash = {
+        .shaders = {
+            $vs_bsgfx_quad_instanced(),
+            $fs_bsgfx_atlas(),
+        },
+        BSGFX_REQUIRED_FOR_SHADOW_STENCIL,
+        .skip_depth_write = true
+    };
 
+    bs_Pipeline* pipeline;
+    if (bs_pipeline(&hash, &pipeline) != BS_RESULT_OK)
+        return;
+
+    bs_beginComment(BS_CONSTANT_STRING("Atlas"));
+
+    bs_pushConstant(pipeline, 0, sizeof(_poser_->world_camera.result), &_poser_->world_camera.result);
+    bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS], pipeline);
+
+    bs_endComment();
 }
 
 static void bsgfx_shadowedGeometryPipe() {
+    bs_PipelineHash hash;
+    bs_Pipeline* pipeline;
+
     if (_bsgfx_callbacks_.render)
         _bsgfx_callbacks_.render();
 
-        /**
-        Primitives / Meshes
-        */
-    if (bs_exists(BSGFX_BATCHES, BSGFX_BATCH_PRIMITIVE_TILES)) {
-        bs_beginComment("Tiles");
-
-        bs_PipelineHash hash;
-        struct {
-            bs_mat4 camera;
-        } push_const = {
-            .camera = _poser_->camera.result,
-        };
-
-        hash = (bs_PipelineHash){
-            .shaders = {
-                $vs_bsgfx_tile_static(),
-                $fs_bsgfx_tile(),
-            },
-        };
-        bs_Pipeline* static_pipeline = bs_pipeline(&hash);
-
-        bs_pushConstant(static_pipeline, 0, sizeof(push_const), &push_const);
-        bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_PRIMITIVE_TILES)->batch, static_pipeline, 0, BS_U32_MAX, 0, 1);
-
-        bs_endComment();
-
-        bsgfx_renderPrimitives(_poser_->camera.result);
-    }
-
+    bsgfx_renderPrimitiveTiles();
     bsgfx_renderScenePrefabs();
 
     bs_barrier(0,
@@ -109,184 +121,84 @@ static void bsgfx_shadowedGeometryPipe() {
         BS_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
         BS_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
         BS_ACCESS_SHADER_READ_BIT);
-
-
-    {
-        bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-            .shaders = {
-                $vs_bsgfx_quad_instanced(),
-                $fs_bsgfx_atlas(),
-            },
-            BSGFX_REQUIRED_FOR_SHADOW_STENCIL,
-            .skip_depth_write = true
-        });
-
-        bs_beginComment(BS_CONSTANT_STRING("Atlas"));
-        bs_pushConstant(pipeline, 0, sizeof(_poser_->world_camera.result), &_poser_->world_camera.result);
-        bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS], pipeline);
-        bs_endComment();
-
-    }
-
-   /**
-    Foliage
-    */
-    if (bs_exists(BSGFX_BATCHES, BSGFX_BATCH_FOLIAGE) && _bsgfx_settings_.draw_foliage
-//#ifdef _DEBUG
-        // TODO: screenshot reimplementation
-//        && bsmod.queue.isolated_subtype == 0
-//#endif
-        ) {
-        bs_beginComment(BS_CONSTANT_STRING("Foliage"));
-        struct {
-            bs_mat4 camera;
-            float elapsed;
-            float padding;
-            bs_vec2 resolution;
-        } push_const = {
-            .camera = _poser_->camera.result,
-            .elapsed = bs_elapsedTime(),
-            .resolution = bs_v2Iv2(bs_resolution()),
-        };
-
-        bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-            .shaders = { 
-                $vs_bsgfx_foliage(),
-                $fs_bsgfx_atlas(),
-            },
-            .src_alpha_factor = BS_BLEND_FACTOR_ONE,
-            .dst_alpha_factor = BS_BLEND_FACTOR_ZERO,
-            .src_color_factor = BS_BLEND_FACTOR_SRC_ALPHA,
-            .dst_color_factor = BS_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-            .color_op = BS_BLEND_OP_ADD,
-            .alpha_op = BS_BLEND_OP_ADD,
-        });
-
-        bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
-        bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_FOLIAGE)->batch, pipeline, 0, BS_U32_MAX, 0, 1);
-        bs_endComment();
-    }
-
-    if (_bsgfx_settings_.draw_sprites) {
-        struct {
-            bs_mat4 camera;
-            float elapsed;
-            float padding;
-            bs_vec2 resolution;
-        } push_const = {
-            .camera = _poser_->world_camera.result,
-            .elapsed = bs_elapsedTime(),
-            .resolution = bs_v2Iv2(bs_resolution()),
-        };
-
-        bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) { 
-            .shaders = { 
-                $vs_bsgfx_quad_instanced(),
-                $fs_bsgfx_atlas(),
-            },
-            BSGFX_REQUIRED_FOR_SHADOW_STENCIL,
-            .skip_depth_write = true
-        });
-
-        // bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
-        // bsgfx_renderSubtype(bsgfx_querySubtype(BSGFX_INSTANCE_TYPE_QUAD_LEGACY, BSGFX_QUAD_LEGACY_KEY_SPRITE), pipeline);
-    }
-
 }
 
- // Stuff rendered in here will not be affected by shadows
-static void bsgfx_unshadowedGeometryPipe() {
-    if (_bsgfx_settings.draw_lines) {
+static void bsgfx_renderPoints() {
+    bs_Pipeline* pipeline;
+    bs_PipelineHash hash = {
+        .shaders = {
+            $vs_bsgfx_point_instanced(),
+            $fs_bsgfx_color(),
+        },
+        .topology_type = BS_TOPOLOGY_POINT_LIST,
+    };
+
+    if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
+
+        bs_pushConstant(pipeline, 0, sizeof(_poser_->camera.result), &_poser_->camera.result);
+        bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_POINT], pipeline);
+    }
+}
+
+static void bsgfx_renderLines(const bs_mat4* camera, int subtype, bool skip_depth_test) {
+    bs_Pipeline* pipeline;
+    bs_PipelineHash hash = {
+        .shaders = {
+            $vs_bsgfx_line_instanced(),
+            $fs_bsgfx_color(),
+        },
+        .topology_type = BS_TOPOLOGY_LINE_LIST,
+        .skip_depth_test = skip_depth_test,
+    };
+
+    if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
+
+        bs_pushConstant(pipeline, 0, sizeof(bs_mat4), camera);
+        bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_LINE], pipeline);
+    }
+}
+
+static void bsgfx_renderLineModel(const bs_mat4* camera, int subtype, bool skip_depth_test) {
+    bs_Pipeline* pipeline;
+    bs_PipelineHash hash = {
+        .shaders = {
+            $vs_bsgfx_mesh_instanced(),
+            $fs_bsgfx_color(),
+        },
+        .topology_type = BS_TOPOLOGY_LINE_LIST,
+        .skip_depth_test = skip_depth_test,
+    };
+
+    if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
         bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
+
+        int white;
+        bs_Result result = bs_queryAtlas(atlas, "white", &white); // TODO: cache
+        assert(result == BS_RESULT_OK);
+
         struct {
             bs_mat4 camera;
             bs_vec4 uv;
         } mesh_push_const = {
-            .camera = _poser_->camera.result,
-            .uv = bs_atlasCoordinates(atlas, bs_queryAtlas(atlas, "white"), 0),
+            .camera = *camera,
+            .uv = bs_atlasCoordinates(atlas, white),
         };
 
-        {
-            bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-                .shaders = {
-                    $vs_bsgfx_point_instanced(),
-                    $fs_bsgfx_color(),
-                },
-                .topology_type = BS_TOPOLOGY_POINT_LIST,
-            });
-
-            bs_pushConstant(pipeline, 0, sizeof(_poser_->camera.result), &_poser_->camera.result);
-            bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_POINT], pipeline);
-        }
-
-        {
-            bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-                .shaders = {
-                    $vs_bsgfx_line_instanced(),
-                    $fs_bsgfx_color(),
-                },
-                .topology_type = BS_TOPOLOGY_LINE_LIST,
-            });
-
-            bs_pushConstant(pipeline, 0, sizeof(_poser_->camera.result), &_poser_->camera.result);
-            bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_LINE], pipeline);
-        }
-
-        {
-            bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-                .shaders = {
-                    $vs_bsgfx_line_instanced(),
-                    $fs_bsgfx_color(),
-                },
-                .topology_type = BS_TOPOLOGY_LINE_LIST,
-            });
-
-            bs_pushConstant(pipeline, 0, sizeof(_poser_->screen_camera.result), &_poser_->screen_camera.result);
-            bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_LINE_2D], pipeline);
-        }
-
-        {
-            bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-                .shaders = {
-                    $vs_bsgfx_line_instanced(),
-                    $fs_bsgfx_color(),
-                },
-                .topology_type = BS_TOPOLOGY_LINE_LIST,
-                .skip_depth_test = true,
-            });
-
-            bs_pushConstant(pipeline, 0, sizeof(_poser_->camera.result), &_poser_->camera.result);
-            bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_LINE_DEPTHLESS], pipeline);
-        }
-
-        if (bs_exists(BSGFX_BATCHES, BSGFX_BATCH_SPHERE_INSTANCED)) {
-            if (_bsgfx_settings.draw_spheres) {
-                bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-                    .shaders = {
-                        $vs_bsgfx_mesh_instanced(),
-                        $fs_bsgfx_color(),
-                    },
-                    .topology_type = BS_TOPOLOGY_LINE_LIST,
-                });
-
-                bs_pushConstant(pipeline, 0, sizeof(mesh_push_const), &mesh_push_const);
-                bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_SPHERE_MESH], pipeline);
-            }
-
-            {
-                bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-                    .shaders = {
-                        $vs_bsgfx_mesh_instanced(),
-                        $fs_bsgfx_model(),
-                    },
-                    .skip_depth_test = true,
-                });
-
-                bs_pushConstant(pipeline, 0, sizeof(mesh_push_const), &mesh_push_const);
-                bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_CONE_MESH], pipeline);
-            }
-        }
+        bs_pushConstant(pipeline, 0, sizeof(mesh_push_const), &mesh_push_const);
+        bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_SPHERE_MESH], pipeline);
     }
+}
+
+// Stuff rendered in here will not be affected by shadows
+static void bsgfx_unshadowedGeometryPipe() {
+    bsgfx_renderPoints();
+
+    bsgfx_renderLines(&_poser_->camera.result, BSGFX_SUBTYPE_LINE, false);
+    bsgfx_renderLines(&_poser_->screen_camera.result, BSGFX_SUBTYPE_LINE_2D, false);
+    bsgfx_renderLines(&_poser_->camera.result, BSGFX_SUBTYPE_LINE_DEPTHLESS, true);
+
+    bsgfx_renderLineModel(&_poser_->camera.result, BSGFX_SUBTYPE_SPHERE_MESH, false);
+    bsgfx_renderLineModel(&_poser_->camera.result, BSGFX_SUBTYPE_CONE_MESH, false);
 }
 
 
@@ -325,46 +237,6 @@ static void bsgfx_loResSubpass0() {
     bsgfx_renderShadowVolumes();
     bsgfx_unshadowedGeometryPipe();
 
-    {
-        bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-            .shaders = {
-                $vs_bsgfx_bone_instanced_2d(),
-                $fs_bsgfx_model(),
-            },
-        });
-
-        // for (int i = 0; i < bs_resourcesCount(BS_RESOURCE_MODEL); i++) {
-        //     bs_Model* model = bs_resource(BS_RESOURCE_MODEL, i)->model;
-        //     bs_except(BSX_FAILED_TO_QUERY);
-        //     int subtype = bsgfx_querySubtype(BSGFX_INSTANCE_TYPE_BONE, bs_stringHash(model->path) + BSGFX_MODEL_SCREEN_KEY_OFFSET);
-        //     if (!bs_caught()) {
-        //         bs_pushConstant(pipeline, 0, sizeof(dust->static_camera.result), &dust->static_camera.result);
-        //         bsgfx_renderSubtype(subtype, pipeline);
-        //     }
-        // }
-
-        // for (bsgfx_Id id = bs_first(BSGFX_CLOTHING); id <= bs_last(BSGFX_CLOTHING); id++) {
-        //     bs_except(BSX_FAILED_TO_QUERY);
-        //     int screen_subtype = bsgfx_querySubtype(BSGFX_INSTANCE_TYPE_BONE, BSGFX_ID_SCREEN_KEY + id);
-        //     if (!bs_caught())
-        //         bsgfx_renderSubtype(screen_subtype, pipeline);
-        // }
-    }
-
-    {
-        bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-            .shaders = {
-                $vs_bsgfx_mesh_instanced_2d(),
-                $fs_bsgfx_model(),
-            },
-        });
-
-        //bs_pushConstant(pipeline, 0, sizeof(poser->static_camera.result), &poser->static_camera.result);
-        //bsgfx_renderPrefabs(pipeline, BSGFX_PREFAB_SUBTYPE_MESH);
-       // bs_pushConstant(pipeline, 0, sizeof(_poser_->static_camera.result), &_poser_->static_camera.result);
-       // bsgfx_renderPrefabPrimitives(pipeline, BSGFX_PREFAB_SUBTYPE_PRIMITIVE);
-    }
-
     bs_endComment();
 }
 
@@ -383,27 +255,30 @@ static void bsgfx_loResSubpass1() {
             BS_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
             BS_ACCESS_SHADER_READ_BIT);
 
-        bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-            .shaders = { 
+        bs_Pipeline* pipeline;
+        bs_PipelineHash hash = {
+            .shaders = {
                 $vs_bsgfx_color_percentage(),
                 $fs_bsgfx_hilight(),
             },
-        });
-
-        struct {
-            float offset_x;
-            float offset_y;
-            float elapsed;
-         //   int noise;
-        } push_const = {
-            .offset_x = _poser_->world_camera.position.x / (bs_resolution().x / BSGFX_PIXEL_SCALE),
-            .offset_y = _poser_->world_camera.position.y / (bs_resolution().y / BSGFX_PIXEL_SCALE),
-            .elapsed = bs_elapsedTime(),
-         //   .noise = bsgfx_queryTexture(512, "noise_00"),
         };
 
-        bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
-        bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_SCREEN)->batch, pipeline, 0, 6, 0, 1);
+        if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
+            struct {
+                float offset_x;
+                float offset_y;
+                float elapsed;
+                //   int noise;
+            } push_const = {
+                .offset_x = _poser_->world_camera.position.x / (bs_resolution().x / BSGFX_PIXEL_SCALE),
+                .offset_y = _poser_->world_camera.position.y / (bs_resolution().y / BSGFX_PIXEL_SCALE),
+                .elapsed = bs_elapsedTime(),
+                //   .noise = bsgfx_queryTexture(512, "noise_00"),
+            };
+
+            bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
+            bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_SCREEN)->batch, pipeline, 0, 6, 0, 1);
+        }
     }
 
     bs_endComment();
@@ -416,31 +291,35 @@ static void bsgfx_loResSubpass1() {
   *============================================================================*/
 
 static void bsgfx_loResUISubpass0_renderPreviousPass() {
-    bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
+    bs_Pipeline* pipeline;
+    bs_PipelineHash hash = {
         .shaders = {
             $vs_bsgfx_color_percentage(),
             $fs_bsgfx_lo_res_ui_post_0(),
         },
         BSGFX_TRANSPARENT_OPTIONS,
-    });
-
-    struct {
-        bs_mat4 inv_proj;
-        bs_vec3 selected_color;
-        float elapsed;
-        bs_vec3 light_direction;
-        float pad;
-        bs_vec2 resolution;
-    } push_const = {
-        .selected_color = bs_v3(1.0, 1.0, 1.0),
-        .elapsed = bs_elapsedTime(),
-        .light_direction = _poser_->sun_direction,
-        .resolution = bs_v2Iv2(bs_resolution()),
     };
-    bs_m4Inverse(&_poser_->camera.proj, &push_const.inv_proj);
+    
+    if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
+        struct {
+            bs_mat4 inv_proj;
+            bs_vec3 selected_color;
+            float elapsed;
+            bs_vec3 light_direction;
+            float pad;
+            bs_vec2 resolution;
+        } push_const = {
+            .selected_color = BS_V3(1.0, 1.0, 1.0),
+            .elapsed = bs_elapsedTime(),
+            .light_direction = _poser_->sun_direction,
+            .resolution = bs_v2Iv2(bs_resolution()),
+        };
 
-  //  bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
-    bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_SCREEN)->batch, pipeline, 0, 6, 0, 1);
+        bs_m4Inverse(&_poser_->camera.proj, &push_const.inv_proj);
+
+        //  bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
+        bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_SCREEN)->batch, pipeline, 0, 6, 0, 1);
+    }
 }
 
 static void bsgfx_loResUISubpass0() {
@@ -457,58 +336,97 @@ static void bsgfx_loResUISubpass0() {
   * High Resolution Renderer
   *============================================================================*/
 
+static void bsgfx_renderAtlasIcons() {
+    bs_PipelineHash hash = {
+        .shaders = {
+            $vs_bsgfx_quad_instanced(),
+            $fs_bsgfx_atlas(),
+        },
+        BSGFX_TRANSPARENT_OPTIONS,
+    };
+
+    bs_Pipeline* pipeline;
+    if (bs_pipeline(&hash, &pipeline) != BS_RESULT_OK)
+        return;
+
+    struct {
+        bs_mat4 camera;
+        float elapsed;
+        float padding;
+        bs_vec2 resolution;
+    } push_const = {
+        .camera = _poser_->screen_camera.result,
+        .elapsed = bs_elapsedTime(),
+        .resolution = bs_v2Iv2(bs_resolution()),
+    };
+
+    bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
+    bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_ICON], pipeline);
+}
+
+static void bsgfx_renderTileIcons() {
+    bs_PipelineHash hash = {
+        .shaders = {
+            $vs_bsgfx_quad_instanced(),
+            $fs_bsgfx_tile_screen(),
+        },
+        BSGFX_TRANSPARENT_OPTIONS,
+    };
+
+    bs_Pipeline* pipeline;
+    if (bs_pipeline(&hash, &pipeline) != BS_RESULT_OK)
+        return;
+
+    bs_pushConstant(pipeline, 0, sizeof(_poser_->screen_camera.result), &_poser_->screen_camera.result);
+    bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_TILE_ICON], pipeline);
+}
+
  /**
   High Resolution Subpass 0
   Writes to the swapchain (or whatever)
   */
 static void bsgfx_hiResSubpass0() {
+    bs_PipelineHash hash;
+    bs_Pipeline* pipeline;
+
     bs_beginComment(BS_CONSTANT_STRING("High Resolution Subpass 0"));
 
     bs_Renderer* renderer = bs_fetch(BSGFX_RENDERERS, BSGFX_RENDERER_HI_RES)->renderer;
 
    // Final post processing step on the BSGFX_IMAGE_LO_RES_RESULT
-    bs_beginComment("Post processing");
     if (bs_exists(BSGFX_BATCHES, BSGFX_BATCH_SCREEN)) {
-         bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-            .shaders = { 
+        hash = (bs_PipelineHash) {
+            .shaders = {
                 $vs_bsgfx_color_percentage(),
                 $fs_bsgfx_pixelation(),
             },
             BSGFX_TRANSPARENT_OPTIONS,
-        });
-
-        struct {
-            bs_mat4 inv_proj;
-            bs_vec3 selected_color;
-            float elapsed;
-            bs_vec3 light_direction;
-            float pad;
-            bs_vec2 resolution;
-        } push_const = {
-            .selected_color = bs_v3(1.0, 1.0, 1.0),
-            .elapsed = bs_elapsedTime(),
-            .light_direction = _poser_->sun_direction,
-            .resolution = bs_v2Iv2(bs_resolution()),
         };
-        bs_m4Inverse(&_poser_->camera.proj, &push_const.inv_proj);
 
-        bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
-        bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_SCREEN)->batch, pipeline, 0, 6, 0, 1);
-    }
-    bs_endComment();
+        if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
+            bs_beginComment(BS_CONSTANT_STRING("Post processing"));
 
-    {
-        // bs_beginComment("Thumbnail");
-        bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-            .shaders = { 
-                $vs_bsgfx_quad_instanced(),
-                $fs_bsgfx_level_thumbnail(),
-            },
-            BSGFX_TRANSPARENT_OPTIONS,
-        });
+            bs_ivec2 resolution = bs_resolution();
+            struct {
+                bs_mat4 inv_proj;
+                bs_vec3 selected_color;
+                float elapsed;
+                bs_vec3 light_direction;
+                float pad;
+                bs_vec2 resolution;
+            } push_const = {
+                .selected_color = BS_V3(1.0, 1.0, 1.0),
+                .elapsed = bs_elapsedTime(),
+                .light_direction = _poser_->sun_direction,
+                .resolution = { resolution.x, resolution.y },
+            };
+            bs_m4Inverse(&_poser_->camera.proj, &push_const.inv_proj);
 
-       // bs_pushConstant(pipeline, 0, sizeof(poser->screen_camera.result), &poser->screen_camera.result);
-       // bsgfx_renderSubtype(bsgfx_querySubtypeNull(BSGFX_INSTANCE_TYPE_QUAD_LEGACY, BSGFX_QUAD_LEGACY_KEY_LEVEL_THUMBNAIL), pipeline);
+            bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
+            bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_SCREEN)->batch, pipeline, 0, 6, 0, 1);
+
+            bs_endComment();
+        }
     }
 
     bsgfx_renderColorPickers();
@@ -516,68 +434,22 @@ static void bsgfx_hiResSubpass0() {
     /**
      Textures
      */
-    {
-        bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-            .shaders = {
-                $vs_bsgfx_quad_instanced(),
-                $fs_bsgfx_256_hi_res(),
-            },
-            BSGFX_TRANSPARENT_OPTIONS,
-        });
+    hash = (bs_PipelineHash) {
+        .shaders = {
+            $vs_bsgfx_quad_instanced(),
+            $fs_bsgfx_256_hi_res(),
+        },
+        BSGFX_TRANSPARENT_OPTIONS,
+    };
+
+    if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
 
         bs_pushConstant(pipeline, 0, sizeof(_poser_->screen_camera.result), &_poser_->screen_camera.result);
         bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_256_HI], pipeline);
     }
 
-    {
-        struct {
-            bs_mat4 camera;
-            float elapsed;
-            float padding;
-            bs_vec2 resolution;
-        } push_const = {
-            .camera = _poser_->screen_camera.result,
-            .elapsed = bs_elapsedTime(),
-            .resolution = bs_v2Iv2(bs_resolution()),
-        };
-
-        bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-            .shaders = {
-                $vs_bsgfx_quad_instanced(),
-                $fs_bsgfx_atlas(),
-            },
-            BSGFX_TRANSPARENT_OPTIONS,
-        });
-        bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
-        bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_HI], pipeline);
-    }
-
-    {
-       // bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-       //     .shaders = { 
-       //         $vs_bsgfx_quad_legacy_instanced(),
-       //         $fs_bsgfx_tile(),
-       //     },
-       //     BSGFX_TRANSPARENT_OPTIONS,
-       // });
-
-
-       // bs_pushConstant(pipeline, 0, sizeof(poser->screen_camera.result), &poser->screen_camera.result);
-       // bsgfx_renderSubtype(bsgfx_querySubtypeNull(BSGFX_INSTANCE_TYPE_QUAD_LEGACY, BSGFX_QUAD_LEGACY_KEY_TILE_HI_RES), pipeline);
-    }
-
-    {
-        bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
-            .shaders = {
-                $vs_bsgfx_quad_instanced(),
-                $fs_bsgfx_tile_screen(),
-            },
-            BSGFX_TRANSPARENT_OPTIONS,
-        });
-
-        bs_pushConstant(pipeline, 0, sizeof(_poser_->screen_camera.result), &_poser_->screen_camera.result);
-        bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_TILE_HI], pipeline);
-    }
+    bsgfx_renderAtlasIcons();
+    bsgfx_renderTileIcons();
 
     bs_endComment();
 }
@@ -587,6 +459,29 @@ static void bsgfx_hiResSubpass0() {
  /*==============================================================================
   * Graphics Pipeline
   *============================================================================*/
+
+/*
+static void bsgfx_rayTrace() {
+    if (!bs_exists(BSGFX_RAY_TRACERS, BSGFX_RAY_TRACER_MAIN))
+        return;
+
+    bs_Object* ray_tracer = bs_fetch(BSGFX_RAY_TRACERS, BSGFX_RAY_TRACER_MAIN);
+    bs_RayTracePipelineHash hash = {
+        //   .ray_gen_shader = $rgen_main(),
+        //   .miss_shader = $rmiss_main(),
+        .ray_tracer = ray_tracer->ray_tracer,
+    };
+
+    bs_Pipeline* ray_trace_pipeline;
+    if (bs_rayTracingPipeline(&hash, &ray_trace_pipeline))
+        return;
+
+    bs_ivec2 resolution = bs_resolution();
+    resolution.x /= BSGFX_PIXEL_SCALE;
+    resolution.y /= BSGFX_PIXEL_SCALE;
+    bs_rayTrace(tracer, ray_trace_pipeline, resolution.x, resolution.y, 1);
+}
+*/
 
 static void bsgfx_graphicsPipe() {
 
@@ -599,18 +494,7 @@ static void bsgfx_graphicsPipe() {
       //  bsgfx_resetInstances();
     }
 
-    if (bs_exists(BSGFX_RAY_TRACERS, BSGFX_RAY_TRACER_MAIN)) {
-        bs_RayTracer* tracer = bs_fetch(BSGFX_RAY_TRACERS, BSGFX_RAY_TRACER_MAIN)->ray_tracer;
-        bs_Pipeline* ray_trace_pipeline = bs_rayTracingPipeline(&(bs_RayTracePipelineHash) {
-            //   .ray_gen_shader = $rgen_main(),
-            //   .miss_shader = $rmiss_main(),
-            .ray_tracer = tracer,
-        });
-        bs_ivec2 resolution = bs_resolution();
-        resolution.x /= BSGFX_PIXEL_SCALE;
-        resolution.y /= BSGFX_PIXEL_SCALE;
-        bs_rayTrace(tracer, ray_trace_pipeline, resolution.x, resolution.y, 1);
-    }
+    // bsgfx_rayTrace();
 
     if (bs_exists(BSGFX_RENDERERS, BSGFX_RENDERER_HI_RES)) {
         bs_Renderer* hi_res_renderer = bs_fetch(BSGFX_RENDERERS, BSGFX_RENDERER_HI_RES)->renderer;

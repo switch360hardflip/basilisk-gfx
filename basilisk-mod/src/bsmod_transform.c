@@ -27,8 +27,8 @@ static bs_mat4 bsgfx_primitiveOrigin(bsgfx_RawPrimitive* primitive, bs_vec3 orig
 		bs_rotateP(&m, &q);
 	}
 
-	//bs_vec3 s = bs_v3MulV1(primitive->scale, -1.0);
-	bs_vec3 o = bs_v3MulV1(origin, 1.0);
+	//bs_vec3 s = bs_v3MulS(primitive->scale, -1.0);
+	bs_vec3 o = bs_v3MulS(origin, 1.0);
 	o = bs_v3Mul(o, primitive->scale);
 	bs_translateP(&m, &o);
 
@@ -216,9 +216,9 @@ void bsmod_instanceTransform() {
 	float theta = BS_PI / 2.0;
 
 	bs_vec3 origin = bs_m4MulV3(transform, bs_v3V1(0));
-	bs_vec3 x = bs_m4MulV3(transform, bs_v3(axis_length, 0, 0));
-	bs_vec3 y = bs_m4MulV3(transform, bs_v3(0, axis_length, 0));
-	bs_vec3 z = bs_m4MulV3(transform, bs_v3(0, 0, axis_length));
+	bs_vec3 x = bs_m4MulV3(transform, BS_V3(axis_length, 0, 0));
+	bs_vec3 y = bs_m4MulV3(transform, BS_V3(0, axis_length, 0));
+	bs_vec3 z = bs_m4MulV3(transform, BS_V3(0, 0, axis_length));
 
 	bs_vec3 directions[3] = {
 		bs_v3Normalize(bs_v3Sub(origin, x)),
@@ -226,17 +226,17 @@ void bsmod_instanceTransform() {
 		bs_v3Normalize(bs_v3Sub(origin, z))
 	};
 
-	bs_vec4 xr = bs_qMulq(rotation, bs_qAxisAngle(bs_v3(0, 0, 1), -BS_PI / 2.0));
-	bs_vec4 zr = bs_qMulq(rotation, bs_qAxisAngle(bs_v3(1, 0, 0), BS_PI / 2.0));
+	bs_vec4 xr = bs_qMulq(rotation, bs_qAxisAngle(BS_V3(0, 0, 1), -BS_PI / 2.0));
+	bs_vec4 zr = bs_qMulq(rotation, bs_qAxisAngle(BS_V3(1, 0, 0), BS_PI / 2.0));
 
 	bs_mat4 om = bs_transform(origin, rotation, bs_v3V1(radius));
 	bs_mat4 xm = bs_transform(x, xr, bs_v3V1(radius));
 	bs_mat4 ym = bs_transform(y, rotation, bs_v3V1(radius));
 	bs_mat4 zm = bs_transform(z, zr, bs_v3V1(radius));
 
-	bsgfx_transformedDepthlessLineInstance(bs_v3V1(0), bs_v3(axis_length, 0.0, 0.0), BS_RED, &transform);
-	bsgfx_transformedDepthlessLineInstance(bs_v3V1(0), bs_v3(0.0, axis_length, 0.0), BS_GREEN, &transform);
-	bsgfx_transformedDepthlessLineInstance(bs_v3V1(0), bs_v3(0.0, 0.0, axis_length), BS_BLUE, &transform);
+	bsgfx_transformedDepthlessLineInstance(bs_v3V1(0), BS_V3(axis_length, 0.0, 0.0), BS_RED, &transform);
+	bsgfx_transformedDepthlessLineInstance(bs_v3V1(0), BS_V3(0.0, axis_length, 0.0), BS_GREEN, &transform);
+	bsgfx_transformedDepthlessLineInstance(bs_v3V1(0), BS_V3(0.0, 0.0, axis_length), BS_BLUE, &transform);
 
 	bsgfx_instanceCone(xm, radius, 0, 0, bsmod.axis == 0 ? $yellow_material()->id : $red_material()->id);
 	bsgfx_instanceCone(ym, radius, 0, 0, bsmod.axis == 1 ? $yellow_material()->id : $green_material()->id);
@@ -245,17 +245,17 @@ void bsmod_instanceTransform() {
 	bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 	int white = bs_queryAtlas(atlas, "white");
 
-	bs_vec3 op = bs_m4MulV3(om, bs_v3(0, 0, 0));
-	bs_vec3 xp = bs_m4MulV3(xm, bs_v3(0, 0, 0));
-	bs_vec3 yp = bs_m4MulV3(ym, bs_v3(0, 0, 0));
-	bs_vec3 zp = bs_m4MulV3(zm, bs_v3(0, 0, 0));
+	bs_vec3 op = bs_m4MulV3(om, BS_V3(0, 0, 0));
+	bs_vec3 xp = bs_m4MulV3(xm, BS_V3(0, 0, 0));
+	bs_vec3 yp = bs_m4MulV3(ym, BS_V3(0, 0, 0));
+	bs_vec3 zp = bs_m4MulV3(zm, BS_V3(0, 0, 0));
 
 	bs_vec2 click_size = bs_v2V1(BSGFX_AXIS_CLICK_SIZE);
 
-	// dux_atlasHiResInstance(atlas, xs, white, 0, click_size, bs_v4(1, 0, 0, 1), false);
+	// dux_atlasHiResInstance(atlas, xs, white, 0, click_size, BS_V4(1, 0, 0, 1), false);
 	// dux_atlasHiResInstance(atlas, ys, white, 0, click_size, 
-	// bs_v4(0, 1, 0, 1), false);
-	// dux_atlasHiResInstance(atlas, zs, white, 0, click_size, bs_v4(0, 0, 1, 1), false);
+	// BS_V4(0, 1, 0, 1), false);
+	// dux_atlasHiResInstance(atlas, zs, white, 0, click_size, BS_V4(0, 0, 1, 1), false);
 
 	static int last_axis = -1;
 	static bs_vec2 last_cursor, pressed_cursor;
@@ -294,7 +294,7 @@ void bsmod_instanceTransform() {
 	for (int i = 0; i < 3; i++) {
 		if (screen_coordinates[i].z < closest_z) {
 
-			if (bs_rectangleVsPoint(screen_coordinates[i].xy, bs_v2(width, width), cursor)) {
+			if (bs_rectangleVsPoint(screen_coordinates[i].xy, BS_V2(width, width), cursor)) {
 				closest_coordinate = screen_coordinates[i];
 				closest_z = screen_coordinates[i].z;
 				closest_axis = i;
@@ -311,9 +311,9 @@ void bsmod_instanceTransform() {
 		}
 	}
 
-	//bsgfx_instanceQuad(bsgfx_subtypes()[BSGFX_SUBTYPE_UI], bsgfx_matrix(sx, bs_v3(width, width, 0.0)), $BSMOD_ATLAS_UI_white()->coords, 0, 0, $yellow_material()->id);
-	//bsgfx_instanceQuad(bsgfx_subtypes()[BSGFX_SUBTYPE_UI], bsgfx_matrix(sy, bs_v3(width, width, 0.0)), $BSMOD_ATLAS_UI_white()->coords, 0, 0, $yellow_material()->id);
-	//bsgfx_instanceQuad(bsgfx_subtypes()[BSGFX_SUBTYPE_UI], bsgfx_matrix(sz, bs_v3(width, width, 0.0)), $BSMOD_ATLAS_UI_white()->coords, 0, 0, $yellow_material()->id);
+	//bsgfx_instanceQuad(bsgfx_subtypes()[BSGFX_SUBTYPE_UI], bsgfx_matrix(sx, BS_V3(width, width, 0.0)), $BSMOD_ATLAS_UI_white()->coords, 0, 0, $yellow_material()->id);
+	//bsgfx_instanceQuad(bsgfx_subtypes()[BSGFX_SUBTYPE_UI], bsgfx_matrix(sy, BS_V3(width, width, 0.0)), $BSMOD_ATLAS_UI_white()->coords, 0, 0, $yellow_material()->id);
+	//bsgfx_instanceQuad(bsgfx_subtypes()[BSGFX_SUBTYPE_UI], bsgfx_matrix(sz, BS_V3(width, width, 0.0)), $BSMOD_ATLAS_UI_white()->coords, 0, 0, $yellow_material()->id);
 
 	//bsgfx_instancePoint(px1, BS_YELLOW, 16.0);
 	//int cone_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_CONE_MESH];
@@ -327,7 +327,7 @@ void bsmod_instanceTransform() {
 
 
 	if (rotation_offset != -1 && bsmod_keyDownOnce(BS_KEY_ALT)) {
-		bs_vec2 up = bs_v2(0.0, 1.0);
+		bs_vec2 up = BS_V2(0.0, 1.0);
 		bs_vec2 diff = bs_v2Sub(cursor, start_coordinate.xy);
 		diff = bs_v2NormalizeV2(diff.x, diff.y);
 
@@ -353,7 +353,7 @@ void bsmod_instanceTransform() {
 	    */
 		if (rotation_offset != -1 && bsmod_keyDown(BS_KEY_ALT)) {
 
-			bs_vec2 up = bs_v2(0.0, 1.0);
+			bs_vec2 up = BS_V2(0.0, 1.0);
 			bs_vec2 diff = bs_v2Sub(cursor, start_coordinate.xy);
 
 			const float angle_snap = 15.0;
