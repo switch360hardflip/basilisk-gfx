@@ -30,14 +30,13 @@
   the code is regenerated.
   */
         
+#include <stdarg.h>
+#include <string.h>
+#include <stdbool.h>
 
 #ifndef BASILISK_CORE_H
 #define BASILISK_CORE_H
 
-#include <stdarg.h>
-#include <string.h>
-#include <stdbool.h>
-        
 typedef union bs_vec2 bs_vec2;
 typedef union bs_vec3 bs_vec3;
 typedef union bs_vec4 bs_vec4;
@@ -220,6 +219,9 @@ typedef enum bs_BindType bs_BindType;
 #define BS_WARN_WIN32_PATH(function, path)                           \
     bs_warnF("%s: %s failed for \"%s\" (Win32 error %lu = \"%s\")\n", __func__, function, path, GetLastError(), bs_serializeWin32Error(GetLastError()))
 #endif
+
+#define BS_FLT_MAX                                                   \
+    3.402823466e+38F
 
 #define BS_WARN_ERRNO_PATH(function, path)                           \
     bs_warnF("%s: %s failed for \"%s\" (errno %d = \"%s\")\n", __func__, function, path, errno, bs_serializeErrno())
@@ -1936,6 +1938,9 @@ struct bs_Batch {
     bs_Object* staging_buffer;
     bs_List vertices;
     bs_List indices;
+    struct {
+        void* unused;
+    }_[];
 };
 
 struct bs_QueueSwaps {
@@ -6930,6 +6935,12 @@ bs_props();
   */
 BSAPI bs_Config*
 bs_config();
+
+ /**
+  @return bs_Scope*
+  */
+BSAPI bs_Scope*
+bs_scope();
 
  /**
   @param command

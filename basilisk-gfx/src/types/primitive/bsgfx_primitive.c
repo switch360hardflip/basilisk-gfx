@@ -8,7 +8,9 @@
 bs_vec3 bsgfx_primitivePosition(bsgfx_RawPrimitive* primitive) {
     bs_vec4 q = bs_qFromDegrees(primitive->rotation);
     bs_vec3 rotated_scale = bs_qRotateVec3(&q, &primitive->scale);
-    return bs_v3Add(primitive->position, rotated_scale);
+    bs_vec3 result;
+    bs_v3Add(&primitive->position, &rotated_scale, &result);
+    return result;
 }
 
 static void bsgfx_mapPrimitive(bsgfx_RawPrimitive* unmapped, bsgfx_Primitive* mapped) {
@@ -46,8 +48,8 @@ void bsgfx_loadPrimitives(int package_id) {
             bs_Range sphere_range = bs_pushSphere(mesh_instanced_batch, bs_v3(0, 0, 0), 1.0, 16, 16, BS_WHITE);
             bs_Range sphere_high_quality_range = bs_pushSphere(mesh_instanced_batch, bs_v3(0, 0, 0), 1.0, 64, 64, BS_WHITE);
 
-            _bsgfx_subtypes[BSGFX_SUBTYPE_PRIMITIVE_BOX] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, mesh_instanced_batch, BSGFX_SUBTYPE_HAS_SHADOWS, box_range);
-            _bsgfx_subtypes[BSGFX_SUBTYPE_PRIMITIVE_SPHERE] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, mesh_instanced_batch, BSGFX_SUBTYPE_HAS_SHADOWS, sphere_range);
+            _bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_BOX] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, mesh_instanced_batch, BSGFX_SUBTYPE_HAS_SHADOWS, box_range);
+            _bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_SPHERE] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, mesh_instanced_batch, BSGFX_SUBTYPE_HAS_SHADOWS, sphere_range);
         }
     }
 
@@ -76,8 +78,8 @@ void bsgfx_loadPrimitives(int package_id) {
 
 int bsgfx_primitiveSubtype(bsgfx_PrimitiveType type) {
     switch (type) {
-    case BSGFX_PRIMITIVE_TYPE_BOX: return _bsgfx_subtypes[BSGFX_SUBTYPE_PRIMITIVE_BOX];
-    case BSGFX_PRIMITIVE_TYPE_SPHERE: return _bsgfx_subtypes[BSGFX_SUBTYPE_PRIMITIVE_SPHERE];
+    case BSGFX_PRIMITIVE_TYPE_BOX: return _bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_BOX];
+    case BSGFX_PRIMITIVE_TYPE_SPHERE: return _bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_SPHERE];
     }
 
     return -1;
@@ -116,13 +118,13 @@ void bsgfx_instancePrimitives() {
         bs_mat4 transform = bs_transform(primitive->position, primitive->rotation, primitive->scale);
         bs_U32 flags = BSGFX_ID_HIGHLIGHT | BSGFX_ID_IS_PRIMITIVE;
 
-        //if (_bsgfx_procs.bsmod_isSelected && _bsgfx_procs.bsmod_isSelected(BSGFX_TYPE_PRIMITIVE, i))
+        //if (_bsgfx_procs_.bsmod_isSelected && _bsgfx_procs_.bsmod_isSelected(BSGFX_TYPE_PRIMITIVE, i))
         //    flags |= BSGFX_ID_SELECTED;
 
         //if (primitive->type == BSGFX_PRIMITIVE_TYPE_BOX) // tiles are rendered over these
         //    continue;
 
-        bsgfx_instance(_bsgfx_subtypes[primitive->subtype_index], &transform, sizeof(bs_mat4), flags, 0, i, 0);
+        bsgfx_instance(_bsgfx_subtypes_[primitive->subtype_index], &transform, sizeof(bs_mat4), flags, 0, i, 0);
     }
 }
 
@@ -152,8 +154,8 @@ void bsgfx_renderPrimitives(bs_mat4 camera) {
     bs_Pipeline* pipeline = bs_pipeline(&hash);
 
     bs_pushConstant(pipeline, 0, sizeof(&push_const), &push_const);
-    bsgfx_renderSubtype(_bsgfx_subtypes[BSGFX_SUBTYPE_PRIMITIVE_BOX], pipeline);
-    bsgfx_renderSubtype(_bsgfx_subtypes[BSGFX_SUBTYPE_PRIMITIVE_SPHERE], pipeline);
+    bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_BOX], pipeline);
+    bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_SPHERE], pipeline);
 }
 
 int bsgfx_queryPrimitive(bs_GUID* guid) {

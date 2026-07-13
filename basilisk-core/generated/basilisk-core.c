@@ -30,8 +30,8 @@
   the code is regenerated.
   */
         
-#include <bs_internal.h>
 #include <basilisk-core.h>
+#include <bs_internal.h>
 #include <cglm/vec2.h>
 #include <cglm/vec3.h>
 #include <cglm/vec4.h>
@@ -2656,6 +2656,11 @@ bs_Props* bs_props()
 bs_Config* bs_config()
 {
     return next.bs_config();
+}
+
+bs_Scope* bs_scope()
+{
+    return next.bs_scope();
 }
 
 void bs_system(

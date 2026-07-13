@@ -26,7 +26,8 @@ static void bsgfx_loadFoliage(bsgfx_Foliage* foliage, bs_String* binary) {
 
     for (int i = 0; i < foliage->textures_count; i++) {
         int texture = foliage->textures[i].id;
-        foliage->textures[i].size = bs_v2DivV1(bs_atlasSize(atlas, texture), BSGFX_TILE_SIZE.x * 2.0 / BSGFX_PIXEL_SCALE);
+        bs_vec2 atlas_size = bs_atlasSize(atlas, texture);
+        bs_v2DivV1(&atlas_size, BSGFX_TILE_SIZE.x * 2.0 / BSGFX_PIXEL_SCALE, &foliage->textures[i].size);
         foliage->textures[i].coords = bs_atlasCoordinates(atlas, texture, 0);
     }
 
@@ -49,11 +50,14 @@ static void bsgfx_loadFoliage(bsgfx_Foliage* foliage, bs_String* binary) {
         bs_vec2 size = foliage->textures[texture].size;
 
         bs_Quad q = bs_quad(bs_v3(-size.x / 2.0, size.y / 2.0, 0.0), size);
-        q.a = bs_m3MulV3(rotation, q.a);
-        q.b = bs_m3MulV3(rotation, q.b);
-        q.c = bs_m3MulV3(rotation, q.c);
-        q.d = bs_m3MulV3(rotation, q.d);
-        bs_moveQuad(&q, bs_v3Add(vertices[i], bs_v3(0, 0, .75)));
+        bs_m3MulV3(&rotation, &q.a, &q.a);
+        bs_m3MulV3(&rotation, &q.b, &q.b);
+        bs_m3MulV3(&rotation, &q.c, &q.c);
+        bs_m3MulV3(&rotation, &q.d, &q.d);
+        bs_vec3 offset_75 = bs_v3(0, 0, .75);
+        bs_vec3 moved_position;
+        bs_v3Add(&vertices[i], &offset_75, &moved_position);
+        bs_moveQuad(&q, moved_position);
 
         if (normals[i].z < -0.1) {
             q.cb = bs_v2(coords.x, coords.w);

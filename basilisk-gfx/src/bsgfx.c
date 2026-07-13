@@ -1,23 +1,10 @@
-#include <bs_window.h>
-#include <bs_log.h>
-#include <bs_images.h>
-#include <bs_shaders.h>
-#include <bs_ini.h>
-#include <bs_audio.h>
+#include <basilisk-gfx.h>
 
+#include <windows.h>
 #include <complex.h>
 #include <math.h>
 #include <assert.h>
 #include <inttypes.h>
-
-#include <bsgfx.h>
-#include <bsgfx_pipeline.h>
-#include <bsgfx_scene.h>
-#include <bsgfx_instance.h>
-#include <bsgfx_material.h>
-#include <bssteam.h>
-#include <bssteam_controller.h>
-#include <bsgfx_collider.h>
 
 #include <spawners/item/bsgfx_item.h>
 
@@ -30,69 +17,68 @@
 
 #include <UI/bsgfx_ui.h>
 
+/*
 #define VULKAN_H_
 #include <GFSDK_Aftermath_GpuCrashDump.h>
 #include <GFSDK_Aftermath_GpuCrashDumpDecoding.h>
 #include <GFSDK_Aftermath.h>
+*/
 
-struct Poser* _poser = NULL;
+struct Poser* _poser_ = NULL;
 
-bs_Model* _bsgfx_prefab_model = NULL;
+bs_Model* _bsgfx_prefab_model__ = NULL;
 bs_String* _bsgfx_variadic = NULL;
 HINSTANCE _bsgfx_bsmod_dll = NULL;
-int _bsgfx_package = -1;
+int _bsgfx_package_ = -1;
 
-bsgfx_Callbacks _bsgfx_callbacks = { 0 };
-bsgfx_Settings _bsgfx_settings = { 0 };
+bsgfx_Callbacks _bsgfx_callbacks__ = { 0 };
+bsgfx_Settings _bsgfx_settings_ = { 0 };
 
-bs_mat4* _bsgfx_shader_joints = NULL;
-bs_U32 _bsgfx_num_shader_joints = 0;
+bs_mat4* _bsgfx_shader_joints_ = NULL;
+bs_U32 _bsgfx_num_shader_joints_ = 0;
 
-bsgfx_Procedures _bsgfx_procs = { 0 };
-bsgfx_Controller _bsgfx_ctrl;
-bsgfx_Controller _bsgfx_ctrl_last;
-bsgfx_Controller _bsgfx_ctrl_last_fixed;
+bsgfx_Procedures _bsgfx_procs_ = { 0 };
 
 HINSTANCE bsgfx_bsmodDll() {
     return _bsgfx_bsmod_dll;
 }
 
-bsgfx_Application _bsgfx_app;
+bsgfx_Application _bsgfx_app_;
 
 bsgfx_Application* bsgfx_app() {
-    return &_bsgfx_app;
+    return &_bsgfx_app_;
 }
 
 bsgfx_Callbacks* bsgfx_callbacks() {
-    return &_bsgfx_callbacks;
+    return &_bsgfx_callbacks__;
 }
 
 bsgfx_Settings* bsgfx_settings() {
-    return &_bsgfx_settings;
+    return &_bsgfx_settings_;
 }
 
 bs_Model* bsgfx_prefabModel() {
-    return _bsgfx_prefab_model;
+    return _bsgfx_prefab_model__;
 }
 
 int bsgfx_package() {
-    return _bsgfx_package;
+    return _bsgfx_package_;
 }
 
 struct Poser* poser() {
-    return _poser;
+    return _poser_;
 }
 
 static void bsgfx_configure() {
-    _bsgfx_images = bs_configureSource(BS_OBJECT_IMAGE, BSGFX_IMAGES_COUNT, (const char*[]) { BSGFX_IMAGE_IDS(BS_STRING_GEN) });
-    _bsgfx_samplers = bs_configureSource(BS_OBJECT_SAMPLER, BSGFX_SAMPLERS_COUNT, (const char* []) { BSGFX_SAMPLER_IDS(BS_STRING_GEN) });
-    _bsgfx_buffers = bs_configureSource(BS_OBJECT_BUFFER, BSGFX_BUFFERS_COUNT, (const char* []) { BSGFX_BUFFER_IDS(BS_STRING_GEN) });
-    _bsgfx_queues = bs_configureSource(BS_OBJECT_QUEUE, BSGFX_QUEUES_COUNT, (const char* []) { BSGFX_QUEUE_IDS(BS_STRING_GEN) });
-    _bsgfx_batches = bs_configureSource(BS_OBJECT_BATCH, BSGFX_BATCHES_COUNT, (const char* []) { BSGFX_BATCH_IDS(BS_STRING_GEN) });
-    _bsgfx_renderers = bs_configureSource(BS_OBJECT_RENDERER, BSGFX_RENDERERS_COUNT, (const char* []) { BSGFX_RENDERER_IDS(BS_STRING_GEN) });
-    _bsgfx_ray_tracers = bs_configureSource(BS_OBJECT_RAY_TRACER, BSGFX_RAY_TRACERS_COUNT, (const char* []) { BSGFX_RAY_TRACER_IDS(BS_STRING_GEN) });
-    _bsgfx_fonts = bs_configureSource(BS_OBJECT_FONT, BSGFX_FONTS_COUNT, (const char* []) { BSGFX_FONT_IDS(BS_STRING_GEN) });
-    _bsgfx_atlases = bs_configureSource(BS_OBJECT_ATLAS, BSGFX_ATLASES_COUNT, (const char* []) { BSGFX_ATLAS_IDS(BS_STRING_GEN) });
+    _bsgfx_images_ = bs_configureSource(BS_OBJECT_IMAGE, BSGFX_IMAGES_COUNT, (const char*[]) { BSGFX_IMAGE_IDS(BS_STRING_GEN) });
+    _bsgfx_samplers_ = bs_configureSource(BS_OBJECT_SAMPLER, BSGFX_SAMPLERS_COUNT, (const char* []) { BSGFX_SAMPLER_IDS(BS_STRING_GEN) });
+    _bsgfx_buffers_ = bs_configureSource(BS_OBJECT_BUFFER, BSGFX_BUFFERS_COUNT, (const char* []) { BSGFX_BUFFER_IDS(BS_STRING_GEN) });
+    _bsgfx_queues_ = bs_configureSource(BS_OBJECT_QUEUE, BSGFX_QUEUES_COUNT, (const char* []) { BSGFX_QUEUE_IDS(BS_STRING_GEN) });
+    _bsgfx_batches_ = bs_configureSource(BS_OBJECT_BATCH, BSGFX_BATCHES_COUNT, (const char* []) { BSGFX_BATCH_IDS(BS_STRING_GEN) });
+    _bsgfx_renderers_ = bs_configureSource(BS_OBJECT_RENDERER, BSGFX_RENDERERS_COUNT, (const char* []) { BSGFX_RENDERER_IDS(BS_STRING_GEN) });
+    _bsgfx_ray_tracers_ = bs_configureSource(BS_OBJECT_RAY_TRACER, BSGFX_RAY_TRACERS_COUNT, (const char* []) { BSGFX_RAY_TRACER_IDS(BS_STRING_GEN) });
+    _bsgfx_fonts_ = bs_configureSource(BS_OBJECT_FONT, BSGFX_FONTS_COUNT, (const char* []) { BSGFX_FONT_IDS(BS_STRING_GEN) });
+    _bsgfx_atlases_ = bs_configureSource(BS_OBJECT_ATLAS, BSGFX_ATLASES_COUNT, (const char* []) { BSGFX_ATLAS_IDS(BS_STRING_GEN) });
 
     bs_configureAttribute("bsgfx_VolumeId", BS_FORMAT_R32_SFLOAT);
     bs_configureAttribute("bsgfx_Index", BS_FORMAT_R32_UINT);
@@ -118,83 +104,21 @@ static void bsgfx_resize() {
     }
 }
 
-static void bssteam_pollActions() {
-    /*
-    if (_bsgfx_ctrl.handle) {
-        if (_poser->menu_open) {
-            bs_U64 handle = bssteam_activateActionSet(_bsgfx_ctrl.handle, "MenuControls");
-            if (_bsgfx_ctrl.ingame.action_set_handle != handle)
-                memset(&_bsgfx_ctrl, 0, sizeof(_bsgfx_ctrl));
-            _bsgfx_ctrl.ingame.action_set_handle = handle;
-
-            bssteam_pollButton(_bsgfx_ctrl.handle, &_bsgfx_ctrl.menu.up, "menuUp");
-            bssteam_pollButton(_bsgfx_ctrl.handle, &_bsgfx_ctrl.menu.down, "menuDown");
-            bssteam_pollButton(_bsgfx_ctrl.handle, &_bsgfx_ctrl.menu.left, "menuLeft");
-            bssteam_pollButton(_bsgfx_ctrl.handle, &_bsgfx_ctrl.menu.right, "menuRight");
-            bssteam_pollButton(_bsgfx_ctrl.handle, &_bsgfx_ctrl.menu.affirm, "affirm");
-            bssteam_pollButton(_bsgfx_ctrl.handle, &_bsgfx_ctrl.menu.cancel, "cancel");
-        }
-        else {
-            bs_U64 handle = bssteam_activateActionSet(_bsgfx_ctrl.handle, "GameControls");
-            if (_bsgfx_ctrl.ingame.action_set_handle != handle)
-                memset(&_bsgfx_ctrl, 0, sizeof(_bsgfx_ctrl));
-            _bsgfx_ctrl.ingame.action_set_handle = handle;
-
-            bssteam_pollJoystick(_bsgfx_ctrl.handle, &_bsgfx_ctrl.ingame.move, "move");
-            bssteam_pollButton(_bsgfx_ctrl.handle, &_bsgfx_ctrl.ingame.interact, "interact");
-            bssteam_pollButton(_bsgfx_ctrl.handle, &_bsgfx_ctrl.ingame.jump, "jump");
-            bssteam_pollButton(_bsgfx_ctrl.handle, &_bsgfx_ctrl.ingame.prepare_skate, "prepareSkate");
-        }
-    }
-    else
-        memset(&_bsgfx_ctrl, 0, sizeof(_bsgfx_ctrl));
-        */
-    if (_poser->menu_open) {
-        _bsgfx_ctrl.menu.up.pressed = bs_keyDownOnce(BS_KEY_UP) ? true : _bsgfx_ctrl.menu.up.pressed;
-        _bsgfx_ctrl.menu.down.pressed = bs_keyDownOnce(BS_KEY_DOWN) ? true : _bsgfx_ctrl.menu.down.pressed;
-        _bsgfx_ctrl.menu.affirm.pressed = bs_keyDownOnce(BS_KEY_ENTER) ? true : _bsgfx_ctrl.menu.affirm.pressed;
-    }
-    else {
-        _bsgfx_ctrl.ingame.move.v.x = bs_keyDown(BS_KEY_A) ? -1.0 : _bsgfx_ctrl.ingame.move.v.x;
-        _bsgfx_ctrl.ingame.move.v.x = bs_keyDown(BS_KEY_D) ? 1.0 : _bsgfx_ctrl.ingame.move.v.x;
-        _bsgfx_ctrl.ingame.move.v.y = bs_keyDown(BS_KEY_W) ? 1.0 : _bsgfx_ctrl.ingame.move.v.y;
-        _bsgfx_ctrl.ingame.move.v.y = bs_keyDown(BS_KEY_S) ? -1.0 : _bsgfx_ctrl.ingame.move.v.y;
-    }
-}
-
-void bsgfx_openMenu() {
-    _poser->menu_open = true;
-    bssteam_pollActions();
-}
-
-void bsgfx_closeMenu() {
-    _poser->menu_open = false;
-    bssteam_pollActions();
-}
-
 static void bsgfx_tick() {
-    _poser->menu_blocked = false;
-    _bsgfx_ctrl_last = _bsgfx_ctrl;
-    _bsgfx_ctrl.ingame.move.v = bs_v2V1(0.0);
-
-    bool controller_found = (bool)_bsgfx_ctrl.handle;
-    _bsgfx_ctrl.handle = bssteam_pollController(0);
-
-    if (!controller_found && (bool)_bsgfx_ctrl.handle)
-        bs_infoF("Controller connected\n");
+    _poser_->menu_blocked = false;
 
     static int timer;
     const double time_scale = 0.0;
     
-    _poser->time += time_scale * bs_deltaTime();
-    _poser->second = ((int)_poser->time) % 86400;
-    _poser->hour = _poser->second / 3600;
-    _poser->minute = (_poser->second % 3600) / 60;
+    _poser_->time += time_scale * bs_deltaTime();
+    _poser_->second = ((int)_poser_->time) % 86400;
+    _poser_->hour = _poser_->second / 3600;
+    _poser_->minute = (_poser_->second % 3600) / 60;
 
-    float day_fraction = (float)_poser->time / 86400.0f;
+    float day_fraction = (float)_poser_->time / 86400.0f;
     float angle = day_fraction * 2.0f * BS_PI;
 
-    _poser->sun_direction = bs_v3NormalizeV3(-sinf(angle), cosf(angle), -0.48);
+    _poser_->sun_direction = bs_v3NormalizeV3(-sinf(angle), cosf(angle), -0.48);
 
     bssteam_pollActions();
     
@@ -202,12 +126,16 @@ static void bsgfx_tick() {
     //bsgfx_instanceItems();
 
     bs_vec2 resolution = { .x = (float)bs_resolution().x, .y = (float)bs_resolution().y };
-    bs_mat4 screen_camera_proj = bs_ortho(0, resolution.x, 0, resolution.y, -1000, 1000);
-    bs_mat4 screen_camera_view = bs_lookAt(bs_v3V1(0), bs_v3(0, 0, -1), bs_v3(0, 1, 0));
-    _poser->screen_camera.result = bs_m4Mul(screen_camera_proj, screen_camera_view);
+
+    bs_mat4 screen_camera_proj;
+    bs_mat4 screen_camera_view;
+
+    bs_orthographic(0, resolution.x, 0, resolution.y, -1000, 1000, &screen_camera_proj);
+    bs_lookAt(&(bs_vec3) { 0 }, &(bs_vec3) { 0.0, 0.0, -1.0 }, &(bs_vec3) { 0.0, 1.0, 0.0 }, &screen_camera_view);
+    bs_m4Mul(&screen_camera_proj, &screen_camera_view, &_poser_->screen_camera.result);
 
     bsgfx_instancePrimitives();
-    if (_bsgfx_prefab_model)
+    if (_bsgfx_prefab_model__)
         bsgfx_instancePrefabs();
     bsgfx_instanceTiles();
 
@@ -219,10 +147,10 @@ static void bsgfx_tick() {
 //    if (bsgfx_scene != BSGFX_SCENE_MENU)
 //        bsgfx_instanceMinimap();
 
-    if (_bsgfx_procs.bsmod_onGfxRender)
-        _bsgfx_procs.bsmod_onGfxRender();
-    if (_bsgfx_callbacks.tick)
-        _bsgfx_callbacks.tick();
+    if (_bsgfx_procs_.bsmod_onGfxRender)
+        _bsgfx_procs_.bsmod_onGfxRender();
+    if (_bsgfx_callbacks__.tick)
+        _bsgfx_callbacks__.tick();
 
     bsgfx_tickInstances();
 
@@ -231,13 +159,13 @@ static void bsgfx_tick() {
 }
 
 static void bsgfx_fixedTick() {
-    _bsgfx_ctrl_last_fixed = _bsgfx_ctrl;
  //   bsgfx_tickItems();
 
-    if (_bsgfx_callbacks.fixedTick)
-        _bsgfx_callbacks.fixedTick();
+    if (_bsgfx_callbacks__.fixedTick)
+        _bsgfx_callbacks__.fixedTick();
 }
 
+/*
 static void bsgfx_onGpuCrash(const void* crash_dump, const bs_U32 crash_dump_size, void* params) {
     bs_saveFile("aftermath.nv-gpudmp", crash_dump, crash_dump_size);
 }
@@ -298,21 +226,22 @@ void bsgfx_checkGFSDK(GFSDK_Aftermath_Result result) {
         bs_throwBasilisk(BSX_GENERAL);
     }
 }
+*/
 
 void bsgfx_setCamera(const bs_mat4* proj, const bs_mat4* view) {
-    _poser->camera.proj = *proj;
-    _poser->camera.view = *view;
-    _poser->camera.result = bs_m4Mul(*proj, *view);
+    _poser_->camera.proj = *proj;
+    _poser_->camera.view = *view;
+    bs_m4Mul(proj, view, &_poser_->camera.result);
 }
 
 void bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc, char* argv[]) {
     for (int i = 0; i < BSGFX_SUBTYPE_COUNT; i++)
-        _bsgfx_subtypes[i] = -1;
+        _bsgfx_subtypes_[i] = -1;
 
-    _bsgfx_app.name = name;
+    _bsgfx_app_.name = name;
 
-    _poser = bs_malloc(sizeof(struct Poser));
-    *_poser = (struct Poser){
+    _poser_ = bs_malloc(sizeof(struct Poser));
+    *_poser_ = (struct Poser){
         .time = 10.8 * 60 * 60,
         .menu_open = true, // main menu
         .sweep_collisions = bs_list(sizeof(bsgfx_SweepCollision), 64),
@@ -330,7 +259,7 @@ void bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc, char* ar
         bs_Procedure procedures[] = {
             BSGFX_FOREACH_PROC(BS_STRING_GEN_2)
         };
-        bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), _bsgfx_bsmod_dll, &_bsgfx_procs);
+        bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), _bsgfx_bsmod_dll, &_bsgfx_procs_);
     }
 
     bs_window(width, height, name, NULL);
@@ -347,39 +276,40 @@ void bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc, char* ar
         NULL);
     */
 
-    if (_bsgfx_procs.bsmod_onIni)
-        _bsgfx_procs.bsmod_onIni();
+    if (_bsgfx_procs_.bsmod_onIni)
+        _bsgfx_procs_.bsmod_onIni();
 
-    if (_bsgfx_procs.bsmod_onTrack && bs_args()->track_changes)
-        _bsgfx_procs.bsmod_onTrack();
+    if (_bsgfx_procs_.bsmod_onTrack && bs_args()->track_changes)
+        _bsgfx_procs_.bsmod_onTrack();
 
-    if (_bsgfx_procs.bsmod_onLateIni)
-        _bsgfx_procs.bsmod_onLateIni();
+    if (_bsgfx_procs_.bsmod_onLateIni)
+        _bsgfx_procs_.bsmod_onLateIni();
 
-    bs_except(BSX_NOT_FOUND);
-    _bsgfx_package = bs_loadPackage(BSGFX_CONTENT_PATH);
-    bs_except(0);
+    bs_loadPackage(BSGFX_CONTENT_PATH, &_bsgfx_package_);
 
+/*
     bssteam_iniSteam();
     bssteam_iniSteamInput();
 #ifdef _DEBUG
     bssteam_overrideManifestFile("resources/iga.vdf");
 #endif
+*/
+
     bsgfx_configure();
     bs_ini();
     bs_iniAudio();
-    bs_loadBindings(_bsgfx_package, "bindings");
+    bs_loadBindings(_bsgfx_package_, "bindings");
 
    // bs_pause();
 
-    if (_bsgfx_callbacks.ini)
-        _bsgfx_callbacks.ini();
+    if (_bsgfx_callbacks__.ini)
+        _bsgfx_callbacks__.ini();
 
     bs_tick(bsgfx_tick, bsgfx_fixedTick);
 
     if (bs_exists(BSGFX_RAY_TRACERS, BSGFX_RAY_TRACER_MAIN))
         bs_destroyRayTracer(bs_fetch(BSGFX_RAY_TRACERS, BSGFX_RAY_TRACER_MAIN)->ray_tracer);
 
-    bs_free(_poser);
+    bs_free(_poser_);
     // todo destroy dll
 }

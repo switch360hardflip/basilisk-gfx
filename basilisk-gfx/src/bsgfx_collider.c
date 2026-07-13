@@ -3,17 +3,7 @@
   bsgfx_collider.c
   */
 
-#include <bs_types.h>
-#include <bs_math.h>
-#include <bs_mem.h>
-#include <bs_core.h>
-#include <bs_collision.h>
-#include <bs_log.h>
-
-#include <bsgfx.h>
-#include <bsgfx_collider.h>
-#include <bsgfx_scene.h>
-#include <bsgfx_instance.h>
+#include <basilisk-gfx.h>
 
 #include <types/bsgfx_type.h>
 #include <types/primitive/bsgfx_primitive.h>
@@ -116,8 +106,8 @@ static bool bsgfx_descendSlopeRayCast(bsgfx_Collider* collider, bs_vec3* velocit
 static void bsgfx_descendSlopeAxis(bsgfx_Collider* collider, bs_vec3* velocity, bs_vec3 position, int axis) {
 	bs_Ray ray = bsgfx_descendSlopeRay(collider, velocity, position, axis);
 
-	for (int i = 0; i < _poser->sweep_collisions.count; i++) {
-		bsgfx_SweepCollision* sweep_collision = bs_fetchUnit(&_poser->sweep_collisions, i);
+	for (int i = 0; i < _poser_->sweep_collisions.count; i++) {
+		bsgfx_SweepCollision* sweep_collision = bs_fetchUnit(&_poser_->sweep_collisions, i);
 
 		if (bsgfx_descendSlopeRayCast(collider, velocity, position, &ray, sweep_collision->position, sweep_collision->rotation, sweep_collision->scale, axis))
 			collider->collision |= sweep_collision->flags;
@@ -199,9 +189,13 @@ static inline bs_Ray bsgfx_collisionRay(bsgfx_Collider* collider, bs_vec3* veloc
 }
 
 static inline bs_vec3 bsgfx_collisionRayStepped(bsgfx_Collider* collider, bs_vec3 origin, int x, int y, bs_vec3 steps, bs_vec3* velocity, const int axis, int axis_direction) {
-	if		(axis == 0) return bs_v3Add(origin, bs_v3(0.0, steps.y * x * -axis_direction, steps.z * y * -axis_direction));
-	else if (axis == 1) return bs_v3Add(origin, bs_v3(steps.x * x * -axis_direction + velocity->x, 0.0, steps.z * y * -axis_direction + velocity->z));
-	else                return bs_v3Add(origin, bs_v3(steps.x * y * -axis_direction, steps.y * x * -axis_direction, 0.0));
+	bs_vec3 result;
+	bs_vec3 delta;
+	if		(axis == 0) delta = bs_v3(0.0, steps.y * x * -axis_direction, steps.z * y * -axis_direction);
+	else if (axis == 1) delta = bs_v3(steps.x * x * -axis_direction + velocity->x, 0.0, steps.z * y * -axis_direction + velocity->z);
+	else                delta = bs_v3(steps.x * y * -axis_direction, steps.y * x * -axis_direction, 0.0);
+	bs_v3Add(&origin, &delta, &result);
+	return result;
 }
 
 static inline bs_vec3 bsgfx_colliderRaySteps(const bsgfx_Collider* collider, int axis) {
@@ -226,8 +220,8 @@ static void bsgfx_applyCollisionAxis(bsgfx_Collider* collider, bs_vec3* velocity
 			float distance = BS_FLT_MAX;
 
 			bsgfx_ColliderFlags flags = 0;
-			for (int i = 0; i < _poser->sweep_collisions.count; i++) {
-				bsgfx_SweepCollision* sweep_collision = bs_fetchUnit(&_poser->sweep_collisions, i);
+			for (int i = 0; i < _poser_->sweep_collisions.count; i++) {
+				bsgfx_SweepCollision* sweep_collision = bs_fetchUnit(&_poser_->sweep_collisions, i);
 				bs_vec3 coordinate = { 0 }, new_normal = { 0 };
 
 				if (bs_rayVsObb(&ray, sweep_collision->position, sweep_collision->rotation, sweep_collision->scale, &coordinate, &new_normal, NULL)) {
@@ -279,9 +273,12 @@ static inline bs_Ray bsgfx_secondarySlopeRay(bsgfx_Collider* collider, bs_vec3* 
 }
 
 static inline bs_vec3 bsgfx_secondarySlopeRayStepped(bs_vec3* velocity, bs_vec3 origin, bs_vec3 steps, int axis, int y) {
-	return axis == 0 ? 
-		bs_v3Add(origin, bs_v3(0.0, velocity->y, steps.z * y)) :
-		bs_v3Add(origin, bs_v3(steps.x * y, velocity->y, 0.0));
+	bs_vec3 result;
+	bs_vec3 delta = axis == 0 ?
+		bs_v3(0.0, velocity->y, steps.z * y) :
+		bs_v3(steps.x * y, velocity->y, 0.0);
+	bs_v3Add(&origin, &delta, &result);
+	return result;
 }
 
 static void bsgfx_applySecondarySlopeRaycast(bsgfx_Collider* collider, bs_vec3* velocity, bs_Ray* ray, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, int axis, int axis_direction) {
@@ -322,15 +319,15 @@ static void bsgfx_applySecondarySlopeAxis(bsgfx_Collider* collider, bs_vec3* vel
 	for (int y = 0; y < collider->resolution.a[axis]; y++) {
 		ray.origin = bsgfx_secondarySlopeRayStepped(velocity, origin, steps, axis, y);
 
-		for (int i = 0; i < _poser->sweep_collisions.count; i++) {
-			bsgfx_SweepCollision* sweep_collision = bs_fetchUnit(&_poser->sweep_collisions, i);
+		for (int i = 0; i < _poser_->sweep_collisions.count; i++) {
+			bsgfx_SweepCollision* sweep_collision = bs_fetchUnit(&_poser_->sweep_collisions, i);
 			bsgfx_applySecondarySlopeRaycast(collider, velocity, &ray, sweep_collision->position, sweep_collision->rotation, sweep_collision->scale, axis, axis_direction);
 		}
 	}
 }
 
 void bsgfx_sweepCollisions(float sweep_radius, bs_vec3 position) {
-	_poser->sweep_collisions.count = 0;
+	_poser_->sweep_collisions.count = 0;
 
 	for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
 		bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
@@ -340,7 +337,7 @@ void bsgfx_sweepCollisions(float sweep_radius, bs_vec3 position) {
 		bs_vec3 s = primitive->scale;
 
 		if (bs_sphereVsBox(position, sweep_radius, p, r, s, NULL, NULL, NULL)) {
-			bs_pushBack(&_poser->sweep_collisions, &(bsgfx_SweepCollision) {
+			bs_pushBack(&_poser_->sweep_collisions, &(bsgfx_SweepCollision) {
 				.position = p,
 				.rotation = r,
 				.scale = s,
@@ -383,13 +380,11 @@ void bsgfx_sweepCollisions(float sweep_radius, bs_vec3 position) {
 bsgfx_Collider bsgfx_collider(bs_Aabb aabb, bs_vec3 scale, bs_ivec3 resolution, float sweep_radius) {
 	bsgfx_Collider collider = {
 		.resolution = resolution,
-		.aabb = {
-			.min = bs_v3Mul(aabb.min, scale),
-			.max = bs_v3Mul(aabb.max, scale),
-		},
 		.sweep_radius = sweep_radius,
 		.scale = { 1.0, 1.0, 1.0 },
 	};
+	bs_v3Mul(&aabb.min, &scale, &collider.aabb.min);
+	bs_v3Mul(&aabb.max, &scale, &collider.aabb.max);
 
 	return collider;
 }
@@ -403,7 +398,7 @@ void bsgfx_applyCollisions(bsgfx_Collider* collider, bs_vec3 position, bs_vec3* 
 
 	bsgfx_sweepCollisions(collider->sweep_radius, position);
 
-	if (_poser->sweep_collisions.count == 0)
+	if (_poser_->sweep_collisions.count == 0)
 		return;
 
 	bsgfx_ColliderFlags flags;
@@ -456,9 +451,9 @@ void bsgfx_applyCollisions(bsgfx_Collider* collider, bs_vec3 position, bs_vec3* 
 	collider->collision = BSGFX_COLLISION_NONE;
 	collider->angle_old = collider->angle;
 	collider->angle = 0.0;
-	collider->normal = bs_v3V1(0);
+	collider->normal = (bs_vec3) { 0 };
 
-	if (_poser->sweep_collisions.count == 0)
+	if (_poser_->sweep_collisions.count == 0)
 		return;
 
 	bsgfx_ColliderFlags flags;
@@ -554,8 +549,8 @@ static void bsgfx_instanceColliderAxis(bsgfx_Collider* collider, bs_vec3 positio
 }
 
 void bsgfx_instanceSweepCollisions() {
-	for (int i = 0; i < _poser->sweep_collisions.count; i++) {
-		bsgfx_SweepCollision* sweep_collision = bs_fetchUnit(&_poser->sweep_collisions, i);
+	for (int i = 0; i < _poser_->sweep_collisions.count; i++) {
+		bsgfx_SweepCollision* sweep_collision = bs_fetchUnit(&_poser_->sweep_collisions, i);
 		bs_mat4 transform = bs_transform(sweep_collision->position, sweep_collision->rotation, sweep_collision->scale);
 		bs_Aabb aabb = { .min = bs_v3V1(-1), .max = bs_v3V1(1) };
 		bsgfx_obbInstance(&aabb, BS_WHITE, &transform);

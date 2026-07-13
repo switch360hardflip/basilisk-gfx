@@ -1,8 +1,5 @@
-#include <basilisk-core.h>
-
-#include <bsgfx.h>
+#include <basilisk-gfx.h>
 #include <bsgfx_cache.h>
-#include <bsgfx_material.h>
 
 #include <inttypes.h>
 
@@ -34,7 +31,6 @@ bsgfx_Material* bsgfx_queryMaterialHash(bs_U64 hash) {
             return material;
     }
 
-    bs_throwBasiliskF(BSX_FAILED_TO_QUERY, "Material %" PRIx64, hash);
     return NULL;
 }
 
@@ -52,74 +48,66 @@ bs_U64 bsgfx_materialHash(int id) {
     return material->hash;
 }
 
-bsgfx_Material* bsgfx_material(char* name) {
+bsgfx_Material* bsgfx_material(char* name, int name_length) {
     bs_Buffer* materials_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS)->buffer;
     bsgfx_MaterialContract* contract = bs_bufferMap(bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS)->buffer);
 
-    bs_except(BSX_FAILED_TO_QUERY);
     bsgfx_Material* existing = bsgfx_queryMaterial(name);
 
-    if (bs_caught()) {
-        return bs_pushBack(&_bsgfx_materials, &(bsgfx_Material) {
-            .name = strdup(name),
-            .hash = bs_stringHash(name),
-            .contract = contract + _bsgfx_materials.count,
-            .id = _bsgfx_materials.count,
-            .json_index = -1,
-        });
-    }
-    else 
+    if (existing)
         return existing;
-}
 
-bsgfx_Material* bsgfx_materialF(const char* format, ...) {
-    va_list args;
-    va_start(args, format);
-
-    _bsgfx_variadic = bs_stringV(_bsgfx_variadic, format, args);
-    bsgfx_Material* material = bsgfx_material(_bsgfx_variadic->value);
-
-    va_end(args);
-
-    return material;
+    return bs_pushBack(&_bsgfx_materials, &(bsgfx_Material) {
+        .name = strdup(name),
+        .hash = bs_stringHash(name),
+        .contract = contract + _bsgfx_materials.count,
+        .id = _bsgfx_materials.count,
+        .json_index = -1,
+    });
 }
 
 void bsgfx_allocateMaterials() {
-    bs_buffer(BS_BUFFER(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS, false), BSGFX_MAX_MATERIALS_COUNT * sizeof(bsgfx_MaterialContract), 
+    bs_Result result = bs_buffer(BS_BUFFER(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS, false), BSGFX_MAX_MATERIALS_COUNT * sizeof(bsgfx_MaterialContract), 
         BS_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
         BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | BS_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        0)->buffer;
+        0);
+
+    if (result != BS_RESULT_OK) {
+        return;
+    }
 
     bs_Buffer* materials_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS)->buffer;
     bsgfx_MaterialContract* materials = bs_mapBuffer(materials_buffer, BS_U32_MAX);
     bs_bindBuffer(BSGFX_SET_MATERIALS, BSGFX_BINDING_MATERIALS, materials_buffer);
 
-    bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials, bsgfx_material("blank")->id);
+    bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials, bsgfx_material(BS_CONSTANT_STRING("blank"))->id);
     material->contract->color = bs_v4(1.0, 1.0, 1.0, 1.0);
 }
 
 void bsgfx_loadMaterials() {
     return;
 
-    bs_Json json = bs_loadJson("resources/materials.json");
-    bs_JsonValue root = bs_fetchJson(&json, BS_JSON_ARRAY, "$");
+    bs_Json json;
+    bs_loadJson(&json, BS_CONSTANT_STRING("resources/materials.json"));
+
+    bs_JsonValue root = bs_fetchJson(&json, BS_JSON_ARRAY, BS_CONSTANT_STRING("$"));
     
     for (int i = 0; i < root.size; i++) {
         bs_Json material_json = bs_jsonRoot(&json, root.as_array.as_objects[i]);
 
-        bs_F64* color = bs_fetchJson(&material_json, BS_JSON_UNDEFINED, "color[:4]").as_array.as_numbers;
-        bs_F64* tile_color = bs_fetchJson(&material_json, BS_JSON_UNDEFINED, "tile_color[:4]").as_array.as_numbers;
-        bs_F64* tile_color_add = bs_fetchJson(&material_json, BS_JSON_UNDEFINED, "tile_color_add[:4]").as_array.as_numbers;
+        bs_F64* color = bs_fetchJson(&material_json, BS_JSON_UNDEFINED, BS_CONSTANT_STRING("color[:4]")).as_array.as_numbers;
+        bs_F64* tile_color = bs_fetchJson(&material_json, BS_JSON_UNDEFINED, BS_CONSTANT_STRING("tile_color[:4]")).as_array.as_numbers;
+        bs_F64* tile_color_add = bs_fetchJson(&material_json, BS_JSON_UNDEFINED, BS_CONSTANT_STRING("tile_color_add[:4]")).as_array.as_numbers;
 
-        int image_size = bs_fetchJson(&material_json, BS_JSON_UNDEFINED, "image.size").as_number;
+        int image_size = bs_fetchJson(&material_json, BS_JSON_UNDEFINED, BS_CONSTANT_STRING("image.size")).as_number;
 
-        char* material_name = bs_fetchJson(&material_json, BS_JSON_STRING, "name").as_string;
+        char* material_name = bs_fetchJson(&material_json, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string;
 
-        bsgfx_Material* material = bsgfx_material(material_name);
+        bsgfx_Material* material = bsgfx_material(material_name, strlen(material_name));
         material->json_index = i;
         material->editable = true;
         *material->contract = (bsgfx_MaterialContract){
-            .color = color ? BSGFX_RGBA(color[0], color[1], color[2], color[3]) : bs_v4V1(1.0),
+            .color = color ? BSGFX_RGBA(color[0], color[1], color[2], color[3]) : (bs_vec4) { 1.0, 1.0, 1.0, 1.0 },
            // .image = image_size ? bsgfx_queryTexture(image_size, bs_fetchJson(&material_json, BS_JSON_STRING, "image.name").as_string) : 0,
            // .scale = image_size,
         };
@@ -143,7 +131,8 @@ void bsgfx_highlightMaterial(int material_id, bool auto_unhighlight) {
     bsgfx_MaterialContract* contract = bs_bufferMap(bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS)->buffer);
     contract += material_id;
 
-    contract->color.xyz = bs_v3Add(contract->color.xyz, bs_v3V1(0.25));
+    bs_v3Add(&contract->color.xyz, &(bs_vec3) { 0.25, 0.25, 0.25 }, &contract->color.xyz);
+
     material->highlighted = true;
     material->auto_unhighlight = auto_unhighlight;
 }
@@ -152,7 +141,9 @@ void bsgfx_unhighlightMaterial(int material_id) {
     bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials, material_id);
     bsgfx_MaterialContract* contract = bs_bufferMap(bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS)->buffer);
     contract += material_id;
-    contract->color.xyz = bs_v3Sub(contract->color.xyz, bs_v3V1(0.25));
+
+    bs_v3Sub(&contract->color.xyz, &(bs_vec3) { 0.25, 0.25, 0.25 }, & contract->color.xyz);
+
     material->highlighted = false;
 }
 

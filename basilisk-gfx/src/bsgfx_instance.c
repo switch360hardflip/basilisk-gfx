@@ -1,10 +1,7 @@
-#include <bsgfx_instance.h>
-#include <bsgfx.h>
-#include <bsgfx_scene.h>
-#include <bsgfx_pipeline.h>
+#include <basilisk-gfx.h>
 #include <bsgfx_cache.h>
+
 #include <assert.h>
-#include <bs_log.h>
 #include <bs_internal.h>
 
 static bs_List _bsgfx_subtype_data[BSGFX_MAX_NUM_SUBTYPES];
@@ -34,7 +31,7 @@ void bsgfx_iniInstances() {
 }
 
 void bsgfx_instanceType(int instance_type_id, int max_instance_count, int bind_set, int point) {
-	if (_poser->instance_buffers[instance_type_id]) return;
+	if (_poser_->instance_buffers[instance_type_id]) return;
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
 	
 	bs_Binding* binding = bs_queryBinding(bs_queryBindSet(bind_set), point);
@@ -46,18 +43,19 @@ void bsgfx_instanceType(int instance_type_id, int max_instance_count, int bind_s
 		usage_flags |= BS_BUFFER_USAGE_STORAGE_BUFFER_BIT | BS_BUFFER_USAGE_TRANSFER_DST_BIT | BS_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	else bs_throwBasilisk(BSX_INVALID_TYPE);
 
+	// TODO: wtf is this yo
 	VkDeviceSize atom_size = 64;
 
 	bs_U32 size = max_instance_count * sizeof(bsgfx_InstanceBuffer);
 	VkDeviceSize aligned_size =
 		(size + 64 - 1) & ~(atom_size - 1);
 
-	_poser->instance_buffers[instance_type_id] = bs_buffer(BS_BUFFER(-1, 0, 0), aligned_size, usage_flags, memory_flags, 0)->buffer;
+	_poser_->instance_buffers[instance_type_id] = bs_buffer(BS_BUFFER(-1, 0, 0), aligned_size, usage_flags, memory_flags, 0)->buffer;
 
-	bs_bindBuffer(bind_set, point, _poser->instance_buffers[instance_type_id]);
-	bs_mapBuffer(_poser->instance_buffers[instance_type_id], BS_U32_MAX);
+	bs_bindBuffer(bind_set, point, _poser_->instance_buffers[instance_type_id]);
+	bs_mapBuffer(_poser_->instance_buffers[instance_type_id], BS_U32_MAX);
 
-	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_settings()->frames_in_flight : 1;
+	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_scope()->window->frames_in_flight : 1;
 	for (int i = 0; i < num_swaps; i++) {
 		bsgfx_InstanceMetadata* metadata = buffer->_[i].data;
 		metadata->instance_types[instance_type_id].allocated = max_instance_count;
@@ -66,7 +64,7 @@ void bsgfx_instanceType(int instance_type_id, int max_instance_count, int bind_s
 
 void bsgfx_deleteSubtype(int subtype) {
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_settings()->frames_in_flight : 1;
+	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_scope()->window->frames_in_flight : 1;
 
 	for (int i = 0; i < num_swaps; i++) {
 		bsgfx_InstanceMetadata* metadata = buffer->_[i].data;
@@ -111,14 +109,14 @@ int bsgfx_subtypeCount(int instance_type_id) {
 }
 
 const int* bsgfx_subtypes() {
-	return _bsgfx_subtypes;
+	return _bsgfx_subtypes_;
 }
 
 int bsgfx_subtype(int instance_type_id, bs_Batch* batch, bs_U32 flags, bs_Range range) {
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_settings()->frames_in_flight : 1;
+	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_scope()->window->frames_in_flight : 1;
 
-	if (!_poser->instance_buffers[instance_type_id])
+	if (!_poser_->instance_buffers[instance_type_id])
 		bs_throwBasiliskF(BSX_UNINITIALIZED, "Cannot create subtype, instance type %d needs to be created first\n", instance_type_id);
 
 	int existing = -1;
@@ -165,17 +163,17 @@ int bsgfx_instance(int subtype, const char* data, int data_size, bs_U32 flags, u
 	assert(material <= 65536);
 
 	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	assert(_poser->instances_ticked == false);
+	assert(_poser_->instances_ticked == false);
 
 	bsgfx_InstanceMetadata* metadata = bs_bufferMap(metadata_buffer);
 
 	int instance_type = metadata->instance_subtypes[subtype].instance_type;
-	if (!_poser->instance_buffers[instance_type]) {
+	if (!_poser_->instance_buffers[instance_type]) {
 		bs_warnF("Instance type %d has not been created or has no subtypes!\n", instance_type);
 		return -1;
 	}
 
-	bsgfx_InstanceBuffer* instance_buffer = bs_bufferMap(_poser->instance_buffers[instance_type]);
+	bsgfx_InstanceBuffer* instance_buffer = bs_bufferMap(_poser_->instance_buffers[instance_type]);
 
 	if (!instance_buffer) {
 		bs_warnF("Instance buffer of type %d is unmapped\n", instance_type);
@@ -230,7 +228,7 @@ void bsgfx_tickInstances() {
 		struct bsgfx_InstanceTypeMetadata* type_metadata = metadata->instance_types + i;
 		if (type_metadata->count == 0) continue;
 
-		bsgfx_InstanceBuffer* first_instance = bs_bufferMap(_poser->instance_buffers[i]);
+		bsgfx_InstanceBuffer* first_instance = bs_bufferMap(_poser_->instance_buffers[i]);
 
 		for (int j = 0, offset = 0; j < metadata->subtypes_count; j++) {
 			if (metadata->instance_subtypes[j].instance_type != i) continue;
@@ -244,7 +242,7 @@ void bsgfx_tickInstances() {
 			offset += metadata->instance_subtypes[j].instance_count;
 		}
 
-		bs_bindBuffer(_poser->instance_buffers[i]->bind_set, _poser->instance_buffers[i]->binding, _poser->instance_buffers[i]);
+		bs_bindBuffer(_poser_->instance_buffers[i]->bind_set, _poser_->instance_buffers[i]->binding, _poser_->instance_buffers[i]);
 	}
 
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
@@ -281,7 +279,7 @@ void bsgfx_resetSubtype(int subtype) {
 	struct bsgfx_InstanceSubtypeMetadata* subtype_metadata = metadata->instance_subtypes + subtype;
 	struct bsgfx_InstanceTypeMetadata* type_metadata = metadata->instance_types + subtype_metadata->instance_type;
 
-	bsgfx_InstanceBuffer* instance = bs_bufferMap(_poser->instance_buffers[subtype_metadata->instance_type]);
+	bsgfx_InstanceBuffer* instance = bs_bufferMap(_poser_->instance_buffers[subtype_metadata->instance_type]);
 	int count = type_metadata->count;
 
 	for (int i = 0; i < count; i++) {
@@ -314,7 +312,7 @@ void bsgfx_resetInstances() {
 	//	assert(metadata->instance_types[i].count >= 0);
 	//}
 
-	_poser->instances_ticked = false;
+	_poser_->instances_ticked = false;
 }
 
 void bsgfx_destroyInstanceTypes() { // todo
@@ -323,19 +321,23 @@ void bsgfx_destroyInstanceTypes() { // todo
 void bsgfx_instanceHiResMesh(bs_Mesh* mesh, bs_vec3 position, bs_vec4 rotation, float scale, int subtype_offset, bool origin_at_center){
 	bs_vec3 min = mesh->aabb.min;
 	bs_vec3 max = mesh->aabb.max;
-	bs_vec3 size = bs_v3Sub(max, min);
+	bs_vec3 size;
+	bs_v3Sub(&max, &min, &size);
 
 	float max_dim = BS_MAX(BS_MAX(size.x, size.y), size.z);
 
 	float s = scale / max_dim;
-	bs_vec3 sc = bs_v3V1(s);
+	bs_vec3 sc = { s, s, s };
 
-	bs_vec3 center = bs_v3MulV1(bs_v3Add(min, max), 0.5f);
+	bs_vec3 center;
+	bs_v3Add(&min, &max, &center);
+	bs_v3MulV1(&center, 0.5f, &center);
 
 	bs_mat4 transform = bs_transform(position, rotation, sc);
 
 	if (!origin_at_center) {
-		bs_vec3 offset = bs_v3MulV1(center, -1);
+		bs_vec3 offset;
+		bs_v3MulV1(&center, -1, &offset);
 		bs_translateP(&transform, &offset);
 	}
 

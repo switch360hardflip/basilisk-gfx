@@ -4,6 +4,8 @@ project(basilisk-gfx)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+file(GLOB_RECURSE GENERATED_FILES "generated/*.*")
+
 file(GLOB SOURCE_FILES "src/*.c")
 
 file(GLOB TYPE_FILES "src/types/*.*")
@@ -40,6 +42,7 @@ add_library(${PROJECT_NAME} SHARED
     bsgfx_contracts.h
     ${SOURCE_FILES}
     ${HEADER_FILES}
+    ${GENERATED_FILES}
 
     ${ATLAS_FILES}
     ${FONT_FILES}
@@ -66,6 +69,7 @@ add_library(${PROJECT_NAME} SHARED
 
 source_group("Views" FILES ${VIEWS})
 source_group("Source Files" FILES ${SOURCE_FILES})
+source_group("Generated Files" FILES ${GENERATED_FILES})
 
 source_group("Source Files/Objects/Atlas" FILES ${ATLAS_FILES})
 source_group("Source Files/Objects/Clothing" FILES ${CLOTHING_FILES})
@@ -99,11 +103,13 @@ source_group("Headers" FILES ${HEADER_FILES})
 source_group("Project Files" FILES ${PROJECT_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
+    ${CMAKE_SOURCE_DIR}/basilisk-core/generated
     ${CMAKE_SOURCE_DIR}/basilisk-core/include
     ${CMAKE_SOURCE_DIR}/basilisk-steam/include
     ${CMAKE_SOURCE_DIR}/external
     ${CMAKE_SOURCE_DIR}/external/GFSDK_Aftermath_Lib
     ${CMAKE_SOURCE_DIR}/external/vulkan
+    generated/
     include/
     src/
     ${CMAKE_SOURCE_DIR}/include/objects/

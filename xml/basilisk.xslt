@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsl:stylesheet version="1.0"
+xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+
+	<xsl:template match="@*|node()">
+		<xsl:copy>
+			<xsl:apply-templates select="@*|node()"/>
+		</xsl:copy>
+    </xsl:template>
+
+    <xsl:template match="batchFunctionTemplate">
+        <function name="bs_batch{@name}">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <param><type>bs_U32*</type><name>offset</name></param>
+            <xsl:copy-of select="param"/>
+        </function>
+        <function name="bs_push{@name}">
+            <return>bs_Range</return>
+            <param><type>bs_Batch*</type><name>batch</name></param>
+            <xsl:copy-of select="param"/>
+        </function>
+    </xsl:template>
+
+    <xsl:template match="registry/enums">
+        <enums>
+            <xsl:apply-templates select="@*|node()"/>
+            <xsl:apply-templates select="serializableEnum" mode="enum"/>
+        </enums>
+    </xsl:template>
+
+    <xsl:template match="registry/functions">
+        <functions>
+            <xsl:apply-templates select="@*|node()"/>
+            <xsl:apply-templates select="/registry/enums/serializableEnum" mode="function"/>
+        </functions>
+    </xsl:template>
+
+    <xsl:template match="serializableEnum" mode="enum">
+        <enum name="bs_{@name}">
+            <xsl:copy-of select="line"/>
+        </enum>
+    </xsl:template>
+
+    <xsl:template match="serializableEnum" mode="function">
+        <function name="bs_serialize{@name}">
+            <return>const char*</return>
+            <param><type>bs_<xsl:value-of select="@name"/></type><name>e</name></param>
+            <body>
+                <xsl:choose>
+                    <xsl:when test="@count">
+                        <xsl:text>    static const char*</xsl:text>
+                        <xsl:text> values[</xsl:text>
+                        <xsl:value-of select="@count"/>
+                        <xsl:text>] = {&#xA;</xsl:text>
+                        <xsl:for-each select="line">
+                            <xsl:if test="not(name = ../@count)">
+                                <xsl:text>        [</xsl:text>
+                                <xsl:value-of select="name"/>
+                                <xsl:text>] = </xsl:text>
+                                <xsl:text>"</xsl:text>
+                                <xsl:value-of select="name"/>
+                                <xsl:text>",&#xA;</xsl:text>
+                            </xsl:if>
+                        </xsl:for-each>
+                        <xsl:text>    };&#xA;&#xA;</xsl:text>
+                        <xsl:text>    return values[e];</xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:text>    switch (e) {&#xA;</xsl:text>
+                        <xsl:for-each select="line">
+                            <xsl:text>        case </xsl:text>
+                            <xsl:value-of select="name"/>
+                            <xsl:text>: return "</xsl:text>
+                            <xsl:value-of select="name"/>
+                            <xsl:text>";&#xA;</xsl:text>
+                        </xsl:for-each>
+                        <xsl:text>    }&#xA;&#xA;    return NULL;</xsl:text>
+                    </xsl:otherwise>
+                </xsl:choose>
+
+            </body>
+        </function>
+        <xsl:if test="@deserialize = 'true'">
+            <function name="bs_deserialize{@name}">
+                <return>bs_<xsl:value-of select="@name"/></return>
+                <param><type>const char*</type><name>value</name></param>
+                <body>
+                    <xsl:text>    </xsl:text>
+                    <xsl:for-each select="line">
+                        <xsl:text>if (strcmp(value, "</xsl:text>
+                        <xsl:value-of select="name"/>
+                        <xsl:text>") == 0) return </xsl:text>
+                        <xsl:value-of select="name"/>
+                        <xsl:text>;&#xA;</xsl:text>
+                        <xsl:if test="not(position() = last())">
+                            <xsl:text>    else </xsl:text>
+                        </xsl:if>
+                    </xsl:for-each>
+                    <xsl:text>&#xA;    bs_warnF("Failed to deserialize enum value \"%s\"\n", value);&#xA;</xsl:text>
+                    <xsl:text>    return 0;</xsl:text>
+                </body>
+            </function>
+        </xsl:if>
+    </xsl:template>
+
+    <xsl:template match="variadicStringTemplate">
+        <function name="{@name}">
+            <xsl:copy-of select="return | param"/>
+            <xsl:choose>
+                <xsl:when test="@string">
+                    <param><type>char*</type><name><xsl:value-of select="@string"/></name></param>
+                    <param><type>int</type><name><xsl:value-of select="@string"/>_length</name></param>
+                </xsl:when>
+                <xsl:otherwise>
+                    <param><type>char*</type><name>value</name></param>
+                    <param><type>int</type><name>value_length</name></param>
+                </xsl:otherwise>
+            </xsl:choose>
+        </function>
+
+        <function name="{@name}V" type="generated">
+            <xsl:copy-of select="return | param"/>
+            <param><type>char*</type><name>format</name></param>
+            <param><type>va_list</type><name>args</name></param>
+            <body>
+                <xsl:text>    int _length = bs_formatStringLength(format, args);&#xA;</xsl:text>
+                <xsl:text>    char* _formatted = bs_alloca(_length + 1);&#xA;</xsl:text>
+                <xsl:text>    vsnprintf(_formatted, _length + 1, format, args);&#xA;</xsl:text>
+                <xsl:text>    return </xsl:text>
+                <xsl:value-of select="@name"/>
+                <xsl:text>(</xsl:text>
+                <xsl:for-each select="param">
+                    <xsl:value-of select="name"/>
+                    <xsl:text>, </xsl:text>
+                </xsl:for-each>
+                <xsl:text>_formatted, _length);</xsl:text>
+            </body>
+        </function>
+
+        <function name="{@name}F" type="generated">
+            <xsl:copy-of select="return | param"/>
+            <param><type>char*</type><name>format</name></param>
+            <param><name>...</name></param>
+            <body>
+                <xsl:text>    va_list args;&#xA;</xsl:text>
+                <xsl:text>    va_start(args, format);&#xA;</xsl:text>
+
+                <xsl:text>    </xsl:text>
+                <xsl:if test="not(return = 'void')">
+                    <xsl:value-of select="return"/>
+                    <xsl:text> _return = </xsl:text>
+                </xsl:if>
+
+                <xsl:value-of select="@name"/>
+                <xsl:text>V(</xsl:text>
+                <xsl:for-each select="param">
+                    <xsl:value-of select="name"/>
+                    <xsl:text>, </xsl:text>
+                </xsl:for-each>
+                <xsl:text>format, args</xsl:text>
+
+                <xsl:text>);&#xA;    va_end(args);</xsl:text>
+
+                <xsl:if test="not(return = 'void')">
+                    <xsl:text>&#xA;    return _return;</xsl:text>
+                </xsl:if>
+
+
+            </body>
+        </function>
+    </xsl:template>
+    
+    <xsl:template match="matrixTemplate">
+        <xsl:choose>
+            <xsl:when test="rows = columns">
+                <xsl:variable name="name" select="rows"/>
+                <function name="bs_m{$name}Mul">
+                    <return>void</return>
+                    <param><type>const bs_mat<xsl:value-of select="$name"/>*</type><name>a</name></param>
+                    <param><type>const bs_mat<xsl:value-of select="$name"/>*</type><name>b</name></param>
+                    <param><type>const bs_mat<xsl:value-of select="$name"/>*</type><name>result</name></param>
+                    <body>    glm_mat<xsl:value-of select="$name"/>_mul(a->v, b->v, result->v);</body>
+                </function>
+                <function name="bs_m{$name}Transpose">
+                    <return>void</return>
+                    <param><type>const bs_mat<xsl:value-of select="$name"/>*</type><name>m</name></param>
+                    <param><type>const bs_mat<xsl:value-of select="$name"/>*</type><name>result</name></param>
+                    <body>    glm_mat<xsl:value-of select="$name"/>_transpose_to(m->v, result->v);</body>
+                </function>
+                <function name="bs_m{$name}Inverse">
+                    <return>void</return>
+                    <param><type>const bs_mat<xsl:value-of select="$name"/>*</type><name>m</name></param>
+                    <param><type>const bs_mat<xsl:value-of select="$name"/>*</type><name>result</name></param>
+                    <body>    glm_mat<xsl:value-of select="$name"/>_inv(m->v, result->v);</body>
+                </function>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:variable name="name" select="concat(rows, concat('x', columns))"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+
+    <xsl:template match="vectorTemplate">
+		<function name="bs_v{n}">
+            <return>bs_vec<xsl:value-of select="n"/></return>
+            <xsl:for-each select="components/component">
+                <param><type>float</type><name><xsl:value-of select="."/></name></param>
+            </xsl:for-each>
+            <body>    return (bs_vec<xsl:value-of select="n"/>) { <xsl:for-each select="components/component"><xsl:value-of select="."/><xsl:if test="not(position() = last())">, </xsl:if></xsl:for-each> };</body>
+		</function>
+		<function name="bs_v{n}Add">
+			<return>void</return>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>a</name></param>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>b</name></param>
+			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
+			<body>    glm_vec<xsl:value-of select="n"/>_add(a->a, b->a, out->a);</body>
+		</function>
+		<function name="bs_v{n}Sub">
+			<return>void</return>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>a</name></param>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>b</name></param>
+			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
+			<body>    glm_vec<xsl:value-of select="n"/>_sub(a->a, b->a, out->a);</body>
+		</function>
+		<function name="bs_v{n}Mul">
+			<return>void</return>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>a</name></param>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>b</name></param>
+			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
+			<body>    glm_vec<xsl:value-of select="n"/>_mul(a->a, b->a, out->a);</body>
+		</function>
+		<function name="bs_v{n}Div">
+			<return>void</return>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>a</name></param>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>b</name></param>
+			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
+			<body>    glm_vec<xsl:value-of select="n"/>_div(a->a, b->a, out->a);</body>
+		</function>
+		<function name="bs_v{n}MulV1">
+			<return>void</return>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
+			<param><type>float</type><name>s</name></param>
+			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
+			<body>    glm_vec<xsl:value-of select="n"/>_scale(v->a, s, out->a);</body>
+		</function>
+		<function name="bs_v{n}DivV1">
+			<return>void</return>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
+			<param><type>float</type><name>s</name></param>
+			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
+			<body>    glm_vec<xsl:value-of select="n"/>_scale(v->a, 1.0 / s, out->a);</body>
+		</function>
+		<function name="bs_v{n}Dot">
+			<return>float</return>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>a</name></param>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>b</name></param>
+			<body>    glm_vec<xsl:value-of select="n"/>_dot(a->a, b->a);</body>
+        </function>
+		<function name="bs_v{n}Magnitude">
+			<return>float</return>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
+			<body>    return glm_vec<xsl:value-of select="n"/>_norm(v->a);</body>
+        </function>
+		<function name="bs_v{n}MagnitudeSqrd">
+			<return>float</return>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
+			<body>    return glm_vec<xsl:value-of select="n"/>_norm2(v->a);</body>
+		</function>
+		<function name="bs_v{n}Normalize">
+			<return>void</return>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
+			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
+			<body>    glm_vec<xsl:value-of select="n"/>_normalize_to(v->a, out->a);</body>
+        </function>
+		<function name="bs_v{n}Lerp">
+			<return>void</return>
+			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>from</name></param>
+            <param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>to</name></param>
+            <param comment="Interpolant (amount) clamped between 0 and 1"><type>float</type><name>t</name></param>
+			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
+            <body><xsl:for-each select="components/component">    out-><xsl:value-of select="."/> = bs_lerp(from-><xsl:value-of select="."/>, to-><xsl:value-of select="."/>, t);<xsl:if test="not(position() = last())"><xsl:text>&#xA;</xsl:text></xsl:if></xsl:for-each></body>
+        </function>
+	</xsl:template>
+
+</xsl:stylesheet>

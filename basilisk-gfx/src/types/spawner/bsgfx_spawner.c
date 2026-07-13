@@ -87,11 +87,11 @@ static void bsgfx_onClickDeleteSpawner(bool confirm, struct bsgfx_SpawnerMenuPar
 }
 
 static bool bsgfx_instanceSpawner(bs_vec3 position, int id, const char* material) {
-    bsgfx_meshInstance(_bsgfx_subtypes[BSGFX_SUBTYPE_BIPYRAMID], &(bsgfx_MeshInstance) {
+    bsgfx_meshInstance(_bsgfx_subtypes_[BSGFX_SUBTYPE_BIPYRAMID], &(bsgfx_MeshInstance) {
         .transform = bs_rotate(bs_translate(BS_MAT4_IDENTITY, bs_v3AddY(position, 1.0)), bs_qFromDegreesV3(0.0, bs_elapsedTime() * 60.0, 0.0))
     }, 0, id, bsgfx_queryMaterial(material)->id);
 
-    return _poser->hovering.subtype == _bsgfx_subtypes[BSGFX_SUBTYPE_BIPYRAMID] && _poser->hovering.instance_id == id;
+    return _poser_->hovering.subtype == _bsgfx_subtypes_[BSGFX_SUBTYPE_BIPYRAMID] && _poser_->hovering.instance_id == id;
 }
 
 void bsgfx_instanceSpawners() {
@@ -132,7 +132,7 @@ void bsgfx_instanceSpawners() {
             break;
         }
         
-        if (hovering && !_poser->menu_blocked) {
+        if (hovering && !_poser_->menu_blocked) {
             //if (!bsgfx_quickMenuEnabled())
             //    bsgfx_instanceHint(bs_windowCursorPosition(), name);
 

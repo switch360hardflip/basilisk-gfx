@@ -92,8 +92,8 @@ void bsgfx_map(bsgfx_TypeId type_id, int id) {
         bsgfx_getRaw(type_id, id),
         bsgfx_get(type_id, id));
 
-    if (_bsgfx_procs.bsmod_onMap)
-        _bsgfx_procs.bsmod_onMap(type_id, id);
+    if (_bsgfx_procs_.bsmod_onMap)
+        _bsgfx_procs_.bsmod_onMap(type_id, id);
 }
 
 void bsgfx_remap(bsgfx_TypeId type_id) {

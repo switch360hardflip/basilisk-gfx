@@ -2801,6 +2801,10 @@ static bs_Config* _preval_bs_config() {
     return next.bs_config();
 }
 
+static bs_Scope* _preval_bs_scope() {
+    return next.bs_scope();
+}
+
 static void _preval_bs_system(char* command, char* value, int value_length) {
     if (command == NULL)
         return;
@@ -4462,6 +4466,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_features = _preval_bs_features;
     functions.bs_props = _preval_bs_props;
     functions.bs_config = _preval_bs_config;
+    functions.bs_scope = _preval_bs_scope;
     functions.bs_system = _preval_bs_system;
     functions.bs_createThread = _preval_bs_createThread;
     functions.bs_formatStringLength = _preval_bs_formatStringLength;

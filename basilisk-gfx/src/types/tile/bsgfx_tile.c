@@ -162,11 +162,15 @@ bs_vec3 bsgfx_tilePosition(bsgfx_Primitive* primitive, int axis, int x, int y) {
         ax->start_sign.z * primitive->scale.z
     });
 
-    start = bs_v3Add(start, primitive->position);
+    bs_v3Add(&start, &primitive->position, &start);
 
     bs_vec3 tile_origin = start;
-    tile_origin = bs_v3Add(tile_origin, bs_v3MulV1(right, (float)x));
-    tile_origin = bs_v3Add(tile_origin, bs_v3MulV1(up, (float)y));
+    bs_vec3 right_scaled;
+    bs_v3MulV1(&right, (float)x, &right_scaled);
+    bs_v3Add(&tile_origin, &right_scaled, &tile_origin);
+    bs_vec3 up_scaled;
+    bs_v3MulV1(&up, (float)y, &up_scaled);
+    bs_v3Add(&tile_origin, &up_scaled, &tile_origin);
 
     return tile_origin;
 }
@@ -176,7 +180,8 @@ bs_vec4 bsgfx_tileRotation(int axis) {
 
     bs_vec3 right = ax->right;
     bs_vec3 up = ax->normal;
-    bs_vec3 forward = bs_v3Cross(right, up);
+    bs_vec3 forward;
+    bs_v3Cross(&right, &up, &forward);
 
     bs_mat3 m = {
         right.x, up.x, forward.x,
@@ -252,16 +257,23 @@ bs_U32 bsgfx_pushTileAt(
         ax->start_sign.z * primitive->scale.z
     });
 
-    start = bs_v3Add(start, primitive->position);
+    bs_v3Add(&start, &primitive->position, &start);
 
     bs_vec3 tile_origin = start;
-    tile_origin = bs_v3Add(tile_origin, bs_v3MulV1(right, (float)x));
-    tile_origin = bs_v3Add(tile_origin, bs_v3MulV1(up, (float)y));
+    bs_vec3 right_scaled;
+    bs_v3MulV1(&right, (float)x, &right_scaled);
+    bs_v3Add(&tile_origin, &right_scaled, &tile_origin);
+    bs_vec3 up_scaled;
+    bs_v3MulV1(&up, (float)y, &up_scaled);
+    bs_v3Add(&tile_origin, &up_scaled, &tile_origin);
 
     bs_vec3 a = tile_origin;
-    bs_vec3 b = bs_v3Add(a, right);
-    bs_vec3 c = bs_v3Add(a, up);
-    bs_vec3 d = bs_v3Add(c, right);
+    bs_vec3 b;
+    bs_v3Add(&a, &right, &b);
+    bs_vec3 c;
+    bs_v3Add(&a, &up, &c);
+    bs_vec3 d;
+    bs_v3Add(&c, &right, &d);
 
     bs_Quad quad = {
         .a = a, .b = b, .c = c, .d = d,

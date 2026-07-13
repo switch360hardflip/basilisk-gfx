@@ -1,13 +1,6 @@
-#include <bs_internal.h> 
-#include <basilisk-core.h>
-#include <bs_base64.h> 
+#include <basilisk-gfx.h>
 
-#include <bsgfx.h>
-#include <bsgfx_material.h>
 #include <UI/bsgfx_ui.h>
-#include <bsgfx_cache.h>
-#include <bsgfx_pipeline.h>
-#include <bsgfx_shadows.h>
 
 #include <spawners/item/bsgfx_item.h>
 #include <types/primitive/bsgfx_primitive.h>
@@ -17,13 +10,14 @@
 #include <math.h>
 #include <assert.h>
 
+/*
 #ifdef _DEBUG
 #include <GFSDK_Aftermath_GpuCrashDump.h>
 #endif
-
-#define BSGFX_SUN_DIRECTION bs_v3NormalizeV3(-0.3, -0.8, -0.4)
+*/
 
 void bsgfx_onDeviceLost() {
+    /*
 #ifdef _DEBUG
     GFSDK_Aftermath_CrashDump_Status status = 0;
     bsgfx_checkGFSDK(GFSDK_Aftermath_GetCrashDumpStatus(&status));
@@ -40,8 +34,8 @@ void bsgfx_onDeviceLost() {
         bs_checkTimer(&timer);
     }
 #endif
-
-    bs_throwBasilisk(BSX_DEVICE_LOST);
+*/
+    //bs_critical(BS_CONSTANT_STRING("Device lost"));
 }
 
 
@@ -76,8 +70,8 @@ static void bsgfx_onTileFinishedRender() {
 }
 
 static void bsgfx_shadowedGeometryPipe() {
-    if (_bsgfx_callbacks.render)
-        _bsgfx_callbacks.render();
+    if (_bsgfx_callbacks_.render)
+        _bsgfx_callbacks_.render();
 
         /**
         Primitives / Meshes
@@ -89,7 +83,7 @@ static void bsgfx_shadowedGeometryPipe() {
         struct {
             bs_mat4 camera;
         } push_const = {
-            .camera = _poser->camera.result,
+            .camera = _poser_->camera.result,
         };
 
         hash = (bs_PipelineHash){
@@ -105,7 +99,7 @@ static void bsgfx_shadowedGeometryPipe() {
 
         bs_endComment();
 
-        bsgfx_renderPrimitives(_poser->camera.result);
+        bsgfx_renderPrimitives(_poser_->camera.result);
     }
 
     bsgfx_renderScenePrefabs();
@@ -127,9 +121,9 @@ static void bsgfx_shadowedGeometryPipe() {
             .skip_depth_write = true
         });
 
-        bs_beginComment("Atlas");
-        bs_pushConstant(pipeline, 0, sizeof(_poser->world_camera.result), &_poser->world_camera.result);
-        bsgfx_renderSubtype(_bsgfx_subtypes[BSGFX_SUBTYPE_ATLAS], pipeline);
+        bs_beginComment(BS_CONSTANT_STRING("Atlas"));
+        bs_pushConstant(pipeline, 0, sizeof(_poser_->world_camera.result), &_poser_->world_camera.result);
+        bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS], pipeline);
         bs_endComment();
 
     }
@@ -137,21 +131,20 @@ static void bsgfx_shadowedGeometryPipe() {
    /**
     Foliage
     */
-    if (bs_exists(BSGFX_BATCHES, BSGFX_BATCH_FOLIAGE)
-        && _bsgfx_settings.draw_foliage
+    if (bs_exists(BSGFX_BATCHES, BSGFX_BATCH_FOLIAGE) && _bsgfx_settings_.draw_foliage
 //#ifdef _DEBUG
         // TODO: screenshot reimplementation
 //        && bsmod.queue.isolated_subtype == 0
 //#endif
         ) {
-        bs_beginComment("Atlas");
+        bs_beginComment(BS_CONSTANT_STRING("Foliage"));
         struct {
             bs_mat4 camera;
             float elapsed;
             float padding;
             bs_vec2 resolution;
         } push_const = {
-            .camera = _poser->camera.result,
+            .camera = _poser_->camera.result,
             .elapsed = bs_elapsedTime(),
             .resolution = bs_v2Iv2(bs_resolution()),
         };
@@ -174,14 +167,14 @@ static void bsgfx_shadowedGeometryPipe() {
         bs_endComment();
     }
 
-    if (_bsgfx_settings.draw_sprites) {
+    if (_bsgfx_settings_.draw_sprites) {
         struct {
             bs_mat4 camera;
             float elapsed;
             float padding;
             bs_vec2 resolution;
         } push_const = {
-            .camera = _poser->world_camera.result,
+            .camera = _poser_->world_camera.result,
             .elapsed = bs_elapsedTime(),
             .resolution = bs_v2Iv2(bs_resolution()),
         };
@@ -209,7 +202,7 @@ static void bsgfx_unshadowedGeometryPipe() {
             bs_mat4 camera;
             bs_vec4 uv;
         } mesh_push_const = {
-            .camera = _poser->camera.result,
+            .camera = _poser_->camera.result,
             .uv = bs_atlasCoordinates(atlas, bs_queryAtlas(atlas, "white"), 0),
         };
 
@@ -222,8 +215,8 @@ static void bsgfx_unshadowedGeometryPipe() {
                 .topology_type = BS_TOPOLOGY_POINT_LIST,
             });
 
-            bs_pushConstant(pipeline, 0, sizeof(_poser->camera.result), &_poser->camera.result);
-            bsgfx_renderSubtype(_bsgfx_subtypes[BSGFX_SUBTYPE_POINT], pipeline);
+            bs_pushConstant(pipeline, 0, sizeof(_poser_->camera.result), &_poser_->camera.result);
+            bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_POINT], pipeline);
         }
 
         {
@@ -235,8 +228,8 @@ static void bsgfx_unshadowedGeometryPipe() {
                 .topology_type = BS_TOPOLOGY_LINE_LIST,
             });
 
-            bs_pushConstant(pipeline, 0, sizeof(_poser->camera.result), &_poser->camera.result);
-            bsgfx_renderSubtype(_bsgfx_subtypes[BSGFX_SUBTYPE_LINE], pipeline);
+            bs_pushConstant(pipeline, 0, sizeof(_poser_->camera.result), &_poser_->camera.result);
+            bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_LINE], pipeline);
         }
 
         {
@@ -248,8 +241,8 @@ static void bsgfx_unshadowedGeometryPipe() {
                 .topology_type = BS_TOPOLOGY_LINE_LIST,
             });
 
-            bs_pushConstant(pipeline, 0, sizeof(_poser->screen_camera.result), &_poser->screen_camera.result);
-            bsgfx_renderSubtype(_bsgfx_subtypes[BSGFX_SUBTYPE_LINE_2D], pipeline);
+            bs_pushConstant(pipeline, 0, sizeof(_poser_->screen_camera.result), &_poser_->screen_camera.result);
+            bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_LINE_2D], pipeline);
         }
 
         {
@@ -262,8 +255,8 @@ static void bsgfx_unshadowedGeometryPipe() {
                 .skip_depth_test = true,
             });
 
-            bs_pushConstant(pipeline, 0, sizeof(_poser->camera.result), &_poser->camera.result);
-            bsgfx_renderSubtype(_bsgfx_subtypes[BSGFX_SUBTYPE_LINE_DEPTHLESS], pipeline);
+            bs_pushConstant(pipeline, 0, sizeof(_poser_->camera.result), &_poser_->camera.result);
+            bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_LINE_DEPTHLESS], pipeline);
         }
 
         if (bs_exists(BSGFX_BATCHES, BSGFX_BATCH_SPHERE_INSTANCED)) {
@@ -277,7 +270,7 @@ static void bsgfx_unshadowedGeometryPipe() {
                 });
 
                 bs_pushConstant(pipeline, 0, sizeof(mesh_push_const), &mesh_push_const);
-                bsgfx_renderSubtype(_bsgfx_subtypes[BSGFX_SUBTYPE_SPHERE_MESH], pipeline);
+                bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_SPHERE_MESH], pipeline);
             }
 
             {
@@ -290,7 +283,7 @@ static void bsgfx_unshadowedGeometryPipe() {
                 });
 
                 bs_pushConstant(pipeline, 0, sizeof(mesh_push_const), &mesh_push_const);
-                bsgfx_renderSubtype(_bsgfx_subtypes[BSGFX_SUBTYPE_CONE_MESH], pipeline);
+                bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_CONE_MESH], pipeline);
             }
         }
     }
@@ -313,11 +306,11 @@ static void bsgfx_unshadowedGeometryPipe() {
     BSGFX_IMAGE_LO_RES_INDEX
   */
 static void bsgfx_loResSubpass0() {
-    bs_beginComment("Low Resolution Subpass 0");
+    bs_beginComment(BS_CONSTANT_STRING("Low Resolution Subpass 0"));
 
     bsgfx_shadowedGeometryPipe();
 
-    bs_beginComment("Fonts");
+    bs_beginComment(BS_CONSTANT_STRING("Fonts"));
     //bsgfx_renderFontSubtypes();
     bs_endComment();
    /**
@@ -368,7 +361,7 @@ static void bsgfx_loResSubpass0() {
 
         //bs_pushConstant(pipeline, 0, sizeof(poser->static_camera.result), &poser->static_camera.result);
         //bsgfx_renderPrefabs(pipeline, BSGFX_PREFAB_SUBTYPE_MESH);
-       // bs_pushConstant(pipeline, 0, sizeof(_poser->static_camera.result), &_poser->static_camera.result);
+       // bs_pushConstant(pipeline, 0, sizeof(_poser_->static_camera.result), &_poser_->static_camera.result);
        // bsgfx_renderPrefabPrimitives(pipeline, BSGFX_PREFAB_SUBTYPE_PRIMITIVE);
     }
 
@@ -381,7 +374,7 @@ static void bsgfx_loResSubpass0() {
   Writes to BSGFX_IMAGE_LO_RES_RESULT
   */
 static void bsgfx_loResSubpass1() {
-    bs_beginComment("Low Resolution Subpass 1");
+    bs_beginComment(BS_CONSTANT_STRING("Low Resolution Subpass 1"));
 
     if (bs_exists(BSGFX_BATCHES, BSGFX_BATCH_SCREEN)) {
         bs_barrier(0,
@@ -403,8 +396,8 @@ static void bsgfx_loResSubpass1() {
             float elapsed;
          //   int noise;
         } push_const = {
-            .offset_x = _poser->world_camera.position.x / (bs_resolution().x / BSGFX_PIXEL_SCALE),
-            .offset_y = _poser->world_camera.position.y / (bs_resolution().y / BSGFX_PIXEL_SCALE),
+            .offset_x = _poser_->world_camera.position.x / (bs_resolution().x / BSGFX_PIXEL_SCALE),
+            .offset_y = _poser_->world_camera.position.y / (bs_resolution().y / BSGFX_PIXEL_SCALE),
             .elapsed = bs_elapsedTime(),
          //   .noise = bsgfx_queryTexture(512, "noise_00"),
         };
@@ -439,19 +432,19 @@ static void bsgfx_loResUISubpass0_renderPreviousPass() {
         float pad;
         bs_vec2 resolution;
     } push_const = {
-        .inv_proj = bs_m4Inverse(_poser->camera.proj),
         .selected_color = bs_v3(1.0, 1.0, 1.0),
         .elapsed = bs_elapsedTime(),
-        .light_direction = _poser->sun_direction,
+        .light_direction = _poser_->sun_direction,
         .resolution = bs_v2Iv2(bs_resolution()),
     };
+    bs_m4Inverse(&_poser_->camera.proj, &push_const.inv_proj);
 
   //  bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
     bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_SCREEN)->batch, pipeline, 0, 6, 0, 1);
 }
 
 static void bsgfx_loResUISubpass0() {
-    bs_beginComment("Low Resolution UI Subpass 0");
+    bs_beginComment(BS_CONSTANT_STRING("Low Resolution UI Subpass 0"));
 
     //bsgfx_loResUISubpass0_renderPreviousPass();
 
@@ -469,7 +462,7 @@ static void bsgfx_loResUISubpass0() {
   Writes to the swapchain (or whatever)
   */
 static void bsgfx_hiResSubpass0() {
-    bs_beginComment("High Resolution Subpass 0");
+    bs_beginComment(BS_CONSTANT_STRING("High Resolution Subpass 0"));
 
     bs_Renderer* renderer = bs_fetch(BSGFX_RENDERERS, BSGFX_RENDERER_HI_RES)->renderer;
 
@@ -492,12 +485,12 @@ static void bsgfx_hiResSubpass0() {
             float pad;
             bs_vec2 resolution;
         } push_const = {
-            .inv_proj = bs_m4Inverse(_poser->camera.proj),
             .selected_color = bs_v3(1.0, 1.0, 1.0),
             .elapsed = bs_elapsedTime(),
-            .light_direction = _poser->sun_direction,
+            .light_direction = _poser_->sun_direction,
             .resolution = bs_v2Iv2(bs_resolution()),
         };
+        bs_m4Inverse(&_poser_->camera.proj, &push_const.inv_proj);
 
         bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
         bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_SCREEN)->batch, pipeline, 0, 6, 0, 1);
@@ -532,8 +525,8 @@ static void bsgfx_hiResSubpass0() {
             BSGFX_TRANSPARENT_OPTIONS,
         });
 
-        bs_pushConstant(pipeline, 0, sizeof(_poser->screen_camera.result), &_poser->screen_camera.result);
-        bsgfx_renderSubtype(_bsgfx_subtypes[BSGFX_SUBTYPE_256_HI], pipeline);
+        bs_pushConstant(pipeline, 0, sizeof(_poser_->screen_camera.result), &_poser_->screen_camera.result);
+        bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_256_HI], pipeline);
     }
 
     {
@@ -543,7 +536,7 @@ static void bsgfx_hiResSubpass0() {
             float padding;
             bs_vec2 resolution;
         } push_const = {
-            .camera = _poser->screen_camera.result,
+            .camera = _poser_->screen_camera.result,
             .elapsed = bs_elapsedTime(),
             .resolution = bs_v2Iv2(bs_resolution()),
         };
@@ -556,7 +549,7 @@ static void bsgfx_hiResSubpass0() {
             BSGFX_TRANSPARENT_OPTIONS,
         });
         bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
-        bsgfx_renderSubtype(_bsgfx_subtypes[BSGFX_SUBTYPE_ATLAS_HI], pipeline);
+        bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_HI], pipeline);
     }
 
     {
@@ -582,8 +575,8 @@ static void bsgfx_hiResSubpass0() {
             BSGFX_TRANSPARENT_OPTIONS,
         });
 
-        bs_pushConstant(pipeline, 0, sizeof(_poser->screen_camera.result), &_poser->screen_camera.result);
-        bsgfx_renderSubtype(_bsgfx_subtypes[BSGFX_SUBTYPE_TILE_HI], pipeline);
+        bs_pushConstant(pipeline, 0, sizeof(_poser_->screen_camera.result), &_poser_->screen_camera.result);
+        bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_TILE_HI], pipeline);
     }
 
     bs_endComment();
@@ -628,8 +621,8 @@ static void bsgfx_graphicsPipe() {
        // bsgfx_blitMinimap();
     }
 
-    if (_bsgfx_procs.bsmod_copyHoveringDataToBuffer)
-        _bsgfx_procs.bsmod_copyHoveringDataToBuffer();
+    if (_bsgfx_procs_.bsmod_copyHoveringDataToBuffer)
+        _bsgfx_procs_.bsmod_copyHoveringDataToBuffer();
     //bsgfx_doCursorReads();
 
 }
@@ -690,10 +683,7 @@ void bsgfx_pipeline() {
     if (compute_queue) {
        // Enqueue dispatch commands and block the CPU until completion
         bs_enqueue(compute_queue, bsgfx_computePipe);
-        bs_except(BSX_DEVICE_LOST);
         bs_stall(compute_queue);
-        if (bs_caught())
-            bsgfx_onDeviceLost();
     }
 
    /** 
@@ -706,14 +696,11 @@ void bsgfx_pipeline() {
         bs_awaitQueue(compute_queue, BS_PIPELINE_STAGE_VERTEX_INPUT_BIT);
     bs_enqueue(graphics_queue, bsgfx_graphicsPipe);
 
-    bs_except(BSX_DEVICE_LOST);
     bs_stall(graphics_queue);
-    if (bs_caught())
-        bsgfx_onDeviceLost();
 
     bs_Queue* bsmod_queue = NULL;
-    if (_bsgfx_procs.bsmod_onQueue)
-        bsmod_queue = _bsgfx_procs.bsmod_onQueue();
+    if (_bsgfx_procs_.bsmod_onQueue)
+        bsmod_queue = _bsgfx_procs_.bsmod_onQueue();
 
     bs_Queue* last_queue = bsmod_queue ? bsmod_queue : graphics_queue;
     bs_present(last_queue, last_queue, NULL);

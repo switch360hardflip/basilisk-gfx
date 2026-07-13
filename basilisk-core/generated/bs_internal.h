@@ -30,12 +30,12 @@
   the code is regenerated.
   */
         
-#ifndef BS_INTERNAL_H
-#define BS_INTERNAL_H
-
 #include <basilisk-core.h>
 #include <windows.h>
 #include <vulkan.h>
+
+#ifndef BS_INTERNAL_H
+#define BS_INTERNAL_H
 
 #define BS_FOREACH_PROC(X) \
     X(PFN_vkCmdInsertDebugUtilsLabelEXT, vkCmdInsertDebugUtilsLabelEXT) \
@@ -352,6 +352,7 @@ typedef bs_Args*(__stdcall* PFN_bs_args)();
 typedef bs_Features*(__stdcall* PFN_bs_features)();
 typedef bs_Props*(__stdcall* PFN_bs_props)();
 typedef bs_Config*(__stdcall* PFN_bs_config)();
+typedef bs_Scope*(__stdcall* PFN_bs_scope)();
 typedef void(__stdcall* PFN_bs_system)(char* command, char* value, int value_length);
 typedef void(__stdcall* PFN_bs_createThread)(bs_ThreadFunction function, void* param);
 typedef int(__stdcall* PFN_bs_formatStringLength)(const char* format, va_list args);
@@ -839,6 +840,7 @@ typedef struct {
     PFN_bs_features bs_features;
     PFN_bs_props bs_props;
     PFN_bs_config bs_config;
+    PFN_bs_scope bs_scope;
     PFN_bs_system bs_system;
     PFN_bs_createThread bs_createThread;
     PFN_bs_formatStringLength bs_formatStringLength;
@@ -1335,6 +1337,7 @@ static inline bs_FunctionTable _bs_getFunctions() {
     functions.bs_features = (PFN_bs_features)GetProcAddress(module, "_bs_features");
     functions.bs_props = (PFN_bs_props)GetProcAddress(module, "_bs_props");
     functions.bs_config = (PFN_bs_config)GetProcAddress(module, "_bs_config");
+    functions.bs_scope = (PFN_bs_scope)GetProcAddress(module, "_bs_scope");
     functions.bs_system = (PFN_bs_system)GetProcAddress(module, "_bs_system");
     functions.bs_createThread = (PFN_bs_createThread)GetProcAddress(module, "_bs_createThread");
     functions.bs_formatStringLength = (PFN_bs_formatStringLength)GetProcAddress(module, "_bs_formatStringLength");

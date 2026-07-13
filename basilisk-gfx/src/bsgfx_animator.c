@@ -1,12 +1,7 @@
-#include <bsgfx_animator.h>
-#include <bs_types.h>
-#include <bs_mem.h>
-#include <bs_models.h>
+#include <basilisk-gfx.h>
 #include <assert.h>
 
 #include <string.h>
-#include <bsgfx.h>
-#include <bs_log.h>
 
 int bsgfx_animationFrame(bs_Animation* animation, float time, int num_frames) {
     return time / animation->length * (float)(num_frames);
@@ -55,7 +50,9 @@ void bsgfx_applyAnimationVelocity(bsgfx_Animator* animator, bs_vec3* velocity, b
     bs_vec3 current_translation = animation->bones[root_id].translations[frame + 1].value;
     bs_vec4 current_rotation = animation->bones[root_id].rotations[frame + 1].value;
 
-    bs_vec3 translation_diff = bs_v3MulV1(bs_v3Sub(current_translation, previous_translation), -1);
+    bs_vec3 translation_diff;
+    bs_v3Sub(&current_translation, &previous_translation, &translation_diff);
+    bs_v3MulV1(&translation_diff, -1, &translation_diff);
 
     velocity->x += input.x * translation_diff.z;
     //  velocity.y += -diff.y;
@@ -154,21 +151,21 @@ void bsgfx_runAnimator(bsgfx_Animator* animator, bsgfx_AnimatorCallbacks callbac
         animation->bones[root_id].rotations_count =
         animation->bones[root_id].scalings_count = 0;
 
-    assert(_bsgfx_shader_joints != NULL);
+    assert(_bsgfx_shader_joints_ != NULL);
     for (int i = 0; i < BS_MIN(animation->bones_count, armature->bones_count); i++)
-        _bsgfx_shader_joints[animator->skeleton + i] = armature->bones[i].matrix;
+        _bsgfx_shader_joints_[animator->skeleton + i] = armature->bones[i].matrix;
 
     animator->exit = callbacks.once_per_exit;
 }
 
 int bsgfx_skeleton(bs_Armature* armature) {
-    assert(_bsgfx_shader_joints);
+    assert(_bsgfx_shader_joints_);
     for (int i = 0; i < armature->bones_count; i++)
-        _bsgfx_shader_joints[_bsgfx_num_shader_joints + i] = BS_MAT4_IDENTITY;
-    _bsgfx_num_shader_joints += armature->bones_count;
+        _bsgfx_shader_joints_[_bsgfx_num_shader_joints_ + i] = BS_MAT4_IDENTITY;
+    _bsgfx_num_shader_joints_ += armature->bones_count;
 
     bs_infoF("Created skeleton for armature %s\n", armature->name);
-    return _bsgfx_num_shader_joints - armature->bones_count;
+    return _bsgfx_num_shader_joints_ - armature->bones_count;
 }
 
 bsgfx_Animator bsgfx_animator(bs_Armature* armature, int resting_animation_id, int animations_count) {

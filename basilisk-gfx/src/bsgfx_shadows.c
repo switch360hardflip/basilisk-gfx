@@ -1,7 +1,4 @@
-#include <bsgfx_shadows.h>
-#include <bsgfx_scene.h>
-#include <bsgfx.h>
-#include <bs_log.h>
+#include <basilisk-gfx.h>
 #include <types/prefab/bsgfx_prefab.h>
 
 enum {
@@ -72,11 +69,11 @@ void bsgfx_computeShadowVolumes() {
         int exclude_flag;
     } push_constant = { 0 };
 
-    push_constant.light_direction = _poser->sun_direction;
+    push_constant.light_direction = _poser_->sun_direction;
     push_constant.subtype_offset = 0;
     push_constant.subtype_count = -1;
 
-    if (_poser->current_level != BSGFX_SCENE_MENU) {
+    if (_poser_->current_level != BSGFX_SCENE_MENU) {
         bs_Pipeline* pipeline = bs_computePipeline($cs_mesh_volume(), 0);
 
         push_constant.id = BSGFX_SHADOW_COMPUTATION_MESH;
@@ -88,7 +85,7 @@ void bsgfx_computeShadowVolumes() {
         bs_dispatchAsync(pipeline, 1, 1, 1);
     }
 
-    if (_poser->current_level != BSGFX_SCENE_MENU) {
+    if (_poser_->current_level != BSGFX_SCENE_MENU) {
         bs_Pipeline* pipeline = bs_computePipeline($cs_bone_volume(), 0);
 
         push_constant.id = BSGFX_SHADOW_COMPUTATION_MESH;
@@ -100,7 +97,7 @@ void bsgfx_computeShadowVolumes() {
         bs_dispatchAsync(pipeline, 1, 1, 1);
     }
 
-    if (_poser->current_level != BSGFX_SCENE_MENU) {
+    if (_poser_->current_level != BSGFX_SCENE_MENU) {
         bs_Pipeline* pipeline = bs_computePipeline($cs_textured_volume(), 0);
 
         push_constant.id = BSGFX_SHADOW_COMPUTATION_MESH_TEXTURED;
@@ -184,7 +181,7 @@ void bsgfx_renderShadowVolumes() {
     if (count > BSGFX_NUM_SHADOW_VERTICES)
         bs_throwBasiliskF(BSX_OUT_OF_BOUNDS, "Compute shader generated %d/%d vertices", count, BSGFX_NUM_SHADOW_VERTICES);
 
-    bs_pushConstant(volume_pipeline, 0, sizeof(_poser->camera.result), &_poser->camera.result);
+    bs_pushConstant(volume_pipeline, 0, sizeof(_poser_->camera.result), &_poser_->camera.result);
     bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_VOLUME_COMPUTED)->batch, volume_pipeline, 0, count, 0, 1);
 
     bs_barrier(0,
@@ -215,7 +212,7 @@ static int bsgfx_comparePrefabDepths(const bsgfx_Prefab** ap, const bsgfx_Prefab
 
 void bsgfx_renderFineShadowVolumes() {
     return;
-    bs_beginComment("Shadow Volumes (Fine)");
+    bs_beginComment(BS_CONSTANT_STRING("Shadow Volumes (Fine)"));
 
     bs_barrier(0,
         BS_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
@@ -291,8 +288,8 @@ void bsgfx_renderFineShadowVolumes() {
 
     bs_clearStencil(0, bs_fetch(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_DEPTH)->image->dim, 0);
 
-    bsgfx_InstanceBuffer* first_instance = bs_bufferMap(_poser->instance_buffers[BSGFX_INSTANCE_TYPE_MESH]);
-    bsgfx_InstanceSubtypeMetadata* atlas_prefab_subtype = metadata->instance_subtypes + _bsgfx_subtypes[BSGFX_SUBTYPE_ATLAS_PREFAB_TRANSPARENT];
+    bsgfx_InstanceBuffer* first_instance = bs_bufferMap(_poser_->instance_buffers[BSGFX_INSTANCE_TYPE_MESH]);
+    bsgfx_InstanceSubtypeMetadata* atlas_prefab_subtype = metadata->instance_subtypes + _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_PREFAB_TRANSPARENT];
     bs_Batch* atlas_prefab_batch = bs_fetch(atlas_prefab_subtype->batch_source_id, atlas_prefab_subtype->batch_id)->batch;
 
     struct {
@@ -304,9 +301,9 @@ void bsgfx_renderFineShadowVolumes() {
         unsigned write_flags;
         int reserved;
     } volume_texture_const = {
-        .camera = _poser->camera.proj,
+        .camera = _poser_->camera.proj,
         .color = BSGFX_RGBA(BSGFX_SHADOW_COLOR.r, BSGFX_SHADOW_COLOR.g, BSGFX_SHADOW_COLOR.b, BSGFX_SHADOW_COLOR.a),
-        .light_direction = _poser->sun_direction,
+        .light_direction = _poser_->sun_direction,
         .first_triangle = 0,
         .write_flags = BSGFX_ID_IN_SHADOW
     };
@@ -315,7 +312,7 @@ void bsgfx_renderFineShadowVolumes() {
         bs_mat4 camera;
         bs_vec4 uv;
     } mesh_push_const = {
-        .camera = _poser->camera.result,
+        .camera = _poser_->camera.result,
     };
 
     bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
@@ -363,7 +360,7 @@ void bsgfx_renderFineShadowVolumes() {
 
         bs_clearStencil(0, bs_fetch(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_DEPTH)->image->dim, 0);
 
-        bs_pushConstant(volume_pipeline, 0, sizeof(_poser->camera.result), &_poser->camera.result);
+        bs_pushConstant(volume_pipeline, 0, sizeof(_poser_->camera.result), &_poser_->camera.result);
         bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_VOLUME_COMPUTED)->batch, volume_pipeline, index, volume_index_count, 0, 1);
 
         bs_barrier(0,
@@ -386,7 +383,7 @@ void bsgfx_renderFineShadowVolumes() {
         int prefab_id = instance->header.id;
         bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, prefab_id);
         bsgfx_RawPrefab* raw_prefab = bsgfx_getRaw(BSGFX_TYPE_PREFAB, prefab_id);
-        bs_Mesh* mesh = _bsgfx_prefab_model->meshes + prefab->mesh_id;
+        bs_Mesh* mesh = _bsgfx_prefab_model_->meshes + prefab->mesh_id;
 
         if (!(raw_prefab->flags & BSGFX_PREFAB_TEXTURED_SHADOWS))
             continue;
@@ -404,7 +401,7 @@ void bsgfx_renderFineShadowVolumes() {
 
         bs_clearStencil(0, bs_fetch(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_DEPTH)->image->dim, 0);
 
-        bs_pushConstant(volume_pipeline, 0, sizeof(_poser->camera.result), &_poser->camera.result);
+        bs_pushConstant(volume_pipeline, 0, sizeof(_poser_->camera.result), &_poser_->camera.result);
         bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_VOLUME_COMPUTED)->batch, volume_pipeline, index, volume_index_count, 0, 1);
 
         bs_barrier(0,

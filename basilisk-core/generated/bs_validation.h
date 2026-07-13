@@ -339,6 +339,7 @@ static inline bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_features = (PFN_bs_features)GetProcAddress(module, "_val_bs_features");
     functions.bs_props = (PFN_bs_props)GetProcAddress(module, "_val_bs_props");
     functions.bs_config = (PFN_bs_config)GetProcAddress(module, "_val_bs_config");
+    functions.bs_scope = (PFN_bs_scope)GetProcAddress(module, "_val_bs_scope");
     functions.bs_system = (PFN_bs_system)GetProcAddress(module, "_val_bs_system");
     functions.bs_createThread = (PFN_bs_createThread)GetProcAddress(module, "_val_bs_createThread");
     functions.bs_formatStringLength = (PFN_bs_formatStringLength)GetProcAddress(module, "_val_bs_formatStringLength");

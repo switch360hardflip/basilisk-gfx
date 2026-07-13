@@ -44,7 +44,7 @@ static inline void bsgfx_awaitComputeWrite() {
 }
 
 void bsgfx_computePrefabShadows() {
-    if (!_bsgfx_prefab_model)
+    if (!_bsgfx_prefab_model_)
         return;
     return;
 
@@ -79,7 +79,7 @@ void bsgfx_computePrefabShadows() {
         int exclude_flag;
     } push_constant = { 0 };
 
-    push_constant.light_direction = _poser->sun_direction;
+    push_constant.light_direction = _poser_->sun_direction;
     push_constant.subtype_offset = 0;
     push_constant.subtype_count = -1;
 
@@ -153,7 +153,7 @@ void bsgfx_renderPrefabShadowVolumes() {
     if (count > BSGFX_NUM_SHADOW_VERTICES)
         bs_throwBasiliskF(BSX_OUT_OF_BOUNDS, "Compute shader generated %d/%d vertices", count, BSGFX_NUM_SHADOW_VERTICES);
 
-    bs_pushConstant(volume_pipeline, 0, sizeof(_poser->camera.result), &_poser->camera.result);
+    bs_pushConstant(volume_pipeline, 0, sizeof(_poser_->camera.result), &_poser_->camera.result);
     bs_render(bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_PREFAB_SHADOWS)->batch, volume_pipeline, 0, count, 0, 1);
 
     bs_barrier(0,
@@ -175,7 +175,7 @@ void bsgfx_savePrefabs() {
 
     /*
     bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
-    bs_Model* model = _bsgfx_prefab_model;
+    bs_Model* model = _bsgfx_prefab_model_;
     bs_Json metadata = bs_emptyJson();
     for (int i = 0; i < bsgfx_prefabs_count; i++) {
         bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, i);
@@ -198,7 +198,7 @@ void bsgfx_savePrefabs() {
 #endif
 
 static void bsgfx_mapPrefab(bsgfx_RawPrefab* unmapped, bsgfx_Prefab* mapped) {
-    bs_Model* model = _bsgfx_prefab_model;
+    bs_Model* model = _bsgfx_prefab_model_;
     bs_except(BSX_FAILED_TO_QUERY);
     bs_Mesh* mesh = bs_queryMeshHash(model, unmapped->name_hash, NULL);
     bs_except(0);
@@ -226,7 +226,7 @@ static void bsgfx_mapPrefab(bsgfx_RawPrefab* unmapped, bsgfx_Prefab* mapped) {
 }
 
 static void bsgfx_destroyPrefabVarieties() {
-    bs_Model* model = _bsgfx_prefab_model;
+    bs_Model* model = _bsgfx_prefab_model_;
 
 
     if (bsgfx_prefabs) {
@@ -240,7 +240,7 @@ static void bsgfx_destroyPrefabVarieties() {
 
 /*
 static void bsgfx_loadPrefabVarieties() {
-    bs_Model* model = _bsgfx_prefab_model;
+    bs_Model* model = _bsgfx_prefab_model_;
     bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
     bs_Json json = bs_loadJson("resources/meshes.json");
 
@@ -286,7 +286,7 @@ void bsgfx_loadPrefabs(int package_id, bs_Model* model) {
 
     bs_Batch* batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_MESH_INSTANCED)->batch;
 
-    _bsgfx_prefab_model = model;
+    _bsgfx_prefab_model_ = model;
 
     bs_Batch* volume_batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_MESH_TYPE_VOLUME_COMPUTED)->batch;
     bsgfx_destroyPrefabVarieties();
@@ -343,7 +343,7 @@ void bsgfx_loadPrefabs(int package_id, bs_Model* model) {
         }
 
         // sktchy
-//        bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, BSGFX_MESH_KEY_SPHERE, BSGFX_BATCH_MESH_INSTANCED, 0, bs_pushSphere(batch, bs_v3V1(0), 1.0, 8, 8, BS_WHITE), true);
+//        bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, BSGFX_MESH_KEY_SPHERE, BSGFX_BATCH_MESH_INSTANCED, 0, bs_pushSphere(batch, (bs_vec3) { 0 }, 1.0, 8, 8, BS_WHITE), true);
 //        bs_Model* skateboard = bs_fetch(BS_SOURCE_GFX, BSGFX_MODEL_SKATEBOARD).model;
 //        bs_Range skateboard_range = bs_pushMesh(batch, bs_queryMesh(skateboard, "board"));
 //        bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, BSGFX_MODEL_SKATEBOARD, BSGFX_BATCH_MESH_INSTANCED, bsgfx_subtypes[BSGFX_SUBTYPE_HAS_SHADOWS, skateboard_range, true);
@@ -351,7 +351,7 @@ void bsgfx_loadPrefabs(int package_id, bs_Model* model) {
 //        bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, BSGFX_MESH_KEY_SKATEBOARD_WHEELS, BSGFX_BATCH_MESH_INSTANCED, bsgfx_subtypes[BSGFX_SUBTYPE_HAS_SHADOWS, bs_pushMesh(batch, bs_queryMesh(skateboard, "wheels")), true);
 
         bs_Quad plane = bs_quad(bs_v3(0, 0, 0), bs_v2(1, 1));
-        _bsgfx_subtypes[BSGFX_SUBTYPE_PLANE_MESH] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, batch, BSGFX_SUBTYPE_HAS_SHADOWS, bs_pushQuad(batch, plane, BS_WHITE));
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_PLANE_MESH] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, batch, BSGFX_SUBTYPE_HAS_SHADOWS, bs_pushQuad(batch, plane, BS_WHITE));
         bs_except(0);
     }
 
@@ -382,13 +382,13 @@ bs_mat4 bsgfx_prefabTransform(bsgfx_Prefab* prefab) {
 }
 
 int bsgfx_instancePrefabModel(int mesh_id, bs_mat4 transform, bsgfx_PrefabSubtype prefab_subtype, int material_id) {
-    bs_Mesh* mesh = _bsgfx_prefab_model->meshes + mesh_id;
+    bs_Mesh* mesh = _bsgfx_prefab_model_->meshes + mesh_id;
     int subtype = mesh->extra[prefab_subtype];
     return bsgfx_instance(subtype, &transform, sizeof(bs_mat4), BSGFX_ID_IS_PREFAB, 0, 0, material_id);
 }
 
 int bsgfx_instancePrefab(int id, bsgfx_PrefabSubtype prefab_subtype) {
-    assert(_bsgfx_prefab_model);
+    assert(_bsgfx_prefab_model_);
 
     bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, id);
     bsgfx_RawPrefab* raw_prefab = bsgfx_getRaw(BSGFX_TYPE_PREFAB, id);
@@ -396,7 +396,7 @@ int bsgfx_instancePrefab(int id, bsgfx_PrefabSubtype prefab_subtype) {
     if (prefab->mesh_id < 0)
         return -1;
 
-    bs_Mesh* mesh = _bsgfx_prefab_model->meshes + prefab->mesh_id;
+    bs_Mesh* mesh = _bsgfx_prefab_model_->meshes + prefab->mesh_id;
     bs_mat4 transform = bsgfx_prefabTransform(prefab);
     int subtype = mesh->extra[prefab_subtype];
     int material = prefab->material_id;
@@ -420,14 +420,14 @@ int bsgfx_instancePrefab(int id, bsgfx_PrefabSubtype prefab_subtype) {
             if (!(raw_prefab->flags & BSGFX_PREFAB_HIDDEN)) {
                 bs_mat4x3 mat = bs_m4x3(quad_transform);
                 if (raw_prefab->flags & BSGFX_PREFAB_WRITE_POSITION)
-                    quad_instance_offset = bsgfx_instanceQuad(_bsgfx_subtypes[BSGFX_SUBTYPE_ATLAS_PREFAB_TRANSPARENT], mat, coords, flags, id, 0);
+                    quad_instance_offset = bsgfx_instanceQuad(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_PREFAB_TRANSPARENT], mat, coords, flags, id, 0);
                 else
-                    quad_instance_offset = bsgfx_instanceQuad(_bsgfx_subtypes[BSGFX_SUBTYPE_ATLAS_PREFAB_TRANSPARENT], mat, coords, flags, id, 0);
+                    quad_instance_offset = bsgfx_instanceQuad(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_PREFAB_TRANSPARENT], mat, coords, flags, id, 0);
             }
         }
     }
 
-    //if (_bsgfx_procs.bsmod_isSelected && _bsgfx_procs.bsmod_isSelected(BSGFX_TYPE_PREFAB, id))
+    //if (_bsgfx_procs_.bsmod_isSelected && _bsgfx_procs_.bsmod_isSelected(BSGFX_TYPE_PREFAB, id))
     //    flags |= BSGFX_ID_SELECTED;
     return bsgfx_instance(subtype, &transform, sizeof(bs_mat4), flags, quad_instance_offset, id, material);
 }
@@ -437,7 +437,7 @@ void bsgfx_instancePrefabs() {
     if (count <= 0) return;
 
     bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
-    bs_Model* model = _bsgfx_prefab_model;
+    bs_Model* model = _bsgfx_prefab_model_;
 
     for (int i = 0; i < count; i++) {
         bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, i);
@@ -450,8 +450,8 @@ void bsgfx_instancePrefabs() {
 }
 
 void bsgfx_renderPrefabs(bs_Pipeline* pipeline, int key_start) {
-    assert(_bsgfx_prefab_model);
-    bs_Model* model = _bsgfx_prefab_model;
+    assert(_bsgfx_prefab_model_);
+    bs_Model* model = _bsgfx_prefab_model_;
 
     for (int i = 0; i < model->meshes_count; i++) {
         bs_Mesh* mesh = model->meshes + i;
@@ -463,7 +463,7 @@ void bsgfx_renderPrefabs(bs_Pipeline* pipeline, int key_start) {
 }
 
 void bsgfx_renderScenePrefabs() {
-    if (!_bsgfx_prefab_model)
+    if (!_bsgfx_prefab_model_)
         return;
 
     bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
@@ -473,9 +473,9 @@ void bsgfx_renderScenePrefabs() {
         bs_vec4 uv;
         bs_vec4 sun_direction;
     } mesh_push_const = {
-        .camera = _poser->camera.result,
+        .camera = _poser_->camera.result,
         .uv = bs_atlasCoordinates(atlas, bs_queryAtlas(atlas, "white"), 0),
-        .sun_direction.xyz = _poser->sun_direction,
+        .sun_direction.xyz = _poser_->sun_direction,
     };
 
     bs_PipelineHash hash = {
@@ -512,7 +512,7 @@ void bsgfx_renderPrefabPrimitives(bs_Pipeline* pipeline, int key_start) {
     if (bsgfx_count(BSGFX_TYPE_PREFAB) <= 0)
         return;
 
-    bs_Model* model = _bsgfx_prefab_model;
+    bs_Model* model = _bsgfx_prefab_model_;
 
     for (int i = 0; i < model->meshes_count; i++) {
         bs_Mesh* mesh = model->meshes + i;
@@ -545,7 +545,7 @@ int bsgfx_queryPrefabId(const bs_GUID* guid) {
 }
 
 int bsgfx_closestPrefab(bs_U64 mesh_name_hash, bs_vec3 position, float radius) {
-    bs_Model* model = _bsgfx_prefab_model;
+    bs_Model* model = _bsgfx_prefab_model_;
 
     // todo use sweep data somehow
     for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PREFAB); i++) {

@@ -240,7 +240,7 @@ void bsgfx_entityFromInventory(const char* script_name, int entity_id, int inven
 }
 
 static void bsgfx_applyPosition(bs_vec3* position, bs_vec3 velocity) {
-    *position = bs_v3Add(*position, velocity);
+    bs_v3Add(position, &velocity, position);
 }
 
 static void bsgfx_applyGravity(bs_vec3* velocity, float gravity) {
@@ -367,7 +367,8 @@ void bsgfx_tickEntities() {
                                     bs_Mesh* mesh = $items()->meshes + item->mesh_id;
 
                                     bs_mat4 bone_transform = bs_boneTransform(armature, &armature->bones[bone_id].bone);
-                                    bs_mat4 item_transform = bs_m4Mul(transform, bone_transform);
+                                    bs_mat4 item_transform;
+                                    bs_m4Mul(&transform, &bone_transform, &item_transform);
                                     bsgfx_instance(
                                         mesh->extra[BSGFX_ITEM_SUBTYPE],
                                         &item_transform,
