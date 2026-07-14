@@ -30,8 +30,8 @@
   the code is regenerated.
   */
         
-#include <basilisk-core.h>
-#include <bs_internal.h>
+#include <basilisk-core.gen.h>
+#include <bs_internal.gen.h>
 
 static bs_FunctionTable next = { 0 };
 
@@ -696,44 +696,44 @@ static void _preval_bs_m4Scale(const bs_mat4* m, const bs_vec3* v, bs_mat4* out)
     return next.bs_m4Scale(m, v, out);
 }
 
-static void _preval_bs_m3FromQ(const bs_mat3* m, bs_vec4* out) {
+static void _preval_bs_m3ToQ(const bs_mat3* m, bs_vec4* out) {
     if (m == NULL)
         return;
 
     if (out == NULL)
         return;
 
-    return next.bs_m3FromQ(m, out);
+    return next.bs_m3ToQ(m, out);
 }
 
-static void _preval_bs_m4FromQ(const bs_mat4* m, bs_vec4* out) {
+static void _preval_bs_m4ToQ(const bs_mat4* m, bs_vec4* out) {
     if (m == NULL)
         return;
 
     if (out == NULL)
         return;
 
-    return next.bs_m4FromQ(m, out);
+    return next.bs_m4ToQ(m, out);
 }
 
-static void _preval_bs_qFromM3(const bs_mat3* m, bs_vec4* out) {
-    if (m == NULL)
+static void _preval_bs_qToM3(const bs_vec4* q, bs_mat3* out) {
+    if (q == NULL)
         return;
 
     if (out == NULL)
         return;
 
-    return next.bs_qFromM3(m, out);
+    return next.bs_qToM3(q, out);
 }
 
-static void _preval_bs_qFromM4(const bs_mat4* m, bs_vec4* out) {
-    if (m == NULL)
+static void _preval_bs_qToM4(const bs_vec4* q, bs_mat4* out) {
+    if (q == NULL)
         return;
 
     if (out == NULL)
         return;
 
-    return next.bs_qFromM4(m, out);
+    return next.bs_qToM4(q, out);
 }
 
 static void _preval_bs_qNormalize(const bs_vec4* q, bs_vec4* out) {
@@ -757,6 +757,19 @@ static void _preval_bs_qSlerp(const bs_vec4* from, const bs_vec4* to, float t, b
         return;
 
     return next.bs_qSlerp(from, to, t, out);
+}
+
+static void _preval_bs_qRotateV3(const bs_vec4* q, const bs_vec3* v, bs_vec3* out) {
+    if (q == NULL)
+        return;
+
+    if (v == NULL)
+        return;
+
+    if (out == NULL)
+        return;
+
+    return next.bs_qRotateV3(q, v, out);
 }
 
 static void _preval_bs_qLongSlerp(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out) {
@@ -924,6 +937,20 @@ static float _preval_bs_radians(float degrees) {
     return next.bs_radians(degrees);
 }
 
+static bs_vec3 _preval_bs_hsvToRgb(const bs_vec3* hsv) {
+    if (hsv == NULL)
+        return (bs_vec3) { 0 };
+
+    return next.bs_hsvToRgb(hsv);
+}
+
+static bs_vec3 _preval_bs_rgbToHsv(const bs_vec3* rgb) {
+    if (rgb == NULL)
+        return (bs_vec3) { 0 };
+
+    return next.bs_rgbToHsv(rgb);
+}
+
 static bs_Result _preval_bs_convertVulkanResult(int code) {
     return next.bs_convertVulkanResult(code);
 }
@@ -1011,21 +1038,21 @@ static bool _preval_bs_sphereVsObbTest(const bs_vec3* center, float radius, cons
     return next.bs_sphereVsObbTest(center, radius, position, rotation, scale);
 }
 
-static void _preval_bs_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_SphereVsBox* out) {
+static bool _preval_bs_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_SphereVsBox* out) {
     if (center == NULL)
-        return;
+        return false;
 
     if (position == NULL)
-        return;
+        return false;
 
     if (rotation == NULL)
-        return;
+        return false;
 
     if (scale == NULL)
-        return;
+        return false;
 
     if (out == NULL)
-        return;
+        return false;
 
     return next.bs_sphereVsObb(center, radius, position, rotation, scale, out);
 }
@@ -4395,12 +4422,13 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_m4Translate = _preval_bs_m4Translate;
     functions.bs_m4Rotate = _preval_bs_m4Rotate;
     functions.bs_m4Scale = _preval_bs_m4Scale;
-    functions.bs_m3FromQ = _preval_bs_m3FromQ;
-    functions.bs_m4FromQ = _preval_bs_m4FromQ;
-    functions.bs_qFromM3 = _preval_bs_qFromM3;
-    functions.bs_qFromM4 = _preval_bs_qFromM4;
+    functions.bs_m3ToQ = _preval_bs_m3ToQ;
+    functions.bs_m4ToQ = _preval_bs_m4ToQ;
+    functions.bs_qToM3 = _preval_bs_qToM3;
+    functions.bs_qToM4 = _preval_bs_qToM4;
     functions.bs_qNormalize = _preval_bs_qNormalize;
     functions.bs_qSlerp = _preval_bs_qSlerp;
+    functions.bs_qRotateV3 = _preval_bs_qRotateV3;
     functions.bs_qLongSlerp = _preval_bs_qLongSlerp;
     functions.bs_orthographic = _preval_bs_orthographic;
     functions.bs_perspective = _preval_bs_perspective;
@@ -4419,6 +4447,8 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_lerp = _preval_bs_lerp;
     functions.bs_degrees = _preval_bs_degrees;
     functions.bs_radians = _preval_bs_radians;
+    functions.bs_hsvToRgb = _preval_bs_hsvToRgb;
+    functions.bs_rgbToHsv = _preval_bs_rgbToHsv;
     functions.bs_convertVulkanResult = _preval_bs_convertVulkanResult;
     functions.bs_convertWin32Error = _preval_bs_convertWin32Error;
     functions.bs_serializeWin32Error = _preval_bs_serializeWin32Error;

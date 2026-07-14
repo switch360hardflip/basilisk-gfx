@@ -502,13 +502,41 @@ int bsgfx_instanceAtlasFlipped(
     return next.bsgfx_instanceAtlasFlipped(subtype, transform, texture, flags, id, material);
 }
 
-bs_Range bsgfx_instanceAtlas(
-    const bs_mat4* transform, 
-    int segments, 
-    float radius, 
-    bs_RGBA color)
+bs_vec2 bsgfx_instanceText(
+    int subtype, 
+    bs_Font* font, 
+    bsgfx_Text* params, 
+    char* value, 
+    int value_length)
 {
-    return next.bsgfx_instanceAtlas(transform, segments, radius, color);
+    return next.bsgfx_instanceText(subtype, font, params, value, value_length);
+}
+
+bs_vec2 bsgfx_instanceTextV(
+    int subtype, 
+    bs_Font* font, 
+    bsgfx_Text* params, 
+    char* format, 
+    va_list args)
+{
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bsgfx_instanceText(subtype, font, params, _formatted, _length);
+}
+
+bs_vec2 bsgfx_instanceTextF(
+    int subtype, 
+    bs_Font* font, 
+    bsgfx_Text* params, 
+    char* format, 
+    ...)
+{
+    va_list args;
+    va_start(args, format);
+    bs_vec2 _return = bsgfx_instanceTextV(subtype, font, params, format, args);
+    va_end(args);
+    return _return;
 }
 
 bs_mat4x3 bsgfx_matrix(

@@ -31,7 +31,7 @@
 #include <assert.h>
 
 #include <basilisk-core.h>
-#include <bs_internal.h>
+#include <bs_internal.gen.h>
 
 #define BS_FLAGSET(flag, cmp) ((flag >> cmp) & 0x01)
 #define BS_TTF_MAX_PTS 1024

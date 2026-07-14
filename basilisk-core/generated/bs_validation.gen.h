@@ -33,8 +33,8 @@
 #ifndef BS_VALIDATION_H
 #define BS_VALIDATION_H
 
-#include <basilisk-core.h>
-#include <bs_internal.h>
+#include <basilisk-core.gen.h>
+#include <bs_internal.gen.h>
 #include <windows.h>
 
 static inline bs_FunctionTable _val_bs_getFunctions() {
@@ -106,12 +106,13 @@ static inline bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_m4Translate = (PFN_bs_m4Translate)GetProcAddress(module, "_val_bs_m4Translate");
     functions.bs_m4Rotate = (PFN_bs_m4Rotate)GetProcAddress(module, "_val_bs_m4Rotate");
     functions.bs_m4Scale = (PFN_bs_m4Scale)GetProcAddress(module, "_val_bs_m4Scale");
-    functions.bs_m3FromQ = (PFN_bs_m3FromQ)GetProcAddress(module, "_val_bs_m3FromQ");
-    functions.bs_m4FromQ = (PFN_bs_m4FromQ)GetProcAddress(module, "_val_bs_m4FromQ");
-    functions.bs_qFromM3 = (PFN_bs_qFromM3)GetProcAddress(module, "_val_bs_qFromM3");
-    functions.bs_qFromM4 = (PFN_bs_qFromM4)GetProcAddress(module, "_val_bs_qFromM4");
+    functions.bs_m3ToQ = (PFN_bs_m3ToQ)GetProcAddress(module, "_val_bs_m3ToQ");
+    functions.bs_m4ToQ = (PFN_bs_m4ToQ)GetProcAddress(module, "_val_bs_m4ToQ");
+    functions.bs_qToM3 = (PFN_bs_qToM3)GetProcAddress(module, "_val_bs_qToM3");
+    functions.bs_qToM4 = (PFN_bs_qToM4)GetProcAddress(module, "_val_bs_qToM4");
     functions.bs_qNormalize = (PFN_bs_qNormalize)GetProcAddress(module, "_val_bs_qNormalize");
     functions.bs_qSlerp = (PFN_bs_qSlerp)GetProcAddress(module, "_val_bs_qSlerp");
+    functions.bs_qRotateV3 = (PFN_bs_qRotateV3)GetProcAddress(module, "_val_bs_qRotateV3");
     functions.bs_qLongSlerp = (PFN_bs_qLongSlerp)GetProcAddress(module, "_val_bs_qLongSlerp");
     functions.bs_orthographic = (PFN_bs_orthographic)GetProcAddress(module, "_val_bs_orthographic");
     functions.bs_perspective = (PFN_bs_perspective)GetProcAddress(module, "_val_bs_perspective");
@@ -130,6 +131,8 @@ static inline bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_lerp = (PFN_bs_lerp)GetProcAddress(module, "_val_bs_lerp");
     functions.bs_degrees = (PFN_bs_degrees)GetProcAddress(module, "_val_bs_degrees");
     functions.bs_radians = (PFN_bs_radians)GetProcAddress(module, "_val_bs_radians");
+    functions.bs_hsvToRgb = (PFN_bs_hsvToRgb)GetProcAddress(module, "_val_bs_hsvToRgb");
+    functions.bs_rgbToHsv = (PFN_bs_rgbToHsv)GetProcAddress(module, "_val_bs_rgbToHsv");
     functions.bs_convertVulkanResult = (PFN_bs_convertVulkanResult)GetProcAddress(module, "_val_bs_convertVulkanResult");
     functions.bs_convertWin32Error = (PFN_bs_convertWin32Error)GetProcAddress(module, "_val_bs_convertWin32Error");
     functions.bs_serializeWin32Error = (PFN_bs_serializeWin32Error)GetProcAddress(module, "_val_bs_serializeWin32Error");

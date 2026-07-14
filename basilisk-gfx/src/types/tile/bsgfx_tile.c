@@ -1,7 +1,7 @@
+#include <basilisk-gfx.h>
 #include <types/tile/bsgfx_tile.h>
 #include <types/primitive/bsgfx_primitive.h>
 #include <../bsgfx_contracts.h>
-#include <bsgfx.h>
 
 
 
@@ -71,7 +71,7 @@ bs_ivec2 bsgfx_tileCoordinate(
 {
     int local = index - primitive->first_tile;
     if (local < 0)
-        return bs_iv2(BS_I32_MAX, BS_I32_MAX);
+        return BS_IV2(BS_I32_MAX, BS_I32_MAX);
 
     for (int a = 0; a < axis; a++) {
         bsgfx_TileAxis* ax_prev = &bsgfx_tile_axes[a];
@@ -86,7 +86,7 @@ bs_ivec2 bsgfx_tileCoordinate(
 
     int width = (int)(primitive->scale.a[ax->width_axis] * 2.0f);
 
-    return bs_iv2(local % width, local / width);
+    return BS_IV2(local % width, local / width);
 }
 
 int bsgfx_tileAxis(bsgfx_Primitive* primitive, int index) {
@@ -153,14 +153,14 @@ bs_U32 bsgfx_tileIndex(
 bs_vec3 bsgfx_tilePosition(bsgfx_Primitive* primitive, int axis, int x, int y) {
     bsgfx_TileAxis* ax = &bsgfx_tile_axes[axis];
 
-    bs_vec3 right = bs_qRotateVec3(&primitive->rotation, &ax->right);
-    bs_vec3 up = bs_qRotateVec3(&primitive->rotation, &ax->up);
-
-    bs_vec3 start = bs_qRotateVec3(&primitive->rotation, &(bs_vec3) {
+    bs_vec3 right, up, start;
+    bs_qRotateV3(&primitive->rotation, &ax->right, &right);
+    bs_qRotateV3(&primitive->rotation, &ax->up, &up);
+    bs_qRotateV3(&primitive->rotation, &(bs_vec3) {
         ax->start_sign.x * primitive->scale.x,
         ax->start_sign.y * primitive->scale.y,
         ax->start_sign.z * primitive->scale.z
-    });
+    }, &start);
 
     bs_v3Add(&start, &primitive->position, &start);
 
@@ -189,7 +189,10 @@ bs_vec4 bsgfx_tileRotation(int axis) {
         right.z, up.z, forward.z
     };
 
-    return bs_qFromMat3(m);
+    bs_vec4 result;
+    bs_m3ToQ(&m, &result);
+
+    return;
 }
 
 bs_vec3 bsgfx_tileEulerRotation(int axis) {
@@ -247,15 +250,16 @@ bs_U32 bsgfx_pushTileAt(
 {
     bsgfx_TileAxis* ax = &bsgfx_tile_axes[axis];
 
-    bs_vec3 right = bs_qRotateVec3(&primitive->rotation, &ax->right);
-    bs_vec3 up = bs_qRotateVec3(&primitive->rotation, &ax->up);
-    bs_vec3 normal = bs_qRotateVec3(&primitive->rotation, &ax->normal);
+    bs_vec3 right, up, normal, start;
+    bs_qRotateV3(&primitive->rotation, &ax->right, &right);
+    bs_qRotateV3(&primitive->rotation, &ax->up, &up);
+    bs_qRotateV3(&primitive->rotation, &ax->normal, &normal);
 
-    bs_vec3 start = bs_qRotateVec3(&primitive->rotation, &(bs_vec3) {
+    bs_qRotateV3(&primitive->rotation, &(bs_vec3) {
         ax->start_sign.x * primitive->scale.x,
         ax->start_sign.y * primitive->scale.y,
         ax->start_sign.z * primitive->scale.z
-    });
+    }, &start);
 
     bs_v3Add(&start, &primitive->position, &start);
 
@@ -321,32 +325,49 @@ static bs_U32 bsgfx_pushTileAxis(
    *============================================================================*/
 
 static void bsgfx_loadTileTextures(int package_id) {
+    bs_Result result;
+
     if (bsgfx_count(BSGFX_TYPE_PRIMITIVE) == 0) // todo better check
         return;
 
-    bs_Object* tile_image = bs_loadImage(BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_TILE, BS_OBJECT_FORCE_DESTROY), package_id, "textureArrays/tiles", BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_DST_BIT);
-    if (!tile_image)
+    bs_Object* tile_image = BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_TILE, BS_OBJECT_FORCE_DESTROY);
+    result = bs_loadImage(
+        tile_image, 
+        package_id, 
+        BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_DST_BIT,
+        BS_CONSTANT_STRING("textureArrays/tiles")
+    );
+    if (result != BS_RESULT_OK)
         return;
 
     // white image buffer
-    bs_Buffer* staging_buffer = bs_buffer(BS_BUFFER(-1, 0, 0), BSGFX_TILE_SIZE.x * BSGFX_TILE_SIZE.y * 4,
+    bs_Object* staging_buffer = BS_BUFFER(-1, 0, 0);
+    result = bs_buffer(staging_buffer, 
+        BSGFX_TILE_SIZE.x * BSGFX_TILE_SIZE.y * 4,
         BS_BUFFER_USAGE_TRANSFER_SRC_BIT,
         BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | BS_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        0)->buffer;
+        0
+    );
+    if (result != BS_RESULT_OK)
+        return;
 
-    bs_mapBuffer(staging_buffer, BS_U32_MAX);
+    result = bs_mapBuffer(staging_buffer, BS_U32_MAX);
+    if (result != BS_RESULT_OK)
+        return;
 
    // bs_foreachFile(bsgfx_loadTileTexture, &offset, "textures/tiles/");
 
-    bs_bindImages(BSGFX_SET_34_24, BSGFX_BINDING_34_24, &(bs_ImageDescriptor) {
+    result = bs_bindImages(BSGFX_SET_34_24, BSGFX_BINDING_34_24, &(bs_ImageDescriptor) {
         .image = tile_image->image,
         .sampler = bs_fetch(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)->sampler,
         .layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
     }, 1);
+    if (result != BS_RESULT_OK)
+        return;
 
     bs_destroyBuffer(staging_buffer);
 
-    bs_infoF("Loaded tile textures\n");
+    bs_info(BS_CONSTANT_STRING("Loaded tile textures\n"));
 }
 
 static void bsgfx_mapTile(const bsgfx_RawTile* unmapped, bsgfx_Tile* mapped) {
@@ -364,9 +385,8 @@ static void bsgfx_mapTile(const bsgfx_RawTile* unmapped, bsgfx_Tile* mapped) {
         // .tile_type = unmapped->tile_type,
     };
 
-    bs_except(BSX_FAILED_TO_QUERY);
     int primitive_id = bsgfx_queryPrimitive(&unmapped->primitive);
-    if (!bs_caught()) {
+    if (primitive_id >= 0) {
         bsgfx_RawPrimitive* raw_primitive = bsgfx_getRaw(BSGFX_TYPE_PRIMITIVE, primitive_id);
         bsgfx_RawPrimitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, primitive_id);
         mapped->index = bsgfx_tileIndex(primitive, mapped->axis, mapped->coords.x, mapped->coords.y);
@@ -374,8 +394,9 @@ static void bsgfx_mapTile(const bsgfx_RawTile* unmapped, bsgfx_Tile* mapped) {
 }
 
 void bsgfx_loadTiles(int package_id, bool force_destroy) {
+    bs_Result result;
+
     bsgfx_loadTileTextures(package_id);
-    bs_except(BSX_FAILED_TO_QUERY);
 
     bsgfx_type(
         BSGFX_TYPE_TILE,
@@ -384,15 +405,14 @@ void bsgfx_loadTiles(int package_id, bool force_destroy) {
         "tiles", "tile",
         sizeof(bsgfx_RawTile), sizeof(bsgfx_Tile), bsgfx_mapTile,
         0, 0, 0, 0);
-    bs_except(0);
 
-    bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_PRIMITIVE_TILES, force_destroy ? BS_OBJECT_FORCE_DESTROY : 0), sizeof(bs_U32), $vs_bsgfx_tile_static(), 0)->batch;
-    bs_except(BSX_NOT_FOUND);
-    bs_Batch* batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_PRIMITIVE_TILES)->batch;
-    if (bs_except(0))
+    bs_Object* primitive_tiles_object = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_PRIMITIVE_TILES, force_destroy ? BS_OBJECT_FORCE_DESTROY : 0);
+    result = bs_batch(primitive_tiles_object, sizeof(bs_U32), $vs_bsgfx_tile_static(), 0);
+    if (result != BS_RESULT_OK)
         return;
-    if (bs_batchIsPushed(batch))
-        bs_unpushBatch(batch);
+
+    if (bs_batchIsPushed(primitive_tiles_object->batch))
+        bs_unpushBatch(primitive_tiles_object->batch);
 
     int red_material = $red_material()->id;
 
@@ -402,7 +422,7 @@ void bsgfx_loadTiles(int package_id, bool force_destroy) {
         int primitive_id = bsgfx_queryPrimitive(&raw_tile->primitive);
         bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, primitive_id);
 
-        bsgfx_pushTileAt(batch, primitive, tile->axis, tile->coords.x, tile->coords.y, tile->index, tile->image_index);
+        bsgfx_pushTileAt(primitive_tiles_object->batch, primitive, tile->axis, tile->coords.x, tile->coords.y, tile->index, tile->image_index);
     }
 
     /*
@@ -434,10 +454,10 @@ void bsgfx_loadTiles(int package_id, bool force_destroy) {
             continue;
 
         for (int j = 0; j < 6; j++) {
-            index = bsgfx_pushTileAxis(batch, primitive, j, index);
+            index = bsgfx_pushTileAxis(primitive_tiles_object->batch, primitive, j, index);
         }
     }
-    bs_pushBatch(batch, BS_U32_MAX, BS_U32_MAX);
+    bs_pushBatch(primitive_tiles_object->batch, BS_U32_MAX, BS_U32_MAX);
 }
 
 void bsgfx_instanceTiles() {

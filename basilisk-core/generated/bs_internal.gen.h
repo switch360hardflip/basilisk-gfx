@@ -30,7 +30,7 @@
   the code is regenerated.
   */
         
-#include <basilisk-core.h>
+#include <basilisk-core.gen.h>
 #include <windows.h>
 #include <vulkan.h>
 
@@ -119,12 +119,13 @@ typedef void(__stdcall* PFN_bs_m4MulV4)(const bs_mat4* m, const bs_vec4* v, bs_v
 typedef void(__stdcall* PFN_bs_m4Translate)(const bs_mat4* m, const bs_vec3* v, bs_mat4* out);
 typedef void(__stdcall* PFN_bs_m4Rotate)(const bs_mat4* m, const bs_vec4* q, bs_mat4* out);
 typedef void(__stdcall* PFN_bs_m4Scale)(const bs_mat4* m, const bs_vec3* v, bs_mat4* out);
-typedef void(__stdcall* PFN_bs_m3FromQ)(const bs_mat3* m, bs_vec4* out);
-typedef void(__stdcall* PFN_bs_m4FromQ)(const bs_mat4* m, bs_vec4* out);
-typedef void(__stdcall* PFN_bs_qFromM3)(const bs_mat3* m, bs_vec4* out);
-typedef void(__stdcall* PFN_bs_qFromM4)(const bs_mat4* m, bs_vec4* out);
+typedef void(__stdcall* PFN_bs_m3ToQ)(const bs_mat3* m, bs_vec4* out);
+typedef void(__stdcall* PFN_bs_m4ToQ)(const bs_mat4* m, bs_vec4* out);
+typedef void(__stdcall* PFN_bs_qToM3)(const bs_vec4* q, bs_mat3* out);
+typedef void(__stdcall* PFN_bs_qToM4)(const bs_vec4* q, bs_mat4* out);
 typedef void(__stdcall* PFN_bs_qNormalize)(const bs_vec4* q, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_qSlerp)(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out);
+typedef void(__stdcall* PFN_bs_qRotateV3)(const bs_vec4* q, const bs_vec3* v, bs_vec3* out);
 typedef void(__stdcall* PFN_bs_qLongSlerp)(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_orthographic)(float left, float right, float bottom, float top, float near_z, float far_z, bs_mat4* out);
 typedef void(__stdcall* PFN_bs_perspective)(float fov, float aspect, float near_z, float far_z, bs_mat4* out);
@@ -143,6 +144,8 @@ typedef bs_Quad(__stdcall* PFN_bs_quad)(bs_vec3 position, bs_vec2 dimensions);
 typedef float(__stdcall* PFN_bs_lerp)(float from, float to, float t);
 typedef float(__stdcall* PFN_bs_degrees)(float radians);
 typedef float(__stdcall* PFN_bs_radians)(float degrees);
+typedef bs_vec3(__stdcall* PFN_bs_hsvToRgb)(const bs_vec3* hsv);
+typedef bs_vec3(__stdcall* PFN_bs_rgbToHsv)(const bs_vec3* rgb);
 typedef bs_Result(__stdcall* PFN_bs_convertVulkanResult)(int code);
 typedef bs_Result(__stdcall* PFN_bs_convertWin32Error)(unsigned long code);
 typedef const char*(__stdcall* PFN_bs_serializeWin32Error)(unsigned long code);
@@ -155,7 +158,7 @@ typedef bs_Result(__stdcall* PFN_bs_ray)(bs_vec3 start, bs_vec3 direction, float
 typedef void(__stdcall* PFN_bs_rayVsObb)(const bs_Ray* ray, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_RayVsObb* out);
 typedef void(__stdcall* PFN_bs_sphereVsPoint)(bs_vec3 center, float radius, bs_vec3 point, bs_SphereVsPoint* out);
 typedef bool(__stdcall* PFN_bs_sphereVsObbTest)(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale);
-typedef void(__stdcall* PFN_bs_sphereVsObb)(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_SphereVsBox* out);
+typedef bool(__stdcall* PFN_bs_sphereVsObb)(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_SphereVsBox* out);
 typedef bool(__stdcall* PFN_bs_rectangleVsPoint)(const bs_vec2* position, const bs_vec2* dimensions, const bs_vec2* point);
 typedef void(__stdcall* PFN_bs_lineVsLine)(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_LineVsLine* out);
 typedef void(__stdcall* PFN_bs_populateVertexDeclaration)(bs_VertexDeclaration* declaration, bs_Attribute* attributes, int attributes_count);
@@ -622,12 +625,13 @@ typedef struct {
     PFN_bs_m4Translate bs_m4Translate;
     PFN_bs_m4Rotate bs_m4Rotate;
     PFN_bs_m4Scale bs_m4Scale;
-    PFN_bs_m3FromQ bs_m3FromQ;
-    PFN_bs_m4FromQ bs_m4FromQ;
-    PFN_bs_qFromM3 bs_qFromM3;
-    PFN_bs_qFromM4 bs_qFromM4;
+    PFN_bs_m3ToQ bs_m3ToQ;
+    PFN_bs_m4ToQ bs_m4ToQ;
+    PFN_bs_qToM3 bs_qToM3;
+    PFN_bs_qToM4 bs_qToM4;
     PFN_bs_qNormalize bs_qNormalize;
     PFN_bs_qSlerp bs_qSlerp;
+    PFN_bs_qRotateV3 bs_qRotateV3;
     PFN_bs_qLongSlerp bs_qLongSlerp;
     PFN_bs_orthographic bs_orthographic;
     PFN_bs_perspective bs_perspective;
@@ -646,6 +650,8 @@ typedef struct {
     PFN_bs_lerp bs_lerp;
     PFN_bs_degrees bs_degrees;
     PFN_bs_radians bs_radians;
+    PFN_bs_hsvToRgb bs_hsvToRgb;
+    PFN_bs_rgbToHsv bs_rgbToHsv;
     PFN_bs_convertVulkanResult bs_convertVulkanResult;
     PFN_bs_convertWin32Error bs_convertWin32Error;
     PFN_bs_serializeWin32Error bs_serializeWin32Error;
@@ -1134,12 +1140,13 @@ static inline bs_FunctionTable _bs_getFunctions() {
     functions.bs_m4Translate = (PFN_bs_m4Translate)GetProcAddress(module, "_bs_m4Translate");
     functions.bs_m4Rotate = (PFN_bs_m4Rotate)GetProcAddress(module, "_bs_m4Rotate");
     functions.bs_m4Scale = (PFN_bs_m4Scale)GetProcAddress(module, "_bs_m4Scale");
-    functions.bs_m3FromQ = (PFN_bs_m3FromQ)GetProcAddress(module, "_bs_m3FromQ");
-    functions.bs_m4FromQ = (PFN_bs_m4FromQ)GetProcAddress(module, "_bs_m4FromQ");
-    functions.bs_qFromM3 = (PFN_bs_qFromM3)GetProcAddress(module, "_bs_qFromM3");
-    functions.bs_qFromM4 = (PFN_bs_qFromM4)GetProcAddress(module, "_bs_qFromM4");
+    functions.bs_m3ToQ = (PFN_bs_m3ToQ)GetProcAddress(module, "_bs_m3ToQ");
+    functions.bs_m4ToQ = (PFN_bs_m4ToQ)GetProcAddress(module, "_bs_m4ToQ");
+    functions.bs_qToM3 = (PFN_bs_qToM3)GetProcAddress(module, "_bs_qToM3");
+    functions.bs_qToM4 = (PFN_bs_qToM4)GetProcAddress(module, "_bs_qToM4");
     functions.bs_qNormalize = (PFN_bs_qNormalize)GetProcAddress(module, "_bs_qNormalize");
     functions.bs_qSlerp = (PFN_bs_qSlerp)GetProcAddress(module, "_bs_qSlerp");
+    functions.bs_qRotateV3 = (PFN_bs_qRotateV3)GetProcAddress(module, "_bs_qRotateV3");
     functions.bs_qLongSlerp = (PFN_bs_qLongSlerp)GetProcAddress(module, "_bs_qLongSlerp");
     functions.bs_orthographic = (PFN_bs_orthographic)GetProcAddress(module, "_bs_orthographic");
     functions.bs_perspective = (PFN_bs_perspective)GetProcAddress(module, "_bs_perspective");
@@ -1158,6 +1165,8 @@ static inline bs_FunctionTable _bs_getFunctions() {
     functions.bs_lerp = (PFN_bs_lerp)GetProcAddress(module, "_bs_lerp");
     functions.bs_degrees = (PFN_bs_degrees)GetProcAddress(module, "_bs_degrees");
     functions.bs_radians = (PFN_bs_radians)GetProcAddress(module, "_bs_radians");
+    functions.bs_hsvToRgb = (PFN_bs_hsvToRgb)GetProcAddress(module, "_bs_hsvToRgb");
+    functions.bs_rgbToHsv = (PFN_bs_rgbToHsv)GetProcAddress(module, "_bs_rgbToHsv");
     functions.bs_convertVulkanResult = (PFN_bs_convertVulkanResult)GetProcAddress(module, "_bs_convertVulkanResult");
     functions.bs_convertWin32Error = (PFN_bs_convertWin32Error)GetProcAddress(module, "_bs_convertWin32Error");
     functions.bs_serializeWin32Error = (PFN_bs_serializeWin32Error)GetProcAddress(module, "_bs_serializeWin32Error");

@@ -24,7 +24,7 @@
   */ 
 
 #include <basilisk-core.h>
-#include <bs_internal.h>
+#include <bs_internal.gen.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -488,7 +488,6 @@ BSAPI bs_Range _bs_batchRange(bs_Batch* batch, bs_U32 offset) {
     return (bs_Range) { 
         .offset = offset, 
         .num = batch->indices.count - offset, 
-        .batch = batch,
     };
 }
 

@@ -33,7 +33,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include <basilisk-core.h>
-#include <bs_internal.h>
+#include <bs_internal.gen.h>
 
 const char* validation_layers[] = {
     "VK_LAYER_KHRONOS_validation"

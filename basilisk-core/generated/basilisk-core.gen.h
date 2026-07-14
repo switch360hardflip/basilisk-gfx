@@ -34,8 +34,8 @@
 #include <string.h>
 #include <stdbool.h>
 
-#ifndef BASILISK_CORE_H
-#define BASILISK_CORE_H
+#ifndef BASILISK_CORE_GEN_H
+#define BASILISK_CORE_GEN_H
 
 typedef union bs_vec2 bs_vec2;
 typedef union bs_vec3 bs_vec3;
@@ -222,24 +222,6 @@ typedef enum bs_BindType bs_BindType;
 
 #define BS_RGBA(r, g, b, a)                                          \
     (bs_RGBA) { r, g, b, a }
-
-#define BS_IV2(x, y)                                                 \
-    (bs_ivec2) { x, y }
-
-#define BS_V2(x, y)                                                  \
-    (bs_vec2) { x, y }
-
-#define BS_IV3(x, y, z)                                              \
-    (bs_ivec3) { x, y, z }
-
-#define BS_V3(x, y, z)                                               \
-    (bs_vec3) { x, y, z }
-
-#define BS_IV4(x, y, z, w)                                           \
-    (bs_ivec4) { x, y, z, w }
-
-#define BS_V4(x, y, z, w)                                            \
-    (bs_vec4) { x, y, z, w }
 
 #define BS_FLT_MAX                                                   \
     3.402823466e+38F
@@ -3976,7 +3958,7 @@ bs_m4Scale(
   @return void
   */
 BSAPI void
-bs_m3FromQ(
+bs_m3ToQ(
     const bs_mat3* m,
     bs_vec4* out);
 
@@ -3986,29 +3968,29 @@ bs_m3FromQ(
   @return void
   */
 BSAPI void
-bs_m4FromQ(
+bs_m4ToQ(
     const bs_mat4* m,
     bs_vec4* out);
 
  /**
-  @param m
+  @param q
   @param out
   @return void
   */
 BSAPI void
-bs_qFromM3(
-    const bs_mat3* m,
-    bs_vec4* out);
+bs_qToM3(
+    const bs_vec4* q,
+    bs_mat3* out);
 
  /**
-  @param m
+  @param q
   @param out
   @return void
   */
 BSAPI void
-bs_qFromM4(
-    const bs_mat4* m,
-    bs_vec4* out);
+bs_qToM4(
+    const bs_vec4* q,
+    bs_mat4* out);
 
  /**
   @param q
@@ -4033,6 +4015,18 @@ bs_qSlerp(
     const bs_vec4* to,
     float t,
     bs_vec4* out);
+
+ /**
+  @param q
+  @param v
+  @param out
+  @return void
+  */
+BSAPI void
+bs_qRotateV3(
+    const bs_vec4* q,
+    const bs_vec3* v,
+    bs_vec3* out);
 
  /**
   @param from
@@ -4259,6 +4253,22 @@ bs_radians(
     float degrees);
 
  /**
+  @param hsv
+  @return bs_vec3
+  */
+BSAPI bs_vec3
+bs_hsvToRgb(
+    const bs_vec3* hsv);
+
+ /**
+  @param rgb
+  @return bs_vec3
+  */
+BSAPI bs_vec3
+bs_rgbToHsv(
+    const bs_vec3* rgb);
+
+ /**
   @param code
   @return bs_Result
   */
@@ -4387,9 +4397,9 @@ bs_sphereVsObbTest(
   @param rotation
   @param scale
   @param out
-  @return void
+  @return bool
   */
-BSAPI void
+BSAPI bool
 bs_sphereVsObb(
     const bs_vec3* center,
     float radius,

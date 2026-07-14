@@ -38,9 +38,13 @@
 #include <string.h>
 #include <stdbool.h>
 
-#ifndef BASILISK_GFX_H
-#define BASILISK_GFX_H
+#ifndef BASILISK_GFX_GEN_H
+#define BASILISK_GFX_GEN_H
 
+typedef struct bsgfx_Text bsgfx_Text;
+typedef struct bsgfx_MeshInstance bsgfx_MeshInstance;
+typedef struct bsgfx_BoneInstance bsgfx_BoneInstance;
+typedef struct bsgfx_QuadInstance bsgfx_QuadInstance;
 typedef struct bsgfx_Scene bsgfx_Scene;
 typedef struct bsgfx_Material bsgfx_Material;
 typedef struct bsgfx_Collider bsgfx_Collider;
@@ -420,6 +424,30 @@ typedef bool (__stdcall* PFN_bsmod_isSelected)(enum bsgfx_TypeId type, int id);
 typedef bool (__stdcall* PFN_bs_hoveringGrid)();
 typedef void (__stdcall* PFN_bsmod_onMap)(enum bsgfx_TypeId type_id, int id);
 typedef void (__stdcall* PFN_bsmod_onCreateSubtypes)(bs_Range range);
+struct bsgfx_Text {
+    bs_vec4 position;
+    float scale;
+    float max_length;
+    bs_U32 flags;
+    int select_start, select_end;
+    int material_id;
+    bs_RGBA colors[8];
+};
+
+struct bsgfx_MeshInstance {
+    bs_mat4 transform;
+};
+
+struct bsgfx_BoneInstance {
+    bs_mat4 transform;
+};
+
+struct bsgfx_QuadInstance {
+    bs_mat4x3 transform;
+    bs_vec2 coords;
+    bs_vec2 offset;
+};
+
 struct bsgfx_Scene {
     const char* name;
     bs_U64 name_hash;
@@ -1393,18 +1421,52 @@ bsgfx_instanceAtlasFlipped(
     int material);
 
  /**
-  @param transform
-  @param segments
-  @param radius
-  @param color
-  @return bs_Range
+  @param subtype
+  @param font
+  @param params
+  @param value
+  @param value_length
+  @return bs_vec2
   */
-BSGFXAPI bs_Range
-bsgfx_instanceAtlas(
-    const bs_mat4* transform,
-    int segments,
-    float radius,
-    bs_RGBA color);
+BSGFXAPI bs_vec2
+bsgfx_instanceText(
+    int subtype,
+    bs_Font* font,
+    bsgfx_Text* params,
+    char* value,
+    int value_length);
+
+ /**
+  @param subtype
+  @param font
+  @param params
+  @param format
+  @param args
+  @return bs_vec2
+  */
+BSGFXAPI bs_vec2
+bsgfx_instanceTextV(
+    int subtype,
+    bs_Font* font,
+    bsgfx_Text* params,
+    char* format,
+    va_list args);
+
+ /**
+  @param subtype
+  @param font
+  @param params
+  @param format
+  @param ...
+  @return bs_vec2
+  */
+BSGFXAPI bs_vec2
+bsgfx_instanceTextF(
+    int subtype,
+    bs_Font* font,
+    bsgfx_Text* params,
+    char* format,
+     ...);
 
  /**
   @param position

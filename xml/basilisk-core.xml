@@ -1,15 +1,15 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <registry>
-	<name>BASILISK_CORE_H</name>
-    <file>basilisk-core.h</file>
+	<name>BASILISK_CORE_GEN_H</name>
+    <file>basilisk-core.gen.h</file>
 	<prefix>BSAPI</prefix>
 	<functionPrefix>bs_</functionPrefix>
 	<functionPrefixCaps>BS_</functionPrefixCaps>
 
 	<includes>
 		<trampoline>
-			<include>basilisk-core.h</include>
-			<include>bs_internal.h</include>
+			<include>basilisk-core.gen.h</include>
+			<include>bs_internal.gen.h</include>
 			<include>cglm/vec2.h</include>
 			<include>cglm/vec3.h</include>
 			<include>cglm/vec4.h</include>
@@ -26,20 +26,20 @@
 			<include>stdbool.h</include>
 		</trampolineHeader>
 		<internalHeader>
-			<include>basilisk-core.h</include>
+			<include>basilisk-core.gen.h</include>
 			<include>windows.h</include>
 			<include>vulkan.h</include>
 		</internalHeader>
 		<prevalidation>
-			<include>basilisk-core.h</include>
-			<include>bs_internal.h</include>
+			<include>basilisk-core.gen.h</include>
+			<include>bs_internal.gen.h</include>
 		</prevalidation>
 		<prevalidationHeader>
 			<include>bs_internal.h</include>
 		</prevalidationHeader>
 		<validationHeader>
-			<include>basilisk-core.h</include>
-			<include>bs_internal.h</include>
+			<include>basilisk-core.gen.h</include>
+			<include>bs_internal.gen.h</include>
 			<include>windows.h</include>
 		</validationHeader>
     </includes>
@@ -813,6 +813,7 @@
 			<line>(bs_RGBA) { r, g, b, a }</line>
 		</macro>
 
+		<!--
 		<macro>
 			<name>#define BS_IV2(x, y)</name>
 			<line>(bs_ivec2) { x, y }</line>
@@ -842,6 +843,7 @@
 			<name>#define BS_V4(x, y, z, w)</name>
 			<line>(bs_vec4) { x, y, z, w }</line>
 		</macro>
+		-->
 
 		<macro>
             <name>#define BS_FLT_MAX</name>
@@ -2599,34 +2601,34 @@
             <body>    glm_scale_to(m->v, v->a, out->a);</body>
         </function>
 
-        <function name="bs_m3FromQ">
+        <function name="bs_m3ToQ">
             <return>void</return>
             <param><type>const bs_mat3*</type><name>m</name></param>
             <param><type>bs_vec4*</type><name>out</name></param>
             <body>    glm_mat3_quat(m->v, out->a);</body>
         </function>
 
-        <function name="bs_m4FromQ">
+        <function name="bs_m4ToQ">
             <return>void</return>
             <param><type>const bs_mat4*</type><name>m</name></param>
             <param><type>bs_vec4*</type><name>out</name></param>
             <body>    glm_mat4_quat(m->v, out->a);</body>
         </function>
-
-        <function name="bs_qFromM3">
+		
+        <function name="bs_qToM3">
             <return>void</return>
-            <param><type>const bs_mat3*</type><name>m</name></param>
-            <param><type>bs_vec4*</type><name>out</name></param>
-            <body>    glm_mat3_quat(m->v, out->a);</body>
+            <param><type>const bs_vec4*</type><name>q</name></param>
+            <param><type>bs_mat3*</type><name>out</name></param>
+            <body>    glm_quat_mat3(q->a, out->v);</body>
         </function>
 
-        <function name="bs_qFromM4">
+        <function name="bs_qToM4">
             <return>void</return>
-            <param><type>const bs_mat4*</type><name>m</name></param>
-            <param><type>bs_vec4*</type><name>out</name></param>
-            <body>    glm_mat4_quat(m->v, out->a);</body>
+            <param><type>const bs_vec4*</type><name>q</name></param>
+            <param><type>bs_mat4*</type><name>out</name></param>
+            <body>    glm_quat_mat4(q->a, out->v);</body>
         </function>
-
+		
         <function name="bs_qNormalize">
             <return>void</return>
             <param><type>const bs_vec4*</type><name>q</name></param>
@@ -2643,6 +2645,14 @@
             <body>    glm_quat_slerp(from->a, to->a, t, out->a);</body>
         </function>
 
+		<function name="bs_qRotateV3">
+            <return>void</return>
+            <param><type>const bs_vec4*</type><name>q</name></param>
+            <param><type>const bs_vec3*</type><name>v</name></param>
+            <param><type>bs_vec3*</type><name>out</name></param>
+            <body>    glm_quat_rotatev(q->a, v->a, out->a);</body>
+        </function>
+		
         <function name="bs_qLongSlerp">
             <return>void</return>
             <param><type>const bs_vec4*</type><name>from</name></param>
@@ -2786,6 +2796,16 @@
 			<body>    return degrees * BS_PI / 180.0f;</body>
         </function>
 		
+        <function name="bs_hsvToRgb">
+            <return>bs_vec3</return>
+            <param><type>const bs_vec3*</type><name>hsv</name></param>
+        </function>
+		
+		<function name="bs_rgbToHsv">
+            <return>bs_vec3</return>
+            <param><type>const bs_vec3*</type><name>rgb</name></param>
+        </function>
+		
         <function name="bs_convertVulkanResult">
             <return>bs_Result</return>
             <param><type>int</type><name>code</name></param>
@@ -2848,7 +2868,7 @@
             <param><type>const bs_vec3*</type><name>scale</name></param>
         </function>
         <function name="bs_sphereVsObb">
-            <return>void</return>
+            <return>bool</return>
             <param><type>const bs_vec3*</type><name>center</name></param>
             <param><type>float</type><name>radius</name></param>
             <param><type>const bs_vec3*</type><name>position</name></param>

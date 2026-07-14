@@ -377,11 +377,17 @@ static int _preval_bsgfx_instanceAtlasFlipped(int subtype, bs_mat4x3 transform, 
     return next.bsgfx_instanceAtlasFlipped(subtype, transform, texture, flags, id, material);
 }
 
-static bs_Range _preval_bsgfx_instanceAtlas(const bs_mat4* transform, int segments, float radius, bs_RGBA color) {
-    if (transform == NULL)
+static bs_vec2 _preval_bsgfx_instanceText(int subtype, bs_Font* font, bsgfx_Text* params, char* value, int value_length) {
+    if (font == NULL)
         return 0;
 
-    return next.bsgfx_instanceAtlas(transform, segments, radius, color);
+    if (params == NULL)
+        return 0;
+
+    if (value == NULL)
+        return 0;
+
+    return next.bsgfx_instanceText(subtype, font, params, value, value_length);
 }
 
 static bs_mat4x3 _preval_bsgfx_matrix(bs_vec3 position, bs_vec3 scale) {
@@ -535,7 +541,7 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_instanceQuad = _preval_bsgfx_instanceQuad;
     functions.bsgfx_instanceAtlas = _preval_bsgfx_instanceAtlas;
     functions.bsgfx_instanceAtlasFlipped = _preval_bsgfx_instanceAtlasFlipped;
-    functions.bsgfx_instanceAtlas = _preval_bsgfx_instanceAtlas;
+    functions.bsgfx_instanceText = _preval_bsgfx_instanceText;
     functions.bsgfx_matrix = _preval_bsgfx_matrix;
     functions.bsgfx_renderFontSubtypes = _preval_bsgfx_renderFontSubtypes;
     functions.bsgfx_settingsEditor = _preval_bsgfx_settingsEditor;

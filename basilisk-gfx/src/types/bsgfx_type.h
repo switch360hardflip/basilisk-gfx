@@ -8,7 +8,7 @@
 #ifndef BSGFX_TYPE_H
 #define BSGFX_TYPE_H
 
-#include <bs_types.h>
+#include <basilisk-gfx.h>
 #include <stdbool.h>
 #include <bsgfx_cache.h>
 

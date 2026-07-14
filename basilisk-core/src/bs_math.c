@@ -34,7 +34,7 @@
   */
 
 #include <basilisk-core.h>
-#include <bs_internal.h>
+#include <bs_internal.gen.h>
 #include <cglm/vec2.h>
 #include <cglm/vec3.h>
 #include <cglm/vec4.h>
@@ -75,6 +75,81 @@ BSAPI bs_mat4x3 _bs_m4x3(const bs_mat4* m) {
         .v[2] = m->v[2].xyz,
         .v[3] = m->v[3].xyz,
     };
+}
+
+
+
+  /*==============================================================================
+   * Color
+   =============================================================================*/
+
+ /**
+  Taken from https://github.com/Inseckto/HSV-to-RGB/blob/master/HSV2RGB.c
+  */
+BSAPI bs_vec3 _bs_hsvToRgb(bs_vec3* hsv) {
+    float r, g, b;
+    
+    float h = hsv->x / 360;
+    float s = hsv->y;
+    float v = hsv->z;
+
+    int i = floor(h * 6);
+    float f = h * 6 - i;
+    float p = v * (1 - s);
+    float q = v * (1 - f * s);
+    float t = v * (1 - (1 - f) * s);
+
+    switch (i % 6) {
+    case 0: r = v, g = t, b = p; break;
+    case 1: r = q, g = v, b = p; break;
+    case 2: r = p, g = v, b = t; break;
+    case 3: r = p, g = q, b = v; break;
+    case 4: r = t, g = p, b = v; break;
+    case 5: r = v, g = p, b = q; break;
+    default: return BS_V3(0.0, 0.0, 0.0);
+    }
+
+    return BS_V3(r, g, b);
+}
+
+ /**
+  Taken from https://stackoverflow.com/questions/6614792/fast-optimized-and-accurate-rgb-hsb-conversion-code-in-c
+  */
+BSAPI bs_vec3 _bs_rgbToHsv(bs_vec3* rgb) {
+    bs_vec3 hsv;
+
+    float r = rgb->x;
+    float g = rgb->y;
+    float b = rgb->z;
+    float max = fmaxf(fmaxf(r, g), b);
+    float min = fminf(fminf(r, g), b);
+    float delta = max - min;
+
+    if (delta != 0) {
+        float hue;
+
+        if (r == max)
+            hue = (g - b) / delta;
+        else {
+            if (g == max)
+                hue = 2 + (b - r) / delta;
+            else
+                hue = 4 + (r - g) / delta;
+        }
+        hue *= 60;
+
+        if (hue < 0)
+            hue += 360;
+
+        hsv.x = hue;
+    }
+    else
+        hsv.x = 0;
+
+    hsv.y = max == 0 ? 0 : (max - min) / max;
+    hsv.z = max;
+
+    return hsv;
 }
 
 
@@ -228,7 +303,7 @@ BSAPI void _bs_rayVsObb(const bs_Ray* ray, const bs_vec3* position, const bs_vec
     bs_m4Translate(&transform, position, &transform);
     bs_m4Rotate(&transform, rotation, &transform);
 
-    bs_m3FromQ(rotation, &rotation_matrix);
+    bs_qToM3(rotation, &rotation_matrix);
     bs_m3Inverse(&rotation_matrix, &rotation_matrix_inverse);
 
     bs_vec3 origin;
@@ -390,7 +465,7 @@ BSAPI bool _bs_sphereVsObbTest(const bs_vec3* center, float radius, const bs_vec
     return true;
 }
 
-BSAPI void _bs_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_SphereVsBox* result) {
+BSAPI bool _bs_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_SphereVsBox* result) {
     result->hit = false;
 
     bs_mat4 transform;
@@ -400,14 +475,14 @@ BSAPI void _bs_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* p
     bsi_sphereVsObb(center, radius, position, rotation, rotation, &transform, &closest_point, &distance);
 
     if (distance > radius * radius)
-        return;
+        return false;
 
     bs_m4MulV3(&transform, &closest_point, &result->point);
 
     bs_v3Sub(&center, &result->point, &result->normal);
     bs_v3Normalize(&result->normal, &result->normal);
 
-    result->hit = true;
+    return result->hit = true;
 }
 
 /*

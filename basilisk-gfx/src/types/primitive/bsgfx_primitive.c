@@ -1,9 +1,8 @@
+#include <basilisk-gfx.h>
 #include <types/primitive/bsgfx_primitive.h>
 #include <types/tile/bsgfx_tile.h>
 #include <../bsgfx_contracts.h>
 #include <basilisk-core.h>
-#include <bsgfx_instance.h>
-#include <bsgfx.h>
 
 bs_vec3 bsgfx_primitivePosition(bsgfx_RawPrimitive* primitive) {
     bs_vec4 q = bs_qFromDegrees(primitive->rotation);
@@ -29,7 +28,6 @@ static void bsgfx_mapPrimitive(bsgfx_RawPrimitive* unmapped, bsgfx_Primitive* ma
 }
 
 void bsgfx_loadPrimitives(int package_id) {
-    bs_except(BSX_FAILED_TO_QUERY);
     bsgfx_type(
         BSGFX_TYPE_PRIMITIVE,
         package_id,
@@ -37,8 +35,6 @@ void bsgfx_loadPrimitives(int package_id) {
         "primitives", "primitive",
         sizeof(bsgfx_RawPrimitive), sizeof(bsgfx_Primitive), bsgfx_mapPrimitive,
         0, 0, 0, 0);
-    if (bs_caught())
-        return;
 
     if (bs_exists(BSGFX_BATCHES, BSGFX_BATCH_MESH_INSTANCED)) {
         bs_Batch* mesh_instanced_batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_MESH_INSTANCED);
@@ -167,7 +163,6 @@ int bsgfx_queryPrimitive(bs_GUID* guid) {
 
     char guid_buffer[37];
     bs_guidToString(guid, guid_buffer);
-    bs_throwBasiliskF(BSX_FAILED_TO_QUERY, "Primitive %s", guid_buffer);
 
     return -1;
 }

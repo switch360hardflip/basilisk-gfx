@@ -41,7 +41,7 @@
 #endif
 
 #include <basilisk-core.h>
-#include <bs_internal.h>
+#include <bs_internal.gen.h>
 #include <vulkan.h>
 
 

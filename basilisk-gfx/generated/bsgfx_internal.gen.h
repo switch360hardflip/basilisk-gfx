@@ -123,7 +123,7 @@ typedef int(__stdcall* PFN_bsgfx_instancePoint)(bs_vec3 position, bs_RGBA color,
 typedef int(__stdcall* PFN_bsgfx_instanceQuad)(int subtype, bs_mat4x3 transform, bs_vec4 coords, bs_U32 flags, int id, int material);
 typedef int(__stdcall* PFN_bsgfx_instanceAtlas)(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material);
 typedef int(__stdcall* PFN_bsgfx_instanceAtlasFlipped)(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material);
-typedef bs_Range(__stdcall* PFN_bsgfx_instanceAtlas)(const bs_mat4* transform, int segments, float radius, bs_RGBA color);
+typedef bs_vec2(__stdcall* PFN_bsgfx_instanceText)(int subtype, bs_Font* font, bsgfx_Text* params, char* value, int value_length);
 typedef bs_mat4x3(__stdcall* PFN_bsgfx_matrix)(bs_vec3 position, bs_vec3 scale);
 typedef void(__stdcall* PFN_bsgfx_renderFontSubtypes)();
 typedef void(__stdcall* PFN_bsgfx_settingsEditor)(bs_List* result);
@@ -208,7 +208,7 @@ typedef struct {
     PFN_bsgfx_instanceQuad bsgfx_instanceQuad;
     PFN_bsgfx_instanceAtlas bsgfx_instanceAtlas;
     PFN_bsgfx_instanceAtlasFlipped bsgfx_instanceAtlasFlipped;
-    PFN_bsgfx_instanceAtlas bsgfx_instanceAtlas;
+    PFN_bsgfx_instanceText bsgfx_instanceText;
     PFN_bsgfx_matrix bsgfx_matrix;
     PFN_bsgfx_renderFontSubtypes bsgfx_renderFontSubtypes;
     PFN_bsgfx_settingsEditor bsgfx_settingsEditor;
@@ -302,7 +302,7 @@ static inline bsgfx_FunctionTable _bsgfx_getFunctions() {
     functions.bsgfx_instanceQuad = (PFN_bsgfx_instanceQuad)GetProcAddress(module, "_bsgfx_instanceQuad");
     functions.bsgfx_instanceAtlas = (PFN_bsgfx_instanceAtlas)GetProcAddress(module, "_bsgfx_instanceAtlas");
     functions.bsgfx_instanceAtlasFlipped = (PFN_bsgfx_instanceAtlasFlipped)GetProcAddress(module, "_bsgfx_instanceAtlasFlipped");
-    functions.bsgfx_instanceAtlas = (PFN_bsgfx_instanceAtlas)GetProcAddress(module, "_bsgfx_instanceAtlas");
+    functions.bsgfx_instanceText = (PFN_bsgfx_instanceText)GetProcAddress(module, "_bsgfx_instanceText");
     functions.bsgfx_matrix = (PFN_bsgfx_matrix)GetProcAddress(module, "_bsgfx_matrix");
     functions.bsgfx_renderFontSubtypes = (PFN_bsgfx_renderFontSubtypes)GetProcAddress(module, "_bsgfx_renderFontSubtypes");
     functions.bsgfx_settingsEditor = (PFN_bsgfx_settingsEditor)GetProcAddress(module, "_bsgfx_settingsEditor");

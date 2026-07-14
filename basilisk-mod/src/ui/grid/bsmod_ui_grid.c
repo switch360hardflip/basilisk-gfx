@@ -367,7 +367,7 @@ static bool bsmod_instanceAtlasPreview(bsgfx_Widget* widget, bsgfx_GridParams gr
                 bs_Font* font = bs_fetch(BSGFX_FONTS, BSGFX_FONT_ARIAL_16)->font;
                 grid.position->y -= font->height;
                 grid.position->x = grid.start.x;
-                bs_vec2 category_name_dimensions = bsgfx_textInstance(_bsmod_subtypes[BSMOD_SUBTYPE_FONT_CONSOLAS], font, &(bsgfx_Text) {
+                bs_vec2 category_name_dimensions = bsgfx_instanceText(_bsmod_subtypes[BSMOD_SUBTYPE_FONT_CONSOLAS], font, &(bsgfx_Text) {
                     .position = { grid.position->x, grid.position->y, 70.0, 1 },
                     .scale = 16.0,
                     .material_id = $bsmod_grey_30()->id,

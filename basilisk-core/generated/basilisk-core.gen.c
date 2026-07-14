@@ -30,8 +30,8 @@
   the code is regenerated.
   */
         
-#include <basilisk-core.h>
-#include <bs_internal.h>
+#include <basilisk-core.gen.h>
+#include <bs_internal.gen.h>
 #include <cglm/vec2.h>
 #include <cglm/vec3.h>
 #include <cglm/vec4.h>
@@ -504,32 +504,32 @@ void bs_m4Scale(
     glm_scale_to(m->v, v->a, out->a);
 }
 
-void bs_m3FromQ(
+void bs_m3ToQ(
     const bs_mat3* m, 
     bs_vec4* out)
 {
     glm_mat3_quat(m->v, out->a);
 }
 
-void bs_m4FromQ(
+void bs_m4ToQ(
     const bs_mat4* m, 
     bs_vec4* out)
 {
     glm_mat4_quat(m->v, out->a);
 }
 
-void bs_qFromM3(
-    const bs_mat3* m, 
-    bs_vec4* out)
+void bs_qToM3(
+    const bs_vec4* q, 
+    bs_mat3* out)
 {
-    glm_mat3_quat(m->v, out->a);
+    glm_quat_mat3(q->a, out->v);
 }
 
-void bs_qFromM4(
-    const bs_mat4* m, 
-    bs_vec4* out)
+void bs_qToM4(
+    const bs_vec4* q, 
+    bs_mat4* out)
 {
-    glm_mat4_quat(m->v, out->a);
+    glm_quat_mat4(q->a, out->v);
 }
 
 void bs_qNormalize(
@@ -546,6 +546,14 @@ void bs_qSlerp(
     bs_vec4* out)
 {
     glm_quat_slerp(from->a, to->a, t, out->a);
+}
+
+void bs_qRotateV3(
+    const bs_vec4* q, 
+    const bs_vec3* v, 
+    bs_vec3* out)
+{
+    glm_quat_rotatev(q->a, v->a, out->a);
 }
 
 void bs_qLongSlerp(
@@ -696,6 +704,18 @@ float bs_radians(
     return degrees * BS_PI / 180.0f;
 }
 
+bs_vec3 bs_hsvToRgb(
+    const bs_vec3* hsv)
+{
+    return next.bs_hsvToRgb(hsv);
+}
+
+bs_vec3 bs_rgbToHsv(
+    const bs_vec3* rgb)
+{
+    return next.bs_rgbToHsv(rgb);
+}
+
 bs_Result bs_convertVulkanResult(
     int code)
 {
@@ -781,7 +801,7 @@ bool bs_sphereVsObbTest(
     return next.bs_sphereVsObbTest(center, radius, position, rotation, scale);
 }
 
-void bs_sphereVsObb(
+bool bs_sphereVsObb(
     const bs_vec3* center, 
     float radius, 
     const bs_vec3* position, 

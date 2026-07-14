@@ -2,7 +2,7 @@
 #include <bsgfx_cache.h>
 
 #include <assert.h>
-#include <bs_internal.h>
+#include <bs_internal.gen.h>
 
 static bs_List _bsgfx_subtype_data[BSGFX_MAX_NUM_SUBTYPES];
 
@@ -164,7 +164,7 @@ BSGFXAPI void _bsgfx_deleteSubtype(int subtype) {
  /**
   Subtype range
   */
-BSGFXAPI bs_Range _bsgfx_subtypeRange(int subtype) {
+BSGFXAPI bs_Range _val_bsgfx_subtypeRange(int subtype) {
 	if (!bsgfx_validateSubtype(subtype))
 		return (bs_Range) { 0 };
 
@@ -181,7 +181,7 @@ BSGFXAPI bs_Range _bsgfx_subtypeRange(int subtype) {
 	return (bs_Range) { 
 		.offset = subtype_metadata->index_offset, 
 		.num = subtype_metadata->index_count, 
-		.batch = bs_fetch(subtype_metadata->batch_source_id, subtype_metadata->batch_id)->batch
+	//	.batch = bs_fetch(subtype_metadata->batch_source_id, subtype_metadata->batch_id)->batch
 	};
 }
 
@@ -535,20 +535,6 @@ static inline int bsgfx_instanceLineSubtype(bs_vec3 start, bs_vec3 end, bs_RGBA 
  /**
   Push constants
   */
-typedef struct {
-	bs_mat4 transform;
-} bsgfx_MeshInstance;
-
-typedef struct {
-	bs_mat4 transform;
-} bsgfx_BoneInstance;
-
-typedef struct {
-	bs_mat4x3 transform;
-	bs_vec2 coords;
-	bs_vec2 offset;
-} bsgfx_QuadInstance;
-
 BSGFXAPI int _bsgfx_instanceMesh(int subtype, const bsgfx_MeshInstance* data, bs_U32 flags, int id, int material) {
 	return bsgfx_instance(subtype, data, sizeof(bsgfx_MeshInstance), flags, 0, id, material);
 }
@@ -629,7 +615,7 @@ BSGFXAPI int _bsgfx_instanceQuad(int subtype, bs_mat4x3 transform, bs_vec4 coord
 	return bsgfx_instance(subtype, &tmp, sizeof(tmp), flags, 0, id, material);
 }
 
-BSGFXAPI int bsgfx_atlasInstance(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material) {
+BSGFXAPI int bsgfx_instanceAtlas(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material) {
 	bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 	bs_vec4 coords = bs_atlasCoordinates(atlas, texture, 0);
 
@@ -685,18 +671,7 @@ BSGFXAPI bs_Range _bsgfx_instanceDepthlessCircle(const bs_mat4* transform, int s
 	return result;
 }
 
-
-typedef struct {
-	bs_vec4 position;
-	float scale;
-	float max_length;
-	bs_U32 flags;
-	int select_start, select_end;
-	int material_id;
-	bs_RGBA colors[8];
-} bsgfx_Text;
-
-static inline bs_vec2 bsgfx_textInstance(int subtype, bs_Font* font, bsgfx_Text* params, const char* text, int text_length) {
+BSGFXAPI bs_vec2 _bsgfx_instanceText(int subtype, bs_Font* font, bsgfx_Text* params, char* text, int text_length) {
 	if (!text)
 		text = "(null)";
 
@@ -762,7 +737,7 @@ static inline bs_vec2 bsgfx_textInstance(int subtype, bs_Font* font, bsgfx_Text*
 		transform.v[0].x = (size.x + font->glyphs[index].left_side_bearing) * layout_scale;
 		transform.v[1].y = size.y * layout_scale;
 
-		bsgfx_instanceQuad(subtype, bs_m4x3(transform), coords, flags, 0, params->material_id);
+		bsgfx_instanceQuad(subtype, bs_m4x3(&transform), coords, flags, 0, params->material_id);
 		offset.x += spacing;
 
 		if (i <= (text_length - 1)) {

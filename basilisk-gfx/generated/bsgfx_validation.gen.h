@@ -111,7 +111,7 @@ static inline bsgfx_FunctionTable _val_bsgfx_getFunctions() {
     functions.bsgfx_instanceQuad = (PFN_bsgfx_instanceQuad)GetProcAddress(module, "_val_bsgfx_instanceQuad");
     functions.bsgfx_instanceAtlas = (PFN_bsgfx_instanceAtlas)GetProcAddress(module, "_val_bsgfx_instanceAtlas");
     functions.bsgfx_instanceAtlasFlipped = (PFN_bsgfx_instanceAtlasFlipped)GetProcAddress(module, "_val_bsgfx_instanceAtlasFlipped");
-    functions.bsgfx_instanceAtlas = (PFN_bsgfx_instanceAtlas)GetProcAddress(module, "_val_bsgfx_instanceAtlas");
+    functions.bsgfx_instanceText = (PFN_bsgfx_instanceText)GetProcAddress(module, "_val_bsgfx_instanceText");
     functions.bsgfx_matrix = (PFN_bsgfx_matrix)GetProcAddress(module, "_val_bsgfx_matrix");
     functions.bsgfx_renderFontSubtypes = (PFN_bsgfx_renderFontSubtypes)GetProcAddress(module, "_val_bsgfx_renderFontSubtypes");
     functions.bsgfx_settingsEditor = (PFN_bsgfx_settingsEditor)GetProcAddress(module, "_val_bsgfx_settingsEditor");
