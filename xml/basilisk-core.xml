@@ -809,13 +809,33 @@
         <endif/>
 
 		<macro>
+			<name>#define BS_RGBA(r, g, b, a)</name>
+			<line>(bs_RGBA) { r, g, b, a }</line>
+		</macro>
+
+		<macro>
+			<name>#define BS_IV2(x, y)</name>
+			<line>(bs_ivec2) { x, y }</line>
+		</macro>
+
+		<macro>
 			<name>#define BS_V2(x, y)</name>
 			<line>(bs_vec2) { x, y }</line>
 		</macro>
 
 		<macro>
+			<name>#define BS_IV3(x, y, z)</name>
+			<line>(bs_ivec3) { x, y, z }</line>
+		</macro>
+
+		<macro>
 			<name>#define BS_V3(x, y, z)</name>
 			<line>(bs_vec3) { x, y, z }</line>
+		</macro>
+
+		<macro>
+			<name>#define BS_IV4(x, y, z, w)</name>
+			<line>(bs_ivec4) { x, y, z, w }</line>
 		</macro>
 
 		<macro>
@@ -1599,7 +1619,6 @@
         <structure name="bs_Range">
             <field><type>bs_U32</type><name>offset</name></field>
             <field><type>bs_U32</type><name>num</name></field>
-            <field><type>bs_Batch*</type><name>batch</name></field>
         </structure>
         <structure name="bs_Header">
             <field><type>int</type><name>id</name></field>
@@ -2535,6 +2554,11 @@
 
         <matrixTemplate><rows>4</rows><columns>4</columns></matrixTemplate>
 
+        <function name="bs_m4x3">
+            <return>bs_mat4x3</return>
+            <param><type>const bs_mat4*</type><name>m</name></param>
+        </function>
+		
         <function name="bs_m4MulV3">
             <return>void</return>
             <param><type>const bs_mat4*</type><name>m</name></param>
@@ -2815,7 +2839,15 @@
             <param><type>bs_vec3</type><name>point</name></param>
             <param><type>bs_SphereVsPoint*</type><name>out</name></param>
         </function>
-        <function name="bs_sphereVsBox">
+		<function name="bs_sphereVsObbTest">
+            <return>bool</return>
+            <param><type>const bs_vec3*</type><name>center</name></param>
+            <param><type>float</type><name>radius</name></param>
+            <param><type>const bs_vec3*</type><name>position</name></param>
+            <param><type>const bs_vec4*</type><name>rotation</name></param>
+            <param><type>const bs_vec3*</type><name>scale</name></param>
+        </function>
+        <function name="bs_sphereVsObb">
             <return>void</return>
             <param><type>const bs_vec3*</type><name>center</name></param>
             <param><type>float</type><name>radius</name></param>
@@ -2825,18 +2857,10 @@
             <param><type>bs_SphereVsBox*</type><name>out</name></param>
         </function>
         <function name="bs_rectangleVsPoint">
-            <return>void</return>
-            <param><type>bs_vec2</type><name>position</name></param>
-            <param><type>bs_vec2</type><name>dimensions</name></param>
-            <param><type>bs_vec2</type><name>point</name></param>
-            <param><type>bs_RectangleVsPoint*</type><name>out</name></param>
-        </function>
-        <function name="bs_rectangleVsPointAbs">
-            <return>void</return>
-            <param><type>bs_vec2</type><name>position</name></param>
-            <param><type>bs_vec2</type><name>dimensions</name></param>
-            <param><type>bs_vec2</type><name>point</name></param>
-            <param><type>bs_RectangleVsPoint*</type><name>out</name></param>
+            <return>bool</return>
+            <param><type>const bs_vec2*</type><name>position</name></param>
+            <param><type>const bs_vec2*</type><name>dimensions</name></param>
+            <param><type>const bs_vec2*</type><name>point</name></param>
         </function>
         <function name="bs_lineVsLine">
             <return>void</return>
@@ -4446,11 +4470,9 @@
         </function>
         <function name="bs_cursorPosition">
             <return>bs_vec2</return>
-            <param><type>bs_Window*</type><name>window</name></param>
         </function>
         <function name="bs_windowPosition">
             <return>bs_ivec2</return>
-            <param><type>bs_Window*</type><name>window</name></param>
         </function>
         <function name="bs_screenCursorPosition">
             <return>bs_vec2</return>

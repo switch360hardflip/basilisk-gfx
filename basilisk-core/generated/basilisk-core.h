@@ -220,11 +220,23 @@ typedef enum bs_BindType bs_BindType;
     bs_warnF("%s: %s failed for \"%s\" (Win32 error %lu = \"%s\")\n", __func__, function, path, GetLastError(), bs_serializeWin32Error(GetLastError()))
 #endif
 
+#define BS_RGBA(r, g, b, a)                                          \
+    (bs_RGBA) { r, g, b, a }
+
+#define BS_IV2(x, y)                                                 \
+    (bs_ivec2) { x, y }
+
 #define BS_V2(x, y)                                                  \
     (bs_vec2) { x, y }
 
+#define BS_IV3(x, y, z)                                              \
+    (bs_ivec3) { x, y, z }
+
 #define BS_V3(x, y, z)                                               \
     (bs_vec3) { x, y, z }
+
+#define BS_IV4(x, y, z, w)                                           \
+    (bs_ivec4) { x, y, z, w }
 
 #define BS_V4(x, y, z, w)                                            \
     (bs_vec4) { x, y, z, w }
@@ -1571,9 +1583,6 @@ struct bs_SphereVsPoint {
 };
 
 struct bs_SphereVsBox {
-    bs_vec3 closest_point;
-    bs_mat4 transform;
-
     bs_vec3 point;
     bs_vec3 normal;
     float penetration;
@@ -1621,7 +1630,6 @@ struct bs_StringPoolEntry {
 struct bs_Range {
     bs_U32 offset;
     bs_U32 num;
-    bs_Batch* batch;
 };
 
 struct bs_Header {
@@ -3896,6 +3904,14 @@ bs_m4Inverse(
 
  /**
   @param m
+  @return bs_mat4x3
+  */
+BSAPI bs_mat4x3
+bs_m4x3(
+    const bs_mat4* m);
+
+ /**
+  @param m
   @param v
   @param out
   @return void
@@ -4354,45 +4370,45 @@ bs_sphereVsPoint(
   @param position
   @param rotation
   @param scale
+  @return bool
+  */
+BSAPI bool
+bs_sphereVsObbTest(
+    const bs_vec3* center,
+    float radius,
+    const bs_vec3* position,
+    const bs_vec4* rotation,
+    const bs_vec3* scale);
+
+ /**
+  @param center
+  @param radius
+  @param position
+  @param rotation
+  @param scale
   @param out
   @return void
   */
 BSAPI void
-bs_sphereVsBox(
-    bs_vec3 center,
+bs_sphereVsObb(
+    const bs_vec3* center,
     float radius,
-    bs_vec3 position,
-    bs_vec4 rotation,
-    bs_vec3 scale,
+    const bs_vec3* position,
+    const bs_vec4* rotation,
+    const bs_vec3* scale,
     bs_SphereVsBox* out);
 
  /**
   @param position
   @param dimensions
   @param point
-  @param out
-  @return void
+  @return bool
   */
-BSAPI void
+BSAPI bool
 bs_rectangleVsPoint(
-    bs_vec2 position,
-    bs_vec2 dimensions,
-    bs_vec2 point,
-    bs_RectangleVsPoint* out);
-
- /**
-  @param position
-  @param dimensions
-  @param point
-  @param out
-  @return void
-  */
-BSAPI void
-bs_rectangleVsPointAbs(
-    bs_vec2 position,
-    bs_vec2 dimensions,
-    bs_vec2 point,
-    bs_RectangleVsPoint* out);
+    const bs_vec2* position,
+    const bs_vec2* dimensions,
+    const bs_vec2* point);
 
  /**
   @param l1_start
@@ -8685,20 +8701,16 @@ bs_isLaterThan(
     const bs_DateTime* b);
 
  /**
-  @param window
   @return bs_vec2
   */
 BSAPI bs_vec2
-bs_cursorPosition(
-    bs_Window* window);
+bs_cursorPosition();
 
  /**
-  @param window
   @return bs_ivec2
   */
 BSAPI bs_ivec2
-bs_windowPosition(
-    bs_Window* window);
+bs_windowPosition();
 
  /**
   @return bs_vec2

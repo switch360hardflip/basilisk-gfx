@@ -223,6 +223,7 @@ void bsgfx_renderFineShadowVolumes() {
     /**
      Pipelines
      */
+    /*
     bs_PipelineHash hash;
 
     hash = (bs_PipelineHash){
@@ -280,8 +281,6 @@ void bsgfx_renderFineShadowVolumes() {
     };
     bs_Pipeline* prefab_pipeline = bs_pipeline(&hash);
 
-    /**
-     */
     bsgfx_InstanceMetadata* metadata = bs_bufferMap(bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer);
     int total_index_count = metadata->computed_volume_vertices[BSGFX_SHADOW_COMPUTATION_MESH_TEXTURED] / 2;
     const int volume_index_count = 8 * 3; // 8 triangles
@@ -433,4 +432,5 @@ void bsgfx_renderFineShadowVolumes() {
     bs_clearStencil(0, bs_fetch(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_DEPTH)->image->dim, 0);
 
     bs_endComment();
+    */
 }

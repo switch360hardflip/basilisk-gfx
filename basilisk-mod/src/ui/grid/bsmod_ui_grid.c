@@ -315,7 +315,7 @@ typedef struct {
 
 static void bsmod_checkHoverGrid(bsgfx_Widget* widget, bsgfx_GridParams* grid) {
     bsmod_GridPreviewParams* params = widget->params;
-    bool hovering = bs_rectangleVsPoint(*grid->position, widget->grid.size, bs_windowCursorPosition());
+    bool hovering = bs_rectangleVsPoint(*grid->position, widget->grid.size, bs_cursorPosition());
 
     if (hovering) {
         if (bsmod_leftClickOnce()) {

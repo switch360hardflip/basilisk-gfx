@@ -111,27 +111,16 @@ bsgfx_Material* bsgfx_queryMaterialHash(
     return next.bsgfx_queryMaterialHash(hash);
 }
 
-char* bsgfx_materialName(
+bsgfx_Material* bsgfx_fetchMaterial(
     int id)
 {
-    return next.bsgfx_materialName(id);
+    return next.bsgfx_fetchMaterial(id);
 }
 
 bsgfx_Material* bsgfx_queryMaterial(
     const char* name)
 {
     return next.bsgfx_queryMaterial(name);
-}
-
-bs_U64 bsgfx_materialHash(
-    int id)
-{
-    return next.bsgfx_materialHash(id);
-}
-
-void bsgfx_allocateMaterials()
-{
-    return next.bsgfx_allocateMaterials();
 }
 
 void bsgfx_loadMaterials()
@@ -300,7 +289,7 @@ bs_List* bsgfx_subtypeInstances(
     return next.bsgfx_subtypeInstances(subtype);
 }
 
-void bsgfx_iniInstances()
+bs_Result bsgfx_iniInstances()
 {
     return next.bsgfx_iniInstances();
 }
@@ -396,13 +385,137 @@ void bsgfx_resetSubtype(
 
 void bsgfx_instanceHiResMesh(
     bs_Mesh* mesh, 
-    bs_vec3 position, 
-    bs_vec4 rotation, 
+    const bs_vec3* position, 
+    const bs_vec4* rotation, 
     float scale, 
     int subtype_offset, 
     bool origin_at_center)
 {
     return next.bsgfx_instanceHiResMesh(mesh, position, rotation, scale, subtype_offset, origin_at_center);
+}
+
+int bsgfx_instanceMesh(
+    int subtype, 
+    const bsgfx_MeshInstance* data, 
+    bs_U32 flags, 
+    int id, 
+    int material)
+{
+    return next.bsgfx_instanceMesh(subtype, data, flags, id, material);
+}
+
+int bsgfx_instanceBoneMesh(
+    int subtype, 
+    const bsgfx_BoneInstance* data, 
+    bs_U32 flags, 
+    int id, 
+    int material)
+{
+    return next.bsgfx_instanceBoneMesh(subtype, data, flags, id, material);
+}
+
+int bsgfx_instanceDepthlessLine(
+    bs_vec3 start, 
+    bs_vec3 end, 
+    bs_RGBA color)
+{
+    return next.bsgfx_instanceDepthlessLine(start, end, color);
+}
+
+int bsgfx_instanceLine(
+    bs_vec3 start, 
+    bs_vec3 end, 
+    bs_RGBA color)
+{
+    return next.bsgfx_instanceLine(start, end, color);
+}
+
+int bsgfx_instanceRay(
+    const bs_Ray* ray, 
+    bs_RGBA color)
+{
+    return next.bsgfx_instanceRay(ray, color);
+}
+
+bs_Range bsgfx_instanceAabb(
+    const bs_Aabb* aabb, 
+    bs_RGBA color)
+{
+    return next.bsgfx_instanceAabb(aabb, color);
+}
+
+int bsgfx_instanceSphere(
+    bs_vec3 position, 
+    float radius)
+{
+    return next.bsgfx_instanceSphere(position, radius);
+}
+
+int bsgfx_instanceCone(
+    bs_mat4 transform, 
+    float radius, 
+    bs_U32 flags, 
+    int id, 
+    int material)
+{
+    return next.bsgfx_instanceCone(transform, radius, flags, id, material);
+}
+
+int bsgfx_instancePoint(
+    bs_vec3 position, 
+    bs_RGBA color, 
+    float size)
+{
+    return next.bsgfx_instancePoint(position, color, size);
+}
+
+int bsgfx_instanceQuad(
+    int subtype, 
+    bs_mat4x3 transform, 
+    bs_vec4 coords, 
+    bs_U32 flags, 
+    int id, 
+    int material)
+{
+    return next.bsgfx_instanceQuad(subtype, transform, coords, flags, id, material);
+}
+
+int bsgfx_instanceAtlas(
+    int subtype, 
+    bs_mat4x3 transform, 
+    int texture, 
+    bs_U32 flags, 
+    int id, 
+    int material)
+{
+    return next.bsgfx_instanceAtlas(subtype, transform, texture, flags, id, material);
+}
+
+int bsgfx_instanceAtlasFlipped(
+    int subtype, 
+    bs_mat4x3 transform, 
+    int texture, 
+    bs_U32 flags, 
+    int id, 
+    int material)
+{
+    return next.bsgfx_instanceAtlasFlipped(subtype, transform, texture, flags, id, material);
+}
+
+bs_Range bsgfx_instanceAtlas(
+    const bs_mat4* transform, 
+    int segments, 
+    float radius, 
+    bs_RGBA color)
+{
+    return next.bsgfx_instanceAtlas(transform, segments, radius, color);
+}
+
+bs_mat4x3 bsgfx_matrix(
+    bs_vec3 position, 
+    bs_vec3 scale)
+{
+    return next.bsgfx_matrix(position, scale);
 }
 
 void bsgfx_renderFontSubtypes()

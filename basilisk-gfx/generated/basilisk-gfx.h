@@ -366,7 +366,7 @@ typedef enum bsgfx_Pipe bsgfx_Pipe;
     (bs_RGBA) { 255, 255, 255, 200 }
 
 #define BSGFX_SCREENSHOT_DIMENSIONS                                  \
-    bs_iv2(1920 / 4, 1080 / 4)
+    BS_IV2(1920 / 4, 1080 / 4)
 
 #define BSGFX_MOTD                                                   \
     "poser\n"                                                        \
@@ -838,10 +838,10 @@ bsgfx_queryMaterialHash(
 
  /**
   @param id
-  @return char*
+  @return bsgfx_Material*
   */
-BSGFXAPI char*
-bsgfx_materialName(
+BSGFXAPI bsgfx_Material*
+bsgfx_fetchMaterial(
     int id);
 
  /**
@@ -851,20 +851,6 @@ bsgfx_materialName(
 BSGFXAPI bsgfx_Material*
 bsgfx_queryMaterial(
     const char* name);
-
- /**
-  @param id
-  @return bs_U64
-  */
-BSGFXAPI bs_U64
-bsgfx_materialHash(
-    int id);
-
- /**
-  @return void
-  */
-BSGFXAPI void
-bsgfx_allocateMaterials();
 
  /**
   @return void
@@ -1089,9 +1075,9 @@ bsgfx_subtypeInstances(
     int subtype);
 
  /**
-  @return void
+  @return bs_Result
   */
-BSGFXAPI void
+BSGFXAPI bs_Result
 bsgfx_iniInstances();
 
  /**
@@ -1232,11 +1218,203 @@ bsgfx_resetSubtype(
 BSGFXAPI void
 bsgfx_instanceHiResMesh(
     bs_Mesh* mesh,
-    bs_vec3 position,
-    bs_vec4 rotation,
+    const bs_vec3* position,
+    const bs_vec4* rotation,
     float scale,
     int subtype_offset,
     bool origin_at_center);
+
+ /**
+  @param subtype
+  @param data
+  @param flags
+  @param id
+  @param material
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instanceMesh(
+    int subtype,
+    const bsgfx_MeshInstance* data,
+    bs_U32 flags,
+    int id,
+    int material);
+
+ /**
+  @param subtype
+  @param data
+  @param flags
+  @param id
+  @param material
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instanceBoneMesh(
+    int subtype,
+    const bsgfx_BoneInstance* data,
+    bs_U32 flags,
+    int id,
+    int material);
+
+ /**
+  @param start
+  @param end
+  @param color
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instanceDepthlessLine(
+    bs_vec3 start,
+    bs_vec3 end,
+    bs_RGBA color);
+
+ /**
+  @param start
+  @param end
+  @param color
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instanceLine(
+    bs_vec3 start,
+    bs_vec3 end,
+    bs_RGBA color);
+
+ /**
+  @param ray
+  @param color
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instanceRay(
+    const bs_Ray* ray,
+    bs_RGBA color);
+
+ /**
+  @param aabb
+  @param color
+  @return bs_Range
+  */
+BSGFXAPI bs_Range
+bsgfx_instanceAabb(
+    const bs_Aabb* aabb,
+    bs_RGBA color);
+
+ /**
+  @param position
+  @param radius
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instanceSphere(
+    bs_vec3 position,
+    float radius);
+
+ /**
+  @param transform
+  @param radius
+  @param flags
+  @param id
+  @param material
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instanceCone(
+    bs_mat4 transform,
+    float radius,
+    bs_U32 flags,
+    int id,
+    int material);
+
+ /**
+  @param position
+  @param color
+  @param size
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instancePoint(
+    bs_vec3 position,
+    bs_RGBA color,
+    float size);
+
+ /**
+  @param subtype
+  @param transform
+  @param coords
+  @param flags
+  @param id
+  @param material
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instanceQuad(
+    int subtype,
+    bs_mat4x3 transform,
+    bs_vec4 coords,
+    bs_U32 flags,
+    int id,
+    int material);
+
+ /**
+  @param subtype
+  @param transform
+  @param texture
+  @param flags
+  @param id
+  @param material
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instanceAtlas(
+    int subtype,
+    bs_mat4x3 transform,
+    int texture,
+    bs_U32 flags,
+    int id,
+    int material);
+
+ /**
+  @param subtype
+  @param transform
+  @param texture
+  @param flags
+  @param id
+  @param material
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instanceAtlasFlipped(
+    int subtype,
+    bs_mat4x3 transform,
+    int texture,
+    bs_U32 flags,
+    int id,
+    int material);
+
+ /**
+  @param transform
+  @param segments
+  @param radius
+  @param color
+  @return bs_Range
+  */
+BSGFXAPI bs_Range
+bsgfx_instanceAtlas(
+    const bs_mat4* transform,
+    int segments,
+    float radius,
+    bs_RGBA color);
+
+ /**
+  @param position
+  @param scale
+  @return bs_mat4x3
+  */
+BSGFXAPI bs_mat4x3
+bsgfx_matrix(
+    bs_vec3 position,
+    bs_vec3 scale);
 
  /**
   @return void

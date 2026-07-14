@@ -104,6 +104,7 @@ static void bsgfx_resize() {
     }
 }
 
+void bsgfx_tickMaterials();
 static void bsgfx_tick() {
     _poser_->menu_blocked = false;
 

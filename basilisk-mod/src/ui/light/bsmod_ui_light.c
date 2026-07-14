@@ -52,7 +52,7 @@ void bsmod_instanceLightBillboards() {
        // bs_mat4x3 m2 = bsgfx_matrix(bs_v3V2(p, 50.0f), BS_V3(scaled_size, scaled_size, 0.0f));
        // bsgfx_instanceQuad(bsgfx_subtypes()[BSGFX_SUBTYPE_UI], m2, white->coords, 0, 0, $white_material()->id);
 
-        bool hovering = bs_rectangleVsPoint(p, BS_V2(scaled_size, scaled_size), bs_windowCursorPosition());
+        bool hovering = bs_rectangleVsPoint(p, BS_V2(scaled_size, scaled_size), bs_cursorPosition());
         if (hovering) {
             bsmod.hovering.billboard = true;
 
@@ -115,7 +115,7 @@ bool bsmod_onAddLightTick(bsgfx_ButtonParams params) {
     bs_vec2 size = BS_V2(125.0, 175.0);
 
     if (!params.hovering && was_hovering) {
-        if (bs_rectangleVsPoint(BS_V2(position.x - (BSMOD_CONTEXT_MENU_PADDING + 2), position.y - size.y), size, bs_windowCursorPosition())) {
+        if (bs_rectangleVsPoint(BS_V2(position.x - (BSMOD_CONTEXT_MENU_PADDING + 2), position.y - size.y), size, bs_cursorPosition())) {
             params.hovering = true;
         }
     }

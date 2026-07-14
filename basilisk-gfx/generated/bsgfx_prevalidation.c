@@ -98,8 +98,8 @@ static bsgfx_Material* _preval_bsgfx_queryMaterialHash(bs_U64 hash) {
     return next.bsgfx_queryMaterialHash(hash);
 }
 
-static char* _preval_bsgfx_materialName(int id) {
-    return next.bsgfx_materialName(id);
+static bsgfx_Material* _preval_bsgfx_fetchMaterial(int id) {
+    return next.bsgfx_fetchMaterial(id);
 }
 
 static bsgfx_Material* _preval_bsgfx_queryMaterial(const char* name) {
@@ -107,14 +107,6 @@ static bsgfx_Material* _preval_bsgfx_queryMaterial(const char* name) {
         return NULL;
 
     return next.bsgfx_queryMaterial(name);
-}
-
-static bs_U64 _preval_bsgfx_materialHash(int id) {
-    return next.bsgfx_materialHash(id);
-}
-
-static void _preval_bsgfx_allocateMaterials() {
-    return next.bsgfx_allocateMaterials();
 }
 
 static void _preval_bsgfx_loadMaterials() {
@@ -247,7 +239,7 @@ static bs_List* _preval_bsgfx_subtypeInstances(int subtype) {
     return next.bsgfx_subtypeInstances(subtype);
 }
 
-static void _preval_bsgfx_iniInstances() {
+static bs_Result _preval_bsgfx_iniInstances() {
     return next.bsgfx_iniInstances();
 }
 
@@ -312,11 +304,88 @@ static void _preval_bsgfx_resetSubtype(int subtype) {
     return next.bsgfx_resetSubtype(subtype);
 }
 
-static void _preval_bsgfx_instanceHiResMesh(bs_Mesh* mesh, bs_vec3 position, bs_vec4 rotation, float scale, int subtype_offset, bool origin_at_center) {
+static void _preval_bsgfx_instanceHiResMesh(bs_Mesh* mesh, const bs_vec3* position, const bs_vec4* rotation, float scale, int subtype_offset, bool origin_at_center) {
     if (mesh == NULL)
         return;
 
+    if (position == NULL)
+        return;
+
+    if (rotation == NULL)
+        return;
+
     return next.bsgfx_instanceHiResMesh(mesh, position, rotation, scale, subtype_offset, origin_at_center);
+}
+
+static int _preval_bsgfx_instanceMesh(int subtype, const bsgfx_MeshInstance* data, bs_U32 flags, int id, int material) {
+    if (data == NULL)
+        return 0;
+
+    return next.bsgfx_instanceMesh(subtype, data, flags, id, material);
+}
+
+static int _preval_bsgfx_instanceBoneMesh(int subtype, const bsgfx_BoneInstance* data, bs_U32 flags, int id, int material) {
+    if (data == NULL)
+        return 0;
+
+    return next.bsgfx_instanceBoneMesh(subtype, data, flags, id, material);
+}
+
+static int _preval_bsgfx_instanceDepthlessLine(bs_vec3 start, bs_vec3 end, bs_RGBA color) {
+    return next.bsgfx_instanceDepthlessLine(start, end, color);
+}
+
+static int _preval_bsgfx_instanceLine(bs_vec3 start, bs_vec3 end, bs_RGBA color) {
+    return next.bsgfx_instanceLine(start, end, color);
+}
+
+static int _preval_bsgfx_instanceRay(const bs_Ray* ray, bs_RGBA color) {
+    if (ray == NULL)
+        return 0;
+
+    return next.bsgfx_instanceRay(ray, color);
+}
+
+static bs_Range _preval_bsgfx_instanceAabb(const bs_Aabb* aabb, bs_RGBA color) {
+    if (aabb == NULL)
+        return 0;
+
+    return next.bsgfx_instanceAabb(aabb, color);
+}
+
+static int _preval_bsgfx_instanceSphere(bs_vec3 position, float radius) {
+    return next.bsgfx_instanceSphere(position, radius);
+}
+
+static int _preval_bsgfx_instanceCone(bs_mat4 transform, float radius, bs_U32 flags, int id, int material) {
+    return next.bsgfx_instanceCone(transform, radius, flags, id, material);
+}
+
+static int _preval_bsgfx_instancePoint(bs_vec3 position, bs_RGBA color, float size) {
+    return next.bsgfx_instancePoint(position, color, size);
+}
+
+static int _preval_bsgfx_instanceQuad(int subtype, bs_mat4x3 transform, bs_vec4 coords, bs_U32 flags, int id, int material) {
+    return next.bsgfx_instanceQuad(subtype, transform, coords, flags, id, material);
+}
+
+static int _preval_bsgfx_instanceAtlas(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material) {
+    return next.bsgfx_instanceAtlas(subtype, transform, texture, flags, id, material);
+}
+
+static int _preval_bsgfx_instanceAtlasFlipped(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material) {
+    return next.bsgfx_instanceAtlasFlipped(subtype, transform, texture, flags, id, material);
+}
+
+static bs_Range _preval_bsgfx_instanceAtlas(const bs_mat4* transform, int segments, float radius, bs_RGBA color) {
+    if (transform == NULL)
+        return 0;
+
+    return next.bsgfx_instanceAtlas(transform, segments, radius, color);
+}
+
+static bs_mat4x3 _preval_bsgfx_matrix(bs_vec3 position, bs_vec3 scale) {
+    return next.bsgfx_matrix(position, scale);
 }
 
 static void _preval_bsgfx_renderFontSubtypes() {
@@ -415,10 +484,8 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_materialCategoryName = _preval_bsgfx_materialCategoryName;
     functions.bsgfx_materials = _preval_bsgfx_materials;
     functions.bsgfx_queryMaterialHash = _preval_bsgfx_queryMaterialHash;
-    functions.bsgfx_materialName = _preval_bsgfx_materialName;
+    functions.bsgfx_fetchMaterial = _preval_bsgfx_fetchMaterial;
     functions.bsgfx_queryMaterial = _preval_bsgfx_queryMaterial;
-    functions.bsgfx_materialHash = _preval_bsgfx_materialHash;
-    functions.bsgfx_allocateMaterials = _preval_bsgfx_allocateMaterials;
     functions.bsgfx_loadMaterials = _preval_bsgfx_loadMaterials;
     functions.bsgfx_material = _preval_bsgfx_material;
     functions.bsgfx_highlightMaterial = _preval_bsgfx_highlightMaterial;
@@ -456,6 +523,20 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_resetInstances = _preval_bsgfx_resetInstances;
     functions.bsgfx_resetSubtype = _preval_bsgfx_resetSubtype;
     functions.bsgfx_instanceHiResMesh = _preval_bsgfx_instanceHiResMesh;
+    functions.bsgfx_instanceMesh = _preval_bsgfx_instanceMesh;
+    functions.bsgfx_instanceBoneMesh = _preval_bsgfx_instanceBoneMesh;
+    functions.bsgfx_instanceDepthlessLine = _preval_bsgfx_instanceDepthlessLine;
+    functions.bsgfx_instanceLine = _preval_bsgfx_instanceLine;
+    functions.bsgfx_instanceRay = _preval_bsgfx_instanceRay;
+    functions.bsgfx_instanceAabb = _preval_bsgfx_instanceAabb;
+    functions.bsgfx_instanceSphere = _preval_bsgfx_instanceSphere;
+    functions.bsgfx_instanceCone = _preval_bsgfx_instanceCone;
+    functions.bsgfx_instancePoint = _preval_bsgfx_instancePoint;
+    functions.bsgfx_instanceQuad = _preval_bsgfx_instanceQuad;
+    functions.bsgfx_instanceAtlas = _preval_bsgfx_instanceAtlas;
+    functions.bsgfx_instanceAtlasFlipped = _preval_bsgfx_instanceAtlasFlipped;
+    functions.bsgfx_instanceAtlas = _preval_bsgfx_instanceAtlas;
+    functions.bsgfx_matrix = _preval_bsgfx_matrix;
     functions.bsgfx_renderFontSubtypes = _preval_bsgfx_renderFontSubtypes;
     functions.bsgfx_settingsEditor = _preval_bsgfx_settingsEditor;
     functions.bsgfx_renderFineShadowVolumes = _preval_bsgfx_renderFineShadowVolumes;

@@ -218,7 +218,7 @@ void bsmod_instanceBackgroundMenu(bs_vec3 position, bs_vec2 dimensions) {
 
 static void bsmod_instanceDraggingIcon() {
     bsmod_DraggingParams params = { 0 };
-    bs_vec2 cursor = bs_windowCursorPosition();
+    bs_vec2 cursor = bs_cursorPosition();
 
     bs_Atlas* atlas_ui = bs_fetch(BSMOD_ATLASES, BSMOD_ATLAS_UI)->atlas;
     bsgfx_AtlasCache* cache = $BSMOD_ATLAS_UI_prohibition();
@@ -286,7 +286,7 @@ void bsmod_instanceUI() {
 
     if (bsmod_rightClickUpOnce()) {
         right_clicked = true;
-        position = bs_windowCursorPosition();
+        position = bs_cursorPosition();
     }
 
     if (bsmod_leftClickUpOnce() || bsmod_middleClickOnce())

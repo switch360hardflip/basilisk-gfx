@@ -35,10 +35,10 @@ static void bsgfx_instanceBackground(
 	bs_vec4 background_radii = border_radii;
 	background_radii.z = background_radii.w = 0.0;
 
-	bs_mat4x3 transform = bsgfx_roundedMatrix(position, BS_V3(dimensions.x, dimensions.y, 0.0), bs_v4V1(0));
+	bs_mat4x3 transform = bsgfx_roundedMatrix(position, BS_V3(dimensions.x, dimensions.y, 0.0), BS_V4(0.0, 0.0, 0.0, 0.0));
 
 	if (material_id) {
-		bsgfx_instanceQuad(subtype, transform, bs_v4V1(0), 0, 0, material_id);
+		bsgfx_instanceQuad(subtype, transform, BS_V4(0.0, 0.0, 0.0, 0.0), 0, 0, material_id);
 	}
 
 	/**
@@ -52,7 +52,7 @@ static void bsgfx_instanceBackground(
 		bs_vec3 shadow_size = BS_V3(dimensions.x + shadow_width * 2.0, dimensions.y + shadow_width * 2.0, 0.0);
 
 		transform = bsgfx_roundedMatrix(shadow_position, shadow_size, border_radii);
-		bsgfx_instanceQuad(subtype, transform, bs_v4V1(0), 0, 0, shadow_material_id);
+		bsgfx_instanceQuad(subtype, transform, BS_V4(0.0, 0.0, 0.0, 0.0), 0, 0, shadow_material_id);
 	}
 
 	/**
@@ -66,15 +66,19 @@ static void bsgfx_instanceBackground(
 		bs_vec3 shadow_size = BS_V3(dimensions.x + shadow_width * 2.0, dimensions.y + shadow_width * 2.0, 0.0);
 
 		transform = bsgfx_roundedMatrix(shadow_position, shadow_size, border_radii);
-		bsgfx_instanceQuad(subtype, transform, bs_v4V1(0), 0, 0, outline_material_id);
+		bsgfx_instanceQuad(subtype, transform, BS_V4(0.0, 0.0, 0.0, 0.0), 0, 0, outline_material_id);
 	}
 }
 
 #define BSGFX_PIXEL_SCALE 1.0
-bool bsgfx_rectangleVsPointExpand(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point, float expand) {
+bool bsgfx_rectangleVsPointExpand(const bs_vec2* position, const bs_vec2* dimensions, const bs_vec2* point, float expand) {
 	expand *= BSGFX_PIXEL_SCALE;
-	position = bs_v2AddV1(position, -expand);
-	dimensions = bs_v2AddV1(dimensions, expand * 2.0);
+
+	bs_vec2 new_position, new_dimensions;
+
+	bs_v2AddS(position, -expand, &new_position);
+	bs_v2AddS(dimensions, expand * 2.0, &new_dimensions);
+
 	return bs_rectangleVsPoint(position, dimensions, point);
 }
 
@@ -84,6 +88,7 @@ static inline float bsgfx_textHeight() {
 	return font->height;
 }
 
+/*
 static inline float bsgfx_instanceTextField(int subtype, bs_vec3* position, char* text, int material_id) {
 	return 0.0;
 	bs_Font* font = bs_fetch(BSGFX_FONTS, BSGFX_FONT_ARIAL_16)->head;
@@ -109,6 +114,7 @@ float bsgfx_instanceTextFieldF(int subtype, bs_vec2* position, int material_id, 
 	va_end(args);
 	return width;
 }
+*/
 
 static void bsgfx_instanceScrollbar(bsgfx_Scrollbar* scrollbar, bs_vec3 position, int max_scroll, int scroll, float total_height) {
 	position.x -= scrollbar->width;
@@ -137,7 +143,7 @@ static void bsgfx_instanceScrollbar(bsgfx_Scrollbar* scrollbar, bs_vec3 position
 		bsgfx_instanceBackground(_bsgfx_subtypes_[BSGFX_SUBTYPE_UI_COLOR],
 			BS_V3(position.x, position.y, position.z + 2),
 			BS_V2(scrollbar->width, scrollbar->width),
-			bs_v4V1(scrollbar->border_radius),
+			BS_V4(scrollbar->border_radius, scrollbar->border_radius, scrollbar->border_radius, scrollbar->border_radius),
 			scrollbar->button_background_material,
 			scrollbar->button_outline_material,
 			0);
@@ -145,7 +151,7 @@ static void bsgfx_instanceScrollbar(bsgfx_Scrollbar* scrollbar, bs_vec3 position
 		bsgfx_instanceBackground(_bsgfx_subtypes_[BSGFX_SUBTYPE_UI_COLOR],
 			BS_V3(position.x, position.y - total_height - scrollbar->width, position.z + 2),
 			BS_V2(scrollbar->width, scrollbar->width),
-			bs_v4V1(scrollbar->border_radius),
+			BS_V4(scrollbar->border_radius, scrollbar->border_radius, scrollbar->border_radius, scrollbar->border_radius),
 			scrollbar->button_background_material,
 			scrollbar->button_outline_material,
 			0);
@@ -162,7 +168,7 @@ static void bsgfx_instanceScrollbar(bsgfx_Scrollbar* scrollbar, bs_vec3 position
 	bsgfx_instanceBackground(_bsgfx_subtypes_[BSGFX_SUBTYPE_UI_COLOR],
 		BS_V3(position.x, position.y - total_height, position.z + 1),
 		BS_V2(scrollbar->width, total_height),
-		bs_v4V1(scrollbar->border_radius),
+		BS_V4(scrollbar->border_radius, scrollbar->border_radius, scrollbar->border_radius, scrollbar->border_radius),
 		scrollbar->background_material,
 		0,
 		0);
@@ -182,7 +188,7 @@ static void bsgfx_instanceScrollbar(bsgfx_Scrollbar* scrollbar, bs_vec3 position
 	bsgfx_instanceBackground(_bsgfx_subtypes_[BSGFX_SUBTYPE_UI_COLOR],
 		BS_V3(position.x, position.y, position.z + BSGFX_BACKGROUND_Z_COUNT),
 		BS_V2(scrollbar->width, height),
-		bs_v4V1(scrollbar->border_radius),
+		BS_V4(scrollbar->border_radius, scrollbar->border_radius, scrollbar->border_radius, scrollbar->border_radius),
 		scrollbar->material,
 		scrollbar->outline_material,
 		0);
@@ -192,26 +198,29 @@ static void bsgfx_instanceScrollbar(bsgfx_Scrollbar* scrollbar, bs_vec3 position
  URL
  */
 static bool bsgfx_instanceUrl(bsgfx_Menu* menu, bsgfx_Widget* widget, bool already_hovering, int id, bs_vec3 position, bs_vec2* out_width) {
-	bs_vec2 cursor = bs_windowCursorPosition();
+	/*
+	bs_vec2 cursor = bs_cursorPosition();
 	bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 	bs_Font* font = widget->font ? widget->font : menu->font;
-	int ui_copy = bs_queryAtlas(atlas, "ui_copy");
-	bs_vec2 ui_copy_size = bs_atlasSize(atlas, ui_copy);
+	
+	bsgfx_AtlasCache* ui_copy = $BSGFX_ATLAS_ANY_ui_copy();
 
 	//if ((position->y - ui_copy_size.y) < menu->coords.y)
 	//	return;
 
 	bs_vec2 name_dimensions = bs_textDimensions(font, widget->url.path, strlen(widget->url.path));
-	bool url_hovering = !already_hovering && bs_rectangleVsPoint(bs_v2AddY(position.xy, -name_dimensions.y), name_dimensions, cursor);
-	bsgfx_instanceTextField(menu->text_subtype, &position, widget->url.path, /*url_hovering ? BSGFX_DEBUG_URL_SELECTED_COLOR : BSGFX_DEBUG_URL_COLOR */ 0);
+	bool url_hovering = !already_hovering && bs_rectangleVsPoint(bs_v2AddY(position.xy, -name_dimensions.y), &name_dimensions, &cursor);
+
+	// url_hovering ? BSGFX_DEBUG_URL_SELECTED_COLOR : BSGFX_DEBUG_URL_COLOR
+	bsgfx_instanceTextField(menu->text_subtype, &position, widget->url.path,  0);
 
 	bs_vec3 copy_position = BS_V3(position.x + name_dimensions.x, position.y, position.z + 1);
 	bs_vec2 copy_dimensions;
 	bs_v2MulV1(&ui_copy_size, BSGFX_PIXEL_SCALE, &copy_dimensions);
-	bool copy_hovering = !already_hovering && bs_rectangleVsPoint(copy_position.xy, copy_dimensions, cursor);
+	bool copy_hovering = !already_hovering && bs_rectangleVsPoint(&copy_position.xy, &copy_dimensions, &cursor);
 
 	bs_mat4 transform = bs_transform(copy_position, BS_QUAT_IDENTITY, BS_V3(copy_dimensions.x, copy_dimensions.y, 0));
-	bsgfx_instanceQuad(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_ICON], bs_m4x3(transform), bs_atlasCoordinates(atlas, ui_copy, 0), 0, 0, 0);
+	bsgfx_instanceQuad(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_ICON], bs_m4x3(transform), ui_copy->coords, 0, 0, 0);
 
 	//bsgfx_atlasLegacyHiResInstance(atlas, copy_position, ui_copy, bs_v2V1(BSGFX_PIXEL_SCALE), BS_WHITE, false);
 
@@ -231,27 +240,30 @@ static bool bsgfx_instanceUrl(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alrea
 	*out_width = name_dimensions;
 
 	return url_hovering || copy_hovering;
+	*/
+	return false;
 }
 
 /**
  Range
  */
 static bool bsgfx_instanceRange(bsgfx_Menu* menu, bsgfx_Widget* widget, bool already_hovering, int id, bs_vec3 position, bs_vec2* out_width) {
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 	bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 	bs_Font* font = widget->font ? widget->font : menu->font;
-	int ui_increment = bs_queryAtlas(atlas, "ui_increment");
+
+	bsgfx_AtlasCache* ui_increment = $BSGFX_ATLAS_ANY_ui_increment();
 
 	//bs_vec2 name_dimensions = bs_textDimensions(font, widget->name, strlen(widget->name));
 	bs_vec2 name_dimensions = BS_V2(16, 16);
 
 	bs_vec3 copy_position = BS_V3(position.x + name_dimensions.x, position.y, position.z + 1);
-	bs_vec2 ui_increment_size = bs_atlasSize(atlas, ui_increment);
+
 	bs_vec2 copy_dimensions;
-	bs_v2MulV1(&ui_increment_size, BSGFX_PIXEL_SCALE, &copy_dimensions);
+	bs_v2MulS(&ui_increment->size, BSGFX_PIXEL_SCALE, &copy_dimensions);
 
 	bs_mat4x3 m = bsgfx_matrix(copy_position, BS_V3(copy_dimensions.x, copy_dimensions.y, 0.0));
-	bsgfx_atlasInstanceFlipped(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_ICON], m, ui_increment, 0, 0, $white_material()->id);
+	bsgfx_atlasInstanceFlipped(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_ICON], m, ui_increment->id, 0, 0, $white_material()->id);
 
 	bool hovering = !already_hovering && bs_rectangleVsPoint(copy_position.xy, copy_dimensions, cursor) && bs_leftClickOnce();
 	if (hovering) {
@@ -278,7 +290,7 @@ static bool bsgfx_instanceRange(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alr
 	}
 
 	m = bsgfx_matrix(copy_position, BS_V3(copy_dimensions.x, copy_dimensions.y, 0.0));
-	bsgfx_atlasInstance(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_ICON], m, ui_increment, 0, 0, $white_material()->id);
+	bsgfx_atlasInstance(_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_ICON], m, ui_increment->id, 0, 0, $white_material()->id);
 
 	if ((*widget->range.value) <= widget->range.min)
 		(*widget->range.value) = widget->range.min;
@@ -294,7 +306,7 @@ static bool bsgfx_instanceRange(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alr
  Slider
  */
 static bool bsgfx_instanceSlider(bsgfx_Menu* menu, bsgfx_Widget* widget, bool already_hovering, int id, bs_vec3 position, bs_vec2* out_size) {
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 	bs_Font* font = widget->font ? widget->font : menu->font;
 
 //	bs_vec2 name_dimensions = bs_textDimensions(font, widget->name, strlen(widget->name));
@@ -350,7 +362,7 @@ static bool bsgfx_instanceIcon(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alre
 	int border_size = (bool)widget->icon.outline_material_id;
 	//position->y -= border_size;
 
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 
 	bs_Font* font = widget->font ? widget->font : menu->font;
 
@@ -448,7 +460,7 @@ static bool bsgfx_instanceIcon(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alre
  List
  */
 static bool bsgfx_instanceList(bsgfx_Menu* menu, bsgfx_Widget* widget, bool already_hovering, int id, bs_vec3 position, bs_vec2* out_size) {
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 	bs_Font* font = widget->font ? widget->font : menu->font;
 
 	const int max_name_length = 128;
@@ -534,7 +546,7 @@ static bool bsgfx_instanceWidgetName(bsgfx_Menu* menu, bsgfx_Widget* widget, bs_
 */
 
 static bool bsgfx_instanceString(bsgfx_Menu* menu, bsgfx_Widget* widget, bool already_hovering, bs_vec3 position, bs_vec2* out_width) {
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 
 	//if (widget->type != BSGFX_WIDGET_ICON || widget->icon.placement == BSGFX_ICON_PLACE_RIGHT || widget->icon.placement == BSGFX_ICON_PLACE_BELOW)
 	//hovering_name = bsgfx_instanceWidgetName(&menu, widget, cursor);
@@ -557,7 +569,7 @@ static bool bsgfx_instanceString(bsgfx_Menu* menu, bsgfx_Widget* widget, bool al
 	};
 
 	bsgfx_textInstance(menu->text_subtype, font, &text, widget->string.value, len);
-	bool hovering = bs_rectangleVsPoint(text.position.xy, text_dimensions, bs_windowCursorPosition());
+	bool hovering = bs_rectangleVsPoint(text.position.xy, text_dimensions, bs_cursorPosition());
 	if (widget->string.on_hover && hovering)
 		widget->string.on_hover(widget);
 
@@ -570,7 +582,7 @@ static bool bsgfx_instanceString(bsgfx_Menu* menu, bsgfx_Widget* widget, bool al
   Button
   */
 static bool bsgfx_instanceButton(bsgfx_Menu* menu, bsgfx_Widget* widget, bool already_hovering, bs_vec3 position, bs_vec2* out_width) {
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 	bs_vec2 size = widget->button.size;
 
 	bs_Font* font = widget->font ? widget->font : menu->font;
@@ -727,7 +739,7 @@ static void bsgfx_instanceUIElement(bsgfx_AtlasCache* cache, bsgfx_OriginType or
 		position.x -= cache->size.x / 2.0;
 		position.y -= cache->size.x / 2.0;
 	}
-	bs_mat4x3 icon_matrix = bsgfx_roundedMatrix(position, bs_v3V2(cache->size, 0.0), bs_v4V1(0.0));
+	bs_mat4x3 icon_matrix = bsgfx_roundedMatrix(position, BS_V3(cache->size.x, cache->size.y, 0.0), BS_V4(0.0, 0.0, 0.0, 0.0));
 	bsgfx_instanceQuad(_bsgfx_subtypes_[BSGFX_SUBTYPE_UI_STENCIL], icon_matrix, cache->coords, 0, 0, material_id);
 }
 
@@ -736,10 +748,10 @@ static bool bsgfx_instanceColorPicker(bsgfx_Menu* menu, bsgfx_Widget* widget, bo
 	position.y -= widget->color.dimensions.y;
 	//position->y -= border_size;
 
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 	bs_vec2 hue_dimensions = BS_V2(widget->color.hue_width, widget->color.dimensions.y);
 	bs_vec2 alpha_dimensions = BS_V2(widget->color.hue_width, widget->color.dimensions.y);
-	bs_vec4 border_radii = bs_v4V1(widget->color.border_radius);
+	bs_vec4 border_radii = BS_V4(widget->color.border_radius, widget->color.border_radius, widget->color.border_radius, widget->color.border_radius);
 	bs_vec3 hue_position = BS_V3(position.x + widget->color.dimensions.x + widget->color.padding, position.y, position.z);
 	bs_vec3 alpha_position = BS_V3(hue_position.x + hue_dimensions.x + widget->color.padding, position.y, position.z);
 	
@@ -1049,7 +1061,7 @@ static bool bsgfx_instanceInput(
 	bs_vec2* out_width,
 	const char* alphabet)
 {
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 
 	bs_Font* font = widget->font ? widget->font : menu->font;
 
@@ -1339,7 +1351,7 @@ static bool bsgfx_instanceInput(
  */
 static bs_U64 bsgfx_selected_grid = 0;
 static bool bsgfx_instanceGrid(bsgfx_Menu* menu, bsgfx_Widget* widget, bool already_hovering, bs_vec3 position, bs_vec2* out_width) {
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 
 	int columns = floor(widget->grid.total_size.x / widget->grid.size.x);
 	int rows = floor(widget->grid.total_size.y / widget->grid.size.y);
@@ -1456,7 +1468,7 @@ end:
 static bool bsgfx_instanceModel(bsgfx_Menu* menu, bsgfx_Widget* widget, bool already_hovering, bs_vec3 position, bs_vec2* out_size) {
 	bs_throwBasilisk(BSX_NOT_IMPLEMENTED);
 	/*
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 
 	bs_U64 hash = bs_stringHash(widget->model.name);
 	bs_Model* model = bs_queryHash(widget->model.name, NULL, hash, 0).model;
@@ -1508,7 +1520,7 @@ static bool bsgfx_instanceModel(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alr
  Table
  */
 static bool bsgfx_instanceTable(bsgfx_Menu* menu, bsgfx_Widget* widget, bool already_hovering, bs_vec3 position, bs_vec2* out_size) {
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 
 	bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 	bs_Font* font = widget->font ? widget->font : menu->font;
@@ -1606,7 +1618,7 @@ static bool bsgfx_instanceTable(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alr
    =============================================================================*/
 
 static bool bsgfx_instanceDebugSettingsMenu(bsgfx_Menu* menu, bsgfx_TitleBar* title_bar, bs_vec3 position, bs_vec2 dimensions, int border_id, float title_bar_height) {
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 
 	// int atlas_any_hi_res_subtype = bsgfx_querySubtypeNull(BSGFX_INSTANCE_TYPE_QUAD_LEGACY, BSGFX_QUAD_LEGACY_KEY_ATLAS_ANY_HI_RES);
 
@@ -1690,7 +1702,7 @@ static void bsgfx_instanceMenuTabs(bsgfx_Menu* menu, bsgfx_MenuTabBar* tab_bar) 
 			scale.x += tab->icon_cache->size.x;
 		}
 
-		if (bs_rectangleVsPoint(position.xy, scale.xy, bs_windowCursorPosition())) {
+		if (bs_rectangleVsPoint(position.xy, scale.xy, bs_cursorPosition())) {
 			_poser_->menu_blocked = true;
 			if (bs_leftClickOnce())
 				*tab_bar->active_tab = i;
@@ -1785,7 +1797,7 @@ static void bsgfx_instanceTitleBar(bsgfx_Menu* menu, bsgfx_TitleBar* title_bar, 
 		button_position.x -= offset;
 		button_position.z += 1;
 
-		bool hovering = buttons[i].action && bs_rectangleVsPoint(button_position.xy, button_size.xy, bs_windowCursorPosition());
+		bool hovering = buttons[i].action && bs_rectangleVsPoint(button_position.xy, button_size.xy, bs_cursorPosition());
 		bsgfx_instanceQuad(
 			_bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_ICON],
 			bsgfx_roundedMatrix(button_position, button_size, buttons[i].radii),
@@ -1841,7 +1853,7 @@ bool bsgfx_instanceWidgets(bsgfx_Menu menu, bsgfx_TitleBar* title_bar, bsgfx_Men
 
 	bs_vec3 menu_start_position = menu.position, menu_position = menu.position;
 	float lowest_y = menu_start_position.y;
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 	 
 	for (int i = 0; i < menu.widgets_count; i++) {
 		bsgfx_Widget* widget = menu.widgets + i;

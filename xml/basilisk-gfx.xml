@@ -541,7 +541,7 @@
         <macro><name>#define BSGFX_PIXEL_SCALE</name><line>(4.0)</line></macro>
         <macro><name>#define BSGFX_FIXED_TICK</name><line>(1.0 / 40.0)</line></macro>
         <macro><name>#define BSGFX_TITLE_BAR_COLOR</name><line>(bs_RGBA) { 255, 255, 255, 200 }</line></macro>
-        <macro><name>#define BSGFX_SCREENSHOT_DIMENSIONS</name><line>bs_iv2(1920 / 4, 1080 / 4)</line></macro>
+        <macro><name>#define BSGFX_SCREENSHOT_DIMENSIONS</name><line>BS_IV2(1920 / 4, 1080 / 4)</line></macro>
 
         <macro>
             <name>#define BSGFX_MOTD</name>
@@ -755,19 +755,14 @@
 			<return>bsgfx_Material*</return>
 			<param><type>bs_U64</type><name>hash</name></param>
 		</function>
-		<function name="bsgfx_materialName">
-			<return>char*</return>
+		<function name="bsgfx_fetchMaterial">
+			<return>bsgfx_Material*</return>
 			<param><type>int</type><name>id</name></param>
 		</function>
 		<function name="bsgfx_queryMaterial">
 			<return>bsgfx_Material*</return>
 			<param><type>const char*</type><name>name</name></param>
 		</function>
-		<function name="bsgfx_materialHash">
-			<return>bs_U64</return>
-			<param><type>int</type><name>id</name></param>
-		</function>
-		<function name="bsgfx_allocateMaterials"><return>void</return></function>
 		<function name="bsgfx_loadMaterials"><return>void</return></function>
 		<variadicStringTemplate name="bsgfx_material" string="name">
 			<return>bsgfx_Material*</return>
@@ -859,7 +854,7 @@
 			<return>bs_List*</return>
 			<param><type>int</type><name>subtype</name></param>
 		</function>
-		<function name="bsgfx_iniInstances"><return>void</return></function>
+		<function name="bsgfx_iniInstances"><return>bs_Result</return></function>
 		<function name="bsgfx_instanceType">
 			<return>void</return>
 			<param><type>int</type><name>type</name></param>
@@ -917,15 +912,113 @@
 			<return>void</return>
 			<param><type>int</type><name>subtype</name></param>
 		</function>
+		
 		<function name="bsgfx_instanceHiResMesh">
 			<return>void</return>
 			<param><type>bs_Mesh*</type><name>mesh</name></param>
-			<param><type>bs_vec3</type><name>position</name></param>
-			<param><type>bs_vec4</type><name>rotation</name></param>
+			<param><type>const bs_vec3*</type><name>position</name></param>
+			<param><type>const bs_vec4*</type><name>rotation</name></param>
 			<param><type>float</type><name>scale</name></param>
 			<param><type>int</type><name>subtype_offset</name></param>
 			<param><type>bool</type><name>origin_at_center</name></param>
 		</function>
+		<function name="bsgfx_instanceMesh">
+			<return>int</return>
+			<param><type>int</type><name>subtype</name></param>
+			<param><type>const bsgfx_MeshInstance*</type><name>data</name></param>
+			<param><type>bs_U32</type><name>flags</name></param>
+			<param><type>int</type><name>id</name></param>
+			<param><type>int</type><name>material</name></param>
+		</function>
+		<function name="bsgfx_instanceBoneMesh">
+			<return>int</return>
+			<param><type>int</type><name>subtype</name></param>
+			<param><type>const bsgfx_BoneInstance*</type><name>data</name></param>
+			<param><type>bs_U32</type><name>flags</name></param>
+			<param><type>int</type><name>id</name></param>
+			<param><type>int</type><name>material</name></param>
+		</function>
+		<function name="bsgfx_instanceDepthlessLine">
+			<return>int</return>
+			<param><type>bs_vec3</type><name>start</name></param>
+			<param><type>bs_vec3</type><name>end</name></param>
+			<param><type>bs_RGBA</type><name>color</name></param>
+		</function>
+		<function name="bsgfx_instanceLine">
+			<return>int</return>
+			<param><type>bs_vec3</type><name>start</name></param>
+			<param><type>bs_vec3</type><name>end</name></param>
+			<param><type>bs_RGBA</type><name>color</name></param>
+		</function>
+		<function name="bsgfx_instanceRay">
+			<return>int</return>
+			<param><type>const bs_Ray*</type><name>ray</name></param>
+			<param><type>bs_RGBA</type><name>color</name></param>
+		</function>
+		<function name="bsgfx_instanceAabb">
+			<return>bs_Range</return>
+			<param><type>const bs_Aabb*</type><name>aabb</name></param>
+			<param><type>bs_RGBA</type><name>color</name></param>
+		</function>
+		<function name="bsgfx_instanceSphere">
+			<return>int</return>
+			<param><type>bs_vec3</type><name>position</name></param>
+			<param><type>float</type><name>radius</name></param>
+		</function>
+		<function name="bsgfx_instanceCone">
+			<return>int</return>
+			<param><type>bs_mat4</type><name>transform</name></param>
+			<param><type>float</type><name>radius</name></param>
+			<param><type>bs_U32</type><name>flags</name></param>
+			<param><type>int</type><name>id</name></param>
+			<param><type>int</type><name>material</name></param>
+		</function>
+		<function name="bsgfx_instancePoint">
+			<return>int</return>
+			<param><type>bs_vec3</type><name>position</name></param>
+			<param><type>bs_RGBA</type><name>color</name></param>
+			<param><type>float</type><name>size</name></param>
+		</function>
+		<function name="bsgfx_instanceQuad">
+			<return>int</return>
+			<param><type>int</type><name>subtype</name></param>
+			<param><type>bs_mat4x3</type><name>transform</name></param>
+			<param><type>bs_vec4</type><name>coords</name></param>
+			<param><type>bs_U32</type><name>flags</name></param>
+			<param><type>int</type><name>id</name></param>
+			<param><type>int</type><name>material</name></param>
+		</function>
+		<function name="bsgfx_instanceAtlas">
+			<return>int</return>
+			<param><type>int</type><name>subtype</name></param>
+			<param><type>bs_mat4x3</type><name>transform</name></param>
+			<param><type>int</type><name>texture</name></param>
+			<param><type>bs_U32</type><name>flags</name></param>
+			<param><type>int</type><name>id</name></param>
+			<param><type>int</type><name>material</name></param>
+		</function>
+		<function name="bsgfx_instanceAtlasFlipped">
+			<return>int</return>
+			<param><type>int</type><name>subtype</name></param>
+			<param><type>bs_mat4x3</type><name>transform</name></param>
+			<param><type>int</type><name>texture</name></param>
+			<param><type>bs_U32</type><name>flags</name></param>
+			<param><type>int</type><name>id</name></param>
+			<param><type>int</type><name>material</name></param>
+		</function>
+		<function name="bsgfx_instanceAtlas">
+			<return>bs_Range</return>
+			<param><type>const bs_mat4*</type><name>transform</name></param>
+			<param><type>int</type><name>segments</name></param>
+			<param><type>float</type><name>radius</name></param>
+			<param><type>bs_RGBA</type><name>color</name></param>
+		</function>
+		<function name="bsgfx_matrix">
+			<return>bs_mat4x3</return>
+			<param><type>bs_vec3</type><name>position</name></param>
+			<param><type>bs_vec3</type><name>scale</name></param>
+		</function>
+		
 		<function name="bsgfx_renderFontSubtypes"><return>void</return></function>
 
 		<function name="bsgfx_settingsEditor">

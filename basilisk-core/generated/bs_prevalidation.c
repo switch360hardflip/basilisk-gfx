@@ -624,6 +624,13 @@ static void _preval_bs_m4Inverse(const bs_mat4* m, const bs_mat4* result) {
     return next.bs_m4Inverse(m, result);
 }
 
+static bs_mat4x3 _preval_bs_m4x3(const bs_mat4* m) {
+    if (m == NULL)
+        return (bs_mat4x3) { 0 };
+
+    return next.bs_m4x3(m);
+}
+
 static void _preval_bs_m4MulV3(const bs_mat4* m, const bs_vec3* v, bs_vec3* out) {
     if (m == NULL)
         return;
@@ -988,25 +995,52 @@ static void _preval_bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point
     return next.bs_sphereVsPoint(center, radius, point, out);
 }
 
-static void _preval_bs_sphereVsBox(bs_vec3 center, float radius, bs_vec3 position, bs_vec4 rotation, bs_vec3 scale, bs_SphereVsBox* out) {
-    if (out == NULL)
-        return;
+static bool _preval_bs_sphereVsObbTest(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale) {
+    if (center == NULL)
+        return false;
 
-    return next.bs_sphereVsBox(center, radius, position, rotation, scale, out);
+    if (position == NULL)
+        return false;
+
+    if (rotation == NULL)
+        return false;
+
+    if (scale == NULL)
+        return false;
+
+    return next.bs_sphereVsObbTest(center, radius, position, rotation, scale);
 }
 
-static void _preval_bs_rectangleVsPoint(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point, bs_RectangleVsPoint* out) {
+static void _preval_bs_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_SphereVsBox* out) {
+    if (center == NULL)
+        return;
+
+    if (position == NULL)
+        return;
+
+    if (rotation == NULL)
+        return;
+
+    if (scale == NULL)
+        return;
+
     if (out == NULL)
         return;
 
-    return next.bs_rectangleVsPoint(position, dimensions, point, out);
+    return next.bs_sphereVsObb(center, radius, position, rotation, scale, out);
 }
 
-static void _preval_bs_rectangleVsPointAbs(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point, bs_RectangleVsPoint* out) {
-    if (out == NULL)
-        return;
+static bool _preval_bs_rectangleVsPoint(const bs_vec2* position, const bs_vec2* dimensions, const bs_vec2* point) {
+    if (position == NULL)
+        return false;
 
-    return next.bs_rectangleVsPointAbs(position, dimensions, point, out);
+    if (dimensions == NULL)
+        return false;
+
+    if (point == NULL)
+        return false;
+
+    return next.bs_rectangleVsPoint(position, dimensions, point);
 }
 
 static void _preval_bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_LineVsLine* out) {
@@ -3995,18 +4029,12 @@ static bool _preval_bs_isLaterThan(const bs_DateTime* a, const bs_DateTime* b) {
     return next.bs_isLaterThan(a, b);
 }
 
-static bs_vec2 _preval_bs_cursorPosition(bs_Window* window) {
-    if (window == NULL)
-        return (bs_vec2) { 0 };
-
-    return next.bs_cursorPosition(window);
+static bs_vec2 _preval_bs_cursorPosition() {
+    return next.bs_cursorPosition();
 }
 
-static bs_ivec2 _preval_bs_windowPosition(bs_Window* window) {
-    if (window == NULL)
-        return (bs_ivec2) { 0 };
-
-    return next.bs_windowPosition(window);
+static bs_ivec2 _preval_bs_windowPosition() {
+    return next.bs_windowPosition();
 }
 
 static bs_vec2 _preval_bs_screenCursorPosition() {
@@ -4361,6 +4389,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_m4Mul = _preval_bs_m4Mul;
     functions.bs_m4Transpose = _preval_bs_m4Transpose;
     functions.bs_m4Inverse = _preval_bs_m4Inverse;
+    functions.bs_m4x3 = _preval_bs_m4x3;
     functions.bs_m4MulV3 = _preval_bs_m4MulV3;
     functions.bs_m4MulV4 = _preval_bs_m4MulV4;
     functions.bs_m4Translate = _preval_bs_m4Translate;
@@ -4401,9 +4430,9 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_ray = _preval_bs_ray;
     functions.bs_rayVsObb = _preval_bs_rayVsObb;
     functions.bs_sphereVsPoint = _preval_bs_sphereVsPoint;
-    functions.bs_sphereVsBox = _preval_bs_sphereVsBox;
+    functions.bs_sphereVsObbTest = _preval_bs_sphereVsObbTest;
+    functions.bs_sphereVsObb = _preval_bs_sphereVsObb;
     functions.bs_rectangleVsPoint = _preval_bs_rectangleVsPoint;
-    functions.bs_rectangleVsPointAbs = _preval_bs_rectangleVsPointAbs;
     functions.bs_lineVsLine = _preval_bs_lineVsLine;
     functions.bs_populateVertexDeclaration = _preval_bs_populateVertexDeclaration;
     functions.bs_currentSwap = _preval_bs_currentSwap;

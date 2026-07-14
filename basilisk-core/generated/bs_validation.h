@@ -100,6 +100,7 @@ static inline bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_m4Mul = (PFN_bs_m4Mul)GetProcAddress(module, "_val_bs_m4Mul");
     functions.bs_m4Transpose = (PFN_bs_m4Transpose)GetProcAddress(module, "_val_bs_m4Transpose");
     functions.bs_m4Inverse = (PFN_bs_m4Inverse)GetProcAddress(module, "_val_bs_m4Inverse");
+    functions.bs_m4x3 = (PFN_bs_m4x3)GetProcAddress(module, "_val_bs_m4x3");
     functions.bs_m4MulV3 = (PFN_bs_m4MulV3)GetProcAddress(module, "_val_bs_m4MulV3");
     functions.bs_m4MulV4 = (PFN_bs_m4MulV4)GetProcAddress(module, "_val_bs_m4MulV4");
     functions.bs_m4Translate = (PFN_bs_m4Translate)GetProcAddress(module, "_val_bs_m4Translate");
@@ -140,9 +141,9 @@ static inline bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_ray = (PFN_bs_ray)GetProcAddress(module, "_val_bs_ray");
     functions.bs_rayVsObb = (PFN_bs_rayVsObb)GetProcAddress(module, "_val_bs_rayVsObb");
     functions.bs_sphereVsPoint = (PFN_bs_sphereVsPoint)GetProcAddress(module, "_val_bs_sphereVsPoint");
-    functions.bs_sphereVsBox = (PFN_bs_sphereVsBox)GetProcAddress(module, "_val_bs_sphereVsBox");
+    functions.bs_sphereVsObbTest = (PFN_bs_sphereVsObbTest)GetProcAddress(module, "_val_bs_sphereVsObbTest");
+    functions.bs_sphereVsObb = (PFN_bs_sphereVsObb)GetProcAddress(module, "_val_bs_sphereVsObb");
     functions.bs_rectangleVsPoint = (PFN_bs_rectangleVsPoint)GetProcAddress(module, "_val_bs_rectangleVsPoint");
-    functions.bs_rectangleVsPointAbs = (PFN_bs_rectangleVsPointAbs)GetProcAddress(module, "_val_bs_rectangleVsPointAbs");
     functions.bs_lineVsLine = (PFN_bs_lineVsLine)GetProcAddress(module, "_val_bs_lineVsLine");
     functions.bs_populateVertexDeclaration = (PFN_bs_populateVertexDeclaration)GetProcAddress(module, "_val_bs_populateVertexDeclaration");
     functions.bs_currentSwap = (PFN_bs_currentSwap)GetProcAddress(module, "_val_bs_currentSwap");

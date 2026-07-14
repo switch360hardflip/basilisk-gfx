@@ -33,6 +33,10 @@
         return model;                                                                           \
     }
 
+static inline bs_vec4 bsgfx_convertColor(bs_RGBA color) {
+    return BS_V4((float)color.r / 255.0, (float)color.g / 255.0, (float)color.b / 255.0, (float)color.a / 255.0);
+}
+
 #define BSGFX_CACHE_COLOR_MATERIAL(name, _color)                                    \
     inline bsgfx_Material* $##name##() {                                            \
         static int id = -1;                                                         \
@@ -72,6 +76,8 @@ typedef struct {
    *============================================================================*/
 
 BSGFX_CACHE_ATLAS_QUERY(BSGFX_ATLASES, BSGFX_ATLAS_ANY, white)
+BSGFX_CACHE_ATLAS_QUERY(BSGFX_ATLASES, BSGFX_ATLAS_ANY, ui_copy)
+BSGFX_CACHE_ATLAS_QUERY(BSGFX_ATLASES, BSGFX_ATLAS_ANY, ui_increment)
 
 
 

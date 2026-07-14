@@ -39,7 +39,7 @@ static bs_mat4 bsgfx_primitiveOrigin(bsgfx_RawPrimitive* primitive, bs_vec3 orig
 
 void bsmod_snapPrimitive() {
 	static bs_vec2 cursor_start;
-	bs_vec2 cursor = bs_v2Add(bs_v2MulV1(poser()->world_camera.position, 4.0), bs_windowCursorPosition());
+	bs_vec2 cursor = bs_v2Add(bs_v2MulV1(poser()->world_camera.position, 4.0), bs_cursorPosition());
 
 	if (bsmod.edit_type_old != bsmod.edit_type) {
 		bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, bsmod_firstSelectedId(BSGFX_TYPE_PRIMITIVE));
@@ -259,7 +259,7 @@ void bsmod_instanceTransform() {
 
 	static int last_axis = -1;
 	static bs_vec2 last_cursor, pressed_cursor;
-	bs_vec2 cursor = bs_windowCursorPosition();
+	bs_vec2 cursor = bs_cursorPosition();
 
 	static struct {
 		float rotation;

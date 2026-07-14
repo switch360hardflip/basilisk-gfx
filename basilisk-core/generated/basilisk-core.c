@@ -458,6 +458,12 @@ void bs_m4Inverse(
     glm_mat4_inv(m->v, result->v);
 }
 
+bs_mat4x3 bs_m4x3(
+    const bs_mat4* m)
+{
+    return next.bs_m4x3(m);
+}
+
 void bs_m4MulV3(
     const bs_mat4* m, 
     const bs_vec3* v, 
@@ -765,33 +771,33 @@ void bs_sphereVsPoint(
     return next.bs_sphereVsPoint(center, radius, point, out);
 }
 
-void bs_sphereVsBox(
-    bs_vec3 center, 
+bool bs_sphereVsObbTest(
+    const bs_vec3* center, 
     float radius, 
-    bs_vec3 position, 
-    bs_vec4 rotation, 
-    bs_vec3 scale, 
+    const bs_vec3* position, 
+    const bs_vec4* rotation, 
+    const bs_vec3* scale)
+{
+    return next.bs_sphereVsObbTest(center, radius, position, rotation, scale);
+}
+
+void bs_sphereVsObb(
+    const bs_vec3* center, 
+    float radius, 
+    const bs_vec3* position, 
+    const bs_vec4* rotation, 
+    const bs_vec3* scale, 
     bs_SphereVsBox* out)
 {
-    return next.bs_sphereVsBox(center, radius, position, rotation, scale, out);
+    return next.bs_sphereVsObb(center, radius, position, rotation, scale, out);
 }
 
-void bs_rectangleVsPoint(
-    bs_vec2 position, 
-    bs_vec2 dimensions, 
-    bs_vec2 point, 
-    bs_RectangleVsPoint* out)
+bool bs_rectangleVsPoint(
+    const bs_vec2* position, 
+    const bs_vec2* dimensions, 
+    const bs_vec2* point)
 {
-    return next.bs_rectangleVsPoint(position, dimensions, point, out);
-}
-
-void bs_rectangleVsPointAbs(
-    bs_vec2 position, 
-    bs_vec2 dimensions, 
-    bs_vec2 point, 
-    bs_RectangleVsPoint* out)
-{
-    return next.bs_rectangleVsPointAbs(position, dimensions, point, out);
+    return next.bs_rectangleVsPoint(position, dimensions, point);
 }
 
 void bs_lineVsLine(
@@ -3932,16 +3938,14 @@ bool bs_isLaterThan(
     return next.bs_isLaterThan(a, b);
 }
 
-bs_vec2 bs_cursorPosition(
-    bs_Window* window)
+bs_vec2 bs_cursorPosition()
 {
-    return next.bs_cursorPosition(window);
+    return next.bs_cursorPosition();
 }
 
-bs_ivec2 bs_windowPosition(
-    bs_Window* window)
+bs_ivec2 bs_windowPosition()
 {
-    return next.bs_windowPosition(window);
+    return next.bs_windowPosition();
 }
 
 bs_vec2 bs_screenCursorPosition()

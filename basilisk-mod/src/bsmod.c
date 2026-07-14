@@ -248,7 +248,7 @@ static void bsmod_computeFlyCamera() {
     static bool rotating = false;
     static bs_vec2 last_cursor;
 
-    bs_vec2 cursor = bs_windowCursorPosition();
+    bs_vec2 cursor = bs_cursorPosition();
 
     if (bsmod_keyDown(BS_KEY_LEFT_SHIFT))
         move_speed = 0.5;

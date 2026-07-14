@@ -6,32 +6,72 @@
 
 static bs_List _bsgfx_subtype_data[BSGFX_MAX_NUM_SUBTYPES];
 
-bs_List* bsgfx_subtypeInstances(int subtype) {
+BSGFXAPI bs_List* _bsgfx_subtypeInstances(int subtype) {
 	return &_bsgfx_subtype_data[subtype];
 }
 
-void bsgfx_iniInstances() {
+BSGFXAPI bs_Result _bsgfx_iniInstances() {
+	bs_Result result;
+
+	 /** Already initialized */
 	if (bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)) {
 		bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
+
 		if (buffer->bind_set != BSGFX_SET_MESH_DATA || buffer->binding != BSGFX_BINDING_MESH_DATA)
 			bs_bindBuffer(BSGFX_SET_MESH_DATA, BSGFX_BINDING_MESH_DATA, buffer);
-		return;
+
+		return BS_RESULT_OK;
 	}
 
-	bs_Buffer* buffer = bs_buffer(BS_BUFFER(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA, false), sizeof(bsgfx_InstanceMetadata), 
+	bs_Object* object = BS_BUFFER(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA, false);
+	result = bs_buffer(object, sizeof(bsgfx_InstanceMetadata),
 		BS_BUFFER_USAGE_STORAGE_BUFFER_BIT | BS_BUFFER_USAGE_TRANSFER_DST_BIT | BS_BUFFER_USAGE_TRANSFER_SRC_BIT, 
 		BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | BS_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		0)->buffer;
+		0);
 
-	if (!buffer) 
-		return;
+	if (result != BS_RESULT_OK)
+		return result;
 
-	bs_bindBuffer(BSGFX_SET_MESH_DATA, BSGFX_BINDING_MESH_DATA, buffer);
-	bsgfx_InstanceMetadata* map = bs_mapBuffer(buffer, BS_U32_MAX);
+	result = bs_bindBuffer(BSGFX_SET_MESH_DATA, BSGFX_BINDING_MESH_DATA, object->buffer);
+	if (result != BS_RESULT_OK)
+		return result;
+
+	bsgfx_InstanceMetadata* map = bs_mapBuffer(object->buffer, BS_U32_MAX);
+	return BS_RESULT_OK;
 }
 
-void bsgfx_instanceType(int instance_type_id, int max_instance_count, int bind_set, int point) {
-	if (_poser_->instance_buffers[instance_type_id]) return;
+
+
+  /*==============================================================================
+   * Instance Types
+   =============================================================================*/
+
+static bool bsgfx_validateInstanceType(int instance_type) {
+	BSGFX_VALIDATE(instance_type >= 0, false,);
+	BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA), false,);
+	BSGFX_VALIDATE(instance_type < BSGFX_INSTANCE_TYPE_COUNT, false,);
+	BSGFX_VALIDATE(_poser_->instance_buffers[instance_type] != NULL, false,);
+
+	return true;
+}
+
+ /**
+  Create instance type
+  */
+BSGFXAPI void _val_bsgfx_instanceType(int instance_type_id, int max_instance_count, int bind_set, int point) {
+	BSGFX_VALIDATE(_poser_->instance_buffers[instance_type_id] != NULL,,);
+	BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA),,);
+
+	bs_BindSet* bind_set_query = bs_queryBindSet(bind_set);
+	BSGFX_VALIDATE(bind_set_query != NULL,,);
+	BSGFX_VALIDATE(bs_queryBinding(bind_set_query, point) != NULL,,);
+
+	return bsgfx_instanceType(instance_type_id, max_instance_count, bind_set, point);
+}
+
+BSGFXAPI void _bsgfx_instanceType(int instance_type_id, int max_instance_count, int bind_set, int point) {
+	bs_Result result;
+
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
 	
 	bs_Binding* binding = bs_queryBinding(bs_queryBindSet(bind_set), point);
@@ -41,19 +81,32 @@ void bsgfx_instanceType(int instance_type_id, int max_instance_count, int bind_s
 		usage_flags |= BS_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 	else if (binding->type == BS_BIND_TYPE_STORAGE_BUFFER)
 		usage_flags |= BS_BUFFER_USAGE_STORAGE_BUFFER_BIT | BS_BUFFER_USAGE_TRANSFER_DST_BIT | BS_BUFFER_USAGE_TRANSFER_SRC_BIT;
-	else bs_throwBasilisk(BSX_INVALID_TYPE);
+	else {
+		bs_warnF("Invalid bind type %d\n", binding->type); // TODO: bsgfx_warn
+		return;
+	}
 
-	// TODO: wtf is this yo
+	// TODO: remove
 	VkDeviceSize atom_size = 64;
 
 	bs_U32 size = max_instance_count * sizeof(bsgfx_InstanceBuffer);
 	VkDeviceSize aligned_size =
 		(size + 64 - 1) & ~(atom_size - 1);
 
-	_poser_->instance_buffers[instance_type_id] = bs_buffer(BS_BUFFER(-1, 0, 0), aligned_size, usage_flags, memory_flags, 0)->buffer;
+	bs_Object* object = BS_BUFFER(-1, 0, 0);
+	result = bs_buffer(object, aligned_size, usage_flags, memory_flags, 0);
+	if (result != BS_RESULT_OK)
+		return;
 
-	bs_bindBuffer(bind_set, point, _poser_->instance_buffers[instance_type_id]);
-	bs_mapBuffer(_poser_->instance_buffers[instance_type_id], BS_U32_MAX);
+	_poser_->instance_buffers[instance_type_id] = object->buffer;
+
+	result = bs_bindBuffer(bind_set, point, _poser_->instance_buffers[instance_type_id]);
+	if (result != BS_RESULT_OK)
+		return;
+
+	result = bs_mapBuffer(_poser_->instance_buffers[instance_type_id], BS_U32_MAX);
+	if (result != BS_RESULT_OK)
+		return;
 
 	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_scope()->window->frames_in_flight : 1;
 	for (int i = 0; i < num_swaps; i++) {
@@ -62,7 +115,38 @@ void bsgfx_instanceType(int instance_type_id, int max_instance_count, int bind_s
 	}
 }
 
-void bsgfx_deleteSubtype(int subtype) {
+
+
+  /*==============================================================================
+   * Subtypes
+   =============================================================================*/
+
+static bool bsgfx_validateSubtype(int subtype) {
+	BSGFX_VALIDATE(subtype >= 0, false, );
+	BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA), false, );
+
+	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
+	BSGFX_VALIDATE(bs_bufferIsMapped(buffer), false, );
+
+	int index = buffer->flags & BSI_BUFFER_SWAPS_BIT ? bs_currentSwap() : 0;
+	bsgfx_InstanceMetadata* metadata = buffer->_[index].data;
+
+	BSGFX_VALIDATE(subtype < metadata->subtypes_count, false, );
+
+	return true;
+}
+
+ /**
+  Delete subtype
+  */
+BSGFXAPI void _val_bsgfx_deleteSubtype(int subtype) {
+	if (!bsgfx_validateSubtype(subtype))
+		return;
+
+	return bsgfx_deleteSubtype(subtype);
+}
+
+BSGFXAPI void _bsgfx_deleteSubtype(int subtype) {
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
 	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_scope()->window->frames_in_flight : 1;
 
@@ -77,12 +161,21 @@ void bsgfx_deleteSubtype(int subtype) {
 	}
 }
 
-bs_Range bsgfx_subtypeRange(int subtype) {
+ /**
+  Subtype range
+  */
+BSGFXAPI bs_Range _bsgfx_subtypeRange(int subtype) {
+	if (!bsgfx_validateSubtype(subtype))
+		return (bs_Range) { 0 };
+
+	return bsgfx_subtypeRange(subtype);
+}
+
+BSGFXAPI bs_Range _bsgfx_subtypeRange(int subtype) {
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
 	int index = buffer->flags & BSI_BUFFER_SWAPS_BIT ? bs_currentSwap() : 0;
 	bsgfx_InstanceMetadata* metadata = buffer->_[index].data;
-	assert(subtype >= 0);
-	assert(subtype < metadata->subtypes_count);
+
 	bsgfx_InstanceSubtypeMetadata* subtype_metadata = metadata->instance_subtypes + subtype;
 
 	return (bs_Range) { 
@@ -92,7 +185,17 @@ bs_Range bsgfx_subtypeRange(int subtype) {
 	};
 }
 
-int bsgfx_instanceCount(int subtype) {
+ /**
+  Instance count
+  */
+BSGFXAPI int _val_bsgfx_instanceCount(int subtype) {
+	if (!bsgfx_validateSubtype(subtype))
+		return 0;
+
+	return bsgfx_instanceCount(subtype);
+}
+
+BSGFXAPI int _bsgfx_instanceCount(int subtype) {
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
 	int index = buffer->flags & BSI_BUFFER_SWAPS_BIT ? bs_currentSwap() : 0;
 
@@ -100,7 +203,17 @@ int bsgfx_instanceCount(int subtype) {
 	return metadata->instance_subtypes[subtype].instance_count;
 }
 
-int bsgfx_subtypeCount(int instance_type_id) {
+ /**
+  Subtype count
+  */
+BSGFXAPI int _val_bsgfx_subtypeCount(int instance_type_id) {
+	if (!bsgfx_validateInstanceType(instance_type_id))
+		return 0;
+
+	return bsgfx_subtypeCount(instance_type_id);
+}
+
+BSGFXAPI int _bsgfx_subtypeCount(int instance_type_id) {
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
 	int index = buffer->flags & BSI_BUFFER_SWAPS_BIT ? bs_currentSwap() : 0;
 
@@ -108,18 +221,32 @@ int bsgfx_subtypeCount(int instance_type_id) {
 	return metadata->instance_types[instance_type_id].subtype_count;
 }
 
-const int* bsgfx_subtypes() {
+BSGFXAPI const int* _bsgfx_subtypes() {
 	return _bsgfx_subtypes_;
 }
 
-int bsgfx_subtype(int instance_type_id, bs_Batch* batch, bs_U32 flags, bs_Range range) {
+ /**
+  Create subtype
+  */
+BSGFXAPI int _val_bsgfx_subtype(int instance_type_id, bs_Batch* batch, bs_U32 flags, bs_Range range) {
+	if (!bsgfx_validateInstanceType(instance_type_id))
+		return 0;
+
+	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
+	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_scope()->window->frames_in_flight : 1;
+	for (int i = 0; i < num_swaps; i++) {
+		bsgfx_InstanceMetadata* metadata = buffer->_[i].data;
+		BSGFX_VALIDATE(metadata->subtypes_count < BSGFX_MAX_NUM_SUBTYPES, 0,);
+	}
+
+	return bsgfx_subtype(instance_type_id, batch, flags, range);
+}
+
+BSGFXAPI int _bsgfx_subtype(int instance_type_id, bs_Batch* batch, bs_U32 flags, bs_Range range) {
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
 	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_scope()->window->frames_in_flight : 1;
 
-	if (!_poser_->instance_buffers[instance_type_id])
-		bs_throwBasiliskF(BSX_UNINITIALIZED, "Cannot create subtype, instance type %d needs to be created first\n", instance_type_id);
-
-	int existing = -1;
+	//int existing = -1;
 
 //	if (key != 0) {
 //		existing = bsgfx_querySubtypeNull(instance_type_id, key);
@@ -136,8 +263,9 @@ int bsgfx_subtype(int instance_type_id, bs_Batch* batch, bs_U32 flags, bs_Range 
 	int subtype = -1;
 	for (int i = 0; i < num_swaps; i++) {
 		bsgfx_InstanceMetadata* metadata = buffer->_[i].data;
-		assert(metadata->subtypes_count < BSGFX_MAX_NUM_SUBTYPES);
-		subtype = existing == -1 ? metadata->subtypes_count : existing;
+
+		//subtype = existing == -1 ? metadata->subtypes_count : existing;
+		subtype = metadata->subtypes_count;
 		metadata->instance_subtypes[subtype].instance_type = instance_type_id;
 		metadata->instance_subtypes[subtype].index_offset = range.offset;
 		metadata->instance_subtypes[subtype].index_count = range.num;
@@ -145,122 +273,45 @@ int bsgfx_subtype(int instance_type_id, bs_Batch* batch, bs_U32 flags, bs_Range 
 		metadata->instance_subtypes[subtype].batch_id = batch->head.id;
 		metadata->instance_subtypes[subtype].flags = flags;
 
-		if (existing == -1) {
-			if (i == 0)
-				_bsgfx_subtype_data[metadata->subtypes_count] = bs_list(sizeof(bsgfx_InstanceBuffer), 32);
-			metadata->subtypes_count++;
-			metadata->instance_types[instance_type_id].subtype_count++;
-		}
+		//if (existing == -1) {
+		if (i == 0)
+			_bsgfx_subtype_data[metadata->subtypes_count] = bs_list(sizeof(bsgfx_InstanceBuffer), 32);
+		metadata->subtypes_count++;
+		metadata->instance_types[instance_type_id].subtype_count++;
+		//}
 	}
 
 	return subtype;
 }
 
-int bsgfx_instance(int subtype, const char* data, int data_size, bs_U32 flags, unsigned int bone_index, int id, int material) {
-	if (subtype == -1)
-		return -1;
-	assert(flags <= 65536);
-	assert(material <= 65536);
+ /**
+  Subtype has flag
+  */
+BSGFXAPI bool _val_bsgfx_subtypeHasFlag(int subtype, bs_U32 flag) {
+	if (!bsgfx_validateSubtype(subtype))
+		return false;
 
+	return bsgfx_subtypeHasFlag(subtype, flag);
+}
+
+BSGFXAPI bool _bsgfx_subtypeHasFlag(int subtype, bs_U32 flag) {
 	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	assert(_poser_->instances_ticked == false);
-
-	bsgfx_InstanceMetadata* metadata = bs_bufferMap(metadata_buffer);
-
-	int instance_type = metadata->instance_subtypes[subtype].instance_type;
-	if (!_poser_->instance_buffers[instance_type]) {
-		bs_warnF("Instance type %d has not been created or has no subtypes!\n", instance_type);
-		return -1;
-	}
-
-	bsgfx_InstanceBuffer* instance_buffer = bs_bufferMap(_poser_->instance_buffers[instance_type]);
-
-	if (!instance_buffer) {
-		bs_warnF("Instance buffer of type %d is unmapped\n", instance_type);
-		return -1;
-	}
-
-	if (metadata->instance_types[instance_type].count >= metadata->instance_types[instance_type].allocated) {
-		bs_warnF("Instance buffer of type %d is maxed out\n", instance_type);
-		return -1;
-	}
-
-	flags |= (1 << instance_type);
-	int out_index = bsgfx_index(flags, metadata->instance_types[instance_type].count);
-	metadata->instance_subtypes[subtype].instance_count++;
-	metadata->instance_types[instance_type].count++;
-
-	bsgfx_InstanceBuffer instance;
-	memcpy(instance.data, data, data_size);
-	instance.header.id = id;
-	instance.header.flags = flags;
-	instance.header.material = material;
-	instance.header.subtype = subtype;
-	instance.header.bone_index = bone_index;
-
-	bs_pushBack(&_bsgfx_subtype_data[subtype], &instance);
-
-	return metadata->instance_subtypes[subtype].instance_count - 1;
-}
-
-void bsgfx_deleteInstance() {
-}
-
-static int bsgfx_compareInstanceBuffers(const bsgfx_InstanceBuffer* a, const bsgfx_InstanceBuffer* b) {
-	if (a->header.subtype != b->header.subtype)
-		return (a->header.subtype < b->header.subtype) ? -1 : 1;
-	return 0;
-}
-
-int bsgfx_instanceSubtype(int subtype) {
-
-}
-
-void bsgfx_tickInstances() {
-	if (!bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA))
-		return;
-
-	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	if (!metadata_buffer) return;
-	bsgfx_InstanceMetadata* metadata = bs_bufferMap(metadata_buffer);
-
-	for (int i = 0; i < BSGFX_INSTANCE_TYPE_COUNT; i++) {
-		struct bsgfx_InstanceTypeMetadata* type_metadata = metadata->instance_types + i;
-		if (type_metadata->count == 0) continue;
-
-		bsgfx_InstanceBuffer* first_instance = bs_bufferMap(_poser_->instance_buffers[i]);
-
-		for (int j = 0, offset = 0; j < metadata->subtypes_count; j++) {
-			if (metadata->instance_subtypes[j].instance_type != i) continue;
-
-			struct bsgfx_InstanceSubtypeMetadata* subtype_metadata = metadata->instance_subtypes + j;
-			bsgfx_InstanceBuffer* instance = first_instance + offset;
-
-			memcpy(instance, _bsgfx_subtype_data[j].data, _bsgfx_subtype_data[j].count * sizeof(bsgfx_InstanceBuffer));
-			_bsgfx_subtype_data[j].count = 0;
-			metadata->instance_subtypes[j].instance_offset = offset;
-			offset += metadata->instance_subtypes[j].instance_count;
-		}
-
-		bs_bindBuffer(_poser_->instance_buffers[i]->bind_set, _poser_->instance_buffers[i]->binding, _poser_->instance_buffers[i]);
-	}
-
-	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	bs_bindBuffer(BSGFX_SET_MESH_DATA, BSGFX_BINDING_MESH_DATA, buffer);
-}
-
-bool bsgfx_subtypeHasFlag(int subtype, bs_U32 flag) {
-	if (subtype < 0) return false;
-	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	if (!metadata_buffer) return false;
 	bsgfx_InstanceMetadata* metadata = bs_bufferMap(metadata_buffer);
 	return metadata->instance_subtypes[subtype].flags & flag;
 }
 
-void bsgfx_renderSubtype(int subtype, bs_Pipeline* pipeline) {
-	if (subtype < 0) return;
+ /**
+  Render subtype
+  */
+BSGFXAPI void _val_bsgfx_renderSubtype(int subtype, bs_Pipeline* pipeline) {
+	if (!bsgfx_validateSubtype(subtype))
+		return;
+
+	return bsgfx_renderSubtype(subtype, pipeline);
+}
+
+BSGFXAPI void _bsgfx_renderSubtype(int subtype, bs_Pipeline* pipeline) {
 	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	if (!metadata_buffer) return;
 	bsgfx_InstanceMetadata* metadata = bs_bufferMap(metadata_buffer);
 
 	bs_render(
@@ -271,9 +322,18 @@ void bsgfx_renderSubtype(int subtype, bs_Pipeline* pipeline) {
 		metadata->instance_subtypes[subtype].instance_count);
 }
 
-void bsgfx_resetSubtype(int subtype) {
+ /**
+  Reset subtype
+  */
+BSGFXAPI void _bsgfx_resetSubtype(int subtype) {
+	if (!bsgfx_validateSubtype(subtype))
+		return;
+	
+	return bsgfx_resetSubtype(subtype);
+}
+
+BSGFXAPI void _bsgfx_resetSubtype(int subtype) {
 	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	if (!metadata_buffer) return;
 	bsgfx_InstanceMetadata* metadata = bs_bufferMap(metadata_buffer);
 
 	struct bsgfx_InstanceSubtypeMetadata* subtype_metadata = metadata->instance_subtypes + subtype;
@@ -296,7 +356,117 @@ void bsgfx_resetSubtype(int subtype) {
 	assert(type_metadata->count >= 0);
 }
 
-void bsgfx_resetInstances() {
+
+
+  /*==============================================================================
+   * Instancing
+   =============================================================================*/
+
+ /**
+  Create instance
+  */
+BSGFXAPI int _val_bsgfx_instance(int subtype, const char* data, int data_size, bs_U32 flags, unsigned int bone_index, int id, int material) {
+	BSGFX_VALIDATE(subtype >= 0, 0,);
+	BSGFX_VALIDATE(flags <= 65536, 0,);
+	BSGFX_VALIDATE(material <= 65536, 0,);
+	BSGFX_VALIDATE(_poser_->instances_ticked == false, 0,);
+	BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA), 0, );
+
+	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
+	bsgfx_InstanceMetadata* metadata = bs_bufferMap(metadata_buffer);
+
+	int instance_type = metadata->instance_subtypes[subtype].instance_type;
+	BSGFX_VALIDATE(_poser_->instance_buffers[instance_type] != NULL, 0, "Instance type %d has not been created or has no subtypes", instance_type);
+	BSGFX_VALIDATE(bs_bufferIsMapped(_poser_->instance_buffers[instance_type]), 0, "Instance type %d", instance_type);
+	BSGFX_VALIDATE(metadata->instance_types[instance_type].count >= metadata->instance_types[instance_type].allocated, 0, "Instance buffer of type %d is maxed out\n", instance_type);
+
+	return bsgfx_instance(subtype, data, data_size, flags, bone_index, id, material);
+}
+
+BSGFXAPI int _bsgfx_instance(int subtype, const char* data, int data_size, bs_U32 flags, unsigned int bone_index, int id, int material) {
+	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
+
+	bsgfx_InstanceMetadata* metadata = bs_bufferMap(metadata_buffer);
+
+	int instance_type = metadata->instance_subtypes[subtype].instance_type;
+	bsgfx_InstanceBuffer* instance_buffer = bs_bufferMap(_poser_->instance_buffers[instance_type]);
+
+	flags |= (1 << instance_type);
+	int out_index = bsgfx_index(flags, metadata->instance_types[instance_type].count);
+	metadata->instance_subtypes[subtype].instance_count++;
+	metadata->instance_types[instance_type].count++;
+
+	bsgfx_InstanceBuffer instance;
+	memcpy(instance.data, data, data_size);
+	instance.header.id = id;
+	instance.header.flags = flags;
+	instance.header.material = material;
+	instance.header.subtype = subtype;
+	instance.header.bone_index = bone_index;
+
+	bs_pushBack(&_bsgfx_subtype_data[subtype], &instance);
+
+	return metadata->instance_subtypes[subtype].instance_count - 1;
+}
+
+ /**
+  Tick instances
+  */
+BSGFXAPI void _val_bsgfx_tickInstances() {
+	BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA), 0, );
+
+	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
+
+	BSGFX_VALIDATE(bs_bufferIsMapped(metadata_buffer), 0, );
+
+	return bsgfx_tickInstances();
+}
+
+BSGFXAPI void _bsgfx_tickInstances() {
+	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
+	bsgfx_InstanceMetadata* metadata = bs_bufferMap(metadata_buffer);
+
+	for (int i = 0; i < BSGFX_INSTANCE_TYPE_COUNT; i++) {
+		struct bsgfx_InstanceTypeMetadata* type_metadata = metadata->instance_types + i;
+		if (type_metadata->count == 0) 
+			continue;
+
+		bsgfx_InstanceBuffer* first_instance = bs_bufferMap(_poser_->instance_buffers[i]);
+
+		for (int j = 0, offset = 0; j < metadata->subtypes_count; j++) {
+			struct bsgfx_InstanceSubtypeMetadata* subtype_metadata = metadata->instance_subtypes + j;
+
+			if (subtype_metadata->instance_type != i)
+				continue;
+
+			bsgfx_InstanceBuffer* instance = first_instance + offset;
+
+			memcpy(instance, _bsgfx_subtype_data[j].data, _bsgfx_subtype_data[j].count * sizeof(bsgfx_InstanceBuffer));
+			_bsgfx_subtype_data[j].count = 0;
+			metadata->instance_subtypes[j].instance_offset = offset;
+			offset += metadata->instance_subtypes[j].instance_count;
+		}
+
+		bs_bindBuffer(_poser_->instance_buffers[i]->bind_set, _poser_->instance_buffers[i]->binding, _poser_->instance_buffers[i]);
+	}
+
+	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
+	bs_bindBuffer(BSGFX_SET_MESH_DATA, BSGFX_BINDING_MESH_DATA, buffer);
+}
+
+ /**
+  Reset instances
+  */
+BSGFXAPI void _val_bsgfx_resetInstances() {
+	BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA), 0, );
+
+	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
+	BSGFX_VALIDATE(bs_bufferIsMapped(metadata_buffer), 0, );
+
+	return bsgfx_resetInstances();
+}
+
+BSGFXAPI void _bsgfx_resetInstances() {
 	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
 	if (!metadata_buffer) return;
 	bsgfx_InstanceMetadata* metadata = bs_bufferMap(metadata_buffer);
@@ -315,10 +485,7 @@ void bsgfx_resetInstances() {
 	_poser_->instances_ticked = false;
 }
 
-void bsgfx_destroyInstanceTypes() { // todo
-}
-
-void bsgfx_instanceHiResMesh(bs_Mesh* mesh, bs_vec3 position, bs_vec4 rotation, float scale, int subtype_offset, bool origin_at_center){
+BSGFXAPI void _bsgfx_instanceHiResMesh(bs_Mesh* mesh, const bs_vec3* position, const bs_vec4* rotation, float scale, int subtype_offset, bool origin_at_center) {
 	bs_vec3 min = mesh->aabb.min;
 	bs_vec3 max = mesh->aabb.max;
 	bs_vec3 size;
@@ -333,14 +500,293 @@ void bsgfx_instanceHiResMesh(bs_Mesh* mesh, bs_vec3 position, bs_vec4 rotation, 
 	bs_v3Add(&min, &max, &center);
 	bs_v3MulS(&center, 0.5f, &center);
 
-	bs_mat4 transform = bs_transform(position, rotation, sc);
+	bs_mat4 transform = BS_MAT4_IDENTITY;
+	bs_m4Translate(&transform, position, &transform);
+	bs_m4Rotate(&transform, rotation, &transform);
 
 	if (!origin_at_center) {
 		bs_vec3 offset;
 		bs_v3MulS(&center, -1, &offset);
-		bs_translateP(&transform, &offset);
+		bs_m4Translate(&transform, &offset, &transform);
 	}
 
 	int mesh_subtype = mesh->extra[subtype_offset];
 	bsgfx_instance(mesh_subtype, &transform, sizeof(bs_mat4), 0, 0, -1, 0);
+}
+
+
+
+  /*==============================================================================
+   * Helpers
+   =============================================================================*/
+
+static inline int bsgfx_instanceLineSubtype(bs_vec3 start, bs_vec3 end, bs_RGBA color, int subtype) {
+	struct {
+		bs_vec4 start, end, color;
+	} data = {
+		.start.xyz = start,
+		.end.xyz = end,
+		.color = bs_v4((float)color.r / 255.0, (float)color.g / 255.0, (float)color.b / 255.0, (float)color.a / 255.0)
+	};
+
+	return bsgfx_instance(subtype, &data, sizeof(data), 0, 0, 0, 0);
+}
+
+ /**
+  Push constants
+  */
+typedef struct {
+	bs_mat4 transform;
+} bsgfx_MeshInstance;
+
+typedef struct {
+	bs_mat4 transform;
+} bsgfx_BoneInstance;
+
+typedef struct {
+	bs_mat4x3 transform;
+	bs_vec2 coords;
+	bs_vec2 offset;
+} bsgfx_QuadInstance;
+
+BSGFXAPI int _bsgfx_instanceMesh(int subtype, const bsgfx_MeshInstance* data, bs_U32 flags, int id, int material) {
+	return bsgfx_instance(subtype, data, sizeof(bsgfx_MeshInstance), flags, 0, id, material);
+}
+
+BSGFXAPI int _bsgfx_instanceBoneMesh(int subtype, const bsgfx_BoneInstance* data, bs_U32 flags, int id, int material) {
+	return bsgfx_instance(subtype, data, sizeof(bsgfx_BoneInstance), flags, 0, id, material);
+}
+
+BSGFXAPI int _bsgfx_instanceDepthlessLine(bs_vec3 start, bs_vec3 end, bs_RGBA color) {
+	return bsgfx_instanceLineSubtype(start, end, color, bsgfx_subtypes()[BSGFX_SUBTYPE_LINE_DEPTHLESS]);
+}
+
+BSGFXAPI int _bsgfx_instanceLine(bs_vec3 start, bs_vec3 end, bs_RGBA color) {
+	return bsgfx_instanceLineSubtype(start, end, color, bsgfx_subtypes()[BSGFX_SUBTYPE_LINE]);
+}
+
+BSGFXAPI int _bsgfx_instanceRay(const bs_Ray* ray, bs_RGBA color) {
+	bs_vec3 direction, end;
+
+	bs_v3MulS(&ray->direction, ray->length, &direction);
+	bs_v3Add(&ray->origin, &direction, &end);
+
+	return bsgfx_instanceLineSubtype(ray->origin, end, color, bsgfx_subtypes()[BSGFX_SUBTYPE_LINE]);
+}
+
+BSGFXAPI bs_Range _bsgfx_instanceAabb(const bs_Aabb* aabb, bs_RGBA color) {
+	int first = bsgfx_instanceLine(aabb->min, BS_V3(aabb->max.x, aabb->min.y, aabb->min.z), color);
+
+	bsgfx_instanceLine(aabb->min, BS_V3(aabb->min.x, aabb->min.y, aabb->max.z), color);
+	bsgfx_instanceLine(BS_V3(aabb->max.x, aabb->min.y, aabb->max.z), BS_V3(aabb->max.x, aabb->min.y, aabb->min.z), color);
+	bsgfx_instanceLine(BS_V3(aabb->max.x, aabb->min.y, aabb->max.z), BS_V3(aabb->min.x, aabb->min.y, aabb->max.z), color);
+	bsgfx_instanceLine(aabb->max, BS_V3(aabb->min.x, aabb->max.y, aabb->max.z), color);
+	bsgfx_instanceLine(aabb->max, BS_V3(aabb->max.x, aabb->max.y, aabb->min.z), color);
+	bsgfx_instanceLine(BS_V3(aabb->min.x, aabb->max.y, aabb->min.z), BS_V3(aabb->min.x, aabb->max.y, aabb->max.z), color);
+	bsgfx_instanceLine(BS_V3(aabb->min.x, aabb->max.y, aabb->min.z), BS_V3(aabb->max.x, aabb->max.y, aabb->min.z), color);
+	bsgfx_instanceLine(aabb->min, BS_V3(aabb->min.x, aabb->max.y, aabb->min.z), color);
+	bsgfx_instanceLine(BS_V3(aabb->min.x, aabb->min.y, aabb->max.z), BS_V3(aabb->min.x, aabb->max.y, aabb->max.z), color);
+	bsgfx_instanceLine(BS_V3(aabb->max.x, aabb->min.y, aabb->min.z), BS_V3(aabb->max.x, aabb->max.y, aabb->min.z), color);
+	bsgfx_instanceLine(BS_V3(aabb->max.x, aabb->min.y, aabb->max.z), BS_V3(aabb->max.x, aabb->max.y, aabb->max.z), color);
+
+	return (bs_Range) { first, 12 };
+}
+
+BSGFXAPI int _bsgfx_instanceSphere(bs_vec3 position, float radius) {
+	bs_mat4 transform = BS_MAT4_IDENTITY;
+
+	bs_m4Translate(&transform, &position, &transform);
+	bs_m4Scale(&transform, &BS_V3(radius, radius, radius), &transform);
+
+	bsgfx_instance(bsgfx_subtypes()[BSGFX_SUBTYPE_SPHERE_MESH], &transform, sizeof(bs_mat4), 0, 0, 0, 0);
+}
+
+BSGFXAPI int _bsgfx_instanceCone(bs_mat4 transform, float radius, bs_U32 flags, int id, int material) {
+	bsgfx_instance(bsgfx_subtypes()[BSGFX_SUBTYPE_CONE_MESH], &transform, sizeof(bs_mat4), flags, 0, id, material);
+}
+
+BSGFXAPI int _bsgfx_instancePoint(bs_vec3 position, bs_RGBA color, float size) {
+	struct {
+		bs_vec3 coord;
+		float size;
+		bs_vec4 color;
+	} data = {
+		.coord = position,
+		.size = size,
+		.color = bsgfx_convertColor(color),
+	};
+
+	return bsgfx_instance(bsgfx_subtypes()[BSGFX_SUBTYPE_POINT], &data, sizeof(data), 0, 0, 0, 0);
+}
+
+BSGFXAPI int _bsgfx_instanceQuad(int subtype, bs_mat4x3 transform, bs_vec4 coords, bs_U32 flags, int id, int material) {
+	struct bsgfx_QuadInstance tmp = {
+		.transform = transform,
+		.offset = coords.xy,
+		.coords = coords.zw,
+	};
+
+	return bsgfx_instance(subtype, &tmp, sizeof(tmp), flags, 0, id, material);
+}
+
+BSGFXAPI int bsgfx_atlasInstance(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material) {
+	bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
+	bs_vec4 coords = bs_atlasCoordinates(atlas, texture, 0);
+
+	struct bsgfx_QuadInstance tmp = {
+		.transform = transform,
+		.offset = coords.xy,
+		.coords = coords.zw,
+	};
+
+	bsgfx_instance(subtype, &tmp, sizeof(tmp), flags, 0, id, material);
+}
+
+BSGFXAPI int bsgfx_atlasInstanceFlipped(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material) {
+	bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
+	bs_vec4 coords = bs_atlasCoordinates(atlas, texture, 0);
+	coords = bs_mirrorUV(coords);
+
+	struct bsgfx_QuadInstance tmp = {
+		.transform = transform,
+		.offset = coords.xy,
+		.coords = coords.zw,
+	};
+
+	bsgfx_instance(subtype, &tmp, sizeof(tmp), flags, 0, id, material);
+}
+
+BSGFXAPI bs_Range _bsgfx_instanceDepthlessCircle(const bs_mat4* transform, int segments, float radius, bs_RGBA color) {
+	bs_Range result = { 0 };
+
+	float prev_x = 0.0f, prev_z = 0.0f;
+	for (int i = 0; i <= segments; i++) {
+		float ratio = (float)i / segments;
+		float r = ratio * BS_2PI;
+		float x = bs_cos(r) * radius;
+		float z = bs_sin(r) * radius;
+
+		if (i > 0) {
+			result.offset = bsgfx_instanceDepthlessLine(
+				BS_V3(prev_x, 0.0, prev_z),
+				BS_V3(x, 0.0, z),
+				color,
+				transform
+			);
+
+			result.num++;
+		}
+
+		prev_x = x;
+		prev_z = z;
+	}
+
+	result.offset -= result.num;
+	return result;
+}
+
+
+typedef struct {
+	bs_vec4 position;
+	float scale;
+	float max_length;
+	bs_U32 flags;
+	int select_start, select_end;
+	int material_id;
+	bs_RGBA colors[8];
+} bsgfx_Text;
+
+static inline bs_vec2 bsgfx_textInstance(int subtype, bs_Font* font, bsgfx_Text* params, const char* text, int text_length) {
+	if (!text)
+		text = "(null)";
+
+	bs_RGBA color = BS_WHITE;
+
+	bs_vec2 offset = { 0 };
+
+	bs_vec3 scale;
+	bs_v2MulS(&BS_V2(font->spacing, font->atlas->mapped[0].h), params->scale, &scale.xy);
+	scale.z = 0.0;
+
+	bs_mat4 transform = BS_MAT4_IDENTITY;
+	bs_m4Translate(&transform, &params->position.xyz, &transform);
+	bs_m4Rotate(&transform, &BS_QUAT_IDENTITY, &transform);
+	bs_m4Scale(&transform, &BS_QUAT_IDENTITY, &transform);
+
+	bs_U32 flags;
+	float layout_scale = (params->scale / (float)font->units_per_em);
+
+	for (int i = 0; i < text_length; i++) {
+		char c = text[i];
+		int index = font->table[c];
+		if (index >= font->atlas->count)
+			index = 0;
+
+		flags = params->flags;
+		if ((params->select_end || params->select_start) && (
+			(i >= params->select_start && i < params->select_end) ||
+			(i > params->select_end && i <= params->select_start))) {
+			flags |= BSGFX_ID_FONT_IS_SELECTED;
+		}
+
+		float spacing = font->glyphs[index].advance_width * layout_scale;
+		if (c == ' ') {
+			float new_offset = offset.x + spacing * layout_scale;
+			if (params->max_length > 0.0 && new_offset > params->max_length)
+				break;
+
+			transform.v[3].x = params->position.x + offset.x;
+			transform.v[3].y = params->position.y + offset.y;
+			transform.v[0].x = spacing * layout_scale;
+			transform.v[1].y = font->height * layout_scale;
+			//bsgfx_instanceQuad(subtype, bs_m4x3(transform), bs_v4(0, 0, 0, 0), flags, 0, 0);
+
+			offset.x = new_offset;
+			continue;
+		}
+		else if (c == '\n') {
+			offset.x = 0.0;
+			offset.y -= font->height * layout_scale;
+			continue;
+		}
+
+		bs_vec4 coords = bs_atlasCoordinates(font->atlas, index, 0);
+		bs_vec2 size = bs_atlasSize(font->atlas, index);
+
+		float new_offset = offset.x + size.x * layout_scale;
+		if (params->max_length > 0.0 && new_offset > params->max_length)
+			break;
+
+		transform.v[3].x = params->position.x + offset.x;
+		transform.v[3].y = params->position.y + offset.y + ((float)font->glyphs[index].y_offset) * layout_scale;
+		transform.v[0].x = (size.x + font->glyphs[index].left_side_bearing) * layout_scale;
+		transform.v[1].y = size.y * layout_scale;
+
+		bsgfx_instanceQuad(subtype, bs_m4x3(transform), coords, flags, 0, params->material_id);
+		offset.x += spacing;
+
+		if (i <= (text_length - 1)) {
+			char next = text[i + 1];
+			int next_index = font->table[next];
+
+			for (int j = font->glyphs[index].kerning_pair_offset; j < (font->glyphs[index].kerning_pair_offset + font->glyphs[index].kerning_pair_count); j++) {
+				if (next_index == font->pairs[j].right) {
+					offset.x += font->pairs[j].value;
+					break;
+				}
+			}
+		}
+
+	}
+
+	return offset;
+}
+
+BSGFXAPI bs_mat4x3 _bsgfx_matrix(bs_vec3 position, bs_vec3 scale) {
+	return (bs_mat4x3) {
+		scale.x, 0.0, 0.0,
+		0.0, scale.y, 0.0,
+		0.0, 0.0, scale.z,
+		position.x, position.y, position.z,
+	};
 }

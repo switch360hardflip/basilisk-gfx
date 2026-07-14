@@ -38,73 +38,85 @@ int bsgfx_queues() { return _bsgfx_queues_; }
 int bsgfx_atlases() { return _bsgfx_atlases_; }
 int bsgfx_fonts() { return _bsgfx_fonts_; }
 
-void bsgfx_createRenderers() {
+static void bsgfx_createRenderers() {
    /**
     high resolution renderer
     */
-    bs_Object* hi_res = bs_renderer(BS_RENDERER(BSGFX_RENDERERS, BSGFX_RENDERER_HI_RES, BS_OBJECT_HAS_SWAPS_BIT), BS_RENDERER_AUTO_RESIZE_BIT);
-    if (hi_res) {
+    bs_Object* hi_res = BS_RENDERER(BSGFX_RENDERERS, BSGFX_RENDERER_HI_RES, BS_OBJECT_HAS_SWAPS_BIT);
+    if (bs_renderer(hi_res, BS_RENDERER_AUTO_RESIZE_BIT) == BS_RESULT_OK) {
+
         bs_ivec2 resolution = bs_resolution();
-        bs_Image* hi_res_0_depth = bs_image(BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_HI_RES_0_DEPTH, 0), resolution, 0, BS_FORMAT_D32_SFLOAT_S8_UINT, BS_IMAGE_ATTACHMENT_BIT)->image;
+        bs_Object* hi_res_0_depth = BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_HI_RES_0_DEPTH, 0);
+        if (bs_image(hi_res_0_depth, resolution, 0, BS_FORMAT_D32_SFLOAT_S8_UINT, BS_IMAGE_ATTACHMENT_BIT) == BS_RESULT_OK) {
 
-       /** subpass 0 */
-        bs_output(hi_res->renderer, (bs_Output) {
-            .subpass = 0,
-            .image = bs_scope()->window->swapchain_image->image,
-            .load_op = BS_LOAD_OP_CLEAR,
-            .store_op = BS_STORE_OP_STORE,
-            .old_layout = BS_LAYOUT_UNDEFINED,
-            .new_layout = BS_LAYOUT_PRESENT_SRC_KHR,
-        });
+            /** subpass 0 */
+            bs_output(hi_res->renderer, (bs_Output) {
+                .subpass = 0,
+                .image = bs_scope()->window->swapchain_image->image,
+                .load_op = BS_LOAD_OP_CLEAR,
+                .store_op = BS_STORE_OP_STORE,
+                .old_layout = BS_LAYOUT_UNDEFINED,
+                .new_layout = BS_LAYOUT_PRESENT_SRC_KHR,
+            });
 
-        bs_output(hi_res->renderer, (bs_Output) {
-            .subpass = 0,
-            .image = hi_res_0_depth,
-            .load_op = BS_LOAD_OP_CLEAR,
-            .store_op = BS_STORE_OP_STORE,
-            .old_layout = BS_LAYOUT_UNDEFINED,
-            .new_layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-        });
+            bs_output(hi_res->renderer, (bs_Output) {
+                .subpass = 0,
+                .image = hi_res_0_depth->image,
+                .load_op = BS_LOAD_OP_CLEAR,
+                .store_op = BS_STORE_OP_STORE,
+                .old_layout = BS_LAYOUT_UNDEFINED,
+                .new_layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            });
 
-       /** dependencies */
-        bs_dependency(hi_res->renderer, -1, 0, BS_DEPENDENCY_BY_REGION_BIT,
-            BS_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, 
-            BS_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | BS_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-            BS_ACCESS_MEMORY_READ_BIT, 
-            BS_ACCESS_COLOR_ATTACHMENT_READ_BIT | BS_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | BS_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
+            /** dependencies */
+            bs_dependency(hi_res->renderer, -1, 0, BS_DEPENDENCY_BY_REGION_BIT,
+                BS_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                BS_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | BS_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+                BS_ACCESS_MEMORY_READ_BIT,
+                BS_ACCESS_COLOR_ATTACHMENT_READ_BIT | BS_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | BS_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
 
-        bs_renderPass(hi_res->renderer);
-        bs_framebuffer(hi_res->renderer, bs_resolution());
+            bs_renderPass(hi_res->renderer);
+            bs_framebuffer(hi_res->renderer, bs_resolution());
+        }
     }
 
    /** 
     low resolution renderer 
     */
-    bs_Object* lo_res = bs_renderer(BS_RENDERER(BSGFX_RENDERERS, BSGFX_RENDERER_LO_RES, BS_OBJECT_HAS_SWAPS_BIT), 0);
-    if (lo_res) {
+    bs_Object* lo_res = BS_RENDERER(BSGFX_RENDERERS, BSGFX_RENDERER_LO_RES, BS_OBJECT_HAS_SWAPS_BIT);
+
+    if (bs_renderer(lo_res, 0) == BS_RESULT_OK) {
+
         bs_ivec2 resolution = bs_resolution();
         resolution.x /= BSGFX_PIXEL_SCALE;
         resolution.y /= BSGFX_PIXEL_SCALE;
 
        /** attachments */
-        bs_Image* lo_res_0_depth = bs_image(BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_DEPTH, 0), resolution, 0, BS_FORMAT_D32_SFLOAT_S8_UINT, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT)->image;
-        bs_Image* lo_res_0_color = bs_image(BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_COLOR, 0), resolution, 0, BS_FORMAT_R8G8B8A8_UNORM, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT)->image;
-        bs_Image* lo_res_0_normal = bs_image(BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_NORMAL, 0), resolution, 0, BS_FORMAT_R8G8B8A8_UNORM, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT)->image;
-        bs_Image* lo_res_0_position = bs_image(BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_POSITION, 0), resolution, 0, BS_FORMAT_R32G32B32A32_SFLOAT, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT)->image;
-        bs_Image* lo_res_0_index = bs_image(BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_INDEX, 0), resolution, 0, BS_FORMAT_R32_UINT, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT)->image;
-        bs_Image* lo_res_0_flags = bs_image(BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_FLAGS, 0), resolution, 0, BS_FORMAT_R32_UINT, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT)->image;
-        bs_Image* lo_res_0_position_local = bs_image(BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_VERTEX, 0), resolution, 0, BS_FORMAT_R8G8B8A8_UNORM, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT)->image;
-        bs_Image* lo_res_1_color = bs_image(BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_1_COLOR, 0), resolution, 0, BS_FORMAT_R8G8B8A8_UNORM, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT)->image;
+        bs_Object* lo_res_0_depth = BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_DEPTH, 0);
+        bs_Object* lo_res_0_color = BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_COLOR, 0);
+        bs_Object* lo_res_0_normal = BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_NORMAL, 0);
+        bs_Object* lo_res_0_position = BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_POSITION, 0);
+        bs_Object* lo_res_0_index = BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_INDEX, 0);
+        bs_Object* lo_res_0_flags = BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_FLAGS, 0);
+        bs_Object* lo_res_0_position_local = BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_VERTEX, 0);
+        bs_Object* lo_res_1_color = BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_1_COLOR, 0);
+
+        bs_image(lo_res_0_depth, resolution, 0, BS_FORMAT_D32_SFLOAT_S8_UINT, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT);
+        bs_image(lo_res_0_color, resolution, 0, BS_FORMAT_R8G8B8A8_UNORM, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT);
+        bs_image(lo_res_0_normal, resolution, 0, BS_FORMAT_R8G8B8A8_UNORM, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT);
+        bs_image(lo_res_0_position, resolution, 0, BS_FORMAT_R32G32B32A32_SFLOAT, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT);
+        bs_image(lo_res_0_index, resolution, 0, BS_FORMAT_R32_UINT, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT);
+        bs_image(lo_res_0_flags, resolution, 0, BS_FORMAT_R32_UINT, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT);
+        bs_image(lo_res_0_position_local, resolution, 0, BS_FORMAT_R8G8B8A8_UNORM, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_INPUT_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT);
+        bs_image(lo_res_1_color, resolution, 0, BS_FORMAT_R8G8B8A8_UNORM, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT);
 
         bs_Image* subpass_0_outputs[] = {
-            [BSGFX_LO_SUBPASS_0_OUT_COLOR] = lo_res_0_color,
-            [BSGFX_LO_SUBPASS_0_OUT_NORMAL] = lo_res_0_normal,
-            [BSGFX_LO_SUBPASS_0_OUT_INDEX] = lo_res_0_index,
-            [BSGFX_LO_SUBPASS_0_OUT_FLAGS] = lo_res_0_flags,
-            [BSGFX_LO_SUBPASS_0_OUT_POSITION] = lo_res_0_position,
-#ifdef _DEBUG
-            [BSGFX_LO_SUBPASS_0_OUT_POSITION_LOCAL] = lo_res_0_position_local,
-#endif
+            [BSGFX_LO_SUBPASS_0_OUT_COLOR] = lo_res_0_color->image,
+            [BSGFX_LO_SUBPASS_0_OUT_NORMAL] = lo_res_0_normal->image,
+            [BSGFX_LO_SUBPASS_0_OUT_INDEX] = lo_res_0_index->image,
+            [BSGFX_LO_SUBPASS_0_OUT_FLAGS] = lo_res_0_flags->image,
+            [BSGFX_LO_SUBPASS_0_OUT_POSITION] = lo_res_0_position->image,
+            [BSGFX_LO_SUBPASS_0_OUT_POSITION_LOCAL] = lo_res_0_position_local->image,
             lo_res_0_depth,
         };
 
@@ -212,6 +224,7 @@ void bsgfx_createRenderers() {
             BS_BUFFER_USAGE_STORAGE_BUFFER_BIT | BS_BUFFER_USAGE_TRANSFER_DST_BIT | BS_BUFFER_USAGE_TRANSFER_SRC_BIT,
             BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | BS_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             0);
+
         bs_buffer(BS_BUFFER(BSGFX_BUFFERS, BSGFX_BUFFER_LO_RES_SCREENSHOT, false), BSGFX_SCREENSHOT_DIMENSIONS.x * BSGFX_SCREENSHOT_DIMENSIONS.y * lo_res->renderer->num_outputs * 4,
             BS_BUFFER_USAGE_STORAGE_BUFFER_BIT | BS_BUFFER_USAGE_TRANSFER_DST_BIT | BS_BUFFER_USAGE_TRANSFER_SRC_BIT,
             BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | BS_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -219,37 +232,51 @@ void bsgfx_createRenderers() {
     }
 }
 
+void bsgfx_allocateMaterials();
 static void bsgfx_loadResources() {
-    bs_queue(BS_QUEUE(BSGFX_QUEUES, BSGFX_QUEUE_GRAPHICS, BS_OBJECT_HAS_SWAPS_BIT), BS_QUEUE_GRAPHICS_BIT)->queue;
-    bs_queue(BS_QUEUE(BSGFX_QUEUES, BSGFX_QUEUE_COMPUTE, BS_OBJECT_HAS_SWAPS_BIT), BS_QUEUE_COMPUTE_BIT)->queue;
+    bs_Result result;
+
+    bs_queue(BS_QUEUE(BSGFX_QUEUES, BSGFX_QUEUE_GRAPHICS, BS_OBJECT_HAS_SWAPS_BIT), BS_QUEUE_GRAPHICS_BIT);
+    bs_queue(BS_QUEUE(BSGFX_QUEUES, BSGFX_QUEUE_COMPUTE, BS_OBJECT_HAS_SWAPS_BIT), BS_QUEUE_COMPUTE_BIT);
 
     bs_sampler(BS_SAMPLER(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST, 0), BS_FILTER_NEAREST, 0);
     bs_sampler(BS_SAMPLER(BSGFX_SAMPLERS, BSGFX_SAMPLER_LINEAR, 0), BS_FILTER_LINEAR, 0);
 
-    bs_Object* joints_buffer = bs_buffer(BS_BUFFER(BSGFX_BUFFERS, BSGFX_BUFFER_JOINTS, false), 
+    bs_Object* jonts_buffer = BS_BUFFER(BSGFX_BUFFERS, BSGFX_BUFFER_JOINTS, false);
+    result = bs_buffer(jonts_buffer,
         BSGFX_MAX_NUM_JOINTS * sizeof(bs_mat4), 
         BS_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
         BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | BS_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         0);
 
-    if (joints_buffer) {
-        _bsgfx_shader_joints_ = bs_mapBuffer(joints_buffer->buffer, BS_U32_MAX);
-        bs_bindBuffer(BSGFX_SET_JOINTS, BSGFX_BINDING_JOINTS, joints_buffer->buffer);
+    if (result == BS_RESULT_OK && bs_mapBuffer(jonts_buffer->buffer, BS_U32_MAX) == BS_RESULT_OK) {
+        bs_bindBuffer(BSGFX_SET_JOINTS, BSGFX_BINDING_JOINTS, jonts_buffer->buffer);
     }
 
     bsgfx_iniInstances();
     
     // batches
-    bs_Object* screen_batch = bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_SCREEN, 0), sizeof(bs_U32), $vs_bsgfx_color_percentage(), 0);
-    bs_Object* volume_batch = bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_VOLUME_COMPUTED, BS_OBJECT_HAS_SWAPS_BIT), 0, $vs_bsgfx_volume(), 0);
-    bs_Object* prefab_volume_batch = bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_PREFAB_SHADOWS, 0), 0, $vs_bsgfx_volume(), 0);
-    bs_Object* volume_screen_batch = bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_VOLUME_SCREEN, 0), sizeof(bs_U32), $vs_bsgfx_color_percentage(), 0);
-    bs_Object* line_batch = bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_LINE_INSTANCED, 0), sizeof(bs_U32), $vs_bsgfx_line_instanced(), 0);
-    bs_Object* point_batch = bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_POINT_INSTANCED, 0), sizeof(bs_U32), $vs_bsgfx_point_instanced(), 0);
-    bs_Object* sphere_batch = bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_SPHERE_INSTANCED, 0), sizeof(bs_U32), $vs_bsgfx_mesh_instanced(), 0);
-    bs_Object* quad_instance_batch = bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_QUAD_INSTANCED, 0), sizeof(bs_U32), $vs_bsgfx_quad_instanced(), 0);
-    bs_Object* mesh_instance_batch = bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_MESH_INSTANCED, 0), sizeof(bs_U32), $vs_bsgfx_mesh_instanced(), 0);
-    bs_Object* bone_instance_batch = bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_BONE_INSTANCED, 0), sizeof(bs_U32), $vs_bsgfx_bone_instanced(), BS_BATCH_RAY_TRACEABLE);
+    bs_Object* screen_batch = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_SCREEN, 0);
+    bs_Object* volume_batch = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_VOLUME_COMPUTED, BS_OBJECT_HAS_SWAPS_BIT);
+    bs_Object* prefab_volume_batch = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_PREFAB_SHADOWS, 0);
+    bs_Object* volume_screen_batch = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_VOLUME_SCREEN, 0);
+    bs_Object* line_batch = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_LINE_INSTANCED, 0);
+    bs_Object* point_batch = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_POINT_INSTANCED, 0);
+    bs_Object* sphere_batch = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_SPHERE_INSTANCED, 0);
+    bs_Object* quad_instance_batch = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_QUAD_INSTANCED, 0);
+    bs_Object* mesh_instance_batch = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_MESH_INSTANCED, 0);
+    bs_Object* bone_instance_batch = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_BONE_INSTANCED, 0);
+
+    bs_batch(screen_batch, sizeof(bs_U32), $vs_bsgfx_color_percentage(), 0);
+    bs_batch(volume_batch, 0, $vs_bsgfx_volume(), 0);
+    bs_batch(prefab_volume_batch, 0, $vs_bsgfx_volume(), 0);
+    bs_batch(volume_screen_batch, sizeof(bs_U32), $vs_bsgfx_color_percentage(), 0);
+    bs_batch(line_batch, sizeof(bs_U32), $vs_bsgfx_line_instanced(), 0);
+    bs_batch(point_batch, sizeof(bs_U32), $vs_bsgfx_point_instanced(), 0);
+    bs_batch(sphere_batch, sizeof(bs_U32), $vs_bsgfx_mesh_instanced(), 0);
+    bs_batch(quad_instance_batch, sizeof(bs_U32), $vs_bsgfx_quad_instanced(), 0);
+    bs_batch(mesh_instance_batch, sizeof(bs_U32), $vs_bsgfx_mesh_instanced(), 0);
+    bs_batch(bone_instance_batch, sizeof(bs_U32), $vs_bsgfx_bone_instanced(), BS_BATCH_RAY_TRACEABLE);
 
     if (mesh_instance_batch && !bs_batchIsPushed(mesh_instance_batch)) {
         bsgfx_instanceType(BSGFX_INSTANCE_TYPE_MESH, BSGFX_MESH_INSTANCE_COUNT, BSGFX_SET_MESH_INSTANCES, BSGFX_BINDING_MESH_INSTANCES);
@@ -289,15 +316,14 @@ static void bsgfx_loadResources() {
         bs_pushBatch(quad_instance_batch->batch, BS_U32_MAX, BS_U32_MAX);
     }
 
-    
-    if (volume_batch && volume_screen_batch && !bs_batchIsPushed(volume_batch->batch)) {
+    if (!bs_batchIsPushed(volume_batch->batch)) {
         bs_ensureBatchSize(volume_batch->batch, 0, BSGFX_NUM_SHADOW_VERTICES);
         bs_pushQuad(volume_screen_batch->batch, bs_quad((bs_vec3) { 0 }, (bs_vec2) { 1.0, 1.0 }), BSGFX_SHADOW_COLOR);
         bs_pushBatch(volume_batch->batch, 0, BSGFX_NUM_SHADOW_VERTICES);
         bs_bindBuffer(BSGFX_SET_VOLUME_OUT_VERTICES, BSGFX_BINDING_VOLUME_OUT_VERTICES, volume_batch->batch->vertex_buffer->buffer);
     }
 
-    if (screen_batch && !bs_batchIsPushed(screen_batch->batch)) {
+    if (!bs_batchIsPushed(screen_batch->batch)) {
         bs_pushQuad(screen_batch->batch, bs_quad((bs_vec3) { 0 }, (bs_vec2) { 1.0, 1.0 }), BS_WHITE);
         bs_pushQuad(screen_batch->batch, bs_quad((bs_vec3) { 0 }, (bs_vec2) { 1.0, 1.0 }), BS_WHITE);
        // const float offset = 0.75;
@@ -306,7 +332,7 @@ static void bsgfx_loadResources() {
     }
 
     bs_Object* mesh_volume_batch = bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_MESH_TYPE_VOLUME_COMPUTED, true), 0, $vs_bsgfx_volume(), 0);
-    if (mesh_volume_batch) {
+    if (!bs_batchIsPushed(mesh_volume_batch->batch)) {
         bs_pushBatch(mesh_volume_batch->batch, 0, BSGFX_PRE_COMPUTED_VOLUME_SIZE);
       //  bs_bindBuffer(BSGFX_SET_VOLUME_OUT_VERTICES, BSGFX_BINDING_VOLUME_OUT_VERTICES_MESH_TYPE, mesh_volume_batch->batch->vertex_buffer->buffer);
     }
@@ -321,11 +347,17 @@ static void bsgfx_loadResources() {
     bs_ivec2 resolution = bs_resolution();
     resolution.x /= BSGFX_PIXEL_SCALE;
     resolution.y /= BSGFX_PIXEL_SCALE;
-    bs_Image* ray_trace_output = bs_image(BS_IMAGE(-1, 0, 0), resolution, 0, BS_FORMAT_R32G32B32A32_SFLOAT, BS_IMAGE_USAGE_STORAGE_BIT)->image;
-    bs_transition(ray_trace_output, 0, BS_LAYOUT_UNDEFINED, BS_LAYOUT_GENERAL);
-    bs_bindImage(BSGFX_SET_RAY_TRACE_OUTPUT, BSGFX_BINDING_RAY_TRACE_OUTPUT, ray_trace_output, bs_fetch(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)->sampler, BS_LAYOUT_GENERAL);
 
     /*
+    bs_Object* ray_trace_output = BS_IMAGE(-1, 0, 0);
+
+    if (bs_exists(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST) &&
+        bs_image(ray_trace_output, resolution, 0, BS_FORMAT_R32G32B32A32_SFLOAT, BS_IMAGE_USAGE_STORAGE_BIT) == BS_RESULT_OK) 
+    {
+        bs_transition(ray_trace_output->image, 0, BS_LAYOUT_UNDEFINED, BS_LAYOUT_GENERAL);
+        bs_bindImage(BSGFX_SET_RAY_TRACE_OUTPUT, BSGFX_BINDING_RAY_TRACE_OUTPUT, ray_trace_output->image, bs_fetch(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)->sampler, BS_LAYOUT_GENERAL);
+    }
+
     bs_RayTracer* ray_tracer = bs_rayTracer(BSGFX_RAY_TRACER_MAIN, 0, $rgen_main(), $rmiss_main(), NULL)->ray_tracer;
     for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
         bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
@@ -341,7 +373,7 @@ static void bsgfx_loadResources() {
     bs_bindAccelerationStructure(BSGFX_SET_ACCELERATION_STRUCTURE, BSGFX_BINDING_ACCELERATION_STRUCTURE, ray_tracer);
     */
 
-    if (bone_instance_batch && !bs_batchIsPushed(bone_instance_batch->batch)) {
+    if (bone_instance_batch->batch && !bs_batchIsPushed(bone_instance_batch->batch)) {
         bsgfx_instanceType(BSGFX_INSTANCE_TYPE_BONE, BSGFX_BONE_INSTANCE_COUNT, BSGFX_SET_BONE_INSTANCES, BSGFX_BINDING_BONE_INSTANCES);
     }
 
@@ -468,9 +500,12 @@ void bsgfx_loadScene(const char* name) {
     bs_logBindings();
 
     if (_bsgfx_prefab_model_) {
-        bs_Queue* queue = bs_queue(BS_QUEUE(-1, 0, 0), BS_QUEUE_COMPUTE_BIT)->queue;
-        bs_enqueue(queue, bsgfx_computePrefabShadows);
-        bs_stallGPU();
+        bs_Object* queue_object = BS_QUEUE(-1, 0, 0);
+        if (bs_queue(queue_object, BS_QUEUE_COMPUTE_BIT) == BS_RESULT_OK) {
+            bs_enqueue(queue_object->queue, bsgfx_computePrefabShadows);
+            bs_stallGPU();
+        }
+        
         //bsgfx_computePrefabShadows();
 
     }

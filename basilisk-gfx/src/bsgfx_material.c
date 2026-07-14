@@ -3,12 +3,12 @@
 
 #include <inttypes.h>
 
-const char* _bsgfx_material_categories[BSGFX_MATERIAL_CATEGORY_COUNT] = {
+const char* _bsgfx_material_categories_[BSGFX_MATERIAL_CATEGORY_COUNT] = {
     [BSGFX_MATERIAL_CATEGORY_NONE] = NULL,
     [BSGFX_MATERIAL_CATEGORY_UI_COLOR_SCHEME] = "BSMOD UI Color Scheme",
 };
 
-bs_List _bsgfx_materials = { .unit_size = sizeof(bsgfx_Material), .increment = 64 };
+bs_List _bsgfx_materials_ = { .unit_size = sizeof(bsgfx_Material), .increment = 64 };
 
 
 
@@ -16,17 +16,17 @@ bs_List _bsgfx_materials = { .unit_size = sizeof(bsgfx_Material), .increment = 6
    * Materials
    *============================================================================*/
 
-const char* bsgfx_materialCategoryName(bsgfx_MaterialCategory category) {
-    return _bsgfx_material_categories[category];
+BSGFXAPI const char* _bsgfx_materialCategoryName(bsgfx_MaterialCategory category) {
+    return _bsgfx_material_categories_[category];
 }
 
-bs_List* bsgfx_materials() {
-    return &_bsgfx_materials;
+BSGFXAPI bs_List* _bsgfx_materials() {
+    return &_bsgfx_materials_;
 }
 
-bsgfx_Material* bsgfx_queryMaterialHash(bs_U64 hash) {
-    for (int i = 0; i < _bsgfx_materials.count; i++) {
-        bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials, i);
+BSGFXAPI bsgfx_Material* _bsgfx_queryMaterialHash(bs_U64 hash) {
+    for (int i = 0; i < _bsgfx_materials_.count; i++) {
+        bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials_, i);
         if (material->hash == hash)
             return material;
     }
@@ -34,21 +34,24 @@ bsgfx_Material* bsgfx_queryMaterialHash(bs_U64 hash) {
     return NULL;
 }
 
-bsgfx_Material* bsgfx_queryMaterial(const char* name) {
+BSGFXAPI bsgfx_Material* _bsgfx_queryMaterial(const char* name) {
     return bsgfx_queryMaterialHash(bs_stringHash(name));
 }
 
-char* bsgfx_materialName(int id) {
-    bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials, id);
-    return material->name;
+BSGFXAPI bsgfx_Material* _bsgfx_fetchMaterial(int id) {
+    return bs_fetchUnit(&_bsgfx_materials_, id);
 }
 
-bs_U64 bsgfx_materialHash(int id) {
-    bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials, id);
-    return material->hash;
+ /**
+  Create material
+  */
+BSGFXAPI bsgfx_Material* _val_bsgfx_material(char* name, int name_length) {
+    BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS), NULL,);
+
+    return bsgfx_material(name, name_length);
 }
 
-bsgfx_Material* bsgfx_material(char* name, int name_length) {
+BSGFXAPI bsgfx_Material* _bsgfx_material(char* name, int name_length) {
     bs_Buffer* materials_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS)->buffer;
     bsgfx_MaterialContract* contract = bs_bufferMap(bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS)->buffer);
 
@@ -57,11 +60,11 @@ bsgfx_Material* bsgfx_material(char* name, int name_length) {
     if (existing)
         return existing;
 
-    return bs_pushBack(&_bsgfx_materials, &(bsgfx_Material) {
+    return bs_pushBack(&_bsgfx_materials_, &(bsgfx_Material) {
         .name = strdup(name),
         .hash = bs_stringHash(name),
-        .contract = contract + _bsgfx_materials.count,
-        .id = _bsgfx_materials.count,
+        .contract = contract + _bsgfx_materials_.count,
+        .id = _bsgfx_materials_.count,
         .json_index = -1,
     });
 }
@@ -80,11 +83,12 @@ void bsgfx_allocateMaterials() {
     bsgfx_MaterialContract* materials = bs_mapBuffer(materials_buffer, BS_U32_MAX);
     bs_bindBuffer(BSGFX_SET_MATERIALS, BSGFX_BINDING_MATERIALS, materials_buffer);
 
-    bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials, bsgfx_material(BS_CONSTANT_STRING("blank"))->id);
+    bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials_, bsgfx_material(BS_CONSTANT_STRING("blank"))->id);
     material->contract->color = BS_V4(1.0, 1.0, 1.0, 1.0);
 }
 
 void bsgfx_loadMaterials() {
+    /*
     return;
 
     bs_Json json;
@@ -118,13 +122,14 @@ void bsgfx_loadMaterials() {
 #endif
     bs_destroyJson(&json);
 
-    bs_infoF("Loaded %d materials\n", _bsgfx_materials.count);
+    bs_infoF("Loaded %d materials\n", _bsgfx_materials_.count);
+    */
 }
 
 // highlighting is kinda scuffed
 
-void bsgfx_highlightMaterial(int material_id, bool auto_unhighlight) {
-    bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials, material_id);
+BSGFXAPI void _bsgfx_highlightMaterial(int material_id, bool auto_unhighlight) {
+    bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials_, material_id);
     if (material->highlighted)
         return;
 
@@ -137,8 +142,8 @@ void bsgfx_highlightMaterial(int material_id, bool auto_unhighlight) {
     material->auto_unhighlight = auto_unhighlight;
 }
 
-void bsgfx_unhighlightMaterial(int material_id) {
-    bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials, material_id);
+BSGFXAPI void _bsgfx_unhighlightMaterial(int material_id) {
+    bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials_, material_id);
     bsgfx_MaterialContract* contract = bs_bufferMap(bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS)->buffer);
     contract += material_id;
 
@@ -147,9 +152,9 @@ void bsgfx_unhighlightMaterial(int material_id) {
     material->highlighted = false;
 }
 
-void bsgfx_tickMaterials() {
-    for (int i = 0; i < _bsgfx_materials.count; i++) {
-        bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials, i);
+BSGFXAPI void _bsgfx_tickMaterials() {
+    for (int i = 0; i < _bsgfx_materials_.count; i++) {
+        bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials_, i);
         if (material->highlighted && material->auto_unhighlight)
             bsgfx_unhighlightMaterial(i);
     }

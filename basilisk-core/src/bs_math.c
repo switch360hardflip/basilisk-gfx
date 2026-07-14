@@ -65,6 +65,21 @@ BSAPI void _bs_v3Mid(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
 
 
   /*==============================================================================
+   * Matrices
+   =============================================================================*/
+
+BSAPI bs_mat4x3 _bs_m4x3(const bs_mat4* m) {
+    return (bs_mat4x3) {
+        .v[0] = m->v[0].xyz,
+        .v[1] = m->v[1].xyz,
+        .v[2] = m->v[2].xyz,
+        .v[3] = m->v[3].xyz,
+    };
+}
+
+
+
+  /*==============================================================================
    * Bezier Curves
    =============================================================================*/
 
@@ -179,21 +194,14 @@ BSAPI void _postval_bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_s
  /**
   Rectangle vs Point
   */
-BSAPI bool _bs_rectangleVsPoint(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point) {
-    return
-        position.x < point.x &&
-        point.x < (position.x + dimensions.x) &&
-        position.y < point.y &&
-        point.y < (position.y + dimensions.y);
-}
+BSAPI bool _bs_rectangleVsPoint(const bs_vec2* position, const bs_vec2* dimensions, const bs_vec2* point) {
+    bool hit = 
+        position->x < point->x &&
+        point->x < (position->x + dimensions->x) &&
+        position->y < point->y &&
+        point->y < (position->y + dimensions->y);
 
-BSAPI bool _bs_rectangleVsPointAbs(bs_vec2 position, bs_vec2 dimensions, bs_vec2 point) {
-    float min_x = (dimensions.x >= 0) ? position.x : position.x + dimensions.x;
-    float max_x = (dimensions.x >= 0) ? position.x + dimensions.x : position.x;
-    float min_y = (dimensions.y >= 0) ? position.y : position.y + dimensions.y;
-    float max_y = (dimensions.y >= 0) ? position.y + dimensions.y : position.y;
-
-    return point.x >= min_x && point.x <= max_x && point.y >= min_y && point.y <= max_y;
+    return hit;
 }
 
  /**
@@ -327,15 +335,15 @@ BSAPI bool _bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point) {
   Sphere vs Box
   */
 
-BSAPI bool _bs_sphereVsBox(bs_vec3 center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale) {
-    bs_mat4 transform = BS_MAT4_IDENTITY;
+static void bsi_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_mat4* transform, bs_vec3* closest_point, float* distance) {
+    *transform = BS_MAT4_IDENTITY;
 
-    bs_m4Translate(&transform, position, &transform);
-    bs_m4Rotate(&transform, rotation, &transform);
-    bs_m4Inverse(&transform, &transform);
+    bs_m4Translate(transform, position, transform);
+    bs_m4Rotate(transform, rotation, transform);
+    bs_m4Inverse(transform, transform);
 
     bs_vec3 relative_center;
-    bs_m4MulV3(&transform, &center, &relative_center);
+    bs_m4MulV3(transform, center, &relative_center);
 
     if (bs_abs(relative_center.x) - radius > scale->x ||
         bs_abs(relative_center.y) - radius > scale->y ||
@@ -344,40 +352,62 @@ BSAPI bool _bs_sphereVsBox(bs_vec3 center, float radius, const bs_vec3* position
         return false;
     }
 
-    bs_vec3 closest_point = { 0.0 };
-    float distance;
+    *closest_point = BS_V3(0.0, 0.0, 0.0);
+    float dist;
 
-    distance = relative_center.x;
-    if (distance > scale->x) distance = scale->x;
-    if (distance < -scale->x) distance = -scale->x;
-    closest_point.x = distance;
+    dist = relative_center.x;
+    if (dist > scale->x) dist = scale->x;
+    if (dist < -scale->x) dist = -scale->x;
+    closest_point->x = dist;
 
-    distance = relative_center.y;
-    if (distance > scale->y) distance = scale->y;
-    if (distance < -scale->y) distance = -scale->y;
-    closest_point.y = distance;
+    dist = relative_center.y;
+    if (dist > scale->y) dist = scale->y;
+    if (dist < -scale->y) dist = -scale->y;
+    closest_point->y = dist;
 
-    distance = relative_center.z;
-    if (distance > scale->z) distance = scale->z;
-    if (distance < -scale->z) distance = -scale->z;
-    closest_point.z = distance;
+    dist = relative_center.z;
+    if (dist > scale->z) dist = scale->z;
+    if (dist < -scale->z) dist = -scale->z;
+    closest_point->z = dist;
 
     bs_vec3 diff;
-    bs_v3Sub(&closest_point, &relative_center, &diff);
+    bs_v3Sub(closest_point, &relative_center, &diff);
 
-    distance = bs_v3MagnitudeSqrd(&diff);
-    if (distance > radius * radius) {
+    *distance = bs_v3MagnitudeSqrd(&diff);
+}
+
+
+BSAPI bool _bs_sphereVsObbTest(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale) {
+    bs_mat4 transform;
+    bs_vec3 closest_point;
+    float distance;
+
+    bsi_sphereVsObb(center, radius, position, rotation, rotation, &transform, &closest_point, &distance);
+
+    if (distance > radius * radius)
         return false;
-    }
 
     return true;
 }
 
-BSAPI void _bs_sphereVsBox(bs_vec3 center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_SphereVsBox* result) {
+BSAPI void _bs_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_SphereVsBox* result) {
+    result->hit = false;
+
+    bs_mat4 transform;
+    bs_vec3 closest_point;
+    float distance;
+
+    bsi_sphereVsObb(center, radius, position, rotation, rotation, &transform, &closest_point, &distance);
+
+    if (distance > radius * radius)
+        return;
+
     bs_m4MulV3(&transform, &closest_point, &result->point);
 
     bs_v3Sub(&center, &result->point, &result->normal);
     bs_v3Normalize(&result->normal, &result->normal);
+
+    result->hit = true;
 }
 
 /*
