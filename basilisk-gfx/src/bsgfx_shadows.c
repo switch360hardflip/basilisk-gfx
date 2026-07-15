@@ -24,7 +24,6 @@
   */ 
 
 #include <basilisk-gfx.h>
-#include <types/prefab/bsgfx_prefab.h>
 
 enum {
     BSGFX_SHADOW_COMPUTATION_MESH,
@@ -38,9 +37,6 @@ enum {
   /*==============================================================================
    * Initialization
    *============================================================================*/
-
-void bsgfx_() {
-}
 
 
 
@@ -56,7 +52,7 @@ static inline void bsgfx_awaitComputeWrite() {
         BS_ACCESS_SHADER_READ_BIT);
 }
 
-void bsgfx_computeShadowVolumes() {
+BSGFXAPI void _bsgfx_computeShadowVolumes() {
     /*
     bs_setBufferAsync(
         bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer,
@@ -163,7 +159,7 @@ void bsgfx_computeShadowVolumes() {
         [3] = {.skip_write = true },                                     /* position */ \
     }                                                                                   \
 
-void bsgfx_renderShadowVolumes() {
+BSGFXAPI void _bsgfx_renderShadowVolumes() {
     /*
     bs_beginComment("Shadow Volumes");
 
@@ -235,7 +231,7 @@ static int bsgfx_comparePrefabDepths(const bsgfx_Prefab** ap, const bsgfx_Prefab
    * Robust Stencil Shadow Volumes (Fine)
    *============================================================================*/
 
-void bsgfx_renderFineShadowVolumes() {
+BSGFXAPI void _bsgfx_renderFineShadowVolumes() {
     return;
     bs_beginComment(BS_CONSTANT_STRING("Shadow Volumes (Fine)"));
 

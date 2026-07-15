@@ -57,7 +57,7 @@ static inline void bsgfx_climbSlopeAxis(bsgfx_Collider* collider, bs_vec3* veloc
 
 	if (velocity->y <= climb_velocity) {
 		velocity->y = climb_velocity;
-		velocity->a[axis] = bs_cos(angle) * move_distance * bs_fsign(velocity->a[axis]);
+		velocity->a[axis] = bs_cos(angle) * move_distance * (float)bs_sign(velocity->a[axis]);
 		collider->collision |= BSGFX_COLLISION_BELOW | BSGFX_COLLISION_SLOPE;
 		collider->angle = angle;
 		collider->normal = normal;
@@ -130,7 +130,7 @@ static bool bsgfx_descendSlopeRayCast(
 
 	float move_distance = bs_abs(velocity->a[axis]);
 	float descend_velocity = bs_sin(angle) * move_distance;
-	velocity->a[axis] = bs_cos(angle) * move_distance * bs_fsign(velocity->a[axis]);
+	velocity->a[axis] = bs_cos(angle) * move_distance * (float)bs_sign(velocity->a[axis]);
 	velocity->y -= descend_velocity;
 
 	collider->angle = angle;
@@ -355,7 +355,7 @@ static void bsgfx_applySecondarySlopeRaycast(
 		bs_warnF("Normal is 0, 0, 0");
 #endif
 
-	float distance = bs_v3Dist(ray->origin, result.coordinate);
+	float distance = bs_v3Distance(&ray->origin, &result.coordinate);
 	if (distance > ray->length)
 		return false;
 
@@ -394,7 +394,7 @@ static void bsgfx_applySecondarySlopeAxis(bsgfx_Collider* collider, bs_vec3* vel
 	}
 }
 
-void bsgfx_sweepCollisions(float sweep_radius, const bs_vec3* position) {
+BSGFXAPI void _bsgfx_sweepCollisions(float sweep_radius, const bs_vec3* position) {
 	_poser_->sweep_collisions.count = 0;
 
 	for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
@@ -552,8 +552,9 @@ BSGFXAPI void _bsgfx_instanceSweepCollisions() {
 		bs_m4Rotate(&transform, &sweep_collision->rotation, &transform);
 		bs_m4Scale(&transform, &sweep_collision->scale, &transform);
 
-		bs_Aabb aabb = { .min = bs_v3V1(-1), .max = bs_v3V1(1) };
-		bsgfx_obbInstance(&aabb, BS_WHITE, &transform);
+		bs_Aabb aabb = { .min = { -1, -1, -1 }, .max = { 1, 1, 1 } };
+		//bsgfx_instanceObb(&aabb, BS_WHITE, &transform);
+		bs_warnF("_bsgfx_instanceSweepCollisions not implemented\n");
 	}
 }
 

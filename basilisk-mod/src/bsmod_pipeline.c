@@ -117,7 +117,7 @@ static void bsmod_renderPreviousPass() {
         .selected_color = BS_V3(1.0, 1.0, 1.0),
         .elapsed = bs_elapsedTime(),
         .light_direction = poser()->sun_direction,
-        .resolution = bs_v2MulV1(bs_v2Iv2(bs_resolution()), 0.5),
+        .resolution = bs_v2MulV1(BS_IV2_TO_V2(bs_resolution()), 0.5),
     };
 
     //  bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
@@ -145,7 +145,7 @@ static void bsmod_renderUIPost() {
         .selected_color = BS_V3(1.0, 1.0, 1.0),
         .elapsed = bs_elapsedTime(),
         .light_direction = poser()->sun_direction,
-        .resolution = bs_v2MulV1(bs_v2Iv2(bs_resolution()), 0.5),
+        .resolution = bs_v2MulV1(BS_IV2_TO_V2(bs_resolution()), 0.5),
     };
 
     //  bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
@@ -259,7 +259,7 @@ static void bsmod_renderRoundedQuads() {
     } push_const = {
         .camera = poser()->screen_camera.result,
         .elapsed = bs_elapsedTime(),
-        .resolution = bs_v2Iv2(bs_resolution()),
+        .resolution = BS_IV2_TO_V2(bs_resolution()),
         .border_radius = 5.0,
     };
 
@@ -303,7 +303,7 @@ static void bsmod_renderUI() {
     } push_const = {
         .camera = poser()->screen_camera.result,
         .elapsed = bs_elapsedTime(),
-        .resolution = bs_v2Iv2(bs_resolution()),
+        .resolution = BS_IV2_TO_V2(bs_resolution()),
     };
 
     bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
@@ -330,7 +330,7 @@ static void bsmod_renderUISolid() {
     } push_const = {
         .camera = poser()->screen_camera.result,
         .elapsed = bs_elapsedTime(),
-        .resolution = bs_v2Iv2(bs_resolution()),
+        .resolution = BS_IV2_TO_V2(bs_resolution()),
     };
 
     bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
@@ -357,7 +357,7 @@ static void bsmod_renderUIStencil() {
     } push_const = {
         .camera = poser()->screen_camera.result,
         .elapsed = bs_elapsedTime(),
-        .resolution = bs_v2Iv2(bs_resolution()),
+        .resolution = BS_IV2_TO_V2(bs_resolution()),
     };
 
     bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
@@ -392,7 +392,7 @@ static void bsmod_renderDither() {
     } push_const = {
         .camera = poser()->screen_camera.result,
         .elapsed = bs_elapsedTime(),
-        .resolution = bs_v2Iv2(bs_resolution()),
+        .resolution = BS_IV2_TO_V2(bs_resolution()),
     };
 
     bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
@@ -418,7 +418,7 @@ static void bsmod_renderGradients() {
     } push_const = {
         .camera = poser()->screen_camera.result,
         .elapsed = bs_elapsedTime(),
-        .resolution = bs_v2Iv2(bs_resolution()),
+        .resolution = BS_IV2_TO_V2(bs_resolution()),
     };
 
     bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {

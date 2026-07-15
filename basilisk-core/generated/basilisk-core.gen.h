@@ -724,9 +724,6 @@ typedef enum bs_BindType bs_BindType;
 #define BS_INFO_HEADER                                               \
     BS_PRINT_COLOR("[INF] ", BS_PRINT_CYAN)
 
-#define bs_throwBasiliskF(code, format, ...)                         \
-        bsi_throwBasiliskF(code, (format "\n%s:%d:%s(): "), __VA_ARGS__ __VA_OPT__(,) __FILE__, __LINE__, __func__)
-
 #define BS_STACK_LIST(type, c)                                       \
         { .capacity = c, .data = _alloca(c * sizeof(type)), .unit_size = sizeof(type) }
 
@@ -734,7 +731,7 @@ typedef enum bs_BindType bs_BindType;
     (sizeof(*((type*)NULL)->_))
 
 #define BS_SWAPS_COUNT(flags)                                        \
-    ((flags & BS_OBJECT_HAS_SWAPS_BIT) ? _bs_scope_.window->frames_in_flight : 1)
+    ((flags & BS_OBJECT_HAS_SWAPS_BIT) ? bs_scope()->window->frames_in_flight : 1)
 
 #define BS_OBJECT(type, source_id, id, swaps_count, flags)           \
         bs_object(source_id, id, sizeof(type), BS_SWAP_SIZE(type), swaps_count, flags)
@@ -4246,6 +4243,34 @@ bs_degrees(
 BSAPI float
 bs_radians(
     float degrees);
+
+ /**
+  @param v
+  @return float
+  */
+BSAPI float
+bs_ceil(
+    float v);
+
+ /**
+  @param v
+  @return float
+  */
+BSAPI float
+bs_floor(
+    float v);
+
+ /**
+  @param v
+  @param min
+  @param max
+  @return float
+  */
+BSAPI float
+bs_clamp(
+    float v,
+    float min,
+    float max);
 
  /**
   @param hsv

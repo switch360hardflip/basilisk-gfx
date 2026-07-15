@@ -117,7 +117,7 @@ void bsgfx_allocateMaterials() {
     material->contract->color = BS_V4(1.0, 1.0, 1.0, 1.0);
 }
 
-void bsgfx_loadMaterials() {
+BSGFXAPI void _bsgfx_loadMaterials() {
     /*
     return;
 

@@ -44,42 +44,42 @@ bs_Model* _bsgfx_prefab_model__ = NULL;
 bs_String* _bsgfx_variadic = NULL;
 HINSTANCE _bsgfx_bsmod_dll = NULL;
 int _bsgfx_package_ = -1;
-
-bsgfx_Callbacks _bsgfx_callbacks__ = { 0 };
+bs_Model* _bsgfx_prefab_model_ = NULL;
+bsgfx_Callbacks _bsgfx_callbacks_ = { 0 };
 bsgfx_Settings _bsgfx_settings_ = { 0 };
-
+bsgfx_Scene _bsgfx_current_scene_ = { 0 };
 bs_mat4* _bsgfx_shader_joints_ = NULL;
 bs_U32 _bsgfx_num_shader_joints_ = 0;
 
 bsgfx_Procedures _bsgfx_procs_ = { 0 };
 
-HINSTANCE bsgfx_bsmodDll() {
+BSGFXAPI HINSTANCE _bsgfx_bsmodDll() {
     return _bsgfx_bsmod_dll;
 }
 
 bsgfx_Application _bsgfx_app_;
 
-bsgfx_Application* bsgfx_app() {
+BSGFXAPI bsgfx_Application* _bsgfx_app() {
     return &_bsgfx_app_;
 }
 
-bsgfx_Callbacks* bsgfx_callbacks() {
-    return &_bsgfx_callbacks__;
+BSGFXAPI bsgfx_Callbacks* _bsgfx_callbacks() {
+    return &_bsgfx_callbacks_;
 }
 
-bsgfx_Settings* bsgfx_settings() {
+BSGFXAPI bsgfx_Settings* _bsgfx_settings() {
     return &_bsgfx_settings_;
 }
 
-bs_Model* bsgfx_prefabModel() {
+BSGFXAPI bs_Model* _bsgfx_prefabModel() {
     return _bsgfx_prefab_model__;
 }
 
-int bsgfx_package() {
+BSGFXAPI int _bsgfx_package() {
     return _bsgfx_package_;
 }
 
-struct Poser* poser() {
+BSGFXAPI struct Poser* _poser() {
     return _poser_;
 }
 
@@ -136,9 +136,8 @@ static void bsgfx_tick() {
     _poser_->sun_direction = BS_V3(-sinf(angle), cosf(angle), -0.48);
     bs_v3Normalize(&_poser_->sun_direction, &_poser_->sun_direction);
 
-    bssteam_pollActions();
-    
-    bssteam_tickSteam();
+    //bssteam_pollActions();
+    //bssteam_tickSteam();
     //bsgfx_instanceItems();
 
     bs_vec2 resolution = { .x = (float)bs_resolution().x, .y = (float)bs_resolution().y };
@@ -165,8 +164,8 @@ static void bsgfx_tick() {
 
     if (_bsgfx_procs_.bsmod_onGfxRender)
         _bsgfx_procs_.bsmod_onGfxRender();
-    if (_bsgfx_callbacks__.tick)
-        _bsgfx_callbacks__.tick();
+    if (_bsgfx_callbacks_.tick)
+        _bsgfx_callbacks_.tick();
 
     bsgfx_tickInstances();
 
@@ -177,8 +176,8 @@ static void bsgfx_tick() {
 static void bsgfx_fixedTick() {
  //   bsgfx_tickItems();
 
-    if (_bsgfx_callbacks__.fixedTick)
-        _bsgfx_callbacks__.fixedTick();
+    if (_bsgfx_callbacks_.fixedTick)
+        _bsgfx_callbacks_.fixedTick();
 }
 
 /*
@@ -244,13 +243,13 @@ void bsgfx_checkGFSDK(GFSDK_Aftermath_Result result) {
 }
 */
 
-void bsgfx_setCamera(const bs_mat4* proj, const bs_mat4* view) {
+BSGFXAPI void _bsgfx_setCamera(const bs_mat4* proj, const bs_mat4* view) {
     _poser_->camera.proj = *proj;
     _poser_->camera.view = *view;
     bs_m4Mul(proj, view, &_poser_->camera.result);
 }
 
-void bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc, char* argv[]) {
+BSGFXAPI void _bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc, char* argv[]) {
     for (int i = 0; i < BSGFX_SUBTYPE_COUNT; i++)
         _bsgfx_subtypes_[i] = -1;
 
@@ -318,8 +317,8 @@ void bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc, char* ar
 
    // bs_pause();
 
-    if (_bsgfx_callbacks__.ini)
-        _bsgfx_callbacks__.ini();
+    if (_bsgfx_callbacks_.ini)
+        _bsgfx_callbacks_.ini();
 
     bs_tick(NULL, bsgfx_tick, bsgfx_fixedTick);// TODO
 

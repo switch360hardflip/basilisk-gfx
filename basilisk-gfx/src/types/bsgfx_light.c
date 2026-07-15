@@ -36,7 +36,7 @@ static void bsgfx_mapLight(const bsgfx_RawLight* unmapped, bsgfx_Light* mapped) 
     bs_qRotateV3(&q, &BS_V3(0, -1, 0), &mapped->direction);
 }
 
-void bsgfx_loadLights(int package_id) {
+BSGFXAPI void _bsgfx_loadLights(int package_id) {
     bsgfx_type(
         BSGFX_TYPE_LIGHT,
         package_id,

@@ -499,7 +499,7 @@ void bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
             assert(atlas->count == widget.grid.count);
         }
         else if (image_array) {
-            widget.grid.size = bs_v2Iv2(image_array->dim);
+            widget.grid.size = BS_IV2_TO_V2(image_array->dim);
             assert(image_array->num_indices == widget.grid.count);
         }
 

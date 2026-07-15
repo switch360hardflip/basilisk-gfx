@@ -1149,15 +1149,11 @@
         <macro><name>#define BS_WARN_HEADER</name><line>BS_PRINT_COLOR("[WRN] ", BS_PRINT_YELLOW)</line></macro>
         <macro><name>#define BS_INFO_HEADER</name><line>BS_PRINT_COLOR("[INF] ", BS_PRINT_CYAN)</line></macro>
         <macro>
-            <name>#define bs_throwBasiliskF(code, format, ...)</name>
-            <line>    bsi_throwBasiliskF(code, (format "\n%s:%d:%s(): "), __VA_ARGS__ __VA_OPT__(,) __FILE__, __LINE__, __func__)</line>
-        </macro>
-        <macro>
             <name>#define BS_STACK_LIST(type, c)</name>
             <line>    { .capacity = c, .data = _alloca(c * sizeof(type)), .unit_size = sizeof(type) }</line>
         </macro>
         <macro><name>#define BS_SWAP_SIZE(type)</name><line>(sizeof(*((type*)NULL)-&gt;_))</line></macro>
-        <macro><name>#define BS_SWAPS_COUNT(flags)</name><line>((flags &amp; BS_OBJECT_HAS_SWAPS_BIT) ? _bs_scope_.window-&gt;frames_in_flight : 1)</line></macro>
+        <macro><name>#define BS_SWAPS_COUNT(flags)</name><line>((flags &amp; BS_OBJECT_HAS_SWAPS_BIT) ? bs_scope()->window-&gt;frames_in_flight : 1)</line></macro>
         <macro>
             <name>#define BS_OBJECT(type, source_id, id, swaps_count, flags)</name>
             <line>    bs_object(source_id, id, sizeof(type), BS_SWAP_SIZE(type), swaps_count, flags)</line>
@@ -2752,6 +2748,26 @@
             <return>float</return>
             <param><type>float</type><name>degrees</name></param>
 			<body>    return degrees * BS_PI / 180.0f;</body>
+        </function>
+		
+		<function name="bs_ceil">
+            <return>float</return>
+            <param><type>float</type><name>v</name></param>
+            <body>    return ceilf(v);</body>
+        </function>
+		
+		<function name="bs_floor">
+            <return>float</return>
+            <param><type>float</type><name>v</name></param>
+            <body>    return floorf(v);</body>
+        </function>
+		
+		<function name="bs_clamp">
+            <return>float</return>
+            <param><type>float</type><name>v</name></param>
+            <param><type>float</type><name>min</name></param>
+            <param><type>float</type><name>max</name></param>
+            <body>    return glm_clamp(v, min, max);</body>
         </function>
 		
         <function name="bs_hsvToRgb">

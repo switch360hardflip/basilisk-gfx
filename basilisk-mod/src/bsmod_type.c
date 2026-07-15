@@ -494,7 +494,7 @@ void bsmod_copyHoveringDataToBuffer() {
 
 	bs_ivec2 resolution = bs_resolution();
 	bs_ivec2 pixel_resolution = bs_iv2(resolution.x / BSGFX_PIXEL_SCALE, resolution.y / BSGFX_PIXEL_SCALE);
-	bs_vec2 p = bs_v2Mul(bs_cursorPosition(), bs_v2Iv2(resolution));
+	bs_vec2 p = bs_v2Mul(bs_cursorPosition(), BS_IV2_TO_V2(resolution));
 	bs_ivec2 cursor_position = bs_iv2(p.x / BSGFX_PIXEL_SCALE, p.y / BSGFX_PIXEL_SCALE);
 
 	if (bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_LO_RES_CURSOR_READS) &&

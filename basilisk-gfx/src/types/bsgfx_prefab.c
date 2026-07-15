@@ -24,6 +24,7 @@
   */ 
 
 #include <basilisk-gfx.h>
+#include <bsgfx_cache.h>
 #include <stddef.h>
 
 static bsgfx_PrefabMetadata* bsgfx_prefabs = NULL;
@@ -202,7 +203,7 @@ BSGFXAPI void _bsgfx_renderPrefabShadowVolumes() {
 
 static void bsgfx_mapPrefab(bsgfx_RawPrefab* unmapped, bsgfx_Prefab* mapped) {
     bs_Model* model = _bsgfx_prefab_model_;
-    bs_Mesh* mesh = bs_queryMeshHash(model, unmapped->name_hash, NULL);
+    bs_Mesh* mesh = bs_queryMeshHash(model, unmapped->name_hash);
 
     int mesh_id = mesh ? mesh - model->meshes : -1;
 
@@ -384,17 +385,26 @@ BSGFXAPI int _bsgfx_instancePrefabModel(int mesh_id, bs_mat4 transform, bsgfx_Pr
     return bsgfx_instance(subtype, &transform, sizeof(bs_mat4), BSGFX_ID_IS_PREFAB, 0, 0, material_id);
 }
 
-BSGFXAPI int _bsgfx_instancePrefab(int id, bsgfx_PrefabSubtype prefab_subtype) {
-    assert(_bsgfx_prefab_model_);
+ /**
+  Instance Prefab
+  */
+BSGFXAPI int _val_bsgfx_instancePrefab(int id, bsgfx_PrefabSubtype prefab_subtype) {
+    BSGFX_VALIDATE(_bsgfx_prefab_model_ != NULL, 0,);
+    bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, id);
+    BSGFX_VALIDATE(prefab->mesh_id >= 0, 0,);
 
+    return bsgfx_instancePrefab(id, prefab_subtype);
+}
+
+BSGFXAPI int _bsgfx_instancePrefab(int id, bsgfx_PrefabSubtype prefab_subtype) {
     bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, id);
     bsgfx_RawPrefab* raw_prefab = bsgfx_getRaw(BSGFX_TYPE_PREFAB, id);
 
-    if (prefab->mesh_id < 0)
-        return -1;
-
     bs_Mesh* mesh = _bsgfx_prefab_model_->meshes + prefab->mesh_id;
-    bs_mat4 transform = bsgfx_prefabTransform(prefab);
+
+    bs_mat4 transform;
+    bsgfx_prefabTransform(prefab, &transform);
+
     int subtype = mesh->extra[prefab_subtype];
     int material = prefab->material_id;
     int texture = prefab->texture_id;
@@ -416,8 +426,8 @@ BSGFXAPI int _bsgfx_instancePrefab(int id, bsgfx_PrefabSubtype prefab_subtype) {
         bs_m4Translate(&quad_transform, &quad_translation, &quad_transform);
         bs_m4Scale(&quad_transform, &BS_V3(size.x, size.y, 0.0), &quad_transform);
 
-        if (prefab_subtype != BSGFX_PREFAB_SUBTYPE_MESH_POLYGON_OUTLINE) { // theres betterr .. yeah
-            bs_vec4 coords = bs_atlasCoordinates(atlas, texture, 0);
+        if (prefab_subtype != BSGFX_PREFAB_SUBTYPE_MESH_POLYGON_OUTLINE) { // TODO: improve
+            bs_vec4 coords = bs_atlasCoordinates(atlas, texture);
             if (!(raw_prefab->flags & BSGFX_PREFAB_HIDDEN)) {
                 bs_mat4x3 mat = bs_m4x3(&quad_transform);
                 if (raw_prefab->flags & BSGFX_PREFAB_WRITE_POSITION)
@@ -475,7 +485,7 @@ BSGFXAPI void _bsgfx_renderScenePrefabs() {
         bs_vec4 sun_direction;
     } mesh_push_const = {
         .camera = _poser_->camera.result,
-        .uv = bs_atlasCoordinates(atlas, bs_queryAtlas(atlas, "white"), 0),
+        .uv = bs_atlasCoordinates(atlas, bs_queryAtlas(atlas, "white")),
         .sun_direction.xyz = _poser_->sun_direction,
     };
 

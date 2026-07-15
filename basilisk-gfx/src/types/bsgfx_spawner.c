@@ -25,10 +25,7 @@
 
 #include <basilisk-gfx.h>
 
-#include <spawners/item/bsgfx_item.h>
-#include <spawners/entity/bsgfx_entity.h>
-
-bs_vec3 bsgfx_spawnPosition(bs_vec2 coords, float y) {
+BSGFXAPI bs_vec3 _bsgfx_spawnPosition(bs_vec2 coords, float y) {
     return (bs_vec3) {
         .x = 2.0 * coords.x + 1.0,
         .z = 2.0 * (-coords.y - 1.0) + y + 1.0,
@@ -51,7 +48,7 @@ static void bsgfx_mapSpawner(bsgfx_RawSpawner* unmapped, bsgfx_Spawner* mapped) 
 //     bsgfx_deselectAll();
 // }
 
-void bsgfx_loadSpawners(int package_id) {
+BSGFXAPI void _bsgfx_loadSpawners(int package_id) {
     bsgfx_type(
         BSGFX_TYPE_SPAWNER, 
         package_id, 
@@ -66,7 +63,7 @@ void bsgfx_loadSpawners(int package_id) {
    // bsgfx_onSelect(BSGFX_TYPE_SPAWNER, bsgfx_onSelectSpawner);
 }
 
-void bsgfx_spawn(bsgfx_Spawner* spawner) {
+BSGFXAPI void _bsgfx_spawn(bsgfx_Spawner* spawner) {
     return;
     switch (spawner->spawn_type) {
     case BSGFX_SPAWNER_ITEM:

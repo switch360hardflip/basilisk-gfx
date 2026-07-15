@@ -15,6 +15,10 @@
 #define BS_V2_TO_V4(v, s1, s2) (bs_vec4) { v.x, v.y, s1, s2 }
 #define BS_V3_TO_V4(v, s) (bs_vec4) { v.x, v.y, v.z, s }
 
+#define BS_IV2_TO_V2(v) (bs_vec2) { v.x, v.y }
+#define BS_IV3_TO_V3(v) (bs_vec4) { v.x, v.y, v.z }
+#define BS_IV4_TO_V4(v) (bs_vec4) { v.x, v.y, v.z, v.w }
+
 #define BS_V2_DEGREES(v) BS_V2(bs_degrees(v.x), bs_degrees(v.y))
 #define BS_V3_DEGREES(v) BS_V3(bs_degrees(v.x), bs_degrees(v.y), bs_degrees(v.z))
 

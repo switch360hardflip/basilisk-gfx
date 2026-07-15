@@ -552,7 +552,7 @@ static inline int bsgfx_instanceLineSubtype(bs_vec3 start, bs_vec3 end, bs_RGBA 
 	} data = {
 		.start.xyz = start,
 		.end.xyz = end,
-		.color = bs_v4((float)color.r / 255.0, (float)color.g / 255.0, (float)color.b / 255.0, (float)color.a / 255.0)
+		.color = BS_V4((float)color.r / 255.0, (float)color.g / 255.0, (float)color.b / 255.0, (float)color.a / 255.0)
 	};
 
 	return bsgfx_instance(subtype, &data, sizeof(data), 0, 0, 0, 0);
@@ -641,7 +641,7 @@ BSGFXAPI int _bsgfx_instanceQuad(int subtype, bs_mat4x3 transform, bs_vec4 coord
 	return bsgfx_instance(subtype, &tmp, sizeof(tmp), flags, 0, id, material);
 }
 
-BSGFXAPI int bsgfx_instanceAtlas(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material) {
+BSGFXAPI int _bsgfx_instanceAtlas(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material) {
 	bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 	bs_vec4 coords = bs_atlasCoordinates(atlas, texture);
 
@@ -654,7 +654,7 @@ BSGFXAPI int bsgfx_instanceAtlas(int subtype, bs_mat4x3 transform, int texture, 
 	bsgfx_instance(subtype, &tmp, sizeof(tmp), flags, 0, id, material);
 }
 
-BSGFXAPI int bsgfx_atlasInstanceFlipped(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material) {
+BSGFXAPI int _bsgfx_atlasInstanceFlipped(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material) {
 	bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 	bs_vec4 coords = bs_atlasCoordinates(atlas, texture);
 	coords = bs_mirrorUV(coords);

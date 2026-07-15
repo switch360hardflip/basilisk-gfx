@@ -14,7 +14,7 @@
    *============================================================================*/
 
 void bsmod_instanceLightBillboards() {
-    bs_vec2 resolution = bs_v2Iv2(bs_resolution());
+    bs_vec2 resolution = BS_IV2_TO_V2(bs_resolution());
     const bs_mat4 identity = BS_MAT4_IDENTITY;
 
     for (int i = 0; i < bsgfx_count(BSGFX_TYPE_LIGHT); i++) {

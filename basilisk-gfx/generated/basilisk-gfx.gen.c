@@ -184,14 +184,9 @@ void bsgfx_pipeline()
     next.bsgfx_pipeline();
 }
 
-void bsgfx_onDeviceLost()
-{
-    next.bsgfx_onDeviceLost();
-}
-
 void bsgfx_sweepCollisions(
     float sweep_radius, 
-    bs_vec3 position)
+    const bs_vec3* position)
 {
     next.bsgfx_sweepCollisions(sweep_radius, position);
 }
@@ -437,11 +432,12 @@ int bsgfx_instanceRay(
     return next.bsgfx_instanceRay(ray, color);
 }
 
-bs_Range bsgfx_instanceAabb(
+void bsgfx_instanceAabb(
     const bs_Aabb* aabb, 
-    bs_RGBA color)
+    bs_RGBA color, 
+    bs_Range* out)
 {
-    return next.bsgfx_instanceAabb(aabb, color);
+    next.bsgfx_instanceAabb(aabb, color, out);
 }
 
 int bsgfx_instanceSphere(
@@ -502,41 +498,43 @@ int bsgfx_instanceAtlasFlipped(
     return next.bsgfx_instanceAtlasFlipped(subtype, transform, texture, flags, id, material);
 }
 
-bs_vec2 bsgfx_instanceText(
+void bsgfx_instanceText(
     int subtype, 
     bs_Font* font, 
     bsgfx_Text* params, 
+    bs_vec2* out_text_size, 
     char* value, 
     int value_length)
 {
-    return next.bsgfx_instanceText(subtype, font, params, value, value_length);
+    next.bsgfx_instanceText(subtype, font, params, out_text_size, value, value_length);
 }
 
-bs_vec2 bsgfx_instanceTextV(
+void bsgfx_instanceTextV(
     int subtype, 
     bs_Font* font, 
     bsgfx_Text* params, 
+    bs_vec2* out_text_size, 
     char* format, 
     va_list args)
 {
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bsgfx_instanceText(subtype, font, params, _formatted, _length);
+    bsgfx_instanceText(subtype, font, params, out_text_size, _formatted, _length);
 }
 
-bs_vec2 bsgfx_instanceTextF(
+void bsgfx_instanceTextF(
     int subtype, 
     bs_Font* font, 
     bsgfx_Text* params, 
+    bs_vec2* out_text_size, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_vec2 _return = bsgfx_instanceTextV(subtype, font, params, format, args);
+    bsgfx_instanceTextV(subtype, font, params, out_text_size, format, args);
     va_end(args);
-    return _return;
 }
 
 bs_mat4x3 bsgfx_matrix(
@@ -772,10 +770,11 @@ void bsgfx_loadPrefabs(
     next.bsgfx_loadPrefabs(package_id, model);
 }
 
-bs_mat4 bsgfx_prefabTransform(
-    bsgfx_Prefab* prefab)
+void bsgfx_prefabTransform(
+    bsgfx_Prefab* prefab, 
+    bs_mat4* out)
 {
-    return next.bsgfx_prefabTransform(prefab);
+    next.bsgfx_prefabTransform(prefab, out);
 }
 
 int bsgfx_instancePrefabModel(
@@ -838,10 +837,11 @@ int bsgfx_closestPrefab(
     return next.bsgfx_closestPrefab(mesh_name_hash, position, radius);
 }
 
-bs_vec3 bsgfx_primitivePosition(
-    bsgfx_RawPrimitive* primitive)
+void bsgfx_primitivePosition(
+    const bsgfx_RawPrimitive* primitive, 
+    bs_vec3* out)
 {
-    return next.bsgfx_primitivePosition(primitive);
+    next.bsgfx_primitivePosition(primitive, out);
 }
 
 void bsgfx_loadPrimitives(
@@ -918,19 +918,20 @@ void bsgfx_instanceTiles()
     next.bsgfx_instanceTiles();
 }
 
-bs_Range bsgfx_pushTile(
-    bs_Batch* batch, 
+void bsgfx_pushTile(
+    const bs_Batch* batch, 
     bs_Quad quad, 
     bs_vec3 normal, 
     bs_U32 index, 
-    int image_index)
+    int image_index, 
+    bs_Range* out_range)
 {
-    return next.bsgfx_pushTile(batch, quad, normal, index, image_index);
+    next.bsgfx_pushTile(batch, quad, normal, index, image_index, out_range);
 }
 
 void bsgfx_batchTile(
-    bs_Batch* batch, 
-    bs_U32* offset, 
+    const bs_Batch* batch, 
+    const bs_U32* offset, 
     bs_Quad quad, 
     bs_vec3 normal, 
     bs_U32 index, 
@@ -944,61 +945,68 @@ const bsgfx_TileAxis* bsgfx_tileAxes()
     return next.bsgfx_tileAxes();
 }
 
-bs_vec3 bsgfx_tilePosition(
-    bsgfx_Primitive* primitive, 
+void bsgfx_tilePosition(
+    const bsgfx_Primitive* primitive, 
     int axis, 
     int x, 
-    int y)
+    int y, 
+    bs_vec3* out)
 {
-    return next.bsgfx_tilePosition(primitive, axis, x, y);
+    next.bsgfx_tilePosition(primitive, axis, x, y, out);
 }
 
-bs_vec4 bsgfx_tileRotation(
-    int axis)
+void bsgfx_tileRotation(
+    int axis, 
+    bs_vec4* out)
 {
-    return next.bsgfx_tileRotation(axis);
+    next.bsgfx_tileRotation(axis, out);
 }
 
-bs_vec3 bsgfx_tileEulerRotation(
-    int axis)
+void bsgfx_tileEulerRotation(
+    int axis, 
+    bs_vec3* out)
 {
-    return next.bsgfx_tileEulerRotation(axis);
+    next.bsgfx_tileEulerRotation(axis, out);
 }
 
-bs_U32 bsgfx_pushTileAt(
+void bsgfx_pushTileAt(
     bs_Batch* batch, 
     bsgfx_Primitive* primitive, 
     int axis, 
     int x, 
     int y, 
     bs_U32 index, 
-    int image_index)
+    int image_index, 
+    bs_U32* out)
 {
-    return next.bsgfx_pushTileAt(batch, primitive, axis, x, y, index, image_index);
+    next.bsgfx_pushTileAt(batch, primitive, axis, x, y, index, image_index, out);
 }
 
-bs_ivec2 bsgfx_tileCoordinate(
+void bsgfx_tileCoordinate(
     bsgfx_Primitive* primitive, 
     int axis, 
-    int index)
+    int index, 
+    bs_ivec2* out)
 {
-    return next.bsgfx_tileCoordinate(primitive, axis, index);
+    next.bsgfx_tileCoordinate(primitive, axis, index, out);
 }
 
-int bsgfx_tileAxis(
-    bsgfx_Primitive* primitive, 
-    int index)
+void bsgfx_tileAxis(
+    const bsgfx_Primitive* primitive, 
+    int index, 
+    int* out)
 {
-    return next.bsgfx_tileAxis(primitive, index);
+    next.bsgfx_tileAxis(primitive, index, out);
 }
 
-bs_U32 bsgfx_tileIndex(
-    bsgfx_Primitive* primitive, 
+void bsgfx_tileIndex(
+    const bsgfx_Primitive* primitive, 
     int axis, 
     int x, 
-    int y)
+    int y, 
+    bs_U32* out)
 {
-    return next.bsgfx_tileIndex(primitive, axis, x, y);
+    next.bsgfx_tileIndex(primitive, axis, x, y, out);
 }
 
 bool bsgfx_instanceWidgets(

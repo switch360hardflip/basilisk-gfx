@@ -131,7 +131,7 @@ void bsmod_rasterizePrefabIcons() {
         bs_Mesh* mesh = model->meshes + i;
         int subtype = mesh->extra[BSGFX_MODEL_SUBTYPE_DEFAULT];
 
-        bs_mat4 transform = bs_fitAabb(mesh->aabb, bs_v2Iv2(render_size), rotation);
+        bs_mat4 transform = bs_fitAabb(mesh->aabb, BS_IV2_TO_V2(render_size), rotation);
 
         push_const.color = material->contract->color;
         push_const.material_texture_size = material->contract->image_binding;

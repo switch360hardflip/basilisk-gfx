@@ -304,8 +304,9 @@ static bool bsgfx_instanceRange(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alr
 		.scale = BSGFX_PIXEL_SCALE,
 	};
 
-	float x = bsgfx_instanceTextF(font, &text, "%d/%d", *widget->range.value, widget->range.max).x;
-	copy_position.x += x;
+	bs_vec2 text_size;
+	bsgfx_instanceTextF(font, &text, "%d/%d", &text_size, *widget->range.value, widget->range.max);
+	copy_position.x += text_size.x;
 
 	if (bs_rectangleVsPoint(&copy_position.xy, &copy_dimensions, &cursor) && bs_leftClickOnce()) {
 		(*widget->range.value)++;
@@ -414,7 +415,7 @@ static bool bsgfx_instanceIcon(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alre
 	else if (widget->icon.type == BSGFX_ICON_MATERIAL) {
 		//bsgfx_Material* material = bs_fetchUnit(bsgfx_materials(), widget->icon.material_id);
 		//bsgfx_Texture* texture = bsgfx_fetchTexture(material->contract->scale, material->contract->image);
-		//size = bs_v2Iv2(texture->size);
+		//size = BS_IV2_TO_V2(texture->size);
 		size = BS_V2(256, 256); // todo
 	}
 
@@ -457,7 +458,9 @@ static bool bsgfx_instanceIcon(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alre
 		}
 
 		transform.v[3].z++;
-		bs_vec4 coords = bs_atlasCoordinates(atlas, bs_queryAtlas(atlas, widget->icon.name, strlen(widget->icon.name)), widget->icon.frame);
+
+		int atlas_id = bs_queryAtlas(atlas, widget->icon.name);
+		bs_vec4 coords = bs_atlasCoordinates(atlas, atlas_id); // TODO: widget->icon.frame
 
 		if (widget->icon.flipped) 
 			coords = bs_flipUV(coords);
@@ -621,7 +624,8 @@ static bool bsgfx_instanceString(bsgfx_Menu* menu, bsgfx_Widget* widget, bool al
 		.scale = font->size,
 	};
 
-	bsgfx_instanceText(menu->text_subtype, font, &text, widget->string.value, len);
+	bs_vec2 text_size;
+	bsgfx_instanceText(menu->text_subtype, font, &text, &text_size, widget->string.value, len);
 	bool hovering = bs_rectangleVsPoint(&text.position.xy, &text_dimensions, &cursor);
 	if (widget->string.on_hover && hovering)
 		widget->string.on_hover(widget);
@@ -669,7 +673,8 @@ static bool bsgfx_instanceButton(bsgfx_Menu* menu, bsgfx_Widget* widget, bool al
 			.scale = font->size,
 		};
 
-		bsgfx_instanceText(menu->text_subtype, font, &text, widget->button.name, strlen(widget->button.name));
+		bs_vec2 text_size;
+		bsgfx_instanceText(menu->text_subtype, font, &text, &text_size, widget->button.name, strlen(widget->button.name));
 
 	}
 	
@@ -712,7 +717,7 @@ static bool bsgfx_instanceButton(bsgfx_Menu* menu, bsgfx_Widget* widget, bool al
 /**
  Color Picker
  */
-void bsgfx_renderColorPickers() {
+BSGFXAPI void _bsgfx_renderColorPickers() {
 	bs_beginComment(BS_CONSTANT_STRING("Color picker"));
 	bs_Pipeline* pipeline;
 	bs_PipelineHash hash;
@@ -1363,7 +1368,8 @@ static bool bsgfx_instanceInput(
 				.material_id = $black_material()->id,
 			};
 
-			bsgfx_instanceText(menu->text_subtype, font, &text, c, 1);
+			bs_vec2 text_size;
+			bsgfx_instanceText(menu->text_subtype, font, &text, &text_size, c, 1);
 		}
 	}
 
@@ -1384,11 +1390,13 @@ static bool bsgfx_instanceInput(
 
 	if (string->len == 0 && widget->input.placeholder_text) {
 		text.material_id = widget->input.placeholder_text_material_id;
-		bsgfx_instanceText(menu->text_subtype, font, &text, widget->input.placeholder_text, strlen(widget->input.placeholder_text));
+		bs_vec2 text_size;
+		bsgfx_instanceText(menu->text_subtype, font, &text, &text_size, widget->input.placeholder_text, strlen(widget->input.placeholder_text));
 	}
 	else {
 		text.material_id = widget->material_id;
-		bsgfx_instanceText(menu->text_subtype, font, &text, string->value, BS_MIN(string->len, 1024));
+		bs_vec2 text_size;
+		bsgfx_instanceText(menu->text_subtype, font, &text, &text_size, string->value, BS_MIN(string->len, 1024));
 	}
 
 	const float z_offset = 3;
@@ -1737,7 +1745,8 @@ static void bsgfx_instanceMenuTabs(bsgfx_Menu* menu, bsgfx_MenuTabBar* tab_bar) 
 		position.x +=  4;
 		bsgfx_MenuTab* tab = tab_bar->tabs + i;
 
-		bs_vec2 name_dimensions = bsgfx_instanceText(menu->text_subtype, font, &(bsgfx_Text) {
+		bs_vec2 name_dimensions;
+		bsgfx_instanceText(menu->text_subtype, font, &(bsgfx_Text) {
 			.position = {
 				position.x + 4.0 + (tab->icon_cache ? tab->icon_cache->size.x : 0.0),
 				position.y + tab_bar->height / 2.0 - 4, // todo idk why 4 will figure out when i try another font
@@ -1746,7 +1755,7 @@ static void bsgfx_instanceMenuTabs(bsgfx_Menu* menu, bsgfx_MenuTabBar* tab_bar) 
 			},
 			.scale = 16.0,
 			.max_length = menu->untextured.dimensions.x / (float)tab_bar->tabs_count
-		}, tab->name, strlen(tab->name));
+		}, & name_dimensions, tab->name, strlen(tab->name));
 
 		name_dimensions.x += 16.0;
 		scale.x = name_dimensions.x + x_indent;
@@ -1824,10 +1833,11 @@ static void bsgfx_instanceTitleBar(bsgfx_Menu* menu, bsgfx_TitleBar* title_bar, 
 	  Title bar name
 	  */
 	if (title_bar->name) {
+		bs_vec2 text_size;
 		bsgfx_instanceText(menu->text_subtype, font, &(bsgfx_Text) {
 			.position = BS_V4(position.x + bar_padding, position.y + bar_padding, position.z + 1, 1),
 			.scale = 16.0,
-		}, title_bar->name, strlen(title_bar->name));
+		}, &text_size, title_bar->name, strlen(title_bar->name));
 	}
 
 	 /**
@@ -1903,7 +1913,7 @@ static void bsgfx_instanceTitleBar(bsgfx_Menu* menu, bsgfx_TitleBar* title_bar, 
 	}
 }
 
-bool bsgfx_instanceWidgets(bsgfx_Menu menu, bsgfx_TitleBar* title_bar, bsgfx_MenuTabBar* tab_bar) {
+BSGFXAPI bool _bsgfx_instanceWidgets(bsgfx_Menu menu, bsgfx_TitleBar* title_bar, bsgfx_MenuTabBar* tab_bar) {
 	if (tab_bar)
 		bsgfx_instanceMenuTabs(&menu, tab_bar);
 

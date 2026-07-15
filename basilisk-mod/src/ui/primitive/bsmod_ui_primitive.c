@@ -104,7 +104,7 @@ BSMODAPI void bsmod_rasterizePrimitiveIcons() {
         const float sphere_padding = 12.0;
         bs_mat4 transform = i == BSGFX_PRIMITIVE_TYPE_SPHERE ?
             bs_transform(BS_V3(render_size.x / 2, render_size.y / 2, 0.0), rotation, bs_v3V1(render_size.x / 2.0 - sphere_padding)) :
-            bs_fitAabb(aabb, bs_v2Iv2(render_size), rotation);
+            bs_fitAabb(aabb, BS_IV2_TO_V2(render_size), rotation);
 
         push_const.color = material->contract->color;
         push_const.material_texture_size = material->contract->image_binding;

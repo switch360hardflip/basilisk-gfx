@@ -108,9 +108,9 @@ source_group("Project Files" FILES ${PROJECT_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/basilisk-core/generated
     ${CMAKE_SOURCE_DIR}/basilisk-core/include
-    ${CMAKE_SOURCE_DIR}/basilisk-steam/include
+    #${CMAKE_SOURCE_DIR}/basilisk-steam/include
     ${CMAKE_SOURCE_DIR}/external
-    ${CMAKE_SOURCE_DIR}/external/GFSDK_Aftermath_Lib
+    #${CMAKE_SOURCE_DIR}/external/GFSDK_Aftermath_Lib
     ${CMAKE_SOURCE_DIR}/external/vulkan
     generated/
     include/
@@ -125,11 +125,11 @@ target_link_directories(${PROJECT_NAME} PRIVATE
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     basilisk-core
-    basilisk-steam
+    #basilisk-steam
     vulkan-1 
-    steam_api64 
+    #steam_api64 
     dwmapi
-    GFSDK_Aftermath_Lib.x64
+    #GFSDK_Aftermath_Lib.x64
 )
 
 SET(COPY_BASILISK_GFX_DLL_DEBUG ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-gfx/Debug/basilisk-gfx.dll" "${CMAKE_SOURCE_DIR}/build/${BS_APP_NAME}/Debug/")

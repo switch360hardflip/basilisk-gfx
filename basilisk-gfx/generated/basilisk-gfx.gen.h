@@ -1542,12 +1542,6 @@ BSGFXAPI void
 bsgfx_pipeline();
 
  /**
-  @return void
-  */
-BSGFXAPI void
-bsgfx_onDeviceLost();
-
- /**
   @param sweep_radius
   @param position
   @return void
@@ -1555,7 +1549,7 @@ bsgfx_onDeviceLost();
 BSGFXAPI void
 bsgfx_sweepCollisions(
     float sweep_radius,
-    bs_vec3 position);
+    const bs_vec3* position);
 
  /**
   @param aabb
@@ -1910,12 +1904,14 @@ bsgfx_instanceRay(
  /**
   @param aabb
   @param color
-  @return bs_Range
+  @param out
+  @return void
   */
-BSGFXAPI bs_Range
+BSGFXAPI void
 bsgfx_instanceAabb(
     const bs_Aabb* aabb,
-    bs_RGBA color);
+    bs_RGBA color,
+    bs_Range* out);
 
  /**
   @param position
@@ -2013,15 +2009,17 @@ bsgfx_instanceAtlasFlipped(
   @param subtype
   @param font
   @param params
+  @param out_text_size
   @param value
   @param value_length
-  @return bs_vec2
+  @return void
   */
-BSGFXAPI bs_vec2
+BSGFXAPI void
 bsgfx_instanceText(
     int subtype,
     bs_Font* font,
     bsgfx_Text* params,
+    bs_vec2* out_text_size,
     char* value,
     int value_length);
 
@@ -2029,15 +2027,17 @@ bsgfx_instanceText(
   @param subtype
   @param font
   @param params
+  @param out_text_size
   @param format
   @param args
-  @return bs_vec2
+  @return void
   */
-BSGFXAPI bs_vec2
+BSGFXAPI void
 bsgfx_instanceTextV(
     int subtype,
     bs_Font* font,
     bsgfx_Text* params,
+    bs_vec2* out_text_size,
     char* format,
     va_list args);
 
@@ -2045,15 +2045,17 @@ bsgfx_instanceTextV(
   @param subtype
   @param font
   @param params
+  @param out_text_size
   @param format
   @param ...
-  @return bs_vec2
+  @return void
   */
-BSGFXAPI bs_vec2
+BSGFXAPI void
 bsgfx_instanceTextF(
     int subtype,
     bs_Font* font,
     bsgfx_Text* params,
+    bs_vec2* out_text_size,
     char* format,
      ...);
 
@@ -2377,11 +2379,13 @@ bsgfx_loadPrefabs(
 
  /**
   @param prefab
-  @return bs_mat4
+  @param out
+  @return void
   */
-BSGFXAPI bs_mat4
+BSGFXAPI void
 bsgfx_prefabTransform(
-    bsgfx_Prefab* prefab);
+    bsgfx_Prefab* prefab,
+    bs_mat4* out);
 
  /**
   @param mesh_id
@@ -2469,11 +2473,13 @@ bsgfx_closestPrefab(
 
  /**
   @param primitive
-  @return bs_vec3
+  @param out
+  @return void
   */
-BSGFXAPI bs_vec3
+BSGFXAPI void
 bsgfx_primitivePosition(
-    bsgfx_RawPrimitive* primitive);
+    const bsgfx_RawPrimitive* primitive,
+    bs_vec3* out);
 
  /**
   @param package_id
@@ -2581,15 +2587,17 @@ bsgfx_instanceTiles();
   @param normal
   @param index
   @param image_index
-  @return bs_Range
+  @param out_range
+  @return void
   */
-BSGFXAPI bs_Range
+BSGFXAPI void
 bsgfx_pushTile(
-    bs_Batch* batch,
+    const bs_Batch* batch,
     bs_Quad quad,
     bs_vec3 normal,
     bs_U32 index,
-    int image_index);
+    int image_index,
+    bs_Range* out_range);
 
  /**
   @param batch
@@ -2602,8 +2610,8 @@ bsgfx_pushTile(
   */
 BSGFXAPI void
 bsgfx_batchTile(
-    bs_Batch* batch,
-    bs_U32* offset,
+    const bs_Batch* batch,
+    const bs_U32* offset,
     bs_Quad quad,
     bs_vec3 normal,
     bs_U32 index,
@@ -2620,30 +2628,36 @@ bsgfx_tileAxes();
   @param axis
   @param x
   @param y
-  @return bs_vec3
+  @param out
+  @return void
   */
-BSGFXAPI bs_vec3
+BSGFXAPI void
 bsgfx_tilePosition(
-    bsgfx_Primitive* primitive,
+    const bsgfx_Primitive* primitive,
     int axis,
     int x,
-    int y);
+    int y,
+    bs_vec3* out);
 
  /**
   @param axis
-  @return bs_vec4
+  @param out
+  @return void
   */
-BSGFXAPI bs_vec4
+BSGFXAPI void
 bsgfx_tileRotation(
-    int axis);
+    int axis,
+    bs_vec4* out);
 
  /**
   @param axis
-  @return bs_vec3
+  @param out
+  @return void
   */
-BSGFXAPI bs_vec3
+BSGFXAPI void
 bsgfx_tileEulerRotation(
-    int axis);
+    int axis,
+    bs_vec3* out);
 
  /**
   @param batch
@@ -2653,9 +2667,10 @@ bsgfx_tileEulerRotation(
   @param y
   @param index
   @param image_index
-  @return bs_U32
+  @param out
+  @return void
   */
-BSGFXAPI bs_U32
+BSGFXAPI void
 bsgfx_pushTileAt(
     bs_Batch* batch,
     bsgfx_Primitive* primitive,
@@ -2663,43 +2678,50 @@ bsgfx_pushTileAt(
     int x,
     int y,
     bs_U32 index,
-    int image_index);
+    int image_index,
+    bs_U32* out);
 
  /**
   @param primitive
   @param axis
   @param index
-  @return bs_ivec2
+  @param out
+  @return void
   */
-BSGFXAPI bs_ivec2
+BSGFXAPI void
 bsgfx_tileCoordinate(
     bsgfx_Primitive* primitive,
     int axis,
-    int index);
+    int index,
+    bs_ivec2* out);
 
  /**
   @param primitive
   @param index
-  @return int
+  @param out
+  @return void
   */
-BSGFXAPI int
+BSGFXAPI void
 bsgfx_tileAxis(
-    bsgfx_Primitive* primitive,
-    int index);
+    const bsgfx_Primitive* primitive,
+    int index,
+    int* out);
 
  /**
   @param primitive
   @param axis
   @param x
   @param y
-  @return bs_U32
+  @param out
+  @return void
   */
-BSGFXAPI bs_U32
+BSGFXAPI void
 bsgfx_tileIndex(
-    bsgfx_Primitive* primitive,
+    const bsgfx_Primitive* primitive,
     int axis,
     int x,
-    int y);
+    int y,
+    bs_U32* out);
 
  /**
   @param menu

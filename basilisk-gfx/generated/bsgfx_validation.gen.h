@@ -69,7 +69,6 @@ static inline bsgfx_FunctionTable _val_bsgfx_getFunctions() {
     functions.bsgfx_tickMaterials = (PFN_bsgfx_tickMaterials)GetProcAddress(module, "_val_bsgfx_tickMaterials");
     functions.bsgfx_shadowPipe = (PFN_bsgfx_shadowPipe)GetProcAddress(module, "_val_bsgfx_shadowPipe");
     functions.bsgfx_pipeline = (PFN_bsgfx_pipeline)GetProcAddress(module, "_val_bsgfx_pipeline");
-    functions.bsgfx_onDeviceLost = (PFN_bsgfx_onDeviceLost)GetProcAddress(module, "_val_bsgfx_onDeviceLost");
     functions.bsgfx_sweepCollisions = (PFN_bsgfx_sweepCollisions)GetProcAddress(module, "_val_bsgfx_sweepCollisions");
     functions.bsgfx_collider = (PFN_bsgfx_collider)GetProcAddress(module, "_val_bsgfx_collider");
     functions.bsgfx_applyCollisions = (PFN_bsgfx_applyCollisions)GetProcAddress(module, "_val_bsgfx_applyCollisions");

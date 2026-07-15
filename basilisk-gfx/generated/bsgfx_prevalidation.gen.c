@@ -135,11 +135,8 @@ static void _preval_bsgfx_pipeline() {
     next.bsgfx_pipeline();
 }
 
-static void _preval_bsgfx_onDeviceLost() {
-    next.bsgfx_onDeviceLost();
-}
-
-static void _preval_bsgfx_sweepCollisions(float sweep_radius, bs_vec3 position) {
+static void _preval_bsgfx_sweepCollisions(float sweep_radius, const bs_vec3* position) {
+    BSGFX_VALIDATE(position != NULL, ,);
     next.bsgfx_sweepCollisions(sweep_radius, position);
 }
 
@@ -297,9 +294,10 @@ static int _preval_bsgfx_instanceRay(const bs_Ray* ray, bs_RGBA color) {
     return next.bsgfx_instanceRay(ray, color);
 }
 
-static bs_Range _preval_bsgfx_instanceAabb(const bs_Aabb* aabb, bs_RGBA color) {
-    BSGFX_VALIDATE(aabb != NULL, 0,);
-    return next.bsgfx_instanceAabb(aabb, color);
+static void _preval_bsgfx_instanceAabb(const bs_Aabb* aabb, bs_RGBA color, bs_Range* out) {
+    BSGFX_VALIDATE(aabb != NULL, ,);
+    BSGFX_VALIDATE(out != NULL, ,);
+    next.bsgfx_instanceAabb(aabb, color, out);
 }
 
 static int _preval_bsgfx_instanceSphere(bs_vec3 position, float radius) {
@@ -326,11 +324,12 @@ static int _preval_bsgfx_instanceAtlasFlipped(int subtype, bs_mat4x3 transform, 
     return next.bsgfx_instanceAtlasFlipped(subtype, transform, texture, flags, id, material);
 }
 
-static bs_vec2 _preval_bsgfx_instanceText(int subtype, bs_Font* font, bsgfx_Text* params, char* value, int value_length) {
-    BSGFX_VALIDATE(font != NULL, 0,);
-    BSGFX_VALIDATE(params != NULL, 0,);
-    BSGFX_VALIDATE(value != NULL, 0,);
-    return next.bsgfx_instanceText(subtype, font, params, value, value_length);
+static void _preval_bsgfx_instanceText(int subtype, bs_Font* font, bsgfx_Text* params, bs_vec2* out_text_size, char* value, int value_length) {
+    BSGFX_VALIDATE(font != NULL, ,);
+    BSGFX_VALIDATE(params != NULL, ,);
+    BSGFX_VALIDATE(out_text_size != NULL, ,);
+    BSGFX_VALIDATE(value != NULL, ,);
+    next.bsgfx_instanceText(subtype, font, params, out_text_size, value, value_length);
 }
 
 static bs_mat4x3 _preval_bsgfx_matrix(bs_vec3 position, bs_vec3 scale) {
@@ -494,9 +493,10 @@ static void _preval_bsgfx_loadPrefabs(int package_id, bs_Model* model) {
     next.bsgfx_loadPrefabs(package_id, model);
 }
 
-static bs_mat4 _preval_bsgfx_prefabTransform(bsgfx_Prefab* prefab) {
-    BSGFX_VALIDATE(prefab != NULL, 0,);
-    return next.bsgfx_prefabTransform(prefab);
+static void _preval_bsgfx_prefabTransform(bsgfx_Prefab* prefab, bs_mat4* out) {
+    BSGFX_VALIDATE(prefab != NULL, ,);
+    BSGFX_VALIDATE(out != NULL, ,);
+    next.bsgfx_prefabTransform(prefab, out);
 }
 
 static int _preval_bsgfx_instancePrefabModel(int mesh_id, bs_mat4 transform, bsgfx_PrefabSubtype prefab_subtype, int material_id) {
@@ -538,9 +538,10 @@ static int _preval_bsgfx_closestPrefab(bs_U64 mesh_name_hash, bs_vec3 position, 
     return next.bsgfx_closestPrefab(mesh_name_hash, position, radius);
 }
 
-static bs_vec3 _preval_bsgfx_primitivePosition(bsgfx_RawPrimitive* primitive) {
-    BSGFX_VALIDATE(primitive != NULL, 0,);
-    return next.bsgfx_primitivePosition(primitive);
+static void _preval_bsgfx_primitivePosition(const bsgfx_RawPrimitive* primitive, bs_vec3* out) {
+    BSGFX_VALIDATE(primitive != NULL, ,);
+    BSGFX_VALIDATE(out != NULL, ,);
+    next.bsgfx_primitivePosition(primitive, out);
 }
 
 static void _preval_bsgfx_loadPrimitives(int package_id) {
@@ -593,12 +594,13 @@ static void _preval_bsgfx_instanceTiles() {
     next.bsgfx_instanceTiles();
 }
 
-static bs_Range _preval_bsgfx_pushTile(bs_Batch* batch, bs_Quad quad, bs_vec3 normal, bs_U32 index, int image_index) {
-    BSGFX_VALIDATE(batch != NULL, 0,);
-    return next.bsgfx_pushTile(batch, quad, normal, index, image_index);
+static void _preval_bsgfx_pushTile(const bs_Batch* batch, bs_Quad quad, bs_vec3 normal, bs_U32 index, int image_index, bs_Range* out_range) {
+    BSGFX_VALIDATE(batch != NULL, ,);
+    BSGFX_VALIDATE(out_range != NULL, ,);
+    next.bsgfx_pushTile(batch, quad, normal, index, image_index, out_range);
 }
 
-static void _preval_bsgfx_batchTile(bs_Batch* batch, bs_U32* offset, bs_Quad quad, bs_vec3 normal, bs_U32 index, int image_index) {
+static void _preval_bsgfx_batchTile(const bs_Batch* batch, const bs_U32* offset, bs_Quad quad, bs_vec3 normal, bs_U32 index, int image_index) {
     BSGFX_VALIDATE(batch != NULL, ,);
     BSGFX_VALIDATE(offset != NULL, ,);
     next.bsgfx_batchTile(batch, offset, quad, normal, index, image_index);
@@ -608,38 +610,45 @@ static const bsgfx_TileAxis* _preval_bsgfx_tileAxes() {
     return next.bsgfx_tileAxes();
 }
 
-static bs_vec3 _preval_bsgfx_tilePosition(bsgfx_Primitive* primitive, int axis, int x, int y) {
-    BSGFX_VALIDATE(primitive != NULL, 0,);
-    return next.bsgfx_tilePosition(primitive, axis, x, y);
+static void _preval_bsgfx_tilePosition(const bsgfx_Primitive* primitive, int axis, int x, int y, bs_vec3* out) {
+    BSGFX_VALIDATE(primitive != NULL, ,);
+    BSGFX_VALIDATE(out != NULL, ,);
+    next.bsgfx_tilePosition(primitive, axis, x, y, out);
 }
 
-static bs_vec4 _preval_bsgfx_tileRotation(int axis) {
-    return next.bsgfx_tileRotation(axis);
+static void _preval_bsgfx_tileRotation(int axis, bs_vec4* out) {
+    BSGFX_VALIDATE(out != NULL, ,);
+    next.bsgfx_tileRotation(axis, out);
 }
 
-static bs_vec3 _preval_bsgfx_tileEulerRotation(int axis) {
-    return next.bsgfx_tileEulerRotation(axis);
+static void _preval_bsgfx_tileEulerRotation(int axis, bs_vec3* out) {
+    BSGFX_VALIDATE(out != NULL, ,);
+    next.bsgfx_tileEulerRotation(axis, out);
 }
 
-static bs_U32 _preval_bsgfx_pushTileAt(bs_Batch* batch, bsgfx_Primitive* primitive, int axis, int x, int y, bs_U32 index, int image_index) {
-    BSGFX_VALIDATE(batch != NULL, 0,);
-    BSGFX_VALIDATE(primitive != NULL, 0,);
-    return next.bsgfx_pushTileAt(batch, primitive, axis, x, y, index, image_index);
+static void _preval_bsgfx_pushTileAt(bs_Batch* batch, bsgfx_Primitive* primitive, int axis, int x, int y, bs_U32 index, int image_index, bs_U32* out) {
+    BSGFX_VALIDATE(batch != NULL, ,);
+    BSGFX_VALIDATE(primitive != NULL, ,);
+    BSGFX_VALIDATE(out != NULL, ,);
+    next.bsgfx_pushTileAt(batch, primitive, axis, x, y, index, image_index, out);
 }
 
-static bs_ivec2 _preval_bsgfx_tileCoordinate(bsgfx_Primitive* primitive, int axis, int index) {
-    BSGFX_VALIDATE(primitive != NULL, 0,);
-    return next.bsgfx_tileCoordinate(primitive, axis, index);
+static void _preval_bsgfx_tileCoordinate(bsgfx_Primitive* primitive, int axis, int index, bs_ivec2* out) {
+    BSGFX_VALIDATE(primitive != NULL, ,);
+    BSGFX_VALIDATE(out != NULL, ,);
+    next.bsgfx_tileCoordinate(primitive, axis, index, out);
 }
 
-static int _preval_bsgfx_tileAxis(bsgfx_Primitive* primitive, int index) {
-    BSGFX_VALIDATE(primitive != NULL, 0,);
-    return next.bsgfx_tileAxis(primitive, index);
+static void _preval_bsgfx_tileAxis(const bsgfx_Primitive* primitive, int index, int* out) {
+    BSGFX_VALIDATE(primitive != NULL, ,);
+    BSGFX_VALIDATE(out != NULL, ,);
+    next.bsgfx_tileAxis(primitive, index, out);
 }
 
-static bs_U32 _preval_bsgfx_tileIndex(bsgfx_Primitive* primitive, int axis, int x, int y) {
-    BSGFX_VALIDATE(primitive != NULL, 0,);
-    return next.bsgfx_tileIndex(primitive, axis, x, y);
+static void _preval_bsgfx_tileIndex(const bsgfx_Primitive* primitive, int axis, int x, int y, bs_U32* out) {
+    BSGFX_VALIDATE(primitive != NULL, ,);
+    BSGFX_VALIDATE(out != NULL, ,);
+    next.bsgfx_tileIndex(primitive, axis, x, y, out);
 }
 
 static bool _preval_bsgfx_instanceWidgets(bsgfx_Menu menu, bsgfx_TitleBar* title_bar, bsgfx_MenuTabBar* tab_bar) {
@@ -678,7 +687,6 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_tickMaterials = _preval_bsgfx_tickMaterials;
     functions.bsgfx_shadowPipe = _preval_bsgfx_shadowPipe;
     functions.bsgfx_pipeline = _preval_bsgfx_pipeline;
-    functions.bsgfx_onDeviceLost = _preval_bsgfx_onDeviceLost;
     functions.bsgfx_sweepCollisions = _preval_bsgfx_sweepCollisions;
     functions.bsgfx_collider = _preval_bsgfx_collider;
     functions.bsgfx_applyCollisions = _preval_bsgfx_applyCollisions;

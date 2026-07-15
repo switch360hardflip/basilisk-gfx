@@ -74,12 +74,12 @@ source_group("Headers" FILES ${HEADER_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/basilisk-core/include
-    ${CMAKE_SOURCE_DIR}/basilisk-steam/include
+    #${CMAKE_SOURCE_DIR}/basilisk-steam/include
     ${CMAKE_SOURCE_DIR}/basilisk-gfx/include
     ${CMAKE_SOURCE_DIR}/basilisk-gfx/src
     ${CMAKE_SOURCE_DIR}/basilisk-mod/include
     ${CMAKE_SOURCE_DIR}/external
-    ${CMAKE_SOURCE_DIR}/external/GFSDK_Aftermath_Lib
+    #${CMAKE_SOURCE_DIR}/external/GFSDK_Aftermath_Lib
     ${CMAKE_SOURCE_DIR}/external/glslang
     ${CMAKE_SOURCE_DIR}/external/SPIRV-Cross
     include/
@@ -98,11 +98,11 @@ target_link_directories(${PROJECT_NAME} PRIVATE
 target_link_libraries(${PROJECT_NAME} PRIVATE
     basilisk-core
     basilisk-gfx
-    basilisk-steam
+    #basilisk-steam
     vulkan-1 
-    steam_api64 
+    #steam_api64 
     dwmapi
-    GFSDK_Aftermath_Lib.x64
+    #GFSDK_Aftermath_Lib.x64
     GenericCodeGen
     glslangd optimized glslang
     glslang-default-resource-limitsd optimized glslang-default-resource-limits

@@ -1332,12 +1332,11 @@
 
 		<function name="bsgfx_shadowPipe" comment="Computes shadow volume geometry on the GPU"><return>void</return></function>
 		<function name="bsgfx_pipeline"><return>void</return></function>
-		<function name="bsgfx_onDeviceLost"><return>void</return></function>
 
 		<function name="bsgfx_sweepCollisions">
 			<return>void</return>
 			<param><type>float</type><name>sweep_radius</name></param>
-			<param><type>bs_vec3</type><name>position</name></param>
+			<param><type>const bs_vec3*</type><name>position</name></param>
 		</function>
 		<function name="bsgfx_collider">
 			<return>bsgfx_Collider</return>
@@ -1508,9 +1507,10 @@
 			<param><type>bs_RGBA</type><name>color</name></param>
 		</function>
 		<function name="bsgfx_instanceAabb">
-			<return>bs_Range</return>
+			<return>void</return>
 			<param><type>const bs_Aabb*</type><name>aabb</name></param>
 			<param><type>bs_RGBA</type><name>color</name></param>
+			<param><type>bs_Range*</type><name>out</name></param>
 		</function>
 		<function name="bsgfx_instanceSphere">
 			<return>int</return>
@@ -1559,10 +1559,11 @@
 			<param><type>int</type><name>material</name></param>
 		</function>
 		<variadicStringTemplate name="bsgfx_instanceText">
-			<return>bs_vec2</return>
+			<return>void</return>
 			<param><type>int</type><name>subtype</name></param>
 			<param><type>bs_Font*</type><name>font</name></param>
 			<param><type>bsgfx_Text*</type><name>params</name></param>
+			<param><type>bs_vec2*</type><name>out_text_size</name></param>
 		</variadicStringTemplate>
 		<function name="bsgfx_matrix">
 			<return>bs_mat4x3</return>
@@ -1704,8 +1705,9 @@
 			<param><type>bs_Model*</type><name>model</name></param>
 		</function>
 		<function name="bsgfx_prefabTransform">
-			<return>bs_mat4</return>
+			<return>void</return>
 			<param><type>bsgfx_Prefab*</type><name>prefab</name></param>
+			<param><type>bs_mat4*</type><name>out</name></param>
 		</function>
 		<function name="bsgfx_instancePrefabModel">
 			<return>int</return>
@@ -1747,8 +1749,9 @@
 		</function>
 
 		<function name="bsgfx_primitivePosition">
-			<return>bs_vec3</return>
-			<param><type>bsgfx_RawPrimitive*</type><name>primitive</name></param>
+			<return>void</return>
+			<param><type>const bsgfx_RawPrimitive*</type><name>primitive</name></param>
+			<param><type>bs_vec3*</type><name>out</name></param>
 		</function>
 		<function name="bsgfx_loadPrimitives">
 			<return>void</return>
@@ -1797,17 +1800,18 @@
 		</function>
 		<function name="bsgfx_instanceTiles"><return>void</return></function>
 		<function name="bsgfx_pushTile">
-			<return>bs_Range</return>
-			<param><type>bs_Batch*</type><name>batch</name></param>
+			<return>void</return>
+			<param><type>const bs_Batch*</type><name>batch</name></param>
 			<param><type>bs_Quad</type><name>quad</name></param>
 			<param><type>bs_vec3</type><name>normal</name></param>
 			<param><type>bs_U32</type><name>index</name></param>
 			<param><type>int</type><name>image_index</name></param>
+			<param><type>bs_Range*</type><name>out_range</name></param>
 		</function>
 		<function name="bsgfx_batchTile">
 			<return>void</return>
-			<param><type>bs_Batch*</type><name>batch</name></param>
-			<param><type>bs_U32*</type><name>offset</name></param>
+			<param><type>const bs_Batch*</type><name>batch</name></param>
+			<param><type>const bs_U32*</type><name>offset</name></param>
 			<param><type>bs_Quad</type><name>quad</name></param>
 			<param><type>bs_vec3</type><name>normal</name></param>
 			<param><type>bs_U32</type><name>index</name></param>
@@ -1815,22 +1819,25 @@
 		</function>
 		<function name="bsgfx_tileAxes"><return>const bsgfx_TileAxis*</return></function>
 		<function name="bsgfx_tilePosition">
-			<return>bs_vec3</return>
-			<param><type>bsgfx_Primitive*</type><name>primitive</name></param>
+			<return>void</return>
+			<param><type>const bsgfx_Primitive*</type><name>primitive</name></param>
 			<param><type>int</type><name>axis</name></param>
 			<param><type>int</type><name>x</name></param>
 			<param><type>int</type><name>y</name></param>
+			<param><type>bs_vec3*</type><name>out</name></param>
 		</function>
 		<function name="bsgfx_tileRotation">
-			<return>bs_vec4</return>
+			<return>void</return>
 			<param><type>int</type><name>axis</name></param>
+			<param><type>bs_vec4*</type><name>out</name></param>
 		</function>
 		<function name="bsgfx_tileEulerRotation">
-			<return>bs_vec3</return>
+			<return>void</return>
 			<param><type>int</type><name>axis</name></param>
+			<param><type>bs_vec3*</type><name>out</name></param>
 		</function>
 		<function name="bsgfx_pushTileAt">
-			<return>bs_U32</return>
+			<return>void</return>
 			<param><type>bs_Batch*</type><name>batch</name></param>
 			<param><type>bsgfx_Primitive*</type><name>primitive</name></param>
 			<param><type>int</type><name>axis</name></param>
@@ -1838,24 +1845,28 @@
 			<param><type>int</type><name>y</name></param>
 			<param><type>bs_U32</type><name>index</name></param>
 			<param><type>int</type><name>image_index</name></param>
+			<param><type>bs_U32*</type><name>out</name></param>
 		</function>
 		<function name="bsgfx_tileCoordinate">
-			<return>bs_ivec2</return>
+			<return>void</return>
 			<param><type>bsgfx_Primitive*</type><name>primitive</name></param>
 			<param><type>int</type><name>axis</name></param>
 			<param><type>int</type><name>index</name></param>
+			<param><type>bs_ivec2*</type><name>out</name></param>
 		</function>
 		<function name="bsgfx_tileAxis">
-			<return>int</return>
-			<param><type>bsgfx_Primitive*</type><name>primitive</name></param>
+			<return>void</return>
+			<param><type>const bsgfx_Primitive*</type><name>primitive</name></param>
 			<param><type>int</type><name>index</name></param>
+			<param><type>int*</type><name>out</name></param>
 		</function>
 		<function name="bsgfx_tileIndex">
-			<return>bs_U32</return>
-			<param><type>bsgfx_Primitive*</type><name>primitive</name></param>
+			<return>void</return>
+			<param><type>const bsgfx_Primitive*</type><name>primitive</name></param>
 			<param><type>int</type><name>axis</name></param>
 			<param><type>int</type><name>x</name></param>
 			<param><type>int</type><name>y</name></param>
+			<param><type>bs_U32*</type><name>out</name></param>
 		</function>
 
 		<function name="bsgfx_instanceWidgets">

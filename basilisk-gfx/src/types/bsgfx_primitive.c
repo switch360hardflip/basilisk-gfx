@@ -25,28 +25,26 @@
 
 #include <basilisk-gfx.h>
 #include <../bsgfx_contracts.h>
-#include <basilisk-core.h>
+#include <bsgfx_cache.h>
 
-BSGFXAPI bs_vec3 _bsgfx_primitivePosition(bsgfx_RawPrimitive* primitive) {
+BSGFXAPI void _bsgfx_primitivePosition(const bsgfx_RawPrimitive* primitive, bs_vec3* out) {
     bs_vec4 q;
     bs_eulToQ(&BS_V3_RADIANS(primitive->rotation), &q);
 
     bs_vec3 rotated_scale;
     bs_qRotateV3(&q, &primitive->scale, &rotated_scale);
 
-    bs_vec3 result;
-    bs_v3Add(&primitive->position, &rotated_scale, &result);
-
-    return result;
+    bs_v3Add(&primitive->position, &rotated_scale, out);
 }
 
 static void bsgfx_mapPrimitive(bsgfx_RawPrimitive* unmapped, bsgfx_Primitive* mapped) {
     mapped->collision = unmapped->collision;
     mapped->guid = unmapped->guid;
-    mapped->position = bsgfx_primitivePosition(unmapped);
     mapped->scale = unmapped->scale;
     mapped->flags = unmapped->flags;
     mapped->type = unmapped->type;
+
+    bsgfx_primitivePosition(unmapped, &mapped->position);
 
     bs_eulToQ(&BS_V3_RADIANS(unmapped->rotation), &mapped->rotation);
 
@@ -132,7 +130,7 @@ BSGFXAPI void _bsgfx_instancePrimitives() {
     bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 
     int white = $BSGFX_ATLAS_ANY_white()->id;
-    bs_vec4 white_coords = bs_atlasCoordinates(atlas, white, 0);
+    bs_vec4 white_coords = bs_atlasCoordinates(atlas, white);
     int red_material = $red_material()->id;
 
     for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {

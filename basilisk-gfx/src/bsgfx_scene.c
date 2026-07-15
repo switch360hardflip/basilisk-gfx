@@ -25,6 +25,7 @@
 
 #include <bsgfx_cache.h>
 #include <basilisk-gfx.h>
+#include <bsgfx_internal.gen.h>
 
 #include <assert.h>
 
@@ -33,7 +34,7 @@
 int _bsgfx_subtypes_[BSGFX_SUBTYPE_COUNT] = { 0 };
 bsgfx_Scene _bsgfx_current_scene = { 0 };
 
-bsgfx_Scene* bsgfx_currentScene() {
+BSGFXAPI bsgfx_Scene* _bsgfx_currentScene() {
     return &_bsgfx_current_scene;
 }
 
@@ -41,15 +42,15 @@ int _bsgfx_images_ = -1, _bsgfx_samplers_ = -1, _bsgfx_buffers_ = -1,
     _bsgfx_batches_ = -1, _bsgfx_renderers_ = -1, _bsgfx_ray_tracers_ = -1,
     _bsgfx_queues_ = -1, _bsgfx_atlases_ = -1, _bsgfx_fonts_ = -1;
 
-int bsgfx_images() { return _bsgfx_images_; }
-int bsgfx_samplers() { return _bsgfx_samplers_; }
-int bsgfx_buffers() { return _bsgfx_buffers_; }
-int bsgfx_batches() { return _bsgfx_batches_; }
-int bsgfx_renderers() { return _bsgfx_renderers_; }
-int bsgfx_rayTracers() { return _bsgfx_ray_tracers_; }
-int bsgfx_queues() { return _bsgfx_queues_; }
-int bsgfx_atlases() { return _bsgfx_atlases_; }
-int bsgfx_fonts() { return _bsgfx_fonts_; }
+BSGFXAPI int _bsgfx_images() { return _bsgfx_images_; }
+BSGFXAPI int _bsgfx_samplers() { return _bsgfx_samplers_; }
+BSGFXAPI int _bsgfx_buffers() { return _bsgfx_buffers_; }
+BSGFXAPI int _bsgfx_batches() { return _bsgfx_batches_; }
+BSGFXAPI int _bsgfx_renderers() { return _bsgfx_renderers_; }
+BSGFXAPI int _bsgfx_rayTracers() { return _bsgfx_ray_tracers_; }
+BSGFXAPI int _bsgfx_queues() { return _bsgfx_queues_; }
+BSGFXAPI int _bsgfx_atlases() { return _bsgfx_atlases_; }
+BSGFXAPI int _bsgfx_fonts() { return _bsgfx_fonts_; }
 
 static void bsgfx_createRenderers() {
    /**
@@ -344,8 +345,10 @@ static void bsgfx_loadResources() {
         bs_pushBatch(screen_batch->batch, BS_U32_MAX, BS_U32_MAX);
     }
 
-    bs_Object* mesh_volume_batch = bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_MESH_TYPE_VOLUME_COMPUTED, true), 0, $vs_bsgfx_volume(), 0);
-    if (!bs_batchIsPushed(mesh_volume_batch->batch)) {
+    bs_Object* mesh_volume_batch = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_MESH_TYPE_VOLUME_COMPUTED, true);
+    result = bs_batch(mesh_volume_batch, 0, $vs_bsgfx_volume(), 0);
+
+    if (result == BS_RESULT_OK && !bs_batchIsPushed(mesh_volume_batch->batch)) {
         bs_pushBatch(mesh_volume_batch->batch, 0, BSGFX_PRE_COMPUTED_VOLUME_SIZE);
       //  bs_bindBuffer(BSGFX_SET_VOLUME_OUT_VERTICES, BSGFX_BINDING_VOLUME_OUT_VERTICES_MESH_TYPE, mesh_volume_batch->batch->vertex_buffer->buffer);
     }
@@ -490,7 +493,7 @@ static void bsgfx_loadResources() {
     // bsgfx_preComputeInstanceVolumes();
 }
 
-void bsgfx_loadScene(const char* name) {
+BSGFXAPI void _bsgfx_loadScene(const char* name) {
     bs_logSectionF("Scene \"%s\"", name);
 
     _bsgfx_current_scene = (bsgfx_Scene){

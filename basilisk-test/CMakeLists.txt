@@ -53,7 +53,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     vulkan-1 
    # steam_api64 
     dwmapi
-    GFSDK_Aftermath_Lib.x64
+    #GFSDK_Aftermath_Lib.x64
 )
 
 SET(COPY_DLL_DEBUG ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-test/Debug/basilisk-test.dll" "${CMAKE_SOURCE_DIR}/build/basilisk-test-runner/Debug/")

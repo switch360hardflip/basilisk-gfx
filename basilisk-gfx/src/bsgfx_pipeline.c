@@ -24,6 +24,7 @@
   */ 
 
 #include <basilisk-gfx.h>
+#include <bsgfx_cache.h>
 
 #include <math.h>
 #include <assert.h>
@@ -190,9 +191,7 @@ static void bsgfx_renderLineModel(const bs_mat4* camera, int subtype, bool skip_
     if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
         bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 
-        int white;
-        bs_Result result = bs_queryAtlas(atlas, "white", &white); // TODO: cache
-        assert(result == BS_RESULT_OK);
+        int white = bs_queryAtlas(atlas, "white"); // TODO: cache
 
         struct {
             bs_mat4 camera;
@@ -330,7 +329,7 @@ static void bsgfx_loResUISubpass0_renderPreviousPass() {
             .selected_color = BS_V3(1.0, 1.0, 1.0),
             .elapsed = bs_elapsedTime(),
             .light_direction = _poser_->sun_direction,
-            .resolution = bs_v2Iv2(bs_resolution()),
+            .resolution = BS_IV2_TO_V2(bs_resolution()),
         };
 
         bs_m4Inverse(&_poser_->camera.proj, &push_const.inv_proj);
@@ -375,7 +374,7 @@ static void bsgfx_renderAtlasIcons() {
     } push_const = {
         .camera = _poser_->screen_camera.result,
         .elapsed = bs_elapsedTime(),
-        .resolution = bs_v2Iv2(bs_resolution()),
+        .resolution = BS_IV2_TO_V2(bs_resolution()),
     };
 
     bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
@@ -505,10 +504,12 @@ static void bsgfx_graphicsPipe() {
 
     if (bs_exists(BSGFX_RENDERERS, BSGFX_RENDERER_LO_RES)) {
         bs_Renderer* lo_res_renderer = bs_fetch(BSGFX_RENDERERS, BSGFX_RENDERER_LO_RES)->renderer;
-        bs_runPass(lo_res_renderer,
+
+        bs_Callback callbacks[] = {
             bsgfx_loResSubpass0,
             bsgfx_loResSubpass1,
-            NULL);
+        };
+        bs_runPass(lo_res_renderer, callbacks, sizeof(callbacks) / sizeof(*callbacks));
       //  bsgfx_resetInstances();
     }
 
@@ -516,9 +517,10 @@ static void bsgfx_graphicsPipe() {
 
     if (bs_exists(BSGFX_RENDERERS, BSGFX_RENDERER_HI_RES)) {
         bs_Renderer* hi_res_renderer = bs_fetch(BSGFX_RENDERERS, BSGFX_RENDERER_HI_RES)->renderer;
-        bs_runPass(hi_res_renderer,
+        bs_Callback callbacks[] = {
             bsgfx_hiResSubpass0,
-            NULL);
+        };
+        bs_runPass(hi_res_renderer, callbacks, sizeof(callbacks) / sizeof(*callbacks));
         
        // bsgfx_blitMinimap();
     }
@@ -570,9 +572,16 @@ static void bsgfx_swapBufferBindings() {
     bs_pushDescriptors();
 }
 
-void bsgfx_pipeline() {
-    if (!bs_exists(BSGFX_QUEUES, BSGFX_QUEUE_GRAPHICS))
-        return;
+BSGFXAPI void _val_bsgfx_pipeline() {
+    BSGFX_VALIDATE(bs_exists(BSGFX_QUEUES, BSGFX_QUEUE_GRAPHICS),,);
+
+    bsgfx_pipeline();
+}
+
+BSGFXAPI void _bsgfx_pipeline() {
+#ifdef _DEBUG
+    _val_bsgfx_pipeline();
+#endif
 
     bs_Queue* graphics_queue = bs_fetch(BSGFX_QUEUES, BSGFX_QUEUE_GRAPHICS)->queue;
     bs_Queue* compute_queue = bs_exists(BSGFX_QUEUES, BSGFX_QUEUE_COMPUTE) ? bs_fetch(BSGFX_QUEUES, BSGFX_QUEUE_COMPUTE)->queue : NULL;

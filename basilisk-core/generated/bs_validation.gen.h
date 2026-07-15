@@ -131,6 +131,9 @@ static inline bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_lerp = (PFN_bs_lerp)GetProcAddress(module, "_val_bs_lerp");
     functions.bs_degrees = (PFN_bs_degrees)GetProcAddress(module, "_val_bs_degrees");
     functions.bs_radians = (PFN_bs_radians)GetProcAddress(module, "_val_bs_radians");
+    functions.bs_ceil = (PFN_bs_ceil)GetProcAddress(module, "_val_bs_ceil");
+    functions.bs_floor = (PFN_bs_floor)GetProcAddress(module, "_val_bs_floor");
+    functions.bs_clamp = (PFN_bs_clamp)GetProcAddress(module, "_val_bs_clamp");
     functions.bs_hsvToRgb = (PFN_bs_hsvToRgb)GetProcAddress(module, "_val_bs_hsvToRgb");
     functions.bs_rgbToHsv = (PFN_bs_rgbToHsv)GetProcAddress(module, "_val_bs_rgbToHsv");
     functions.bs_convertVulkanResult = (PFN_bs_convertVulkanResult)GetProcAddress(module, "_val_bs_convertVulkanResult");

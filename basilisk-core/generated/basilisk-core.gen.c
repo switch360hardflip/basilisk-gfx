@@ -711,6 +711,26 @@ float bs_radians(
     return degrees * BS_PI / 180.0f;
 }
 
+float bs_ceil(
+    float v)
+{
+    return ceilf(v);
+}
+
+float bs_floor(
+    float v)
+{
+    return floorf(v);
+}
+
+float bs_clamp(
+    float v, 
+    float min, 
+    float max)
+{
+    return glm_clamp(v, min, max);
+}
+
 bs_vec3 bs_hsvToRgb(
     const bs_vec3* hsv)
 {

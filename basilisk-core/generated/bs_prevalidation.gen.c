@@ -571,6 +571,18 @@ static float _preval_bs_radians(float degrees) {
     return next.bs_radians(degrees);
 }
 
+static float _preval_bs_ceil(float v) {
+    return next.bs_ceil(v);
+}
+
+static float _preval_bs_floor(float v) {
+    return next.bs_floor(v);
+}
+
+static float _preval_bs_clamp(float v, float min, float max) {
+    return next.bs_clamp(v, min, max);
+}
+
 static bs_vec3 _preval_bs_hsvToRgb(const bs_vec3* hsv) {
     BS_VALIDATE(hsv != NULL, (bs_vec3) { 0 },);
     return next.bs_hsvToRgb(hsv);
@@ -2887,6 +2899,9 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_lerp = _preval_bs_lerp;
     functions.bs_degrees = _preval_bs_degrees;
     functions.bs_radians = _preval_bs_radians;
+    functions.bs_ceil = _preval_bs_ceil;
+    functions.bs_floor = _preval_bs_floor;
+    functions.bs_clamp = _preval_bs_clamp;
     functions.bs_hsvToRgb = _preval_bs_hsvToRgb;
     functions.bs_rgbToHsv = _preval_bs_rgbToHsv;
     functions.bs_convertVulkanResult = _preval_bs_convertVulkanResult;
