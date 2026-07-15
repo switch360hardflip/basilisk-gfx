@@ -31,7 +31,7 @@
   */
         
 #include <basilisk-core.gen.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 #include <cglm/vec2.h>
 #include <cglm/vec3.h>
 #include <cglm/vec4.h>
@@ -81,7 +81,7 @@ void bs_v2AddS(
     float s, 
     bs_vec2* out)
 {
-    *out = BS_V2(v->x + s, v->y + s);
+    *out = (bs_vec2) {v->x + s, v->y + s };
 }
 
 void bs_v2SubS(
@@ -89,7 +89,7 @@ void bs_v2SubS(
     float s, 
     bs_vec2* out)
 {
-    *out = BS_V2(v->x - s, v->y - s);
+    *out = (bs_vec2) {v->x - s, v->y - s };
 }
 
 void bs_v2MulS(
@@ -159,13 +159,6 @@ void bs_v2Mid(
     return next.bs_v2Mid(a, b, out);
 }
 
-float bs_v2Angle(
-    const bs_vec2* a, 
-    const bs_vec2* b)
-{
-    return glm_vec2_angle(a->v, b->v);
-}
-
 void bs_v3Add(
     const bs_vec3* a, 
     const bs_vec3* b, 
@@ -203,7 +196,7 @@ void bs_v3AddS(
     float s, 
     bs_vec3* out)
 {
-    *out = BS_V3(v->x + s, v->y + s, v->z + s);
+    *out = (bs_vec3) {v->x + s, v->y + s, v->z + s };
 }
 
 void bs_v3SubS(
@@ -211,7 +204,7 @@ void bs_v3SubS(
     float s, 
     bs_vec3* out)
 {
-    *out = BS_V3(v->x - s, v->y - s, v->z - s);
+    *out = (bs_vec3) {v->x - s, v->y - s, v->z - s };
 }
 
 void bs_v3MulS(
@@ -287,14 +280,14 @@ void bs_v3Cross(
     const bs_vec3* b, 
     bs_vec3* out)
 {
-    glm_vec3_cross(a->v, b->v, out->v);
+    glm_vec3_cross(a->a, b->a, out->a);
 }
 
 float bs_v3Angle(
     const bs_vec3* a, 
     const bs_vec3* b)
 {
-    return glm_vec3_angle(a->v, b->v);
+    return glm_vec3_angle(a->a, b->a);
 }
 
 void bs_v4Add(
@@ -334,7 +327,7 @@ void bs_v4AddS(
     float s, 
     bs_vec4* out)
 {
-    *out = BS_V4(v->x + s, v->y + s, v->z + s, v->w + s);
+    *out = (bs_vec4) {v->x + s, v->y + s, v->z + s, v->w + s };
 }
 
 void bs_v4SubS(
@@ -342,7 +335,7 @@ void bs_v4SubS(
     float s, 
     bs_vec4* out)
 {
-    *out = BS_V4(v->x - s, v->y - s, v->z - s, v->w - s);
+    *out = (bs_vec4) {v->x - s, v->y - s, v->z - s, v->w - s };
 }
 
 void bs_v4MulS(
@@ -565,6 +558,20 @@ void bs_qLongSlerp(
     glm_quat_slerp_longest(from->a, to->a, t, out->a);
 }
 
+void bs_eulToQ(
+    const bs_vec3* eul, 
+    bs_vec4* out)
+{
+    return next.bs_eulToQ(eul, out);
+}
+
+void bs_qToEul(
+    const bs_vec4* q, 
+    bs_vec3* out)
+{
+    return next.bs_qToEul(q, out);
+}
+
 void bs_orthographic(
     float left, 
     float right, 
@@ -674,7 +681,7 @@ float bs_tan(
 int bs_sign(
     float v)
 {
-    return (x > 0.0f) - (x < 0.0f);
+    return (v > 0.0f) - (v < 0.0f);
 }
 
 bs_Quad bs_quad(
@@ -695,7 +702,7 @@ float bs_lerp(
 float bs_degrees(
     float radians)
 {
-    return return rad * (180.0f / BS_PI);
+    return radians * (180.0f / BS_PI);
 }
 
 float bs_radians(
@@ -2144,21 +2151,18 @@ bs_vec2 bs_atlasSize(
     return next.bs_atlasSize(atlas, texture);
 }
 
-bs_Result bs_queryAtlasHash(
+int bs_queryAtlasHash(
     bs_Atlas* atlas, 
-    bs_U64 hash, 
-    const char* name, 
-    int* out)
+    bs_U64 hash)
 {
-    return next.bs_queryAtlasHash(atlas, hash, name, out);
+    return next.bs_queryAtlasHash(atlas, hash);
 }
 
-bs_Result bs_queryAtlas(
+int bs_queryAtlas(
     bs_Atlas* atlas, 
-    const char* name, 
-    int* out)
+    const char* name)
 {
-    return next.bs_queryAtlas(atlas, name, out);
+    return next.bs_queryAtlas(atlas, name);
 }
 
 bs_Result bs_destroyAtlas(
@@ -3647,10 +3651,9 @@ bs_Mesh* bs_queryMesh(
 
 bs_Mesh* bs_queryMeshHash(
     bs_Model* model, 
-    bs_U64 hash, 
-    const char* name)
+    bs_U64 hash)
 {
-    return next.bs_queryMeshHash(model, hash, name);
+    return next.bs_queryMeshHash(model, hash);
 }
 
 bs_Material* bs_queryMaterial(
@@ -3711,11 +3714,39 @@ bs_Result bs_queryPackage(
 
 bs_Result bs_loadResource(
     int package_id, 
-    const char* resource_name, 
     bs_U32 flags, 
-    bs_Resource** out)
+    bs_Resource** out, 
+    char* value, 
+    int value_length)
 {
-    return next.bs_loadResource(package_id, resource_name, flags, out);
+    return next.bs_loadResource(package_id, flags, out, value, value_length);
+}
+
+bs_Result bs_loadResourceV(
+    int package_id, 
+    bs_U32 flags, 
+    bs_Resource** out, 
+    char* format, 
+    va_list args)
+{
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    return bs_loadResource(package_id, flags, out, _formatted, _length);
+}
+
+bs_Result bs_loadResourceF(
+    int package_id, 
+    bs_U32 flags, 
+    bs_Resource** out, 
+    char* format, 
+    ...)
+{
+    va_list args;
+    va_start(args, format);
+    bs_Result _return = bs_loadResourceV(package_id, flags, out, format, args);
+    va_end(args);
+    return _return;
 }
 
 bs_Result bs_loadPackage(

@@ -33,7 +33,7 @@
 #ifndef BS_PREVALIDATION_H
 #define BS_PREVALIDATION_H
 
-#include <bs_internal.h>
+#include <bs_internal.gen.h>
 
 bs_FunctionTable _preval_bs_getFunctions();
 

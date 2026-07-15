@@ -723,24 +723,8 @@ typedef enum bs_BindType bs_BindType;
 #define BS_INFO_HEADER                                               \
     BS_PRINT_COLOR("[INF] ", BS_PRINT_CYAN)
 
-#define bs_assert(cond)                                              \
-        if (!(cond)) bs_throwBasiliskF(BSX_ASSERTION, "%s", #cond)
-
-#define bs_assert(cond)                                              \
-
-
 #define bs_throwBasiliskF(code, format, ...)                         \
         bsi_throwBasiliskF(code, (format "\n%s:%d:%s(): "), __VA_ARGS__ __VA_OPT__(,) __FILE__, __LINE__, __func__)
-
-#define BS_ASSERT_TYPE(obj, t1)                                      \
-    do {                                                             \
-        int t2 = _bs_instance->objects[obj->head.id].object.type;    \
-        if (t1 != t2)                                                \
-            bs_throwBasiliskF(BSX_ASSERTION, "%s != %s",             \
-            _bs_instance->object_types[t1].name,                     \
-            _bs_instance->object_types[t2].name                      \
-        );                                                           \
-    } while (0)
 
 #define BS_STACK_LIST(type, c)                                       \
         { .capacity = c, .data = _alloca(c * sizeof(type)), .unit_size = sizeof(type) }
@@ -3455,16 +3439,6 @@ bs_v2Mid(
  /**
   @param a
   @param b
-  @return float
-  */
-BSAPI float
-bs_v2Angle(
-    const bs_vec2* a,
-    const bs_vec2* b);
-
- /**
-  @param a
-  @param b
   @param out
   @return void
   */
@@ -4041,6 +4015,26 @@ bs_qLongSlerp(
     const bs_vec4* to,
     float t,
     bs_vec4* out);
+
+ /**
+  @param eul
+  @param out
+  @return void
+  */
+BSAPI void
+bs_eulToQ(
+    const bs_vec3* eul,
+    bs_vec4* out);
+
+ /**
+  @param q
+  @param out
+  @return void
+  */
+BSAPI void
+bs_qToEul(
+    const bs_vec4* q,
+    bs_vec3* out);
 
  /**
   @param left
@@ -6319,28 +6313,22 @@ bs_atlasSize(
  /**
   @param atlas
   @param hash
-  @param name
-  @param out
-  @return bs_Result
+  @return int
   */
-BSAPI bs_Result
+BSAPI int
 bs_queryAtlasHash(
     bs_Atlas* atlas,
-    bs_U64 hash,
-    const char* name,
-    int* out);
+    bs_U64 hash);
 
  /**
   @param atlas
   @param name
-  @param out
-  @return bs_Result
+  @return int
   */
-BSAPI bs_Result
+BSAPI int
 bs_queryAtlas(
     bs_Atlas* atlas,
-    const char* name,
-    int* out);
+    const char* name);
 
  /**
   @param atlas
@@ -8263,14 +8251,12 @@ bs_queryMesh(
  /**
   @param model
   @param hash
-  @param name
   @return bs_Mesh*
   */
 BSAPI bs_Mesh*
 bs_queryMeshHash(
     bs_Model* model,
-    bs_U64 hash,
-    const char* name);
+    bs_U64 hash);
 
  /**
   @param model
@@ -8354,17 +8340,51 @@ bs_queryPackage(
 
  /**
   @param package_id
-  @param resource_name
   @param flags
   @param out
+  @param value
+  @param value_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_loadResource(
     int package_id,
-    const char* resource_name,
     bs_U32 flags,
-    bs_Resource** out);
+    bs_Resource** out,
+    char* value,
+    int value_length);
+
+ /**
+  @param package_id
+  @param flags
+  @param out
+  @param format
+  @param args
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_loadResourceV(
+    int package_id,
+    bs_U32 flags,
+    bs_Resource** out,
+    char* format,
+    va_list args);
+
+ /**
+  @param package_id
+  @param flags
+  @param out
+  @param format
+  @param ...
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_loadResourceF(
+    int package_id,
+    bs_U32 flags,
+    bs_Resource** out,
+    char* format,
+     ...);
 
  /**
   @param path

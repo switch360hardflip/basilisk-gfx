@@ -32,7 +32,7 @@
 #include <inttypes.h>
 
 #include <basilisk-core.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 
 struct bs_List bs_pipelines[BS_PIPELINE_TYPE_COUNT] = {0};
 
@@ -516,7 +516,7 @@ BSAPI void _bs_loadBindings(int package_id, const char* path) {
     bs_Result result;
 
     bs_Resource* resource;
-    result = bs_loadResource(package_id, path, 0, &resource);
+    result = bs_loadResource(package_id, 0, &resource, path, strlen(path));
     if (result != BS_RESULT_OK) {
         return;
     }
@@ -571,7 +571,7 @@ BSAPI void _bs_loadBindings(int package_id, const char* path) {
         bs_free(stages.as_array.as_strings);
     }
 
-    bs_assert(bindings_count == binding_offset);
+    assert(bindings_count == binding_offset);
 
     qsort(_bs_instance_->bindings, bindings_count, sizeof(bs_Binding), bs_compareBindings);
 
@@ -581,7 +581,7 @@ BSAPI void _bs_loadBindings(int package_id, const char* path) {
         bs_Binding* binding = _bs_instance_->bindings + i;
         bs_BindSet* bind_set = _bs_instance_->bind_sets + binding->set;
 
-        bs_assert(binding->set < bind_sets_count);
+        assert(binding->set < bind_sets_count);
 
         if (binding->set != current_set) {
             current_set = binding->set;

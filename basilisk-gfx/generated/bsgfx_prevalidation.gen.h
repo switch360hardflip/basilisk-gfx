@@ -33,7 +33,7 @@
 #ifndef BSGFX_PREVALIDATION_H
 #define BSGFX_PREVALIDATION_H
 
-#include <bsgfx_internal.h>
+#include <bsgfx_internal.gen.h>
 
 bsgfx_FunctionTable _preval_bsgfx_getFunctions();
 

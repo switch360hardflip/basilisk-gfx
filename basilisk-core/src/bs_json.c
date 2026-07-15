@@ -31,7 +31,7 @@
 #include <string.h>
 
 #include <basilisk-core.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 #include <yyjson/yyjson.h>
 
 BSAPI bs_Json _bs_jsonRoot(bs_Json* json, bs_JsonObject obj) {

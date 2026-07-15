@@ -33,7 +33,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include <basilisk-core.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 
 const char* validation_layers[] = {
     "VK_LAYER_KHRONOS_validation"
@@ -546,11 +546,6 @@ BSAPI void _bs_parseArgs(int argc, char* argv[]) {
         else if (strcmp(argv[i], "--track-changes") == 0) _bs_args_.track_changes = true;
     }
 }
-
-#define BS_REQUIRE_PROCEDURE(name) \
-    if (!_bs_procs_.##name##) { \
-        bs_throwBasiliskF(BSX_FAILED_TO_QUERY, #name); \
-    }
 
 BSAPI void _bs_queryProcedures(bs_Procedure* procedures, int count, HMODULE dll_handle, unsigned char* destination) {
 #define BS_STRING_GEN_2(TYPE, FUNC, ...) { .size = sizeof(TYPE), .func = #FUNC, __VA_OPT__(.is_required = __VA_ARGS__) },

@@ -32,31 +32,10 @@
         
 #include <basilisk-core.h>
 #include <basilisk-gfx.h>
+#include <windows.h>
 
-#ifndef BSGFX_INTERNAL_H
-#define BSGFX_INTERNAL_H
-
-#define BS_FOREACH_PROC(X) \
-    X(PFN_vkCmdInsertDebugUtilsLabelEXT, vkCmdInsertDebugUtilsLabelEXT) \
-    X(PFN_vkCmdBeginDebugUtilsLabelEXT, vkCmdBeginDebugUtilsLabelEXT) \
-    X(PFN_vkCmdEndDebugUtilsLabelEXT, vkCmdEndDebugUtilsLabelEXT) \
-    X(PFN_vkCmdBeginRenderingKHR, vkCmdBeginRenderingKHR) \
-    X(PFN_vkCmdEndRenderingKHR, vkCmdEndRenderingKHR) \
-    X(PFN_vkCmdTraceRaysKHR, vkCmdTraceRaysKHR) \
-    X(PFN_vkGetAccelerationStructureBuildSizesKHR, vkGetAccelerationStructureBuildSizesKHR) \
-    X(PFN_vkCreateAccelerationStructureKHR, vkCreateAccelerationStructureKHR) \
-    X(PFN_vkCmdBuildAccelerationStructuresKHR, vkCmdBuildAccelerationStructuresKHR) \
-    X(PFN_vkGetAccelerationStructureDeviceAddressKHR, vkGetAccelerationStructureDeviceAddressKHR) \
-    X(PFN_vkGetRayTracingShaderGroupHandlesKHR, vkGetRayTracingShaderGroupHandlesKHR) \
-    X(PFN_vkDestroyAccelerationStructureKHR, vkDestroyAccelerationStructureKHR) \
-    X(PFN_vkCreateRayTracingPipelinesKHR, vkCreateRayTracingPipelinesKHR) \
-
-#define BS_STRUCT_GEN(TYPE, FUNC, ...) TYPE FUNC;
-
-typedef struct bs_Procs bs_Procs;
-extern struct bs_Procs {
-    BS_FOREACH_PROC(BS_STRUCT_GEN)
-} _bs_procs_;
+#ifndef BSGFX_INTERNAL_GEN_H
+#define BSGFX_INTERNAL_GEN_H
 
 typedef bsgfx_Scene*(__stdcall* PFN_bsgfx_currentScene)();
 typedef void(__stdcall* PFN_bsgfx_loadScene)(const char* name);

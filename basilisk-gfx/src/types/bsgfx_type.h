@@ -81,7 +81,7 @@
 
 		int unmapped_flexible_size;
 		int mapped_flexible_size;
-	} bsgfx_types[BSGFX_TYPE_COUNT];
+	} _bsgfx_types_[BSGFX_TYPE_COUNT];
 
 
 

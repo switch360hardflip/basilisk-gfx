@@ -36,7 +36,7 @@
 #include <direct.h>
 
 #include <basilisk-core.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 
 
 
@@ -730,7 +730,7 @@ BSAPI bs_Result _bs_model(int package_id, const char* name, bs_U32 flags, bs_Res
     bs_Result result;
 
     bs_Resource* resource;
-    result = bs_loadResource(package_id, name, flags, &resource);
+    result = bs_loadResource(package_id, flags, &resource, name, strlen(name));
     if (result != BS_RESULT_OK)
         return result;
 
@@ -889,7 +889,7 @@ bs_Object bs_animation(bs_Armature* armature, int id, const char* name, bs_Anima
   * Queries
   =============================================================================*/
 
-BSAPI bs_Mesh* _bs_queryMeshHash(bs_Model* model, bs_U64 hash, const char* name) {
+BSAPI bs_Mesh* _bs_queryMeshHash(bs_Model* model, bs_U64 hash) {
     for (int i = 0; i < model->meshes_count; i++) {
         bs_Mesh* mesh = model->meshes + i;
         if (mesh->name_hash == hash)
@@ -900,7 +900,7 @@ BSAPI bs_Mesh* _bs_queryMeshHash(bs_Model* model, bs_U64 hash, const char* name)
 }
 
 BSAPI bs_Mesh* _bs_queryMesh(bs_Model* model, const char* name) {
-    return bs_queryMeshHash(model, bs_stringHash(name), name);
+    return bs_queryMeshHash(model, bs_stringHash(name));
 }
 
 /*

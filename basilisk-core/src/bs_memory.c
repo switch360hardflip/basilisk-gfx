@@ -41,7 +41,7 @@
 #endif
 
 #include <basilisk-core.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 #include <vulkan.h>
 
 bs_Scope _bs_scope_ = { 0 };
@@ -698,7 +698,7 @@ BSAPI bs_Result _bs_foreachDirectory(void(*x)(bs_FileInfo, void*), void* param, 
     Document counting
     */
 
-static inline int bs_increment(bs_FileInfo info, int* i) { (*i)++; }
+static inline int bs_increment(bs_FileInfo info, int* i) { (*i)++; return 0; }
 BSAPI int _bs_numFiles(char* directory, int directory_length) {
     int i = 0;
     bs_foreachFile(bs_increment, &i, directory, directory_length);
@@ -1262,7 +1262,7 @@ BSAPI bs_Result _bs_ensureDirectory(char* path, int path_length) {
         }
 
         if (strrchr(path, '.')) // skip files
-            return;
+            return BS_RESULT_OK;
 
         if (!CreateDirectoryA(path, NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
             BS_WARN_WIN32_PATH("CreateDirectoryA", path);
@@ -1277,6 +1277,8 @@ BSAPI bs_Result _bs_ensureDirectory(char* path, int path_length) {
        // if (!is_directory_or_junction)
        //     bs_throwLastWin32Error(path);
     }
+
+    return BS_RESULT_OK;
 }
 
 BSAPI void _bs_findExecutablePaths() {

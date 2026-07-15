@@ -31,7 +31,7 @@
   */
         
 #include <basilisk-core.gen.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 
 static bs_FunctionTable next = { 0 };
 
@@ -199,16 +199,6 @@ static void _preval_bs_v2Mid(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
         return;
 
     return next.bs_v2Mid(a, b, out);
-}
-
-static float _preval_bs_v2Angle(const bs_vec2* a, const bs_vec2* b) {
-    if (a == NULL)
-        return 0;
-
-    if (b == NULL)
-        return 0;
-
-    return next.bs_v2Angle(a, b);
 }
 
 static void _preval_bs_v3Add(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
@@ -783,6 +773,26 @@ static void _preval_bs_qLongSlerp(const bs_vec4* from, const bs_vec4* to, float 
         return;
 
     return next.bs_qLongSlerp(from, to, t, out);
+}
+
+static void _preval_bs_eulToQ(const bs_vec3* eul, bs_vec4* out) {
+    if (eul == NULL)
+        return;
+
+    if (out == NULL)
+        return;
+
+    return next.bs_eulToQ(eul, out);
+}
+
+static void _preval_bs_qToEul(const bs_vec4* q, bs_vec3* out) {
+    if (q == NULL)
+        return;
+
+    if (out == NULL)
+        return;
+
+    return next.bs_qToEul(q, out);
 }
 
 static void _preval_bs_orthographic(float left, float right, float bottom, float top, float near_z, float far_z, bs_mat4* out) {
@@ -2570,36 +2580,27 @@ static bs_vec2 _preval_bs_atlasSize(bs_Atlas* atlas, int texture) {
     return next.bs_atlasSize(atlas, texture);
 }
 
-static bs_Result _preval_bs_queryAtlasHash(bs_Atlas* atlas, bs_U64 hash, const char* name, int* out) {
+static int _preval_bs_queryAtlasHash(bs_Atlas* atlas, bs_U64 hash) {
     if (atlas == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return 0;
 
     if (atlas->head.source_id != BS_OBJECT_ATLAS)
-        return BS_RESULT_VALIDATION_ERROR;
+        return 0;
 
-    if (name == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
-    if (out == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
-    return next.bs_queryAtlasHash(atlas, hash, name, out);
+    return next.bs_queryAtlasHash(atlas, hash);
 }
 
-static bs_Result _preval_bs_queryAtlas(bs_Atlas* atlas, const char* name, int* out) {
+static int _preval_bs_queryAtlas(bs_Atlas* atlas, const char* name) {
     if (atlas == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return 0;
 
     if (atlas->head.source_id != BS_OBJECT_ATLAS)
-        return BS_RESULT_VALIDATION_ERROR;
+        return 0;
 
     if (name == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
+        return 0;
 
-    if (out == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
-    return next.bs_queryAtlas(atlas, name, out);
+    return next.bs_queryAtlas(atlas, name);
 }
 
 static bs_Result _preval_bs_destroyAtlas(bs_Atlas* atlas) {
@@ -3739,14 +3740,11 @@ static bs_Mesh* _preval_bs_queryMesh(bs_Model* model, const char * name) {
     return next.bs_queryMesh(model, name);
 }
 
-static bs_Mesh* _preval_bs_queryMeshHash(bs_Model* model, bs_U64 hash, const char* name) {
+static bs_Mesh* _preval_bs_queryMeshHash(bs_Model* model, bs_U64 hash) {
     if (model == NULL)
         return NULL;
 
-    if (name == NULL)
-        return NULL;
-
-    return next.bs_queryMeshHash(model, hash, name);
+    return next.bs_queryMeshHash(model, hash);
 }
 
 static bs_Material* _preval_bs_queryMaterial(bs_Model* model, const char* name) {
@@ -3802,14 +3800,14 @@ static bs_Result _preval_bs_queryPackage(const char* name, int* out) {
     return next.bs_queryPackage(name, out);
 }
 
-static bs_Result _preval_bs_loadResource(int package_id, const char* resource_name, bs_U32 flags, bs_Resource** out) {
-    if (resource_name == NULL)
-        return BS_RESULT_VALIDATION_ERROR;
-
+static bs_Result _preval_bs_loadResource(int package_id, bs_U32 flags, bs_Resource** out, char* value, int value_length) {
     if (out == NULL)
         return BS_RESULT_VALIDATION_ERROR;
 
-    return next.bs_loadResource(package_id, resource_name, flags, out);
+    if (value == NULL)
+        return BS_RESULT_VALIDATION_ERROR;
+
+    return next.bs_loadResource(package_id, flags, out, value, value_length);
 }
 
 static bs_Result _preval_bs_loadPackage(const char* path, int* out) {
@@ -4377,7 +4375,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v2Normalize = _preval_bs_v2Normalize;
     functions.bs_v2Lerp = _preval_bs_v2Lerp;
     functions.bs_v2Mid = _preval_bs_v2Mid;
-    functions.bs_v2Angle = _preval_bs_v2Angle;
     functions.bs_v3Add = _preval_bs_v3Add;
     functions.bs_v3Sub = _preval_bs_v3Sub;
     functions.bs_v3Mul = _preval_bs_v3Mul;
@@ -4430,6 +4427,8 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_qSlerp = _preval_bs_qSlerp;
     functions.bs_qRotateV3 = _preval_bs_qRotateV3;
     functions.bs_qLongSlerp = _preval_bs_qLongSlerp;
+    functions.bs_eulToQ = _preval_bs_eulToQ;
+    functions.bs_qToEul = _preval_bs_qToEul;
     functions.bs_orthographic = _preval_bs_orthographic;
     functions.bs_perspective = _preval_bs_perspective;
     functions.bs_lookAt = _preval_bs_lookAt;

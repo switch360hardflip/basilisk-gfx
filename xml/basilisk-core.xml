@@ -9,7 +9,7 @@
 	<includes>
 		<trampoline>
 			<include>basilisk-core.gen.h</include>
-			<include>bs_internal.gen.h</include>
+			<include>bs_internal.h</include>
 			<include>cglm/vec2.h</include>
 			<include>cglm/vec3.h</include>
 			<include>cglm/vec4.h</include>
@@ -32,14 +32,14 @@
 		</internalHeader>
 		<prevalidation>
 			<include>basilisk-core.gen.h</include>
-			<include>bs_internal.gen.h</include>
+			<include>bs_internal.h</include>
 		</prevalidation>
 		<prevalidationHeader>
 			<include>bs_internal.h</include>
 		</prevalidationHeader>
 		<validationHeader>
 			<include>basilisk-core.gen.h</include>
-			<include>bs_internal.gen.h</include>
+			<include>bs_internal.h</include>
 			<include>windows.h</include>
 		</validationHeader>
     </includes>
@@ -813,38 +813,6 @@
 			<line>(bs_RGBA) { r, g, b, a }</line>
 		</macro>
 
-		<!--
-		<macro>
-			<name>#define BS_IV2(x, y)</name>
-			<line>(bs_ivec2) { x, y }</line>
-		</macro>
-
-		<macro>
-			<name>#define BS_V2(x, y)</name>
-			<line>(bs_vec2) { x, y }</line>
-		</macro>
-
-		<macro>
-			<name>#define BS_IV3(x, y, z)</name>
-			<line>(bs_ivec3) { x, y, z }</line>
-		</macro>
-
-		<macro>
-			<name>#define BS_V3(x, y, z)</name>
-			<line>(bs_vec3) { x, y, z }</line>
-		</macro>
-
-		<macro>
-			<name>#define BS_IV4(x, y, z, w)</name>
-			<line>(bs_ivec4) { x, y, z, w }</line>
-		</macro>
-
-		<macro>
-			<name>#define BS_V4(x, y, z, w)</name>
-			<line>(bs_vec4) { x, y, z, w }</line>
-		</macro>
-		-->
-
 		<macro>
             <name>#define BS_FLT_MAX</name>
             <line>3.402823466e+38F</line>
@@ -1182,24 +1150,8 @@
         <macro><name>#define BS_WARN_HEADER</name><line>BS_PRINT_COLOR("[WRN] ", BS_PRINT_YELLOW)</line></macro>
         <macro><name>#define BS_INFO_HEADER</name><line>BS_PRINT_COLOR("[INF] ", BS_PRINT_CYAN)</line></macro>
         <macro>
-            <name>#define bs_assert(cond)</name>
-            <line>    if (!(cond)) bs_throwBasiliskF(BSX_ASSERTION, "%s", #cond)</line>
-        </macro>
-        <macro><name>#define bs_assert(cond)</name></macro>
-        <macro>
             <name>#define bs_throwBasiliskF(code, format, ...)</name>
             <line>    bsi_throwBasiliskF(code, (format "\n%s:%d:%s(): "), __VA_ARGS__ __VA_OPT__(,) __FILE__, __LINE__, __func__)</line>
-        </macro>
-        <macro>
-            <name>#define BS_ASSERT_TYPE(obj, t1)</name>
-            <line>do {</line>
-            <line>    int t2 = _bs_instance-&gt;objects[obj-&gt;head.id].object.type;</line>
-            <line>    if (t1 != t2)</line>
-            <line>        bs_throwBasiliskF(BSX_ASSERTION, "%s != %s",</line>
-            <line>        _bs_instance-&gt;object_types[t1].name,</line>
-            <line>        _bs_instance-&gt;object_types[t2].name</line>
-            <line>    );</line>
-            <line>} while (0)</line>
         </macro>
         <macro>
             <name>#define BS_STACK_LIST(type, c)</name>
@@ -2501,12 +2453,7 @@
             <param><type>const bs_vec3*</type><name>b</name></param>
             <param><type>bs_vec3*</type><name>out</name></param>
         </function>
-		<function name="bs_v2Angle" comment="Angle (radians) between two 2D vectors">
-            <return>float</return>
-            <param><type>const bs_vec2*</type><name>a</name></param>
-            <param><type>const bs_vec2*</type><name>b</name></param>
-			<body>    return glm_vec2_angle(a->v, b->v);</body>
-        </function>
+
         <vectorTemplate>
             <n>3</n>
             <components>
@@ -2526,13 +2473,13 @@
             <param><type>const bs_vec3*</type><name>a</name></param>
             <param><type>const bs_vec3*</type><name>b</name></param>
             <param><type>bs_vec3*</type><name>out</name></param>
-			<body>    glm_vec3_cross(a->v, b->v, out->v);</body>
+			<body>    glm_vec3_cross(a->a, b->a, out->a);</body>
         </function>
 		<function name="bs_v3Angle" comment="Angle (radians) between two 3D vectors">
             <return>float</return>
             <param><type>const bs_vec3*</type><name>a</name></param>
             <param><type>const bs_vec3*</type><name>b</name></param>
-			<body>    return glm_vec3_angle(a->v, b->v);</body>
+			<body>    return glm_vec3_angle(a->a, b->a);</body>
         </function>
 
         <vectorTemplate>
@@ -2662,6 +2609,18 @@
             <body>    glm_quat_slerp_longest(from->a, to->a, t, out->a);</body>
         </function>
 
+		<function name="bs_eulToQ" comment="Convert euler angles (radians) to a quaternion">
+            <return>void</return>
+            <param><type>const bs_vec3*</type><name>eul</name></param>
+            <param><type>bs_vec4*</type><name>out</name></param>
+        </function>
+		
+		<function name="bs_qToEul" comment="Convert quaternion to euler angles (radians)">
+            <return>void</return>
+            <param><type>const bs_vec4*</type><name>q</name></param>
+            <param><type>bs_vec3*</type><name>out</name></param>
+        </function>
+		
         <function name="bs_orthographic">
             <return>void</return>
             <param><type>float</type><name>left</name></param>
@@ -2767,7 +2726,7 @@
 		<function name="bs_sign" comment="Returns -1 if the value is negative, 1 if positive, 0 if the value is 0">
             <return>int</return>
             <param><type>float</type><name>v</name></param>
-            <body>    return (x &gt; 0.0f) - (x &lt; 0.0f);</body>
+            <body>    return (v &gt; 0.0f) - (v &lt; 0.0f);</body>
         </function>
 
         <function name="bs_quad">
@@ -2787,7 +2746,7 @@
 		<function name="bs_degrees" comment="Convert radians to degrees">
             <return>float</return>
             <param><type>float</type><name>radians</name></param>
-			<body>    return return rad * (180.0f / BS_PI);</body>
+			<body>    return radians * (180.0f / BS_PI);</body>
         </function>
 
 		<function name="bs_radians" comment="Convert degrees to radians">
@@ -3575,17 +3534,14 @@
             <param><type>int</type><name>texture</name></param>
         </function>
         <function name="bs_queryAtlasHash">
-            <return>bs_Result</return>
+            <return>int</return>
             <param><type>bs_Atlas*</type><name>atlas</name></param>
             <param><type>bs_U64</type><name>hash</name></param>
-            <param><type>const char*</type><name>name</name></param>
-            <param><type>int*</type><name>out</name></param>
         </function>
         <function name="bs_queryAtlas">
-            <return>bs_Result</return>
+            <return>int</return>
             <param><type>bs_Atlas*</type><name>atlas</name></param>
             <param><type>const char*</type><name>name</name></param>
-            <param><type>int*</type><name>out</name></param>
         </function>
         <function name="bs_destroyAtlas">
             <return>bs_Result</return>
@@ -4267,7 +4223,6 @@
             <return>bs_Mesh*</return>
             <param><type>bs_Model*</type><name>model</name></param>
             <param><type>bs_U64</type><name>hash</name></param>
-            <param><type>const char*</type><name>name</name></param>
         </function>
         <function name="bs_queryMaterial">
             <return>bs_Material*</return>
@@ -4309,13 +4264,12 @@
             <param><type>const char*</type><name>name</name></param>
             <param><type>int*</type><name>out</name></param>
         </function>
-        <function name="bs_loadResource">
+        <variadicStringTemplate name="bs_loadResource">
             <return>bs_Result</return>
             <param><type>int</type><name>package_id</name></param>
-            <param><type>const char*</type><name>resource_name</name></param>
             <param><type>bs_U32</type><name>flags</name></param>
             <param><type>bs_Resource**</type><name>out</name></param>
-        </function>
+        </variadicStringTemplate>
         <function name="bs_loadPackage">
             <return>bs_Result</return>
             <param><type>const char*</type><name>path</name></param>

@@ -35,7 +35,7 @@
 #include <time.h>
 
 #include <basilisk-core.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 #include <uxtheme.h>
 #include <vsstyle.h>
 #include <vssym32.h>

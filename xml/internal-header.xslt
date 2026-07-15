@@ -16,35 +16,10 @@
 
         <xsl:text>#ifndef </xsl:text>
         <xsl:value-of select="$functionPrefixCaps"/>
-        <xsl:text>INTERNAL_H&#xA;</xsl:text>
+        <xsl:text>INTERNAL_GEN_H&#xA;</xsl:text>
         <xsl:text>#define </xsl:text>
         <xsl:value-of select="$functionPrefixCaps"/>
-        <xsl:text>INTERNAL_H&#xA;</xsl:text>
-
-<xsl:text>
-#define BS_FOREACH_PROC(X) \
-    X(PFN_vkCmdInsertDebugUtilsLabelEXT, vkCmdInsertDebugUtilsLabelEXT) \
-    X(PFN_vkCmdBeginDebugUtilsLabelEXT, vkCmdBeginDebugUtilsLabelEXT) \
-    X(PFN_vkCmdEndDebugUtilsLabelEXT, vkCmdEndDebugUtilsLabelEXT) \
-    X(PFN_vkCmdBeginRenderingKHR, vkCmdBeginRenderingKHR) \
-    X(PFN_vkCmdEndRenderingKHR, vkCmdEndRenderingKHR) \
-    X(PFN_vkCmdTraceRaysKHR, vkCmdTraceRaysKHR) \
-    X(PFN_vkGetAccelerationStructureBuildSizesKHR, vkGetAccelerationStructureBuildSizesKHR) \
-    X(PFN_vkCreateAccelerationStructureKHR, vkCreateAccelerationStructureKHR) \
-    X(PFN_vkCmdBuildAccelerationStructuresKHR, vkCmdBuildAccelerationStructuresKHR) \
-    X(PFN_vkGetAccelerationStructureDeviceAddressKHR, vkGetAccelerationStructureDeviceAddressKHR) \
-    X(PFN_vkGetRayTracingShaderGroupHandlesKHR, vkGetRayTracingShaderGroupHandlesKHR) \
-    X(PFN_vkDestroyAccelerationStructureKHR, vkDestroyAccelerationStructureKHR) \
-    X(PFN_vkCreateRayTracingPipelinesKHR, vkCreateRayTracingPipelinesKHR) \
-
-#define BS_STRUCT_GEN(TYPE, FUNC, ...) TYPE FUNC;
-
-typedef struct bs_Procs bs_Procs;
-extern struct bs_Procs {
-    BS_FOREACH_PROC(BS_STRUCT_GEN)
-} _bs_procs_;
-
-</xsl:text>
+        <xsl:text>INTERNAL_GEN_H&#xA;&#xA;</xsl:text>
 
         <xsl:apply-templates select="registry/functions/function" mode="typedef"/>
         <xsl:text>&#xA;typedef struct {&#xA;</xsl:text>

@@ -34,30 +34,8 @@
 #include <windows.h>
 #include <vulkan.h>
 
-#ifndef BS_INTERNAL_H
-#define BS_INTERNAL_H
-
-#define BS_FOREACH_PROC(X) \
-    X(PFN_vkCmdInsertDebugUtilsLabelEXT, vkCmdInsertDebugUtilsLabelEXT) \
-    X(PFN_vkCmdBeginDebugUtilsLabelEXT, vkCmdBeginDebugUtilsLabelEXT) \
-    X(PFN_vkCmdEndDebugUtilsLabelEXT, vkCmdEndDebugUtilsLabelEXT) \
-    X(PFN_vkCmdBeginRenderingKHR, vkCmdBeginRenderingKHR) \
-    X(PFN_vkCmdEndRenderingKHR, vkCmdEndRenderingKHR) \
-    X(PFN_vkCmdTraceRaysKHR, vkCmdTraceRaysKHR) \
-    X(PFN_vkGetAccelerationStructureBuildSizesKHR, vkGetAccelerationStructureBuildSizesKHR) \
-    X(PFN_vkCreateAccelerationStructureKHR, vkCreateAccelerationStructureKHR) \
-    X(PFN_vkCmdBuildAccelerationStructuresKHR, vkCmdBuildAccelerationStructuresKHR) \
-    X(PFN_vkGetAccelerationStructureDeviceAddressKHR, vkGetAccelerationStructureDeviceAddressKHR) \
-    X(PFN_vkGetRayTracingShaderGroupHandlesKHR, vkGetRayTracingShaderGroupHandlesKHR) \
-    X(PFN_vkDestroyAccelerationStructureKHR, vkDestroyAccelerationStructureKHR) \
-    X(PFN_vkCreateRayTracingPipelinesKHR, vkCreateRayTracingPipelinesKHR) \
-
-#define BS_STRUCT_GEN(TYPE, FUNC, ...) TYPE FUNC;
-
-typedef struct bs_Procs bs_Procs;
-extern struct bs_Procs {
-    BS_FOREACH_PROC(BS_STRUCT_GEN)
-} _bs_procs_;
+#ifndef BS_INTERNAL_GEN_H
+#define BS_INTERNAL_GEN_H
 
 typedef void(__stdcall* PFN_bs_v2Add)(const bs_vec2* a, const bs_vec2* b, bs_vec2* out);
 typedef void(__stdcall* PFN_bs_v2Sub)(const bs_vec2* a, const bs_vec2* b, bs_vec2* out);
@@ -74,7 +52,6 @@ typedef float(__stdcall* PFN_bs_v2MagnitudeSqrd)(const bs_vec2* v);
 typedef void(__stdcall* PFN_bs_v2Normalize)(const bs_vec2* v, bs_vec2* out);
 typedef void(__stdcall* PFN_bs_v2Lerp)(const bs_vec2* from, const bs_vec2* to, float t, bs_vec2* out);
 typedef void(__stdcall* PFN_bs_v2Mid)(const bs_vec3* a, const bs_vec3* b, bs_vec3* out);
-typedef float(__stdcall* PFN_bs_v2Angle)(const bs_vec2* a, const bs_vec2* b);
 typedef void(__stdcall* PFN_bs_v3Add)(const bs_vec3* a, const bs_vec3* b, bs_vec3* out);
 typedef void(__stdcall* PFN_bs_v3Sub)(const bs_vec3* a, const bs_vec3* b, bs_vec3* out);
 typedef void(__stdcall* PFN_bs_v3Mul)(const bs_vec3* a, const bs_vec3* b, bs_vec3* out);
@@ -127,6 +104,8 @@ typedef void(__stdcall* PFN_bs_qNormalize)(const bs_vec4* q, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_qSlerp)(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_qRotateV3)(const bs_vec4* q, const bs_vec3* v, bs_vec3* out);
 typedef void(__stdcall* PFN_bs_qLongSlerp)(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out);
+typedef void(__stdcall* PFN_bs_eulToQ)(const bs_vec3* eul, bs_vec4* out);
+typedef void(__stdcall* PFN_bs_qToEul)(const bs_vec4* q, bs_vec3* out);
 typedef void(__stdcall* PFN_bs_orthographic)(float left, float right, float bottom, float top, float near_z, float far_z, bs_mat4* out);
 typedef void(__stdcall* PFN_bs_perspective)(float fov, float aspect, float near_z, float far_z, bs_mat4* out);
 typedef void(__stdcall* PFN_bs_lookAt)(const bs_vec3* eye, const bs_vec3* center, const bs_vec3* up, bs_mat4* out);
@@ -310,8 +289,8 @@ typedef bs_vec4(__stdcall* PFN_bs_atlasCoordinates)(bs_Atlas* atlas, int texture
 typedef bs_vec4(__stdcall* PFN_bs_mirrorUV)(bs_vec4 uv);
 typedef bs_vec4(__stdcall* PFN_bs_flipUV)(bs_vec4 uv);
 typedef bs_vec2(__stdcall* PFN_bs_atlasSize)(bs_Atlas* atlas, int texture);
-typedef bs_Result(__stdcall* PFN_bs_queryAtlasHash)(bs_Atlas* atlas, bs_U64 hash, const char* name, int* out);
-typedef bs_Result(__stdcall* PFN_bs_queryAtlas)(bs_Atlas* atlas, const char* name, int* out);
+typedef int(__stdcall* PFN_bs_queryAtlasHash)(bs_Atlas* atlas, bs_U64 hash);
+typedef int(__stdcall* PFN_bs_queryAtlas)(bs_Atlas* atlas, const char* name);
 typedef bs_Result(__stdcall* PFN_bs_destroyAtlas)(bs_Atlas* atlas);
 typedef bs_Result(__stdcall* PFN_bs_loadAtlasMemory)(bs_Object* object, int package_id, char* resource_name, char* data, bs_U32 flags);
 typedef void(__stdcall* PFN_bs_parseArgs)(int argc, char* argv);
@@ -462,7 +441,7 @@ typedef int(__stdcall* PFN_bs_queryBoneId)(bs_Armature* armature, const char* na
 typedef bs_Armature*(__stdcall* PFN_bs_queryArmature)(bs_Model* model, const char* name);
 typedef bs_Bone*(__stdcall* PFN_bs_queryBone)(bs_Armature* armature, const char* name);
 typedef bs_Mesh*(__stdcall* PFN_bs_queryMesh)(bs_Model* model, const char * name);
-typedef bs_Mesh*(__stdcall* PFN_bs_queryMeshHash)(bs_Model* model, bs_U64 hash, const char* name);
+typedef bs_Mesh*(__stdcall* PFN_bs_queryMeshHash)(bs_Model* model, bs_U64 hash);
 typedef bs_Material*(__stdcall* PFN_bs_queryMaterial)(bs_Model* model, const char* name);
 typedef const char*(__stdcall* PFN_bs_idName)(bs_U32 source_id, bs_U32 id);
 typedef bs_Object*(__stdcall* PFN_bs_object)(bs_U32 source_id, bs_U32 id, size_t size, size_t flexible_size, int flexible_count, bs_U32 flags);
@@ -471,7 +450,7 @@ typedef bs_List*(__stdcall* PFN_bs_objectSources)();
 typedef void(__stdcall* PFN_bs_destroyResource)(bs_Resource* resource);
 typedef bs_Result(__stdcall* PFN_bs_queryResource)(int package_id, const char* name, bs_Resource** out);
 typedef bs_Result(__stdcall* PFN_bs_queryPackage)(const char* name, int* out);
-typedef bs_Result(__stdcall* PFN_bs_loadResource)(int package_id, const char* resource_name, bs_U32 flags, bs_Resource** out);
+typedef bs_Result(__stdcall* PFN_bs_loadResource)(int package_id, bs_U32 flags, bs_Resource** out, char* value, int value_length);
 typedef bs_Result(__stdcall* PFN_bs_loadPackage)(const char* path, int* out);
 typedef int(__stdcall* PFN_bs_configureSource)(bs_ObjectType type, int count, const char** names);
 typedef bool(__stdcall* PFN_bs_exists)(bs_U32 source_id, bs_U32 id);
@@ -580,7 +559,6 @@ typedef struct {
     PFN_bs_v2Normalize bs_v2Normalize;
     PFN_bs_v2Lerp bs_v2Lerp;
     PFN_bs_v2Mid bs_v2Mid;
-    PFN_bs_v2Angle bs_v2Angle;
     PFN_bs_v3Add bs_v3Add;
     PFN_bs_v3Sub bs_v3Sub;
     PFN_bs_v3Mul bs_v3Mul;
@@ -633,6 +611,8 @@ typedef struct {
     PFN_bs_qSlerp bs_qSlerp;
     PFN_bs_qRotateV3 bs_qRotateV3;
     PFN_bs_qLongSlerp bs_qLongSlerp;
+    PFN_bs_eulToQ bs_eulToQ;
+    PFN_bs_qToEul bs_qToEul;
     PFN_bs_orthographic bs_orthographic;
     PFN_bs_perspective bs_perspective;
     PFN_bs_lookAt bs_lookAt;
@@ -1095,7 +1075,6 @@ static inline bs_FunctionTable _bs_getFunctions() {
     functions.bs_v2Normalize = (PFN_bs_v2Normalize)GetProcAddress(module, "_bs_v2Normalize");
     functions.bs_v2Lerp = (PFN_bs_v2Lerp)GetProcAddress(module, "_bs_v2Lerp");
     functions.bs_v2Mid = (PFN_bs_v2Mid)GetProcAddress(module, "_bs_v2Mid");
-    functions.bs_v2Angle = (PFN_bs_v2Angle)GetProcAddress(module, "_bs_v2Angle");
     functions.bs_v3Add = (PFN_bs_v3Add)GetProcAddress(module, "_bs_v3Add");
     functions.bs_v3Sub = (PFN_bs_v3Sub)GetProcAddress(module, "_bs_v3Sub");
     functions.bs_v3Mul = (PFN_bs_v3Mul)GetProcAddress(module, "_bs_v3Mul");
@@ -1148,6 +1127,8 @@ static inline bs_FunctionTable _bs_getFunctions() {
     functions.bs_qSlerp = (PFN_bs_qSlerp)GetProcAddress(module, "_bs_qSlerp");
     functions.bs_qRotateV3 = (PFN_bs_qRotateV3)GetProcAddress(module, "_bs_qRotateV3");
     functions.bs_qLongSlerp = (PFN_bs_qLongSlerp)GetProcAddress(module, "_bs_qLongSlerp");
+    functions.bs_eulToQ = (PFN_bs_eulToQ)GetProcAddress(module, "_bs_eulToQ");
+    functions.bs_qToEul = (PFN_bs_qToEul)GetProcAddress(module, "_bs_qToEul");
     functions.bs_orthographic = (PFN_bs_orthographic)GetProcAddress(module, "_bs_orthographic");
     functions.bs_perspective = (PFN_bs_perspective)GetProcAddress(module, "_bs_perspective");
     functions.bs_lookAt = (PFN_bs_lookAt)GetProcAddress(module, "_bs_lookAt");

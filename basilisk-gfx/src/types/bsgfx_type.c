@@ -1,8 +1,4 @@
-#include <bs_log.h>
-#include <bs_images.h>
-#include <bs_json.h>
-
-#include <bsgfx.h>
+#include <basilisk-gfx.h>
 #include <bsgfx_cache.h>
 
 #include <types/bsgfx_type.h>
@@ -13,62 +9,76 @@
 #include <types/foliage/bsgfx_foliage.h>
 #include <types/tile/bsgfx_tile.h>
 
-bs_Json bsgfx_type_format = { 0 };
-bsgfx_Type bsgfx_types[BSGFX_TYPE_COUNT] = { 0 };
+bsgfx_Type _bsgfx_types_[BSGFX_TYPE_COUNT] = { 0 };
 
-bsgfx_Type* bsgfx_getType(bsgfx_TypeId type_id) {
-    return bsgfx_types + type_id;
+BSGFXAPI bsgfx_Type* _bsgfx_getType(bsgfx_TypeId type_id) {
+    return _bsgfx_types_ + type_id;
 }
 
-int bsgfx_count(bsgfx_TypeId type_id) {
-    bsgfx_Type* type = bsgfx_types + type_id;
+BSGFXAPI int _bsgfx_count(bsgfx_TypeId type_id) {
+    bsgfx_Type* type = _bsgfx_types_ + type_id;
     return type->count;
 }
 
-int bsgfx_id(bsgfx_TypeId type_id, unsigned char* p) {
-    bsgfx_Type* type = bsgfx_types + type_id;
+BSGFXAPI int _bsgfx_id(bsgfx_TypeId type_id, unsigned char* p) {
+    bsgfx_Type* type = _bsgfx_types_ + type_id;
     return (p - type->mapped) / type->mapped_unit_size;
 }
 
-int bsgfx_rawId(bsgfx_TypeId type_id, unsigned char* p) {
-    bsgfx_Type* type = bsgfx_types + type_id;
+BSGFXAPI int _bsgfx_rawId(bsgfx_TypeId type_id, unsigned char* p) {
+    bsgfx_Type* type = _bsgfx_types_ + type_id;
     return (p - type->unmapped) / type->unmapped_unit_size;
 }
 
-static inline bool bsgfx_checkTypeOOB(bsgfx_TypeId type_id, int id) {
+static inline bool bsgfx_validateTypeBounds(bsgfx_TypeId type_id, int id) {
     int count = bsgfx_count(type_id);
     if (id >= count) {
-        bs_throwBasiliskF(BSX_OUT_OF_BOUNDS, "\"%s\" %d >= %d", bsgfx_types[type_id].singular, id, count);
-        return true;
+        bs_warnF("\"%s\" %d >= %d", _bsgfx_types_[type_id].singular, id, count); // TODO: bsgfx warn
+        return false;
     }
 
-    return false;
+    return true;
 }
 
-void* bsgfx_get(bsgfx_TypeId type_id, bs_U32 id) {
-    bsgfx_Type* type = bsgfx_types + type_id;
+ /**
+  Get type
+  */
+BSGFXAPI void* _bsgfx_get(bsgfx_TypeId type_id, bs_U32 id) {
+    if (!bsgfx_validateTypeBounds(type_id, id))
+        return NULL;
 
-    bsgfx_checkTypeOOB(type_id, id);
+    return bsgfx_get(type_id, id);
+}
 
+BSGFXAPI void* _bsgfx_get(bsgfx_TypeId type_id, bs_U32 id) {
+    bsgfx_Type* type = _bsgfx_types_ + type_id;
     return type->mapped + type->mapped_accessors[id];
 }
 
-void* bsgfx_getRaw(bsgfx_TypeId type_id, int id) {
-    bsgfx_Type* type = bsgfx_types + type_id;
+ /**
+  Get raw type
+  */
+BSGFXAPI void* _val_bsgfx_getRaw(bsgfx_TypeId type_id, int id) {
+    if (!bsgfx_validateTypeBounds(type_id, id))
+        return NULL;
 
-    bsgfx_checkTypeOOB(type_id, id);
+    return bsgfx_getRaw(type_id, id);
+}
 
+BSGFXAPI void* _bsgfx_getRaw(bsgfx_TypeId type_id, int id) {
+    bsgfx_Type* type = _bsgfx_types_ + type_id;
     return type->unmapped + type->unmapped_accessors[id];
 }
 
-int bsgfx_flexibleCountPointer(int flexible_offset, unsigned char* p) {
-    if (!p)
-        return 0;
+ /**
+  Flexible count
+  */
+static int bsgfx_flexibleCountPointer(int flexible_offset, unsigned char* p) {
     return flexible_offset == 0 ? NULL :*(int*)(p + flexible_offset);
 }
 
-int bsgfx_flexibleCount(bsgfx_TypeId type_id, int id) {
-    return bsgfx_flexibleCountPointer(bsgfx_types[type_id].unmapped_flexible_offset, bsgfx_getRaw(type_id, id));
+BSGFXAPI int _bsgfx_flexibleCount(bsgfx_TypeId type_id, int id) {
+    return bsgfx_flexibleCountPointer(_bsgfx_types_[type_id].unmapped_flexible_offset, bsgfx_getRaw(type_id, id));
 }
 
 //void bsgfx_addFlexible(bsgfx_TypeId type_id, int id) {
@@ -83,28 +93,38 @@ int bsgfx_flexibleCount(bsgfx_TypeId type_id, int id) {
 //    type->flexible_count++;
 //}
 
-void bsgfx_map(bsgfx_TypeId type_id, int id) {
-    if (id < 0 || id >= bsgfx_count(type_id))
-        bs_throwBasilisk(BSX_INVALID_PARAM);
+ /**
+  Map type
+  */
+BSGFXAPI void _val_bsgfx_map(bsgfx_TypeId type_id, int id) {
+    BSGFX_VALIDATE(id >= 0,,);
+    BSGFX_VALIDATE(id < bsgfx_count(type_id),,);
 
-    bsgfx_Type* type = bsgfx_types + type_id;
+    bsgfx_Type* type = _bsgfx_types_ + type_id;
+    BSGFX_VALIDATE(type->mapped != NULL,,);
+
+    return bsgfx_map(type_id, id);
+}
+
+BSGFXAPI void _bsgfx_map(bsgfx_TypeId type_id, int id) {
+    bsgfx_Type* type = _bsgfx_types_ + type_id;
+
     type->mapper(
         bsgfx_getRaw(type_id, id),
-        bsgfx_get(type_id, id));
+        bsgfx_get(type_id, id)
+    );
 
-    if (_bsgfx_procs_.bsmod_onMap)
+    if (_bsgfx_procs_.bsmod_onMap) // TODO: maybe put in postval
         _bsgfx_procs_.bsmod_onMap(type_id, id);
 }
 
-void bsgfx_remap(bsgfx_TypeId type_id) {
-    bsgfx_Type* type = bsgfx_types + type_id;
+BSGFXAPI void _bsgfx_remap(bsgfx_TypeId type_id) {
+    bsgfx_Type* type = _bsgfx_types_ + type_id;
     for (int i = 0; i < type->count; i++)
         bsgfx_map(type_id, i);
 }
 
-// scariest implementation in the engine
-// cant memset 0
-void bsgfx_type(
+BSGFXAPI void _bsgfx_type(
     bsgfx_TypeId id,
     int package_id,
     int version,
@@ -118,12 +138,9 @@ void bsgfx_type(
     size_t unmapped_flexible_size,
     size_t mapped_flexible_size)
 {
-    bsgfx_Type* type = bsgfx_types + id;
-    //void(*on_load)() = type->on_load;
-    //void(*on_save)() = type->on_save;
+    bs_Result result;
+    bsgfx_Type* type = _bsgfx_types_ + id;
     //memset(type, 0, sizeof(bsgfx_Type));
-    //type->on_load = on_load;
-    //type->on_save = on_save;
 
     type->version = version;
     type->mapper = mapper;
@@ -136,9 +153,9 @@ void bsgfx_type(
     type->mapped_flexible_offset = mapped_flexible_offset;
     type->mapped_flexible_size = mapped_flexible_size;
 
-    _bsgfx_variadic = bs_stringF(_bsgfx_variadic, "levels/%s_%s", _bsgfx_current_scene.name, plural);
-    bs_Resource* resource = bs_loadResource(package_id, _bsgfx_variadic->value, 0);
-    if (!resource)
+    bs_Resource* resource;
+    bs_loadResource(package_id, 0, &resource, "levels/%s_%s", _bsgfx_current_scene_.name, plural);
+    if (result != BS_RESULT_OK)
         return;
 
     type->package_id = package_id;
@@ -151,14 +168,23 @@ void bsgfx_type(
         // binary->len--; // null terminator terminator
         assert(binary->len >= sizeof(bsgfx_TypeHeader));
         data = binary->value;
-        assert(data->magic = BSGFX_TYPE_MAGIC);
-        if (data->version != version && data->count > 0)
-            return bs_throwBasilisk(BSX_NOT_SUPPORTED);
+
+        if (data->magic == BSGFX_TYPE_MAGIC) {
+            bs_warnF("Invalid magic number for type \"%s\"\n", singular); // TODO: bsgfx warn
+
+        }
+
+        if (data->version != version && data->count > 0) {
+            bs_warnF("Unsupported type version %d\n", data->version); // TODO: bsgfx warn
+            return;
+        }
 
         buffer = data->accessors + data->count;
 
-        if ((data->count * sizeof(int) + sizeof(*data)) > binary->len)
-            return bs_throwBasilisk(BSX_CORRUPTED);
+        if ((data->count * sizeof(int) + sizeof(*data)) > binary->len) {
+            bs_warnF("Type \"%s\" has corrupted data", singular);  // TODO: bsgfx warn
+            return;
+        }
 
         type->flexible_count = 0;
         type->count = data->count;

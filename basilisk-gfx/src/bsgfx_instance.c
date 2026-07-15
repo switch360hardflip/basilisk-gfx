@@ -2,7 +2,7 @@
 #include <bsgfx_cache.h>
 
 #include <assert.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 
 static bs_List _bsgfx_subtype_data[BSGFX_MAX_NUM_SUBTYPES];
 

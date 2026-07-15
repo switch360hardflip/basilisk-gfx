@@ -61,7 +61,6 @@ static inline bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_v2Normalize = (PFN_bs_v2Normalize)GetProcAddress(module, "_val_bs_v2Normalize");
     functions.bs_v2Lerp = (PFN_bs_v2Lerp)GetProcAddress(module, "_val_bs_v2Lerp");
     functions.bs_v2Mid = (PFN_bs_v2Mid)GetProcAddress(module, "_val_bs_v2Mid");
-    functions.bs_v2Angle = (PFN_bs_v2Angle)GetProcAddress(module, "_val_bs_v2Angle");
     functions.bs_v3Add = (PFN_bs_v3Add)GetProcAddress(module, "_val_bs_v3Add");
     functions.bs_v3Sub = (PFN_bs_v3Sub)GetProcAddress(module, "_val_bs_v3Sub");
     functions.bs_v3Mul = (PFN_bs_v3Mul)GetProcAddress(module, "_val_bs_v3Mul");
@@ -114,6 +113,8 @@ static inline bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_qSlerp = (PFN_bs_qSlerp)GetProcAddress(module, "_val_bs_qSlerp");
     functions.bs_qRotateV3 = (PFN_bs_qRotateV3)GetProcAddress(module, "_val_bs_qRotateV3");
     functions.bs_qLongSlerp = (PFN_bs_qLongSlerp)GetProcAddress(module, "_val_bs_qLongSlerp");
+    functions.bs_eulToQ = (PFN_bs_eulToQ)GetProcAddress(module, "_val_bs_eulToQ");
+    functions.bs_qToEul = (PFN_bs_qToEul)GetProcAddress(module, "_val_bs_qToEul");
     functions.bs_orthographic = (PFN_bs_orthographic)GetProcAddress(module, "_val_bs_orthographic");
     functions.bs_perspective = (PFN_bs_perspective)GetProcAddress(module, "_val_bs_perspective");
     functions.bs_lookAt = (PFN_bs_lookAt)GetProcAddress(module, "_val_bs_lookAt");

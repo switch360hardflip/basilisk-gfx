@@ -31,7 +31,7 @@
 #include <assert.h>
 
 #include <basilisk-core.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 
 #define BS_FLAGSET(flag, cmp) ((flag >> cmp) & 0x01)
 #define BS_TTF_MAX_PTS 1024
@@ -859,7 +859,7 @@ BSAPI bs_Result _bs_loadFont(bs_Object* object, int package_id, const char* reso
     bs_destroyFont(font);
 
     bs_Resource* resource;
-    result = bs_loadResource(package_id, resource_name, 0, &resource);
+    result = bs_loadResource(package_id, 0, &resource, resource_name, strlen(resource_name));
     if (result != BS_RESULT_OK) {
         return result;
     }

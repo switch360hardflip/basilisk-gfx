@@ -10,7 +10,7 @@
 		<trampoline>
 			<include>basilisk-core.h</include>
 			<include>basilisk-gfx.h</include>
-			<include>bsgfx_internal.h</include>
+			<include>bsgfx_internal.gen.h</include>
 			<include>math.h</include>
 			<include>stdio.h</include>
 		</trampoline>
@@ -26,17 +26,18 @@
 		<internalHeader>
 			<include>basilisk-core.h</include>
 			<include>basilisk-gfx.h</include>
+			<include>windows.h</include>
 		</internalHeader>
 		<prevalidation>
 			<include>basilisk-core.h</include>
 			<include>basilisk-gfx.h</include>
 		</prevalidation>
 		<prevalidationHeader>
-			<include>bsgfx_internal.h</include>
+			<include>bsgfx_internal.gen.h</include>
 		</prevalidationHeader>
 		<validationHeader>
 			<include>basilisk-gfx.h</include>
-			<include>bsgfx_internal.h</include>
+			<include>bsgfx_internal.gen.h</include>
 			<include>windows.h</include>
 		</validationHeader>
     </includes>
@@ -1094,6 +1095,8 @@
 		<extern><type>int</type><name>bsgfx_ray_tracers</name></extern>
 		<extern><type>int</type><name>bsgfx_atlases</name></extern>
 		<extern><type>int</type><name>bsgfx_fonts</name></extern>
+		
+		<extern><type>bsgfx_Type</type><name>bsgfx_types</name><size>BSGFX_TYPE_COUNT</size></extern>
 		
 		<extern><type>int</type><name>bsgfx_subtypes</name><size>BSGFX_SUBTYPE_COUNT</size></extern>
 		<extern><type>int</type><name>bsgfx_material_categories</name><size>BSGFX_MATERIAL_CATEGORY_COUNT</size></extern>

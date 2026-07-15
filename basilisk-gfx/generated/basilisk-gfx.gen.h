@@ -1604,6 +1604,7 @@ BSGFXAPI extern int _bsgfx_queues_;
 BSGFXAPI extern int _bsgfx_ray_tracers_;
 BSGFXAPI extern int _bsgfx_atlases_;
 BSGFXAPI extern int _bsgfx_fonts_;
+BSGFXAPI extern bsgfx_Type _bsgfx_types_[BSGFX_TYPE_COUNT];
 BSGFXAPI extern int _bsgfx_subtypes_[BSGFX_SUBTYPE_COUNT];
 BSGFXAPI extern int _bsgfx_material_categories_[BSGFX_MATERIAL_CATEGORY_COUNT];
 BSGFXAPI extern bs_List _bsgfx_materials_;

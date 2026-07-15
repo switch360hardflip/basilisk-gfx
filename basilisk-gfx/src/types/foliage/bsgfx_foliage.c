@@ -1,6 +1,6 @@
+#include <basilisk-gfx.h>
 #include <types/foliage/bsgfx_foliage.h>
-#include <bsgfx.h>
-
+/*
 static void bsgfx_mapFoliage(const bsgfx_RawFoliage* unmapped, bsgfx_Foliage* mapped) {
     *mapped = (bsgfx_Foliage){
         .density = unmapped->density,
@@ -141,3 +141,5 @@ int bsgfx_queryFoliage(bs_GUID* guid) {
 
     return -1;
 }
+
+*/

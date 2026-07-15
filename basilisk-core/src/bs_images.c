@@ -32,7 +32,7 @@
 #include <assert.h>
 
 #include <basilisk-core.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 #include <vulkan.h>
 
 #include <lodepng/lodepng.h>
@@ -855,7 +855,7 @@ BSAPI bs_Result _bs_loadImage(bs_Object* object, int package_id, bs_ImageBits fl
         return BS_RESULT_OK;
 
     bs_Resource* resource;
-    result = bs_loadResource(package_id, resource_name, 0, &resource);
+    result = bs_loadResource(package_id, 0, &resource, resource_name, strlen(resource_name));
     if (result != BS_RESULT_OK)
         return result;
 
@@ -995,19 +995,18 @@ BSAPI bs_vec2 _bs_atlasSize(bs_Atlas* atlas, int texture) {
     return BS_V2(atlas->mapped[texture].w / atlas->mapped[texture].split, atlas->mapped[texture].h);
 }
 
-BSAPI bs_Result _bs_queryAtlasHash(bs_Atlas* atlas, bs_U64 hash, const char* name, int* out) {
+BSAPI int _bs_queryAtlasHash(bs_Atlas* atlas, bs_U64 hash) {
     for (int i = 0; i < atlas->count; i++) {
         if (atlas->unmapped[i].name_hash == hash) {
-            *out = i;
-            return BS_RESULT_OK;
+            return i;
         }
     }
 
-    return BS_RESULT_FAILED_TO_QUERY;
+    return -1;
 }
 
-BSAPI bs_Result _bs_queryAtlas(bs_Atlas* atlas, const char* name, int* out) {
-    return bs_queryAtlasHash(atlas, bs_stringHash(name), name, out);
+BSAPI int _bs_queryAtlas(bs_Atlas* atlas, const char* name) {
+    return bs_queryAtlasHash(atlas, bs_stringHash(name));
 }
 
 BSAPI void _bs_destroyAtlas(bs_Atlas* atlas) {
@@ -1127,7 +1126,7 @@ BSAPI bs_Result _bs_loadAtlas(bs_Object* object, int package_id, const char* res
     bs_Result result;
 
     bs_Resource* resource;
-    result = bs_loadResource(package_id, resource_name, 0, &resource);
+    result = bs_loadResource(package_id, 0, &resource, resource_name, strlen(resource_name));
     if (result != BS_RESULT_OK)
         return result;
 

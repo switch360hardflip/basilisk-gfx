@@ -34,7 +34,7 @@
 #define BSGFX_VALIDATION_H
 
 #include <basilisk-gfx.h>
-#include <bsgfx_internal.h>
+#include <bsgfx_internal.gen.h>
 #include <windows.h>
 
 static inline bsgfx_FunctionTable _val_bsgfx_getFunctions() {

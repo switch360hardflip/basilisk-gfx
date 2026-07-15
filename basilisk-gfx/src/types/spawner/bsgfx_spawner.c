@@ -1,10 +1,10 @@
+#include <basilisk-gfx.h>
+
 #include <types/spawner/bsgfx_spawner.h>
 #include <types/primitive/bsgfx_primitive.h>
 
 #include <spawners/item/bsgfx_item.h>
 #include <spawners/entity/bsgfx_entity.h>
-
-#include <bsgfx_material.h>
 
 bs_vec3 bsgfx_spawnPosition(bs_vec2 coords, float y) {
     return (bs_vec3) {
@@ -30,7 +30,6 @@ static void bsgfx_mapSpawner(bsgfx_RawSpawner* unmapped, bsgfx_Spawner* mapped) 
 // }
 
 void bsgfx_loadSpawners(int package_id) {
-    bs_except(BSX_FAILED_TO_QUERY);
     bsgfx_type(
         BSGFX_TYPE_SPAWNER, 
         package_id, 
@@ -42,8 +41,6 @@ void bsgfx_loadSpawners(int package_id) {
         0, 
         0, 
         0);
-    if (bs_caught())
-        return;
    // bsgfx_onSelect(BSGFX_TYPE_SPAWNER, bsgfx_onSelectSpawner);
 }
 
@@ -51,7 +48,7 @@ void bsgfx_spawn(bsgfx_Spawner* spawner) {
     return;
     switch (spawner->spawn_type) {
     case BSGFX_SPAWNER_ITEM:
-        bs_throwBasilisk(BSX_NOT_IMPLEMENTED);
+       // bs_throwBasilisk(BSX_NOT_IMPLEMENTED);
         /*
         bs_Model* model = $items();
         bs_Mesh* mesh = bs_queryMeshHash(model, spawner->spawn_name, NULL);
@@ -59,7 +56,7 @@ void bsgfx_spawn(bsgfx_Spawner* spawner) {
         */
         break;
     case BSGFX_SPAWNER_ENTITY:
-        bs_throwBasilisk(BSX_NOT_IMPLEMENTED);
+       // bs_throwBasilisk(BSX_NOT_IMPLEMENTED);
 
        //bsgfx_Script* script = bs_queryHash(NULL, "lua", spawner->spawn_name, 0).model;
        //bsgfx_spawnEntity(script, spawner->position);

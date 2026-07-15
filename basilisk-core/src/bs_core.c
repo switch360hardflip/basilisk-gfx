@@ -24,7 +24,7 @@
   */ 
 
 #include <basilisk-core.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 
 #include <stdio.h>
 #include <string.h>

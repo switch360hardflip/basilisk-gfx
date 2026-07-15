@@ -41,7 +41,7 @@
 #endif
 
 #include <basilisk-core.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 #include <vulkan.h>
 
 
@@ -110,7 +110,7 @@ BSAPI bs_Result _bs_queryPackage(const char* name, int* out) {
     return BS_RESULT_FAILED_TO_QUERY;
 }
 
- BSAPI bs_Result _bs_loadResource(int package_id, const char* resource_name, bs_U32 flags, bs_Resource** out) {
+ BSAPI bs_Result _bs_loadResource(int package_id, bs_U32 flags, bs_Resource** out, char* resource_name, int resource_name_length) {
     bs_Package* package = bs_fetchUnit(_bs_packages(), package_id);
 
     bs_U64 hash = bs_stringHash(resource_name);

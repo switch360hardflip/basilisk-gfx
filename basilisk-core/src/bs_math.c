@@ -34,7 +34,7 @@
   */
 
 #include <basilisk-core.h>
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 #include <cglm/vec2.h>
 #include <cglm/vec3.h>
 #include <cglm/vec4.h>
@@ -62,6 +62,57 @@ BSAPI void _bs_v3Mid(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
     *out = BS_V3((a->x + b->x) / 2.0f, (a->y + b->y) / 2.0f, (a->z + b->z) / 2.0f);
 }
 
+
+
+  /*==============================================================================
+   * Quaternions
+   * TODO: Use CGLM
+   =============================================================================*/
+
+BSAPI void _bs_eulToQ(const bs_vec3* eul, bs_vec4* out) {
+    double cy = cos(eul->x * 0.5f);
+    double sy = sin(eul->x * 0.5f);
+    double cp = cos(eul->y * 0.5f);
+    double sp = sin(eul->y * 0.5f);
+    double cr = cos(eul->z * 0.5f);
+    double sr = sin(eul->z * 0.5f);
+
+    *out = BS_V4(
+        sr * cp * cy - cr * sp * sy,
+        cr * sp * cy + sr * cp * sy,
+        cr * cp * sy - sr * sp * cy,
+        cr * cp * cy + sr * sp * sy
+    );
+}
+
+BSAPI void _bs_qToEul(const bs_vec4* qp, bs_vec3* out) {
+    bs_vec4 q = *qp;
+    bs_vec3 eul;
+
+    float sinr_cosp = 2.0f * (q.w * q.x + q.y * q.z);
+    float cosr_cosp = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
+    eul.x = atan2(sinr_cosp, cosr_cosp);
+
+    float sinp = 2.0f * (q.w * q.y - q.z * q.x);
+    if (fabs(sinp) >= 1.0f) eul.y = copysign(BS_PI / 2.0f, sinp);
+    else eul.y = asin(sinp);
+
+    float siny_cosp = 2.0f * (q.w * q.z + q.x * q.y);
+    float cosy_cosp = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
+    eul.z = atan2(siny_cosp, cosy_cosp);
+
+    return eul;
+}
+
+bs_vec4 bs_qAxisAngle(bs_vec3 axis, float radians) {
+    float half_angle = radians * 0.5f;
+
+    bs_vec3 v;
+    bs_v3Normalize(&axis, &v);
+    bs_v3MulS(&v, sin(half_angle), &v);
+
+    return BS_V3_TO_V4(v, cos(half_angle));
+}
 
 
   /*==============================================================================

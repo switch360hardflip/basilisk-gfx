@@ -32,7 +32,7 @@
         
 #include <basilisk-core.h>
 #include <basilisk-gfx.h>
-#include <bsgfx_internal.h>
+#include <bsgfx_internal.gen.h>
 #include <math.h>
 #include <stdio.h>
 

@@ -236,14 +236,14 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             <param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
             <param><type>float</type><name>s</name></param>
 			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
-            <body>    *out = BS_V<xsl:value-of select="n"/>(<xsl:for-each select="components/component">v-><xsl:value-of select="."/> + s<xsl:if test="not(position() = last())">, </xsl:if></xsl:for-each>);</body>
+            <body>    *out = (bs_vec<xsl:value-of select="n"/>) {<xsl:for-each select="components/component">v-><xsl:value-of select="."/> + s<xsl:if test="not(position() = last())">, </xsl:if></xsl:for-each> };</body>
 		</function>
 	    <function name="bs_v{n}SubS" comment="Subtract all components of a {n}D vector by a scalar value">
 			<return>void</return>
             <param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>v</name></param>
             <param><type>float</type><name>s</name></param>
 			<param><type>bs_vec<xsl:value-of select="n"/>*</type><name>out</name></param>
-            <body>    *out = BS_V<xsl:value-of select="n"/>(<xsl:for-each select="components/component">v-><xsl:value-of select="."/> - s<xsl:if test="not(position() = last())">, </xsl:if></xsl:for-each>);</body>
+            <body>    *out = (bs_vec<xsl:value-of select="n"/>) {<xsl:for-each select="components/component">v-><xsl:value-of select="."/> - s<xsl:if test="not(position() = last())">, </xsl:if></xsl:for-each> };</body>
 		</function>
 		<function name="bs_v{n}MulS" comment="Multiply all components of a {n}D vector with a scalar value">
 			<return>void</return>
