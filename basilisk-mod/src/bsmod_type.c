@@ -588,7 +588,7 @@ void bsmod_readHoveringVertex() {
 }
 
 void bsmod_readHoveringOutputs() {
-	bsmod.hovering.color = bs_rgba(0, 0, 0, 0);
+	bsmod.hovering.color = BS_RGBA(0, 0, 0, 0);
 	bsmod.hovering.normal = bs_v3V1(0);
 	bsmod.hovering.flags = bsmod.hovering.index = 0;
 

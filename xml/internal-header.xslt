@@ -11,8 +11,6 @@
 
     <xsl:template match="/">
         <xsl:call-template name="add-license"/>
-        <xsl:apply-templates select="registry/includes/internalHeader/include"/>
-        <xsl:text>&#xA;</xsl:text>
 
         <xsl:text>#ifndef </xsl:text>
         <xsl:value-of select="$functionPrefixCaps"/>
@@ -20,8 +18,11 @@
         <xsl:text>#define </xsl:text>
         <xsl:value-of select="$functionPrefixCaps"/>
         <xsl:text>INTERNAL_GEN_H&#xA;&#xA;</xsl:text>
+		
+		<xsl:apply-templates select="registry/includes/internalHeader/include"/>
+		<xsl:text>&#xA;&#xA;</xsl:text>
 
-        <xsl:apply-templates select="registry/functions/function" mode="typedef"/>
+		<xsl:apply-templates select="registry/functions/function" mode="typedef"/>
         <xsl:text>&#xA;typedef struct {&#xA;</xsl:text>
         <xsl:apply-templates select="registry/functions/function" mode="table"/>
         <xsl:text>} </xsl:text>

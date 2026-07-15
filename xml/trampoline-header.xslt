@@ -15,10 +15,11 @@
 
     <xsl:template match="/">
         <xsl:call-template name="add-license"/>
-        <xsl:apply-templates select="registry/includes/trampolineHeader/include"/>
-		
-        <xsl:apply-templates select="registry/name"/>
-        <xsl:apply-templates select="registry/structures/structure" mode="declaration"/>
+
+		<xsl:apply-templates select="registry/name"/>
+		<xsl:apply-templates select="registry/includes/trampolineHeader/include"/>
+		<xsl:text>&#xA;</xsl:text>
+		<xsl:apply-templates select="registry/structures/structure" mode="declaration"/>
         <xsl:text>&#xA;</xsl:text>
         <xsl:apply-templates select="registry/enums/enum" mode="declaration"/>
         <xsl:text>&#xA;</xsl:text>

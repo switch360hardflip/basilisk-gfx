@@ -30,12 +30,13 @@
   the code is regenerated.
   */
         
+#ifndef BSGFX_INTERNAL_GEN_H
+#define BSGFX_INTERNAL_GEN_H
+
 #include <basilisk-core.h>
 #include <basilisk-gfx.h>
 #include <windows.h>
 
-#ifndef BSGFX_INTERNAL_GEN_H
-#define BSGFX_INTERNAL_GEN_H
 
 typedef bsgfx_Scene*(__stdcall* PFN_bsgfx_currentScene)();
 typedef void(__stdcall* PFN_bsgfx_loadScene)(const char* name);
@@ -120,6 +121,61 @@ typedef bsgfx_Callbacks*(__stdcall* PFN_bsgfx_callbacks)();
 typedef bsgfx_Settings*(__stdcall* PFN_bsgfx_settings)();
 typedef struct Poser*(__stdcall* PFN_poser)();
 typedef void(__stdcall* PFN_bsgfx_setCamera)(const bs_mat4* proj, const bs_mat4* view);
+typedef void(__stdcall* PFN_bsgfx_type)(bsgfx_TypeId id, int package_id, int version, const char* plural, const char* singular, size_t unmapped_size, size_t mapped_size, PFN_bsgfx_TypeMapper mapper, size_t unmapped_flexible_offset, size_t mapped_flexible_offset, size_t unmapped_flexible_size, size_t mapped_flexible_size);
+typedef void(__stdcall* PFN_bsgfx_map)(bsgfx_TypeId type, int id);
+typedef void(__stdcall* PFN_bsgfx_remap)(bsgfx_TypeId type_id);
+typedef int(__stdcall* PFN_bsgfx_count)(bsgfx_TypeId type_id);
+typedef void*(__stdcall* PFN_bsgfx_get)(bsgfx_TypeId type_id, bs_U32 id);
+typedef bsgfx_Type*(__stdcall* PFN_bsgfx_getType)(bsgfx_TypeId type_id);
+typedef int(__stdcall* PFN_bsgfx_id)(bsgfx_TypeId type_id, unsigned char* p);
+typedef int(__stdcall* PFN_bsgfx_rawId)(bsgfx_TypeId type_id, unsigned char* p);
+typedef void*(__stdcall* PFN_bsgfx_getRaw)(bsgfx_TypeId type_id, int id);
+typedef int(__stdcall* PFN_bsgfx_flexibleCount)(bsgfx_TypeId type_id, int id);
+typedef void*(__stdcall* PFN_bsmod_add)(bsgfx_TypeId id, void* data);
+typedef bsgfx_TypeId(__stdcall* PFN_bsmod_queryType)(const char* plural);
+typedef void(__stdcall* PFN_bsgfx_loadFoliages)(int package_id);
+typedef int(__stdcall* PFN_bsgfx_queryFoliage)(bs_GUID* guid);
+typedef void(__stdcall* PFN_bsgfx_loadLights)(int package_id);
+typedef void(__stdcall* PFN_bsgfx_computePrefabShadows)();
+typedef void(__stdcall* PFN_bsgfx_renderPrefabShadowVolumes)();
+typedef bsgfx_PrefabMetadata*(__stdcall* PFN_bsgfx_prefabMetadata)(int mesh_id);
+typedef void(__stdcall* PFN_bsgfx_savePrefabs)();
+typedef void(__stdcall* PFN_bsgfx_loadPrefabs)(int package_id, bs_Model* model);
+typedef bs_mat4(__stdcall* PFN_bsgfx_prefabTransform)(bsgfx_Prefab* prefab);
+typedef int(__stdcall* PFN_bsgfx_instancePrefabModel)(int mesh_id, bs_mat4 transform, bsgfx_PrefabSubtype prefab_subtype, int material_id);
+typedef int(__stdcall* PFN_bsgfx_instancePrefab)(int id, bsgfx_PrefabSubtype prefab_subtype);
+typedef void(__stdcall* PFN_bsgfx_instancePrefabs)();
+typedef void(__stdcall* PFN_bsgfx_renderPrefabs)(bs_Pipeline* pipeline, int key_start);
+typedef void(__stdcall* PFN_bsgfx_renderScenePrefabs)();
+typedef void(__stdcall* PFN_bsgfx_renderPrefabPrimitives)(bs_Pipeline* pipeline, int key_start);
+typedef bsgfx_RawPrefab*(__stdcall* PFN_bsgfx_tilePrefab)(bs_vec2 coords);
+typedef int(__stdcall* PFN_bsgfx_queryPrefabId)(const bs_GUID* guid);
+typedef int(__stdcall* PFN_bsgfx_closestPrefab)(bs_U64 mesh_name_hash, bs_vec3 position, float radius);
+typedef bs_vec3(__stdcall* PFN_bsgfx_primitivePosition)(bsgfx_RawPrimitive* primitive);
+typedef void(__stdcall* PFN_bsgfx_loadPrimitives)(int package_id);
+typedef int(__stdcall* PFN_bsgfx_primitiveSubtype)(bsgfx_PrimitiveType type);
+typedef int(__stdcall* PFN_bsgfx_instancePrimitive)(int subtype, bs_mat4 transform, bs_U32 flags, int id, int material);
+typedef int(__stdcall* PFN_bsgfx_queryTilePrimitive)(int tile_id);
+typedef void(__stdcall* PFN_bsgfx_instancePrimitives)();
+typedef void(__stdcall* PFN_bsgfx_renderPrimitives)(bs_mat4 camera);
+typedef int(__stdcall* PFN_bsgfx_queryPrimitive)(bs_GUID* guid);
+typedef void(__stdcall* PFN_bsgfx_loadSpawners)(int package_id);
+typedef void(__stdcall* PFN_bsgfx_spawn)(bsgfx_Spawner* spawner);
+typedef void(__stdcall* PFN_bsgfx_instanceSpawners)();
+typedef void(__stdcall* PFN_bsgfx_loadTiles)(int package_id, bool force_destroy);
+typedef void(__stdcall* PFN_bsgfx_instanceTiles)();
+typedef bs_Range(__stdcall* PFN_bsgfx_pushTile)(bs_Batch* batch, bs_Quad quad, bs_vec3 normal, bs_U32 index, int image_index);
+typedef void(__stdcall* PFN_bsgfx_batchTile)(bs_Batch* batch, bs_U32* offset, bs_Quad quad, bs_vec3 normal, bs_U32 index, int image_index);
+typedef const bsgfx_TileAxis*(__stdcall* PFN_bsgfx_tileAxes)();
+typedef bs_vec3(__stdcall* PFN_bsgfx_tilePosition)(bsgfx_Primitive* primitive, int axis, int x, int y);
+typedef bs_vec4(__stdcall* PFN_bsgfx_tileRotation)(int axis);
+typedef bs_vec3(__stdcall* PFN_bsgfx_tileEulerRotation)(int axis);
+typedef bs_U32(__stdcall* PFN_bsgfx_pushTileAt)(bs_Batch* batch, bsgfx_Primitive* primitive, int axis, int x, int y, bs_U32 index, int image_index);
+typedef bs_ivec2(__stdcall* PFN_bsgfx_tileCoordinate)(bsgfx_Primitive* primitive, int axis, int index);
+typedef int(__stdcall* PFN_bsgfx_tileAxis)(bsgfx_Primitive* primitive, int index);
+typedef bs_U32(__stdcall* PFN_bsgfx_tileIndex)(bsgfx_Primitive* primitive, int axis, int x, int y);
+typedef bool(__stdcall* PFN_bsgfx_instanceWidgets)(bsgfx_Menu menu, bsgfx_TitleBar* title_bar, bsgfx_MenuTabBar* tab_bar);
+typedef void(__stdcall* PFN_bsgfx_renderColorPickers)();
 
 typedef struct {
     PFN_bsgfx_currentScene bsgfx_currentScene;
@@ -205,6 +261,61 @@ typedef struct {
     PFN_bsgfx_settings bsgfx_settings;
     PFN_poser poser;
     PFN_bsgfx_setCamera bsgfx_setCamera;
+    PFN_bsgfx_type bsgfx_type;
+    PFN_bsgfx_map bsgfx_map;
+    PFN_bsgfx_remap bsgfx_remap;
+    PFN_bsgfx_count bsgfx_count;
+    PFN_bsgfx_get bsgfx_get;
+    PFN_bsgfx_getType bsgfx_getType;
+    PFN_bsgfx_id bsgfx_id;
+    PFN_bsgfx_rawId bsgfx_rawId;
+    PFN_bsgfx_getRaw bsgfx_getRaw;
+    PFN_bsgfx_flexibleCount bsgfx_flexibleCount;
+    PFN_bsmod_add bsmod_add;
+    PFN_bsmod_queryType bsmod_queryType;
+    PFN_bsgfx_loadFoliages bsgfx_loadFoliages;
+    PFN_bsgfx_queryFoliage bsgfx_queryFoliage;
+    PFN_bsgfx_loadLights bsgfx_loadLights;
+    PFN_bsgfx_computePrefabShadows bsgfx_computePrefabShadows;
+    PFN_bsgfx_renderPrefabShadowVolumes bsgfx_renderPrefabShadowVolumes;
+    PFN_bsgfx_prefabMetadata bsgfx_prefabMetadata;
+    PFN_bsgfx_savePrefabs bsgfx_savePrefabs;
+    PFN_bsgfx_loadPrefabs bsgfx_loadPrefabs;
+    PFN_bsgfx_prefabTransform bsgfx_prefabTransform;
+    PFN_bsgfx_instancePrefabModel bsgfx_instancePrefabModel;
+    PFN_bsgfx_instancePrefab bsgfx_instancePrefab;
+    PFN_bsgfx_instancePrefabs bsgfx_instancePrefabs;
+    PFN_bsgfx_renderPrefabs bsgfx_renderPrefabs;
+    PFN_bsgfx_renderScenePrefabs bsgfx_renderScenePrefabs;
+    PFN_bsgfx_renderPrefabPrimitives bsgfx_renderPrefabPrimitives;
+    PFN_bsgfx_tilePrefab bsgfx_tilePrefab;
+    PFN_bsgfx_queryPrefabId bsgfx_queryPrefabId;
+    PFN_bsgfx_closestPrefab bsgfx_closestPrefab;
+    PFN_bsgfx_primitivePosition bsgfx_primitivePosition;
+    PFN_bsgfx_loadPrimitives bsgfx_loadPrimitives;
+    PFN_bsgfx_primitiveSubtype bsgfx_primitiveSubtype;
+    PFN_bsgfx_instancePrimitive bsgfx_instancePrimitive;
+    PFN_bsgfx_queryTilePrimitive bsgfx_queryTilePrimitive;
+    PFN_bsgfx_instancePrimitives bsgfx_instancePrimitives;
+    PFN_bsgfx_renderPrimitives bsgfx_renderPrimitives;
+    PFN_bsgfx_queryPrimitive bsgfx_queryPrimitive;
+    PFN_bsgfx_loadSpawners bsgfx_loadSpawners;
+    PFN_bsgfx_spawn bsgfx_spawn;
+    PFN_bsgfx_instanceSpawners bsgfx_instanceSpawners;
+    PFN_bsgfx_loadTiles bsgfx_loadTiles;
+    PFN_bsgfx_instanceTiles bsgfx_instanceTiles;
+    PFN_bsgfx_pushTile bsgfx_pushTile;
+    PFN_bsgfx_batchTile bsgfx_batchTile;
+    PFN_bsgfx_tileAxes bsgfx_tileAxes;
+    PFN_bsgfx_tilePosition bsgfx_tilePosition;
+    PFN_bsgfx_tileRotation bsgfx_tileRotation;
+    PFN_bsgfx_tileEulerRotation bsgfx_tileEulerRotation;
+    PFN_bsgfx_pushTileAt bsgfx_pushTileAt;
+    PFN_bsgfx_tileCoordinate bsgfx_tileCoordinate;
+    PFN_bsgfx_tileAxis bsgfx_tileAxis;
+    PFN_bsgfx_tileIndex bsgfx_tileIndex;
+    PFN_bsgfx_instanceWidgets bsgfx_instanceWidgets;
+    PFN_bsgfx_renderColorPickers bsgfx_renderColorPickers;
 } bsgfx_FunctionTable;
 
 static inline bsgfx_FunctionTable _bsgfx_getFunctions() {
@@ -299,6 +410,61 @@ static inline bsgfx_FunctionTable _bsgfx_getFunctions() {
     functions.bsgfx_settings = (PFN_bsgfx_settings)GetProcAddress(module, "_bsgfx_settings");
     functions.poser = (PFN_poser)GetProcAddress(module, "_poser");
     functions.bsgfx_setCamera = (PFN_bsgfx_setCamera)GetProcAddress(module, "_bsgfx_setCamera");
+    functions.bsgfx_type = (PFN_bsgfx_type)GetProcAddress(module, "_bsgfx_type");
+    functions.bsgfx_map = (PFN_bsgfx_map)GetProcAddress(module, "_bsgfx_map");
+    functions.bsgfx_remap = (PFN_bsgfx_remap)GetProcAddress(module, "_bsgfx_remap");
+    functions.bsgfx_count = (PFN_bsgfx_count)GetProcAddress(module, "_bsgfx_count");
+    functions.bsgfx_get = (PFN_bsgfx_get)GetProcAddress(module, "_bsgfx_get");
+    functions.bsgfx_getType = (PFN_bsgfx_getType)GetProcAddress(module, "_bsgfx_getType");
+    functions.bsgfx_id = (PFN_bsgfx_id)GetProcAddress(module, "_bsgfx_id");
+    functions.bsgfx_rawId = (PFN_bsgfx_rawId)GetProcAddress(module, "_bsgfx_rawId");
+    functions.bsgfx_getRaw = (PFN_bsgfx_getRaw)GetProcAddress(module, "_bsgfx_getRaw");
+    functions.bsgfx_flexibleCount = (PFN_bsgfx_flexibleCount)GetProcAddress(module, "_bsgfx_flexibleCount");
+    functions.bsmod_add = (PFN_bsmod_add)GetProcAddress(module, "_bsmod_add");
+    functions.bsmod_queryType = (PFN_bsmod_queryType)GetProcAddress(module, "_bsmod_queryType");
+    functions.bsgfx_loadFoliages = (PFN_bsgfx_loadFoliages)GetProcAddress(module, "_bsgfx_loadFoliages");
+    functions.bsgfx_queryFoliage = (PFN_bsgfx_queryFoliage)GetProcAddress(module, "_bsgfx_queryFoliage");
+    functions.bsgfx_loadLights = (PFN_bsgfx_loadLights)GetProcAddress(module, "_bsgfx_loadLights");
+    functions.bsgfx_computePrefabShadows = (PFN_bsgfx_computePrefabShadows)GetProcAddress(module, "_bsgfx_computePrefabShadows");
+    functions.bsgfx_renderPrefabShadowVolumes = (PFN_bsgfx_renderPrefabShadowVolumes)GetProcAddress(module, "_bsgfx_renderPrefabShadowVolumes");
+    functions.bsgfx_prefabMetadata = (PFN_bsgfx_prefabMetadata)GetProcAddress(module, "_bsgfx_prefabMetadata");
+    functions.bsgfx_savePrefabs = (PFN_bsgfx_savePrefabs)GetProcAddress(module, "_bsgfx_savePrefabs");
+    functions.bsgfx_loadPrefabs = (PFN_bsgfx_loadPrefabs)GetProcAddress(module, "_bsgfx_loadPrefabs");
+    functions.bsgfx_prefabTransform = (PFN_bsgfx_prefabTransform)GetProcAddress(module, "_bsgfx_prefabTransform");
+    functions.bsgfx_instancePrefabModel = (PFN_bsgfx_instancePrefabModel)GetProcAddress(module, "_bsgfx_instancePrefabModel");
+    functions.bsgfx_instancePrefab = (PFN_bsgfx_instancePrefab)GetProcAddress(module, "_bsgfx_instancePrefab");
+    functions.bsgfx_instancePrefabs = (PFN_bsgfx_instancePrefabs)GetProcAddress(module, "_bsgfx_instancePrefabs");
+    functions.bsgfx_renderPrefabs = (PFN_bsgfx_renderPrefabs)GetProcAddress(module, "_bsgfx_renderPrefabs");
+    functions.bsgfx_renderScenePrefabs = (PFN_bsgfx_renderScenePrefabs)GetProcAddress(module, "_bsgfx_renderScenePrefabs");
+    functions.bsgfx_renderPrefabPrimitives = (PFN_bsgfx_renderPrefabPrimitives)GetProcAddress(module, "_bsgfx_renderPrefabPrimitives");
+    functions.bsgfx_tilePrefab = (PFN_bsgfx_tilePrefab)GetProcAddress(module, "_bsgfx_tilePrefab");
+    functions.bsgfx_queryPrefabId = (PFN_bsgfx_queryPrefabId)GetProcAddress(module, "_bsgfx_queryPrefabId");
+    functions.bsgfx_closestPrefab = (PFN_bsgfx_closestPrefab)GetProcAddress(module, "_bsgfx_closestPrefab");
+    functions.bsgfx_primitivePosition = (PFN_bsgfx_primitivePosition)GetProcAddress(module, "_bsgfx_primitivePosition");
+    functions.bsgfx_loadPrimitives = (PFN_bsgfx_loadPrimitives)GetProcAddress(module, "_bsgfx_loadPrimitives");
+    functions.bsgfx_primitiveSubtype = (PFN_bsgfx_primitiveSubtype)GetProcAddress(module, "_bsgfx_primitiveSubtype");
+    functions.bsgfx_instancePrimitive = (PFN_bsgfx_instancePrimitive)GetProcAddress(module, "_bsgfx_instancePrimitive");
+    functions.bsgfx_queryTilePrimitive = (PFN_bsgfx_queryTilePrimitive)GetProcAddress(module, "_bsgfx_queryTilePrimitive");
+    functions.bsgfx_instancePrimitives = (PFN_bsgfx_instancePrimitives)GetProcAddress(module, "_bsgfx_instancePrimitives");
+    functions.bsgfx_renderPrimitives = (PFN_bsgfx_renderPrimitives)GetProcAddress(module, "_bsgfx_renderPrimitives");
+    functions.bsgfx_queryPrimitive = (PFN_bsgfx_queryPrimitive)GetProcAddress(module, "_bsgfx_queryPrimitive");
+    functions.bsgfx_loadSpawners = (PFN_bsgfx_loadSpawners)GetProcAddress(module, "_bsgfx_loadSpawners");
+    functions.bsgfx_spawn = (PFN_bsgfx_spawn)GetProcAddress(module, "_bsgfx_spawn");
+    functions.bsgfx_instanceSpawners = (PFN_bsgfx_instanceSpawners)GetProcAddress(module, "_bsgfx_instanceSpawners");
+    functions.bsgfx_loadTiles = (PFN_bsgfx_loadTiles)GetProcAddress(module, "_bsgfx_loadTiles");
+    functions.bsgfx_instanceTiles = (PFN_bsgfx_instanceTiles)GetProcAddress(module, "_bsgfx_instanceTiles");
+    functions.bsgfx_pushTile = (PFN_bsgfx_pushTile)GetProcAddress(module, "_bsgfx_pushTile");
+    functions.bsgfx_batchTile = (PFN_bsgfx_batchTile)GetProcAddress(module, "_bsgfx_batchTile");
+    functions.bsgfx_tileAxes = (PFN_bsgfx_tileAxes)GetProcAddress(module, "_bsgfx_tileAxes");
+    functions.bsgfx_tilePosition = (PFN_bsgfx_tilePosition)GetProcAddress(module, "_bsgfx_tilePosition");
+    functions.bsgfx_tileRotation = (PFN_bsgfx_tileRotation)GetProcAddress(module, "_bsgfx_tileRotation");
+    functions.bsgfx_tileEulerRotation = (PFN_bsgfx_tileEulerRotation)GetProcAddress(module, "_bsgfx_tileEulerRotation");
+    functions.bsgfx_pushTileAt = (PFN_bsgfx_pushTileAt)GetProcAddress(module, "_bsgfx_pushTileAt");
+    functions.bsgfx_tileCoordinate = (PFN_bsgfx_tileCoordinate)GetProcAddress(module, "_bsgfx_tileCoordinate");
+    functions.bsgfx_tileAxis = (PFN_bsgfx_tileAxis)GetProcAddress(module, "_bsgfx_tileAxis");
+    functions.bsgfx_tileIndex = (PFN_bsgfx_tileIndex)GetProcAddress(module, "_bsgfx_tileIndex");
+    functions.bsgfx_instanceWidgets = (PFN_bsgfx_instanceWidgets)GetProcAddress(module, "_bsgfx_instanceWidgets");
+    functions.bsgfx_renderColorPickers = (PFN_bsgfx_renderColorPickers)GetProcAddress(module, "_bsgfx_renderColorPickers");
 
     return functions;
 }

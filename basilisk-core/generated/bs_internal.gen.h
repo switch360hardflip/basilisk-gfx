@@ -30,12 +30,13 @@
   the code is regenerated.
   */
         
+#ifndef BS_INTERNAL_GEN_H
+#define BS_INTERNAL_GEN_H
+
 #include <basilisk-core.gen.h>
 #include <wtypes.h>
 #include <vulkan.h>
 
-#ifndef BS_INTERNAL_GEN_H
-#define BS_INTERNAL_GEN_H
 
 typedef void(__stdcall* PFN_bs_v2Add)(const bs_vec2* a, const bs_vec2* b, bs_vec2* out);
 typedef void(__stdcall* PFN_bs_v2Sub)(const bs_vec2* a, const bs_vec2* b, bs_vec2* out);

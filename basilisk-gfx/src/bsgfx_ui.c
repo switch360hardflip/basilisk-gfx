@@ -1,6 +1,30 @@
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
 #include <basilisk-gfx.h>
-#include <UI/bsgfx_ui.h>
-#include <types/tile/bsgfx_tile.h>
+#include <bsgfx_cache.h>
 
 #define BSGFX_DEBUG_MENU_INPUT_COLOR (bs_RGBA) { 32, 32, 40, 255 }
 #define BSGFX_DEBUG_MENU_INPUT_SELECTED_COLOR (bs_RGBA) { 24, 24, 32, 255 }
@@ -373,7 +397,8 @@ static bool bsgfx_instanceIcon(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alre
 
 	int ui_icon = 0;
 	if (widget->icon.type == BSGFX_ICON_ATLAS) {
-		if (bs_queryAtlas(widget->icon.atlas, widget->icon.name, &ui_icon) != BS_RESULT_OK) {
+		ui_icon = bs_queryAtlas(widget->icon.atlas, widget->icon.name);
+		if (ui_icon == -1) {
 			bs_warnF("Failed to query\n"); // TODO: bsgfx_warn
 			return false;
 		}
@@ -423,10 +448,12 @@ static bool bsgfx_instanceIcon(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alre
 		bs_m4Translate(&transform, &icon_position, &transform);
 		bs_m4Scale(&transform, &BS_V3(size.x, size.y, 0), &transform);
 
-		int background_atlas;
-		if (widget->icon.background_name && bs_queryAtlas(atlas, widget->icon.background_name, &background_atlas) == BS_RESULT_OK) {
-			bs_vec4 background_coords = bs_atlasCoordinates(atlas, background_atlas);
-			bsgfx_instanceQuad(widget->icon.atlas_subtype, bs_m4x3(&transform), background_coords, 0, 0, 0);
+		if (widget->icon.background_name) {
+			int background_atlas = bs_queryAtlas(atlas, widget->icon.background_name);
+			if (background_atlas >= 0) {
+				bs_vec4 background_coords = bs_atlasCoordinates(atlas, background_atlas);
+				bsgfx_instanceQuad(widget->icon.atlas_subtype, bs_m4x3(&transform), background_coords, 0, 0, 0);
+			}
 		}
 
 		transform.v[3].z++;
@@ -531,7 +558,7 @@ static bool bsgfx_instanceList(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alre
 
 	bs_vec2 dimensions = BS_V2(BSGFX_LIST_ROW_DIMENSIONS.x, BSGFX_LIST_ROW_DIMENSIONS.y * (BS_MIN(widget->list.max, widget->list.count) + 1));
 	position.y -= dimensions.y - BSGFX_LIST_ROW_DIMENSIONS.y;
-	//bsgfx_instanceSquare(bs_v3AddZ(*position, 1), dimensions, bs_rgba(80, 90, 90, 100));
+	//bsgfx_instanceSquare(bs_v3AddZ(*position, 1), dimensions, BS_RGBA(80, 90, 90, 100));
 
 	*out_size = dimensions;
 	return !already_hovering && bs_rectangleVsPoint(&position.xy, &dimensions, &cursor);
@@ -1604,7 +1631,7 @@ static bool bsgfx_instanceTable(bsgfx_Menu* menu, bsgfx_Widget* widget, bool alr
 	//		bs_v4V2(text.position.xy, position->z + 1, 1),
 	//		text_dim,
 	//		coords,
-	//		i % 2 == 0 ? BS_BLACK : bs_rgba(150, 150, 150, 255),
+	//		i % 2 == 0 ? BS_BLACK : BS_RGBA(150, 150, 150, 255),
 	//		0);
 
 		bsgfx_Text row_text = {

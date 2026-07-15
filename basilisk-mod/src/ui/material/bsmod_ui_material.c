@@ -59,7 +59,7 @@ void bsmod_onClickMaterialMenu(bsmod_GridClickParams params) {
     bs_infoF("Selected material \"%s\"\n", name);
 
     bs_vec4 rgba_f = bs_v4MulV1(bsmod_selected_material->contract->color, 255.0);
-    bs_RGBA rgba = bs_rgba(rgba_f.x, rgba_f.y, rgba_f.z, rgba_f.w);
+    bs_RGBA rgba = BS_RGBA(rgba_f.x, rgba_f.y, rgba_f.z, rgba_f.w);
 
 
     bsgfx_onChangeColor(NULL, rgba);

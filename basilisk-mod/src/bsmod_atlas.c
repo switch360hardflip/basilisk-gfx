@@ -76,7 +76,7 @@ void bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* pac
 		bs_ensureJson(&root, bs_jsonValue(rect->y), "y");
 		bs_ensureJson(&root, bs_jsonValue(has_alpha), "hasAlpha");
 		bs_ensureJson(&root, bs_jsonValue(is_solid), "isSolid");
-		bs_ensureJson(&root, bs_jsonValue(bs_rgba(
+		bs_ensureJson(&root, bs_jsonValue(BS_RGBA(
 			color_sum.x / pixels_count,
 			color_sum.y / pixels_count,
 			color_sum.z / pixels_count,

@@ -636,3 +636,381 @@ void bsgfx_setCamera(
     next.bsgfx_setCamera(proj, view);
 }
 
+void bsgfx_type(
+    bsgfx_TypeId id, 
+    int package_id, 
+    int version, 
+    const char* plural, 
+    const char* singular, 
+    size_t unmapped_size, 
+    size_t mapped_size, 
+    PFN_bsgfx_TypeMapper mapper, 
+    size_t unmapped_flexible_offset, 
+    size_t mapped_flexible_offset, 
+    size_t unmapped_flexible_size, 
+    size_t mapped_flexible_size)
+{
+    next.bsgfx_type(id, package_id, version, plural, singular, unmapped_size, mapped_size, mapper, unmapped_flexible_offset, mapped_flexible_offset, unmapped_flexible_size, mapped_flexible_size);
+}
+
+void bsgfx_map(
+    bsgfx_TypeId type, 
+    int id)
+{
+    next.bsgfx_map(type, id);
+}
+
+void bsgfx_remap(
+    bsgfx_TypeId type_id)
+{
+    next.bsgfx_remap(type_id);
+}
+
+int bsgfx_count(
+    bsgfx_TypeId type_id)
+{
+    return next.bsgfx_count(type_id);
+}
+
+void* bsgfx_get(
+    bsgfx_TypeId type_id, 
+    bs_U32 id)
+{
+    return next.bsgfx_get(type_id, id);
+}
+
+bsgfx_Type* bsgfx_getType(
+    bsgfx_TypeId type_id)
+{
+    return next.bsgfx_getType(type_id);
+}
+
+int bsgfx_id(
+    bsgfx_TypeId type_id, 
+    unsigned char* p)
+{
+    return next.bsgfx_id(type_id, p);
+}
+
+int bsgfx_rawId(
+    bsgfx_TypeId type_id, 
+    unsigned char* p)
+{
+    return next.bsgfx_rawId(type_id, p);
+}
+
+void* bsgfx_getRaw(
+    bsgfx_TypeId type_id, 
+    int id)
+{
+    return next.bsgfx_getRaw(type_id, id);
+}
+
+int bsgfx_flexibleCount(
+    bsgfx_TypeId type_id, 
+    int id)
+{
+    return next.bsgfx_flexibleCount(type_id, id);
+}
+
+void* bsmod_add(
+    bsgfx_TypeId id, 
+    void* data)
+{
+    return next.bsmod_add(id, data);
+}
+
+bsgfx_TypeId bsmod_queryType(
+    const char* plural)
+{
+    return next.bsmod_queryType(plural);
+}
+
+void bsgfx_loadFoliages(
+    int package_id)
+{
+    next.bsgfx_loadFoliages(package_id);
+}
+
+int bsgfx_queryFoliage(
+    bs_GUID* guid)
+{
+    return next.bsgfx_queryFoliage(guid);
+}
+
+void bsgfx_loadLights(
+    int package_id)
+{
+    next.bsgfx_loadLights(package_id);
+}
+
+void bsgfx_computePrefabShadows()
+{
+    next.bsgfx_computePrefabShadows();
+}
+
+void bsgfx_renderPrefabShadowVolumes()
+{
+    next.bsgfx_renderPrefabShadowVolumes();
+}
+
+bsgfx_PrefabMetadata* bsgfx_prefabMetadata(
+    int mesh_id)
+{
+    return next.bsgfx_prefabMetadata(mesh_id);
+}
+
+void bsgfx_savePrefabs()
+{
+    next.bsgfx_savePrefabs();
+}
+
+void bsgfx_loadPrefabs(
+    int package_id, 
+    bs_Model* model)
+{
+    next.bsgfx_loadPrefabs(package_id, model);
+}
+
+bs_mat4 bsgfx_prefabTransform(
+    bsgfx_Prefab* prefab)
+{
+    return next.bsgfx_prefabTransform(prefab);
+}
+
+int bsgfx_instancePrefabModel(
+    int mesh_id, 
+    bs_mat4 transform, 
+    bsgfx_PrefabSubtype prefab_subtype, 
+    int material_id)
+{
+    return next.bsgfx_instancePrefabModel(mesh_id, transform, prefab_subtype, material_id);
+}
+
+int bsgfx_instancePrefab(
+    int id, 
+    bsgfx_PrefabSubtype prefab_subtype)
+{
+    return next.bsgfx_instancePrefab(id, prefab_subtype);
+}
+
+void bsgfx_instancePrefabs()
+{
+    next.bsgfx_instancePrefabs();
+}
+
+void bsgfx_renderPrefabs(
+    bs_Pipeline* pipeline, 
+    int key_start)
+{
+    next.bsgfx_renderPrefabs(pipeline, key_start);
+}
+
+void bsgfx_renderScenePrefabs()
+{
+    next.bsgfx_renderScenePrefabs();
+}
+
+void bsgfx_renderPrefabPrimitives(
+    bs_Pipeline* pipeline, 
+    int key_start)
+{
+    next.bsgfx_renderPrefabPrimitives(pipeline, key_start);
+}
+
+bsgfx_RawPrefab* bsgfx_tilePrefab(
+    bs_vec2 coords)
+{
+    return next.bsgfx_tilePrefab(coords);
+}
+
+int bsgfx_queryPrefabId(
+    const bs_GUID* guid)
+{
+    return next.bsgfx_queryPrefabId(guid);
+}
+
+int bsgfx_closestPrefab(
+    bs_U64 mesh_name_hash, 
+    bs_vec3 position, 
+    float radius)
+{
+    return next.bsgfx_closestPrefab(mesh_name_hash, position, radius);
+}
+
+bs_vec3 bsgfx_primitivePosition(
+    bsgfx_RawPrimitive* primitive)
+{
+    return next.bsgfx_primitivePosition(primitive);
+}
+
+void bsgfx_loadPrimitives(
+    int package_id)
+{
+    next.bsgfx_loadPrimitives(package_id);
+}
+
+int bsgfx_primitiveSubtype(
+    bsgfx_PrimitiveType type)
+{
+    return next.bsgfx_primitiveSubtype(type);
+}
+
+int bsgfx_instancePrimitive(
+    int subtype, 
+    bs_mat4 transform, 
+    bs_U32 flags, 
+    int id, 
+    int material)
+{
+    return next.bsgfx_instancePrimitive(subtype, transform, flags, id, material);
+}
+
+int bsgfx_queryTilePrimitive(
+    int tile_id)
+{
+    return next.bsgfx_queryTilePrimitive(tile_id);
+}
+
+void bsgfx_instancePrimitives()
+{
+    next.bsgfx_instancePrimitives();
+}
+
+void bsgfx_renderPrimitives(
+    bs_mat4 camera)
+{
+    next.bsgfx_renderPrimitives(camera);
+}
+
+int bsgfx_queryPrimitive(
+    bs_GUID* guid)
+{
+    return next.bsgfx_queryPrimitive(guid);
+}
+
+void bsgfx_loadSpawners(
+    int package_id)
+{
+    next.bsgfx_loadSpawners(package_id);
+}
+
+void bsgfx_spawn(
+    bsgfx_Spawner* spawner)
+{
+    next.bsgfx_spawn(spawner);
+}
+
+void bsgfx_instanceSpawners()
+{
+    next.bsgfx_instanceSpawners();
+}
+
+void bsgfx_loadTiles(
+    int package_id, 
+    bool force_destroy)
+{
+    next.bsgfx_loadTiles(package_id, force_destroy);
+}
+
+void bsgfx_instanceTiles()
+{
+    next.bsgfx_instanceTiles();
+}
+
+bs_Range bsgfx_pushTile(
+    bs_Batch* batch, 
+    bs_Quad quad, 
+    bs_vec3 normal, 
+    bs_U32 index, 
+    int image_index)
+{
+    return next.bsgfx_pushTile(batch, quad, normal, index, image_index);
+}
+
+void bsgfx_batchTile(
+    bs_Batch* batch, 
+    bs_U32* offset, 
+    bs_Quad quad, 
+    bs_vec3 normal, 
+    bs_U32 index, 
+    int image_index)
+{
+    next.bsgfx_batchTile(batch, offset, quad, normal, index, image_index);
+}
+
+const bsgfx_TileAxis* bsgfx_tileAxes()
+{
+    return next.bsgfx_tileAxes();
+}
+
+bs_vec3 bsgfx_tilePosition(
+    bsgfx_Primitive* primitive, 
+    int axis, 
+    int x, 
+    int y)
+{
+    return next.bsgfx_tilePosition(primitive, axis, x, y);
+}
+
+bs_vec4 bsgfx_tileRotation(
+    int axis)
+{
+    return next.bsgfx_tileRotation(axis);
+}
+
+bs_vec3 bsgfx_tileEulerRotation(
+    int axis)
+{
+    return next.bsgfx_tileEulerRotation(axis);
+}
+
+bs_U32 bsgfx_pushTileAt(
+    bs_Batch* batch, 
+    bsgfx_Primitive* primitive, 
+    int axis, 
+    int x, 
+    int y, 
+    bs_U32 index, 
+    int image_index)
+{
+    return next.bsgfx_pushTileAt(batch, primitive, axis, x, y, index, image_index);
+}
+
+bs_ivec2 bsgfx_tileCoordinate(
+    bsgfx_Primitive* primitive, 
+    int axis, 
+    int index)
+{
+    return next.bsgfx_tileCoordinate(primitive, axis, index);
+}
+
+int bsgfx_tileAxis(
+    bsgfx_Primitive* primitive, 
+    int index)
+{
+    return next.bsgfx_tileAxis(primitive, index);
+}
+
+bs_U32 bsgfx_tileIndex(
+    bsgfx_Primitive* primitive, 
+    int axis, 
+    int x, 
+    int y)
+{
+    return next.bsgfx_tileIndex(primitive, axis, x, y);
+}
+
+bool bsgfx_instanceWidgets(
+    bsgfx_Menu menu, 
+    bsgfx_TitleBar* title_bar, 
+    bsgfx_MenuTabBar* tab_bar)
+{
+    return next.bsgfx_instanceWidgets(menu, title_bar, tab_bar);
+}
+
+void bsgfx_renderColorPickers()
+{
+    next.bsgfx_renderColorPickers();
+}
+

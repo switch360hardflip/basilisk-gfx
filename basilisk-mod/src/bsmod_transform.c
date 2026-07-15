@@ -49,9 +49,9 @@ void bsmod_snapPrimitive() {
 	}
 
 	bs_RGBA axis_colors[3] = {
-		bs_rgba(255, 20, 50, 100),
-		bs_rgba(50, 255, 20, 100),
-		bs_rgba(50, 20, 255, 100)
+		BS_RGBA(255, 20, 50, 100),
+		BS_RGBA(50, 255, 20, 100),
+		BS_RGBA(50, 20, 255, 100)
 	};
 
 	bool edited = false;
@@ -361,11 +361,11 @@ void bsmod_instanceTransform() {
 			unsigned char alpha = 255;
 
 			if (bsmod.axis == 0)
-				bsgfx_transformedDepthlessCircle(bs_transform(origin, zr, bs_v3V1(1)), segments, axis_length, bs_rgba(0, 0, 255, alpha));
+				bsgfx_transformedDepthlessCircle(bs_transform(origin, zr, bs_v3V1(1)), segments, axis_length, BS_RGBA(0, 0, 255, alpha));
 			else if (bsmod.axis == 1)
-				bsgfx_transformedDepthlessCircle(bs_transform(origin, rotation, bs_v3V1(1)), segments, axis_length, bs_rgba(0, 255, 0, alpha));
+				bsgfx_transformedDepthlessCircle(bs_transform(origin, rotation, bs_v3V1(1)), segments, axis_length, BS_RGBA(0, 255, 0, alpha));
 			else if (bsmod.axis == 2)
-				bsgfx_transformedDepthlessCircle(bs_transform(origin, xr, bs_v3V1(1)), segments, axis_length, bs_rgba(255, 0, 0, alpha));
+				bsgfx_transformedDepthlessCircle(bs_transform(origin, xr, bs_v3V1(1)), segments, axis_length, BS_RGBA(255, 0, 0, alpha));
 
 			diff = bs_v2NormalizeV2(diff.x, diff.y);
 

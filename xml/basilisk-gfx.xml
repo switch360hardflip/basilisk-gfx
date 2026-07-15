@@ -17,7 +17,7 @@
 		<trampolineHeader>
 			<include>basilisk-core.h</include>
 			<include>../bsgfx_contracts.h</include>
-			<include>spawners/entity/bsgfx_entity.h</include>
+			<include>wtypes.h</include>
 			<include>assert.h</include>
 			<include>stdarg.h</include>
 			<include>string.h</include>
@@ -31,6 +31,7 @@
 		<prevalidation>
 			<include>basilisk-core.h</include>
 			<include>basilisk-gfx.h</include>
+			<include>bsgfx_internal.gen.h</include>
 		</prevalidation>
 		<prevalidationHeader>
 			<include>bsgfx_internal.gen.h</include>
@@ -53,6 +54,11 @@
 		<typedef><type>bool</type><name>(__stdcall* PFN_bs_hoveringGrid)()</name></typedef>
 		<typedef><type>void</type><name>(__stdcall* PFN_bsmod_onMap)(enum bsgfx_TypeId type_id, int id)</name></typedef>
 		<typedef><type>void</type><name>(__stdcall* PFN_bsmod_onCreateSubtypes)(bs_Range range)</name></typedef>
+
+		<typedef><type>bs_U32</type><name>bsgfx_PrimitiveFlags</name></typedef>
+		<typedef><type>bs_U32</type><name>bsgfx_SpawnerFlags</name></typedef>
+
+		<typedef><type>void</type><name>(__stdcall* PFN_bsgfx_TypeMapper)(void*, void*)</name></typedef>
 	</typedefs>
 
 	<enums>
@@ -236,6 +242,103 @@
 			<line><name>BSGFX_RENDER_LINES</name><value>(1 &lt;&lt; 5)</value></line>
 			<line><name>BSGFX_RENDER_TILES</name><value>(1 &lt;&lt; 6)</value></line>
 			<line><name>BSGFX_ALL_PIPES</name><value>0xFFFFFFFF</value></line>
+		</enum>
+
+		<enum name="bsgfx_TypeId">
+			<line><name>BSGFX_TYPE_UNDEFINED</name><value>-1</value></line>
+			<line><name>BSGFX_TYPE_PRIMITIVE</name></line>
+			<line><name>BSGFX_TYPE_TILE</name></line>
+			<line><name>BSGFX_TYPE_PREFAB</name></line>
+			<line><name>BSGFX_TYPE_FOLIAGE</name></line>
+			<line><name>BSGFX_TYPE_SPAWNER</name></line>
+			<line><name>BSGFX_TYPE_LIGHT</name></line>
+			<line><name>BSGFX_TYPE_COUNT</name></line>
+		</enum>
+
+		<enum name="bsgfx_LightType">
+			<line><name>BSGFX_LIGHT_TYPE_POINT</name><value>1</value></line>
+			<line><name>BSGFX_LIGHT_TYPE_SUN</name><value>2</value></line>
+		</enum>
+
+		<enum name="bsgfx_PrefabExtraSubtype">
+			<line><name>BSGFX_PREFAB_SUBTYPE_PRIMITIVE</name></line>
+		</enum>
+
+		<enum name="bsgfx_PrefabSubtype">
+			<line><name>BSGFX_PREFAB_SUBTYPE_MESH</name></line>
+			<line><name>BSGFX_PREFAB_SUBTYPE_MESH_POLYGON_OUTLINE</name></line>
+			<line><name>BSGFX_PREFAB_SUBTYPE_MESH_TEXTURED</name></line>
+			<line><name>BSGFX_PREFAB_SUBTYPE_MESH_HI_RES_SCREEN</name></line>
+			<line><name>BSGFX_PREFAB_SUBTYPE_MESH_LO_RES_SCREEN</name></line>
+			<line><name>BSGFX_PREFAB_SUBTYPE_MESH_VOLUME</name></line>
+			<line><name>BSGFX_PREFAB_SUBTYPE_COUNT</name></line>
+		</enum>
+
+		<enum name="bsgfx_PrefabFlag">
+			<line><name>BSGFX_PREFAB_HAS_COLLIDER</name><value>1 &lt;&lt; 0</value></line>
+			<line><name>BSGFX_PREFAB_HIDDEN</name><value>1 &lt;&lt; 1</value></line>
+			<line><name>BSGFX_PREFAB_TEXTURED_SHADOWS</name><value>1 &lt;&lt; 2</value></line>
+			<line><name>BSGFX_PREFAB_NO_DEPTH</name><value>1 &lt;&lt; 3</value></line>
+			<line><name>BSGFX_PREFAB_WRITE_POSITION</name><value>1 &lt;&lt; 4</value></line>
+		</enum>
+
+		<enum name="bsgfx_PrimitiveFlag">
+			<line><name>BSGFX_PRIMITIVE_HIDDEN</name><value>1 &lt;&lt; 0</value></line>
+		</enum>
+
+		<enum name="bsgfx_PrimitiveType">
+			<line><name>BSGFX_PRIMITIVE_TYPE_BOX</name></line>
+			<line><name>BSGFX_PRIMITIVE_TYPE_SPHERE</name></line>
+			<line><name>BSGFX_PRIMITIVE_TYPE_COUNT</name></line>
+		</enum>
+
+		<enum name="bsgfx_SpawnerType">
+			<line><name>BSGFX_SPAWNER_ITEM</name></line>
+			<line><name>BSGFX_SPAWNER_ENTITY</name></line>
+		</enum>
+
+		<enum name="bsgfx_SpawnerFlag">
+			<line><name>BSGFX_SPAWN_ON_SCENE_LOAD</name><value>1 &lt;&lt; 0</value></line>
+		</enum>
+
+		<enum name="bsgfx_WidgetType">
+			<line><name>BSGFX_WIDGET_UNDEFINED</name></line>
+			<line><name>BSGFX_WIDGET_STRING</name></line>
+			<line><name>BSGFX_WIDGET_BUTTON</name></line>
+			<line><name>BSGFX_WIDGET_INPUT</name></line>
+			<line><name>BSGFX_WIDGET_GRID</name></line>
+			<line><name>BSGFX_WIDGET_URL</name></line>
+			<line><name>BSGFX_WIDGET_RANGE</name></line>
+			<line><name>BSGFX_WIDGET_ICON</name></line>
+			<line><name>BSGFX_WIDGET_LIST</name></line>
+			<line><name>BSGFX_WIDGET_COLOR</name></line>
+			<line><name>BSGFX_WIDGET_SLIDER</name></line>
+			<line><name>BSGFX_WIDGET_MODEL</name></line>
+			<line><name>BSGFX_WIDGET_TABLE</name></line>
+			<line><name>BSGFX_WIDGET_BACKGROUND</name></line>
+		</enum>
+
+		<enum name="bsgfx_InputType">
+			<line><name>BSGFX_INPUT_DOUBLE</name></line>
+			<line><name>BSGFX_INPUT_FLOAT</name></line>
+			<line><name>BSGFX_INPUT_ULONG</name></line>
+			<line><name>BSGFX_INPUT_LONG</name></line>
+			<line><name>BSGFX_INPUT_UINT</name></line>
+			<line><name>BSGFX_INPUT_INT</name></line>
+			<line><name>BSGFX_INPUT_CHAR</name></line>
+			<line><name>BSGFX_INPUT_UCHAR</name></line>
+			<line><name>BSGFX_INPUT_STRING</name></line>
+		</enum>
+
+		<enum name="bsgfx_WidgetAdvanceType">
+			<line><name>BSGFX_WIDGET_ADVANCE_DOWN</name><value>(1 &lt;&lt; 0)</value></line>
+			<line><name>BSGFX_WIDGET_ADVANCE_RIGHT</name><value>(1 &lt;&lt; 1)</value></line>
+			<line><name>BSGFX_WIDGET_ADVANCE_RESET_X</name><value>(1 &lt;&lt; 2)</value></line>
+			<line><name>BSGFX_WIDGET_ADVANCE_RESET_Y</name><value>(1 &lt;&lt; 3)</value></line>
+			<line><name>BSGFX_WIDGET_ADVANCE_APPLY_OFFSET_X</name><value>(1 &lt;&lt; 4)</value></line>
+			<line><name>BSGFX_WIDGET_ADVANCE_APPLY_OFFSET_Y</name><value>(1 &lt;&lt; 5)</value></line>
+			<line><name>BSGFX_WIDGET_ADVANCE_APPLY_OFFSET_Z</name><value>(1 &lt;&lt; 6)</value></line>
+			<line><name>BSGFX_WIDGET_ADVANCE_APPLY_OFFSET</name><value>(BSGFX_WIDGET_ADVANCE_APPLY_OFFSET_X | BSGFX_WIDGET_ADVANCE_APPLY_OFFSET_Y | BSGFX_WIDGET_ADVANCE_APPLY_OFFSET_Z)</value></line>
 		</enum>
 	</enums>
 
@@ -565,22 +668,41 @@
             <line>X(BSGFX_MODEL_SUBTYPE_COUNT)</line>
         </macro>
 
-        <macro>
-            <name>#define BSGFX_FOREACH_PROC(X)</name>
-            <line>X(PFN_void, bsmod_onIni)</line>
-            <line>X(PFN_void, bsmod_onLateIni)</line>
-            <line>X(PFN_void, bsmod_onLoad)</line>
-            <line>X(PFN_void, bsmod_copyHoveringDataToBuffer)</line>
-            <line>X(PFN_bsmod_onCreateSubtypes, bsmod_onCreateQuadSubtypes)</line>
-            <line>X(PFN_bsmod_onQueue, bsmod_onQueue)</line>
-            <line>X(PFN_void, bsmod_onGfxRender)</line>
-            <line>X(PFN_bsmod_isSelected, bsmod_isSelected)</line>
-            <line>X(PFN_bsmod_onMap, bsmod_onMap)</line>
-            <line>X(PFN_void, bsmod_onTrack)</line>
-        </macro>
-
         <macro><name>#define BSGFX_STRUCT_GEN(TYPE, FUNC, ...)</name><line>TYPE FUNC;</line></macro>
         <macro><name>#define BSGFX_COUNT_GEN(TYPE, FUNC, ...)</name><line>+1</line></macro>
+
+        <macro><name>#define BSGFX_TYPE_MAGIC</name><line>0x65707974</line></macro>
+        <macro><name>#define BSGFX_FOLIAGE_VERSION</name><line>1</line></macro>
+
+        <macro><name>#define BSGFX_TYPE_STRUCTURE(type, name)</name><line>type name;</line></macro>
+        <macro><name>#define BSGFX_TYPE_FIELD_NAMES(type, name)</name><line>#name,</line></macro>
+        <macro><name>#define BSGFX_TYPE_NAMES(type, name)</name><line>#type,</line></macro>
+        <macro><name>#define BSGFX_TYPE_SIZES(type, name)</name><line>sizeof(type),</line></macro>
+        <macro>
+            <name>#define BSGFX_UNMAPPED_TYPE</name>
+            <line>struct {</line>
+            <line>    BSGFX_TYPE_FIELDS(BSGFX_TYPE_STRUCTURE)</line>
+            <line>}</line>
+        </macro>
+
+        <macro><name>#define BSGFX_MAX_NUM_FOLIAGES</name><line>256</line></macro>
+
+        <macro><name>#define BSGFX_LIGHT_VERSION</name><line>2</line></macro>
+
+        <macro><name>#define BSGFX_MAX_NUM_PREFABS</name><line>512</line></macro>
+        <macro><name>#define BSGFX_PREFAB_VERSION</name><line>1</line></macro>
+
+        <macro><name>#define BSGFX_MAX_PRIMITIVES_COUNT</name><line>(512)</line></macro>
+        <macro><name>#define BSGFX_PRIMITIVE_VERSION</name><line>1</line></macro>
+
+        <macro><name>#define BSGFX_SPAWNER_VERSION</name><line>1</line></macro>
+
+        <macro><name>#define BSGFX_MAX_TILES_COUNT</name><line>8192</line></macro>
+        <macro><name>#define BSGFX_MAX_TILE_PATH_LENGTH</name><line>16</line></macro>
+        <macro><name>#define BSGFX_TILE_VERSION</name><line>2</line></macro>
+
+        <macro><name>#define BSGFX_LIST_ROW_DIMENSIONS</name><line>BS_V2(320, 6.0 * BSGFX_PIXEL_SCALE)</line></macro>
+        <macro><name>#define BSGFX_BACKGROUND_Z_COUNT</name><line>3</line></macro>
     </macros>
 
 	<structures>
@@ -673,30 +795,6 @@
 			<field><type>char</type><name>data</name><size>64</size></field>
 		</structure>
 
-		<structure name="bsgfx_MeshInstance">
-			<field><type>bs_mat4</type><name>transform</name></field>
-		</structure>
-
-		<structure name="bsgfx_BoneInstance">
-			<field><type>bs_mat4</type><name>transform</name></field>
-		</structure>
-
-		<structure name="bsgfx_QuadInstance">
-			<field><type>bs_mat4x3</type><name>transform</name></field>
-			<field><type>bs_vec2</type><name>coords</name></field>
-			<field><type>bs_vec2</type><name>offset</name></field>
-		</structure>
-
-		<structure name="bsgfx_Text">
-			<field><type>bs_vec4</type><name>position</name></field>
-			<field><type>float</type><name>scale</name></field>
-			<field><type>float</type><name>max_length</name></field>
-			<field><type>bs_U32</type><name>flags</name></field>
-			<field><type>int select_start,</type><name>select_end</name></field>
-			<field><type>int</type><name>material_id</name></field>
-			<field><type>bs_RGBA</type><name>colors</name><size>8</size></field>
-		</structure>
-
 		<structure name="bsgfx_Settings">
 			<field><type>bool</type><name>cull_backfaces</name></field>
 			<field><type>float</type><name>master_volume</name></field>
@@ -736,10 +834,6 @@
 			<field><type>bool</type><name>menu_open</name></field>
 		</structure>
 
-		<structure name="bsgfx_Procedures">
-			<field><type>BSGFX_FOREACH_PROC(BSGFX_STRUCT_GEN)</type></field>
-		</structure>
-
 		<structure name="bsgfx_Callbacks">
 			<field><type>PFN_void</type><name>tick</name></field>
 			<field><type>PFN_void</type><name>fixedTick</name></field>
@@ -750,6 +844,439 @@
 
 		<structure name="bsgfx_Application">
 			<field><type>const char*</type><name>name</name></field>
+		</structure>
+
+		<structure name="bsgfx_TypeHeader">
+			<field><type>bs_U32</type><name>magic</name></field>
+			<field><type>bs_U32</type><name>version</name></field>
+			<field><type>int</type><name>flexible_count</name></field>
+			<field><type>int</type><name>count</name></field>
+			<field><type>int</type><name>accessors</name><size></size></field>
+		</structure>
+
+		<structure name="bsgfx_Type">
+			<field><type>int</type><name>version</name></field>
+			<field><type>int</type><name>capacity</name></field>
+			<field><type>int</type><name>flexible_capacity</name></field>
+			<field><type>int</type><name>count</name></field>
+			<field><type>int</type><name>flexible_count</name></field>
+			<field><type>int</type><name>package_id</name></field>
+			<field><type>const char*</type><name>plural</name></field>
+			<field><type>const char*</type><name>singular</name></field>
+			<field><type>void</type><name>(*mapper)(void*, void*)</name></field>
+			<field><type>int*</type><name>unmapped_accessors</name></field>
+			<field><type>int*</type><name>mapped_accessors</name></field>
+			<field><type>unsigned char*</type><name>mapped</name></field>
+			<field><type>unsigned char*</type><name>unmapped</name></field>
+			<field><type>int</type><name>mapped_unit_size</name></field>
+			<field><type>int</type><name>unmapped_unit_size</name></field>
+			<field><type>int</type><name>unmapped_flexible_offset</name></field>
+			<field><type>int</type><name>mapped_flexible_offset</name></field>
+			<field><type>int</type><name>unmapped_flexible_size</name></field>
+			<field><type>int</type><name>mapped_flexible_size</name></field>
+		</structure>
+
+		<structure name="bsgfx_Foliage">
+			<field><type>bs_GUID</type><name>guid</name></field>
+			<field><type>int</type><name>density</name></field>
+			<field><type>int</type><name>textures_count</name></field>
+			<structure name="bsgfx_FoliageTexture" instance=" textures[]">
+				<field><type>bs_vec4</type><name>coords</name></field>
+				<field><type>bs_vec2</type><name>size</name></field>
+				<field><type>int</type><name>id</name></field>
+				<field><type>bs_RGBA</type><name>color</name></field>
+			</structure>
+		</structure>
+
+		<structure name="bsgfx_RawFoliage">
+			<field><type>bs_GUID</type><name>guid</name></field>
+			<field><type>int</type><name>density</name></field>
+			<field><type>int</type><name>textures_count</name></field>
+			<structure name="bsgfx_RawFoliageTexture" instance=" textures[]">
+				<field><type>bs_U64</type><name>texture_hash</name></field>
+				<field><type>bs_RGBA</type><name>color</name></field>
+				<field><type>int</type><name>reserved</name></field>
+			</structure>
+		</structure>
+
+		<structure name="bsgfx_Light">
+			<field><type>bs_vec3</type><name>position</name></field>
+			<field><type>bs_vec3</type><name>direction</name></field>
+			<field><type>bsgfx_LightType</type><name>type</name></field>
+		</structure>
+
+		<structure name="bsgfx_RawLight">
+			<field><type>bs_vec3</type><name>position</name></field>
+			<field><type>bs_vec3</type><name>rotation</name></field>
+			<field><type>bsgfx_LightType</type><name>type</name></field>
+			<field><type>int</type><name>reserved_a</name></field>
+			<field><type>int</type><name>reserved_b</name></field>
+			<field><type>int</type><name>reserved_c</name></field>
+			<field><type>int</type><name>reserved_d</name></field>
+			<field><type>int</type><name>reserved_e</name></field>
+		</structure>
+
+		<structure name="bsgfx_PrefabMetadata">
+			<field><type>int</type><name>variety_count</name></field>
+			<structure name="bsgfx_PrefabVariety" instance="*varieties">
+				<field><type>int</type><name>texture_id</name></field>
+			</structure>
+		</structure>
+
+		<structure name="bsgfx_Prefab">
+			<field><type>bs_vec3</type><name>position</name></field>
+			<field><type>bs_vec4</type><name>rotation</name></field>
+			<field><type>bs_vec3</type><name>scale</name></field>
+			<field><type>int</type><name>mesh_id</name></field>
+			<field><type>int</type><name>material_id</name></field>
+			<field><type>int</type><name>texture_id</name></field>
+			<field><type>int</type><name>z_order</name></field>
+			<field><type>bs_U32</type><name>flags</name></field>
+			<field><type>int</type><name>shadow_subtype</name></field>
+			<field><type>bs_GUID</type><name>guid</name></field>
+		</structure>
+
+		<structure name="bsgfx_RawPrefab">
+			<field><type>bs_vec3</type><name>position</name></field>
+			<field><type>bs_vec3</type><name>rotation</name></field>
+			<field><type>bs_vec3</type><name>scale</name></field>
+			<field><type>bs_U32</type><name>flags</name></field>
+			<field><type>bs_U64</type><name>name_hash</name></field>
+			<field><type>bs_U64</type><name>material_hash</name></field>
+			<field><type>bs_U64</type><name>texture_hash</name></field>
+			<field><type>bs_GUID</type><name>guid</name></field>
+			<field><type>int</type><name>z_order</name></field>
+			<field><type>int</type><name>reserved</name></field>
+		</structure>
+
+		<structure name="bsgfx_Primitive">
+			<field><type>bs_vec3</type><name>position</name></field>
+			<field><type>bs_vec4</type><name>rotation</name></field>
+			<field><type>bs_vec3</type><name>scale</name></field>
+			<field><type>int</type><name>first_tile, last_tile</name></field>
+			<field><type>bs_U32</type><name>collision</name></field>
+			<field><type>bsgfx_PrimitiveFlags</type><name>flags</name></field>
+			<field><type>bsgfx_PrimitiveType</type><name>type</name></field>
+			<field><type>int</type><name>subtype_index</name></field>
+			<field><type>bs_GUID</type><name>guid</name></field>
+		</structure>
+
+		<structure name="bsgfx_RawPrimitive">
+			<field><type>bs_vec3</type><name>position</name></field>
+			<field><type>bs_vec3</type><name>scale</name></field>
+			<field><type>bs_vec3</type><name>rotation</name></field>
+			<field><type>bs_U32</type><name>collision</name></field>
+			<field><type>bsgfx_PrimitiveFlags</type><name>flags</name></field>
+			<field><type>bsgfx_PrimitiveType</type><name>type</name></field>
+			<field><type>bs_GUID</type><name>guid</name></field>
+		</structure>
+
+		<structure name="bsgfx_TileAxis">
+			<field><type>bs_vec3</type><name>normal</name></field>
+			<field><type>bs_vec3</type><name>right</name></field>
+			<field><type>bs_vec3</type><name>up</name></field>
+			<field><type>bs_vec3</type><name>start_sign</name></field>
+			<field><type>int</type><name>width_axis</name></field>
+			<field><type>int</type><name>height_axis</name></field>
+		</structure>
+
+		<structure name="bsgfx_Spawner">
+			<field><type>bs_vec3</type><name>position</name></field>
+			<field><type>bsgfx_SpawnerType</type><name>spawn_type</name></field>
+			<field><type>bs_U64</type><name>spawn_name</name></field>
+			<field><type>bsgfx_SpawnerFlags</type><name>flags</name></field>
+			<field><type>float</type><name>spawn_periodicity</name></field>
+			<field><type>int</type><name>material_id</name></field>
+			<field><type>int</type><name>reserved</name></field>
+		</structure>
+
+		<structure name="bsgfx_RawSpawner">
+			<field><type>bs_vec3</type><name>position</name></field>
+			<field><type>bsgfx_SpawnerType</type><name>spawn_type</name></field>
+			<field><type>bs_U64</type><name>spawn_name</name></field>
+			<field><type>bsgfx_SpawnerFlags</type><name>flags</name></field>
+			<field><type>float</type><name>spawn_periodicity</name></field>
+			<field><type>bs_U64</type><name>material_name</name></field>
+		</structure>
+
+		<structure name="bsgfx_Tile">
+			<field><type>bs_ivec2</type><name>coords</name></field>
+			<field><type>bs_U32</type><name>axis</name></field>
+			<field><type>int</type><name>index</name></field>
+			<field><type>int</type><name>image_index</name></field>
+			<field><type>bs_U32</type><name>flags</name></field>
+			<field><type>int</type><name>material</name></field>
+		</structure>
+
+		<structure name="bsgfx_RawTile">
+			<field><type>bs_ivec2</type><name>coords</name></field>
+			<field><type>bs_U32</type><name>axis</name></field>
+			<field><type>bs_U32</type><name>flags</name></field>
+			<field><type>bs_U64</type><name>texture_hash</name></field>
+			<field><type>bs_GUID</type><name>primitive</name></field>
+		</structure>
+
+		<structure name="bsgfx_TileType">
+			<field><type>int</type><name>id</name></field>
+		</structure>
+
+		<structure name="bsgfx_RawTileV1">
+			<field><type>bs_vec2</type><name>coords</name></field>
+			<field><type>bs_U32</type><name>flags</name></field>
+			<field><type>bs_U64</type><name>texture_hash</name></field>
+			<field><type>bs_GUID</type><name>primitive</name></field>
+		</structure>
+
+		<structure name="bsgfx_ForeachVisibleRowParams">
+			<field><type>bsgfx_Widget*</type><name>widget</name></field>
+			<field><type>bs_vec3*</type><name>position</name></field>
+			<field><type>int</type><name>id</name></field>
+		</structure>
+
+		<structure name="bsgfx_ButtonParams">
+			<field><type>bsgfx_Menu*</type><name>menu</name></field>
+			<field><type>bsgfx_Widget*</type><name>widget</name></field>
+			<field><type>bs_vec3</type><name>widget_position</name></field>
+			<field><type>bool</type><name>hovering</name></field>
+		</structure>
+
+		<structure name="bsgfx_TableField">
+			<field><type>const char*</type><name>name</name></field>
+			<field><type>int</type><name>count</name></field>
+			<enum instance=" type">
+				<line><name>BSGFX_TABLE_FIELD_INTEGER</name></line>
+				<line><name>BSGFX_TABLE_FIELD_FLOAT</name></line>
+			</enum>
+		</structure>
+
+		<structure name="bsgfx_Scrollbar">
+			<field><type>int*</type><name>value</name></field>
+			<field><type>float</type><name>width</name></field>
+			<field><type>float</type><name>border_radius</name></field>
+			<field><type>int</type><name>substeps_count</name></field>
+			<field><type>int</type><name>padding</name></field>
+			<field><type>int</type><name>material</name></field>
+			<field><type>int</type><name>outline_material</name></field>
+			<field><type>int</type><name>background_material</name></field>
+			<field><type>int</type><name>button_icon_material</name></field>
+			<field><type>int</type><name>button_outline_material</name></field>
+			<field><type>int</type><name>button_background_material</name></field>
+		</structure>
+
+		<structure name="bsgfx_GridParams">
+			<field><type>bs_vec2</type><name>start</name></field>
+			<field><type>bs_vec2*</type><name>position</name></field>
+			<field><type>int</type><name>index</name></field>
+		</structure>
+
+		<structure name="bsgfx_Widget">
+			<field><type>int</type><name>indent</name></field>
+			<field><type>int</type><name>id</name></field>
+			<field><type>int</type><name>material_id</name></field>
+			<field><type>const char*</type><name>hint</name></field>
+			<field><type>bsgfx_WidgetType</type><name>type</name></field>
+			<field><type>bool</type><name>disabled</name></field>
+			<field><type>bsgfx_WidgetAdvanceType</type><name>advance_flags</name></field>
+			<field><type>void*</type><name>params</name></field>
+			<field><type>bs_vec3</type><name>offset</name></field>
+			<field><type>float</type><name>align_height</name></field>
+			<field><type>bs_Font*</type><name>font</name></field>
+			<structure type="union">
+				<structure instance=" string">
+					<field><type>char*</type><name>value</name></field>
+					<field><type>void</type><name>(*on_hover)(struct bsgfx_Widget*)</name></field>
+				</structure>
+				<structure instance=" input">
+					<field><type>bsgfx_InputType</type><name>type</name></field>
+					<field><type>bool</type><name>active</name></field>
+					<field><type>bool</type><name>new_line_on_enter</name></field>
+					<field><type>const char*</type><name>placeholder_text</name></field>
+					<field><type>int</type><name>placeholder_text_material_id</name></field>
+					<field><type>int</type><name>outline_material_id</name></field>
+					<field><type>int</type><name>background_outline_material_id</name></field>
+					<field><type>int</type><name>background_shadow_material_id</name></field>
+					<field><type>bs_vec2</type><name>dimensions</name></field>
+					<field><type>bs_U64</type><name>hash</name></field>
+					<field><type>int*</type><name>select_position</name></field>
+					<field><type>int*</type><name>select_size</name></field>
+					<structure type="union">
+						<field><type>double*</type><name>as_double</name></field>
+						<field><type>float*</type><name>as_float</name></field>
+						<field><type>long long*</type><name>as_long</name></field>
+						<field><type>unsigned long long*</type><name>as_ulong</name></field>
+						<field><type>int*</type><name>as_int</name></field>
+						<field><type>int*</type><name>as_uint</name></field>
+						<field><type>char*</type><name>as_char</name></field>
+						<field><type>unsigned char*</type><name>as_uchar</name></field>
+						<field><type>bs_String**</type><name>as_string</name></field>
+						<field><type>void*</type><name>as_void</name></field>
+					</structure>
+				</structure>
+				<structure instance=" grid">
+					<field><type>bool</type><name>always_active</name></field>
+					<field><type>int</type><name>selected</name></field>
+					<field><type>int</type><name>count</name></field>
+					<field><type>bs_vec2</type><name>size</name></field>
+					<field><type>bs_vec2</type><name>total_size</name></field>
+					<field><type>float</type><name>padding</name></field>
+					<field><type>bool</type><name>(*action)(bsgfx_Widget*, bsgfx_GridParams)</name></field>
+					<field><type>bsgfx_Scrollbar</type><name>scrollbar</name></field>
+				</structure>
+				<structure instance=" url">
+					<field><type>char*</type><name>path</name></field>
+				</structure>
+				<structure instance=" button">
+					<field><type>int</type><name>material</name></field>
+					<field><type>int</type><name>selected_material</name></field>
+					<field><type>bs_vec2</type><name>size</name></field>
+					<field><type>bool</type><name>(*tick)(bsgfx_ButtonParams)</name></field>
+					<structure instance=" active_override">
+						<field><type>int*</type><name>active_index</name></field>
+						<field><type>int</type><name>this_index</name></field>
+					</structure>
+					<field><type>const char*</type><name>name</name></field>
+					<field><type>const char*</type><name>hint</name></field>
+					<enum instance=" alignment">
+						<line><name>BSGFX_BUTTON_ALIGN_CENTER</name></line>
+						<line><name>BSGFX_BUTTON_ALIGN_LEFT</name></line>
+					</enum>
+				</structure>
+				<structure instance=" range">
+					<field><type>int*</type><name>value</name></field>
+					<field><type>int</type><name>min, max</name></field>
+					<field><type>void</type><name>(*on_change)(struct bsgfx_Widget*)</name></field>
+				</structure>
+				<structure instance=" slider">
+					<field><type>float*</type><name>value</name></field>
+					<field><type>float</type><name>min, max</name></field>
+					<field><type>float</type><name>width</name></field>
+					<field><type>bool</type><name>integer</name></field>
+				</structure>
+				<structure instance=" icon">
+					<enum instance=" type">
+						<line><name>BSGFX_ICON_ATLAS</name></line>
+						<line><name>BSGFX_ICON_TILE</name></line>
+						<line><name>BSGFX_ICON_MATERIAL</name></line>
+						<line><name>BSGFX_ICON_64</name></line>
+						<line><name>BSGFX_ICON_256</name></line>
+						<line><name>BSGFX_ICON_512</name></line>
+					</enum>
+					<field><type>bs_vec2</type><name>scale</name></field>
+					<field><type>const char*</type><name>name</name></field>
+					<field><type>const char*</type><name>background_name</name></field>
+					<field><type>const char*</type><name>background_selected_name</name></field>
+					<field><type>int</type><name>frame</name></field>
+					<field><type>void</type><name>(*hover)(struct bsgfx_Widget*)</name></field>
+					<field><type>int</type><name>material_id</name></field>
+					<field><type>float</type><name>border_radius</name></field>
+					<field><type>int</type><name>outline_material_id</name></field>
+					<field><type>bs_Atlas*</type><name>atlas</name></field>
+					<field><type>int</type><name>atlas_subtype</name></field>
+					<field><type>bool</type><name>flipped</name></field>
+					<field><type>bool</type><name>mirrored</name></field>
+				</structure>
+				<structure instance=" color">
+					<field><type>bs_vec4*</type><name>hsva</name></field>
+					<field><type>bs_vec2</type><name>dimensions</name></field>
+					<field><type>float</type><name>hue_width</name></field>
+					<field><type>float</type><name>border_radius</name></field>
+					<field><type>int</type><name>padding</name></field>
+					<field><type>int</type><name>material_id</name></field>
+					<field><type>int</type><name>background_material_id</name></field>
+					<field><type>int</type><name>shadow_material_id</name></field>
+					<field><type>int</type><name>outline_material_id</name></field>
+					<field><type>void</type><name>(*on_change_color)(struct bsgfx_Widget*, bs_RGBA)</name></field>
+				</structure>
+				<structure instance=" list">
+					<field><type>int</type><name>max</name></field>
+					<field><type>int</type><name>vk_offset</name></field>
+					<field><type>int</type><name>count</name></field>
+					<field><type>int*</type><name>scroll</name></field>
+					<field><type>char*</type><name>(*foreach_visible_row)(bsgfx_ForeachVisibleRowParams params)</name></field>
+				</structure>
+				<structure instance=" model">
+					<field><type>const char*</type><name>name</name></field>
+					<field><type>const char*</type><name>mesh_name</name></field>
+					<field><type>void</type><name>(*instance)(const bs_mat4* transform)</name></field>
+				</structure>
+				<structure instance=" table">
+					<field><type>const bs_List*</type><name>fields</name></field>
+					<field><type>unsigned char*</type><name>data</name></field>
+					<field><type>int</type><name>count, unit_size</name></field>
+					<field><type>int</type><name>max_count</name></field>
+				</structure>
+				<structure instance=" background">
+					<field><type>bs_vec2</type><name>size</name></field>
+					<field><type>float</type><name>border_radius</name></field>
+					<field><type>int</type><name>subtype</name></field>
+					<field><type>int</type><name>material_id</name></field>
+					<field><type>int</type><name>outline_material_id</name></field>
+					<field><type>int</type><name>shadow_material_id</name></field>
+				</structure>
+			</structure>
+		</structure>
+
+		<structure name="bsgfx_AtlasCache">
+			<field><type>const char*</type><name>name</name></field>
+			<field><type>int</type><name>id</name></field>
+			<field><type>bs_vec4</type><name>coords</name></field>
+			<field><type>bs_vec2</type><name>size</name></field>
+		</structure>
+
+		<structure name="bsgfx_MenuTab">
+			<field><type>const char*</type><name>name</name></field>
+			<field><type>bs_U64</type><name>hash</name></field>
+			<field><type>bsgfx_AtlasCache*</type><name>icon_cache</name></field>
+			<field><type>int</type><name>icon_material_id</name></field>
+			<field><type>int</type><name>material_id</name></field>
+			<field><type>int</type><name>outline_material_id</name></field>
+			<field><type>int</type><name>shadow_material_id</name></field>
+		</structure>
+
+		<structure name="bsgfx_MenuTabBar">
+			<field><type>bsgfx_MenuTab*</type><name>tabs</name></field>
+			<field><type>int*</type><name>active_tab</name></field>
+			<field><type>int</type><name>tabs_count</name></field>
+			<field><type>float</type><name>height</name></field>
+			<field><type>int</type><name>material_id</name></field>
+			<field><type>int</type><name>outline_material_id</name></field>
+			<field><type>int</type><name>shadow_material_id</name></field>
+		</structure>
+
+		<structure name="bsgfx_Menu">
+			<field><type>bs_vec3</type><name>position</name></field>
+			<field><type>bsgfx_Widget*</type><name>widgets</name></field>
+			<field><type>int</type><name>widgets_count</name></field>
+			<field><type>float</type><name>spacing</name></field>
+			<field><type>bool</type><name>blocked</name></field>
+			<field><type>int</type><name>background_material_id_0</name></field>
+			<field><type>int</type><name>background_material_id_1</name></field>
+			<structure instance=" untextured">
+				<field><type>bs_vec2</type><name>dimensions</name></field>
+				<field><type>int</type><name>border_id</name></field>
+				<field><type>bool</type><name>auto_scale_width</name></field>
+			</structure>
+			<field><type>bs_Font*</type><name>font</name></field>
+			<field><type>float</type><name>border_radius</name></field>
+			<field><type>int</type><name>shadow_material_id</name></field>
+			<field><type>int</type><name>outline_material_id</name></field>
+			<field><type>int</type><name>text_subtype</name></field>
+		</structure>
+
+		<structure name="bsgfx_TitleBar">
+			<field><type>const char*</type><name>name</name></field>
+			<field><type>bs_Font*</type><name>font</name></field>
+			<field><type>int</type><name>material_id</name></field>
+			<field><type>int</type><name>button_unavailable_material_id</name></field>
+			<field><type>int</type><name>button_material_id</name></field>
+			<field><type>int</type><name>button_hovering_material_id</name></field>
+			<field><type>int</type><name>button_icon_material_id</name></field>
+			<field><type>int</type><name>button_shadow_material_id</name></field>
+			<field><type>int</type><name>button_selected_shadow_material_id</name></field>
+			<field><type>void</type><name>(*on_close)()</name></field>
+			<field><type>void</type><name>(*on_maximize)()</name></field>
+			<field><type>void</type><name>(*on_minimize)()</name></field>
+			<field><type>float</type><name>border_radius</name></field>
 		</structure>
 	</structures>
 
@@ -1082,6 +1609,262 @@
 			<param><type>const bs_mat4*</type><name>proj</name></param>
 			<param><type>const bs_mat4*</type><name>view</name></param>
 		</function>
+
+		<function name="bsgfx_type">
+			<return>void</return>
+			<param><type>bsgfx_TypeId</type><name>id</name></param>
+			<param><type>int</type><name>package_id</name></param>
+			<param><type>int</type><name>version</name></param>
+			<param><type>const char*</type><name>plural</name></param>
+			<param><type>const char*</type><name>singular</name></param>
+			<param><type>size_t</type><name>unmapped_size</name></param>
+			<param><type>size_t</type><name>mapped_size</name></param>
+			<param><type>PFN_bsgfx_TypeMapper</type><name>mapper</name></param>
+			<param><type>size_t</type><name>unmapped_flexible_offset</name></param>
+			<param><type>size_t</type><name>mapped_flexible_offset</name></param>
+			<param><type>size_t</type><name>unmapped_flexible_size</name></param>
+			<param><type>size_t</type><name>mapped_flexible_size</name></param>
+		</function>
+		<function name="bsgfx_map">
+			<return>void</return>
+			<param><type>bsgfx_TypeId</type><name>type</name></param>
+			<param><type>int</type><name>id</name></param>
+		</function>
+		<function name="bsgfx_remap">
+			<return>void</return>
+			<param><type>bsgfx_TypeId</type><name>type_id</name></param>
+		</function>
+		<function name="bsgfx_count">
+			<return>int</return>
+			<param><type>bsgfx_TypeId</type><name>type_id</name></param>
+		</function>
+		<function name="bsgfx_get">
+			<return>void*</return>
+			<param><type>bsgfx_TypeId</type><name>type_id</name></param>
+			<param><type>bs_U32</type><name>id</name></param>
+		</function>
+		<function name="bsgfx_getType">
+			<return>bsgfx_Type*</return>
+			<param><type>bsgfx_TypeId</type><name>type_id</name></param>
+		</function>
+		<function name="bsgfx_id">
+			<return>int</return>
+			<param><type>bsgfx_TypeId</type><name>type_id</name></param>
+			<param><type>unsigned char*</type><name>p</name></param>
+		</function>
+		<function name="bsgfx_rawId">
+			<return>int</return>
+			<param><type>bsgfx_TypeId</type><name>type_id</name></param>
+			<param><type>unsigned char*</type><name>p</name></param>
+		</function>
+		<function name="bsgfx_getRaw">
+			<return>void*</return>
+			<param><type>bsgfx_TypeId</type><name>type_id</name></param>
+			<param><type>int</type><name>id</name></param>
+		</function>
+		<function name="bsgfx_flexibleCount">
+			<return>int</return>
+			<param><type>bsgfx_TypeId</type><name>type_id</name></param>
+			<param><type>int</type><name>id</name></param>
+		</function>
+		<function name="bsmod_add" comment="Creates an object of a given type (data can be NULL)">
+			<return>void*</return>
+			<param><type>bsgfx_TypeId</type><name>id</name></param>
+			<param><type>void*</type><name>data</name></param>
+		</function>
+		<function name="bsmod_queryType">
+			<return>bsgfx_TypeId</return>
+			<param><type>const char*</type><name>plural</name></param>
+		</function>
+
+		<function name="bsgfx_loadFoliages">
+			<return>void</return>
+			<param><type>int</type><name>package_id</name></param>
+		</function>
+		<function name="bsgfx_queryFoliage">
+			<return>int</return>
+			<param><type>bs_GUID*</type><name>guid</name></param>
+		</function>
+
+		<function name="bsgfx_loadLights">
+			<return>void</return>
+			<param><type>int</type><name>package_id</name></param>
+		</function>
+
+		<function name="bsgfx_computePrefabShadows"><return>void</return></function>
+		<function name="bsgfx_renderPrefabShadowVolumes"><return>void</return></function>
+		<function name="bsgfx_prefabMetadata">
+			<return>bsgfx_PrefabMetadata*</return>
+			<param><type>int</type><name>mesh_id</name></param>
+		</function>
+		<function name="bsgfx_savePrefabs"><return>void</return></function>
+		<function name="bsgfx_loadPrefabs">
+			<return>void</return>
+			<param><type>int</type><name>package_id</name></param>
+			<param><type>bs_Model*</type><name>model</name></param>
+		</function>
+		<function name="bsgfx_prefabTransform">
+			<return>bs_mat4</return>
+			<param><type>bsgfx_Prefab*</type><name>prefab</name></param>
+		</function>
+		<function name="bsgfx_instancePrefabModel">
+			<return>int</return>
+			<param><type>int</type><name>mesh_id</name></param>
+			<param><type>bs_mat4</type><name>transform</name></param>
+			<param><type>bsgfx_PrefabSubtype</type><name>prefab_subtype</name></param>
+			<param><type>int</type><name>material_id</name></param>
+		</function>
+		<function name="bsgfx_instancePrefab">
+			<return>int</return>
+			<param><type>int</type><name>id</name></param>
+			<param><type>bsgfx_PrefabSubtype</type><name>prefab_subtype</name></param>
+		</function>
+		<function name="bsgfx_instancePrefabs"><return>void</return></function>
+		<function name="bsgfx_renderPrefabs">
+			<return>void</return>
+			<param><type>bs_Pipeline*</type><name>pipeline</name></param>
+			<param><type>int</type><name>key_start</name></param>
+		</function>
+		<function name="bsgfx_renderScenePrefabs"><return>void</return></function>
+		<function name="bsgfx_renderPrefabPrimitives">
+			<return>void</return>
+			<param><type>bs_Pipeline*</type><name>pipeline</name></param>
+			<param><type>int</type><name>key_start</name></param>
+		</function>
+		<function name="bsgfx_tilePrefab">
+			<return>bsgfx_RawPrefab*</return>
+			<param><type>bs_vec2</type><name>coords</name></param>
+		</function>
+		<function name="bsgfx_queryPrefabId">
+			<return>int</return>
+			<param><type>const bs_GUID*</type><name>guid</name></param>
+		</function>
+		<function name="bsgfx_closestPrefab">
+			<return>int</return>
+			<param><type>bs_U64</type><name>mesh_name_hash</name></param>
+			<param><type>bs_vec3</type><name>position</name></param>
+			<param><type>float</type><name>radius</name></param>
+		</function>
+
+		<function name="bsgfx_primitivePosition">
+			<return>bs_vec3</return>
+			<param><type>bsgfx_RawPrimitive*</type><name>primitive</name></param>
+		</function>
+		<function name="bsgfx_loadPrimitives">
+			<return>void</return>
+			<param><type>int</type><name>package_id</name></param>
+		</function>
+		<function name="bsgfx_primitiveSubtype">
+			<return>int</return>
+			<param><type>bsgfx_PrimitiveType</type><name>type</name></param>
+		</function>
+		<function name="bsgfx_instancePrimitive">
+			<return>int</return>
+			<param><type>int</type><name>subtype</name></param>
+			<param><type>bs_mat4</type><name>transform</name></param>
+			<param><type>bs_U32</type><name>flags</name></param>
+			<param><type>int</type><name>id</name></param>
+			<param><type>int</type><name>material</name></param>
+		</function>
+		<function name="bsgfx_queryTilePrimitive">
+			<return>int</return>
+			<param><type>int</type><name>tile_id</name></param>
+		</function>
+		<function name="bsgfx_instancePrimitives"><return>void</return></function>
+		<function name="bsgfx_renderPrimitives">
+			<return>void</return>
+			<param><type>bs_mat4</type><name>camera</name></param>
+		</function>
+		<function name="bsgfx_queryPrimitive">
+			<return>int</return>
+			<param><type>bs_GUID*</type><name>guid</name></param>
+		</function>
+
+		<function name="bsgfx_loadSpawners">
+			<return>void</return>
+			<param><type>int</type><name>package_id</name></param>
+		</function>
+		<function name="bsgfx_spawn">
+			<return>void</return>
+			<param><type>bsgfx_Spawner*</type><name>spawner</name></param>
+		</function>
+		<function name="bsgfx_instanceSpawners"><return>void</return></function>
+
+		<function name="bsgfx_loadTiles">
+			<return>void</return>
+			<param><type>int</type><name>package_id</name></param>
+			<param><type>bool</type><name>force_destroy</name></param>
+		</function>
+		<function name="bsgfx_instanceTiles"><return>void</return></function>
+		<function name="bsgfx_pushTile">
+			<return>bs_Range</return>
+			<param><type>bs_Batch*</type><name>batch</name></param>
+			<param><type>bs_Quad</type><name>quad</name></param>
+			<param><type>bs_vec3</type><name>normal</name></param>
+			<param><type>bs_U32</type><name>index</name></param>
+			<param><type>int</type><name>image_index</name></param>
+		</function>
+		<function name="bsgfx_batchTile">
+			<return>void</return>
+			<param><type>bs_Batch*</type><name>batch</name></param>
+			<param><type>bs_U32*</type><name>offset</name></param>
+			<param><type>bs_Quad</type><name>quad</name></param>
+			<param><type>bs_vec3</type><name>normal</name></param>
+			<param><type>bs_U32</type><name>index</name></param>
+			<param><type>int</type><name>image_index</name></param>
+		</function>
+		<function name="bsgfx_tileAxes"><return>const bsgfx_TileAxis*</return></function>
+		<function name="bsgfx_tilePosition">
+			<return>bs_vec3</return>
+			<param><type>bsgfx_Primitive*</type><name>primitive</name></param>
+			<param><type>int</type><name>axis</name></param>
+			<param><type>int</type><name>x</name></param>
+			<param><type>int</type><name>y</name></param>
+		</function>
+		<function name="bsgfx_tileRotation">
+			<return>bs_vec4</return>
+			<param><type>int</type><name>axis</name></param>
+		</function>
+		<function name="bsgfx_tileEulerRotation">
+			<return>bs_vec3</return>
+			<param><type>int</type><name>axis</name></param>
+		</function>
+		<function name="bsgfx_pushTileAt">
+			<return>bs_U32</return>
+			<param><type>bs_Batch*</type><name>batch</name></param>
+			<param><type>bsgfx_Primitive*</type><name>primitive</name></param>
+			<param><type>int</type><name>axis</name></param>
+			<param><type>int</type><name>x</name></param>
+			<param><type>int</type><name>y</name></param>
+			<param><type>bs_U32</type><name>index</name></param>
+			<param><type>int</type><name>image_index</name></param>
+		</function>
+		<function name="bsgfx_tileCoordinate">
+			<return>bs_ivec2</return>
+			<param><type>bsgfx_Primitive*</type><name>primitive</name></param>
+			<param><type>int</type><name>axis</name></param>
+			<param><type>int</type><name>index</name></param>
+		</function>
+		<function name="bsgfx_tileAxis">
+			<return>int</return>
+			<param><type>bsgfx_Primitive*</type><name>primitive</name></param>
+			<param><type>int</type><name>index</name></param>
+		</function>
+		<function name="bsgfx_tileIndex">
+			<return>bs_U32</return>
+			<param><type>bsgfx_Primitive*</type><name>primitive</name></param>
+			<param><type>int</type><name>axis</name></param>
+			<param><type>int</type><name>x</name></param>
+			<param><type>int</type><name>y</name></param>
+		</function>
+
+		<function name="bsgfx_instanceWidgets">
+			<return>bool</return>
+			<param><type>bsgfx_Menu</type><name>menu</name></param>
+			<param><type>bsgfx_TitleBar*</type><name>title_bar</name></param>
+			<param><type>bsgfx_MenuTabBar*</type><name>tab_bar</name></param>
+		</function>
+		<function name="bsgfx_renderColorPickers"><return>void</return></function>
 	</functions>
 
 	<externs>
@@ -1099,7 +1882,7 @@
 		<extern><type>bsgfx_Type</type><name>bsgfx_types</name><size>BSGFX_TYPE_COUNT</size></extern>
 		
 		<extern><type>int</type><name>bsgfx_subtypes</name><size>BSGFX_SUBTYPE_COUNT</size></extern>
-		<extern><type>int</type><name>bsgfx_material_categories</name><size>BSGFX_MATERIAL_CATEGORY_COUNT</size></extern>
+		<extern><type>const char*</type><name>bsgfx_material_categories</name><size>BSGFX_MATERIAL_CATEGORY_COUNT</size></extern>
 
 		<extern><type>bs_List</type><name>bsgfx_materials</name></extern>
 
@@ -1107,12 +1890,14 @@
 		<extern><type>bs_U32</type><name>bsgfx_num_shader_joints</name></extern>
 		<extern><type>bsgfx_Settings</type><name>bsgfx_settings</name></extern>
 		<extern><type>struct Poser*</type><name>poser</name></extern>
-		<extern><type>bsgfx_Procedures</type><name>bsgfx_procs</name></extern>
 		<extern><type>bsgfx_Application</type><name>bsgfx_app</name></extern>
 		<extern><type>bs_Model*</type><name>bsgfx_prefab_model</name></extern>
 		<extern><type>bsgfx_Callbacks</type><name>bsgfx_callbacks</name></extern>
 		<extern><type>HINSTANCE</type><name>bsgfx_bsmod_dll</name></extern>
 		<extern><type>bs_String*</type><name>bsgfx_variadic</name></extern>
 		<extern><type>int</type><name>bsgfx_package</name></extern>
+
+		<extern><type>bsgfx_PrefabMetadata*</type><name>bsgfx_prefabs</name></extern>
+		<extern><type>int</type><name>bsgfx_prefabs_count</name></extern>
 	</externs>
 </registry>

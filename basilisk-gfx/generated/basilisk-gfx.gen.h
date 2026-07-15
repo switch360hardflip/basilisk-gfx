@@ -30,16 +30,17 @@
   the code is regenerated.
   */
         
+
+#ifndef BASILISK_GFX_GEN_H
+#define BASILISK_GFX_GEN_H
+
 #include <basilisk-core.h>
 #include <../bsgfx_contracts.h>
-#include <spawners/entity/bsgfx_entity.h>
+#include <wtypes.h>
 #include <assert.h>
 #include <stdarg.h>
 #include <string.h>
 #include <stdbool.h>
-
-#ifndef BASILISK_GFX_GEN_H
-#define BASILISK_GFX_GEN_H
 
 typedef struct bsgfx_Text bsgfx_Text;
 typedef struct bsgfx_MeshInstance bsgfx_MeshInstance;
@@ -52,15 +53,39 @@ typedef struct bsgfx_SweepCollision bsgfx_SweepCollision;
 typedef struct bsgfx_Animator bsgfx_Animator;
 typedef struct bsgfx_AnimatorCallbacks bsgfx_AnimatorCallbacks;
 typedef struct bsgfx_InstanceBuffer bsgfx_InstanceBuffer;
-typedef struct bsgfx_MeshInstance bsgfx_MeshInstance;
-typedef struct bsgfx_BoneInstance bsgfx_BoneInstance;
-typedef struct bsgfx_QuadInstance bsgfx_QuadInstance;
-typedef struct bsgfx_Text bsgfx_Text;
 typedef struct bsgfx_Settings bsgfx_Settings;
 typedef struct Poser Poser;
-typedef struct bsgfx_Procedures bsgfx_Procedures;
 typedef struct bsgfx_Callbacks bsgfx_Callbacks;
 typedef struct bsgfx_Application bsgfx_Application;
+typedef struct bsgfx_TypeHeader bsgfx_TypeHeader;
+typedef struct bsgfx_Type bsgfx_Type;
+typedef struct bsgfx_Foliage bsgfx_Foliage;
+typedef struct bsgfx_RawFoliage bsgfx_RawFoliage;
+typedef struct bsgfx_Light bsgfx_Light;
+typedef struct bsgfx_RawLight bsgfx_RawLight;
+typedef struct bsgfx_PrefabMetadata bsgfx_PrefabMetadata;
+typedef struct bsgfx_Prefab bsgfx_Prefab;
+typedef struct bsgfx_RawPrefab bsgfx_RawPrefab;
+typedef struct bsgfx_Primitive bsgfx_Primitive;
+typedef struct bsgfx_RawPrimitive bsgfx_RawPrimitive;
+typedef struct bsgfx_TileAxis bsgfx_TileAxis;
+typedef struct bsgfx_Spawner bsgfx_Spawner;
+typedef struct bsgfx_RawSpawner bsgfx_RawSpawner;
+typedef struct bsgfx_Tile bsgfx_Tile;
+typedef struct bsgfx_RawTile bsgfx_RawTile;
+typedef struct bsgfx_TileType bsgfx_TileType;
+typedef struct bsgfx_RawTileV1 bsgfx_RawTileV1;
+typedef struct bsgfx_ForeachVisibleRowParams bsgfx_ForeachVisibleRowParams;
+typedef struct bsgfx_ButtonParams bsgfx_ButtonParams;
+typedef struct bsgfx_TableField bsgfx_TableField;
+typedef struct bsgfx_Scrollbar bsgfx_Scrollbar;
+typedef struct bsgfx_GridParams bsgfx_GridParams;
+typedef struct bsgfx_Widget bsgfx_Widget;
+typedef struct bsgfx_AtlasCache bsgfx_AtlasCache;
+typedef struct bsgfx_MenuTab bsgfx_MenuTab;
+typedef struct bsgfx_MenuTabBar bsgfx_MenuTabBar;
+typedef struct bsgfx_Menu bsgfx_Menu;
+typedef struct bsgfx_TitleBar bsgfx_TitleBar;
 
 typedef enum bsgfx_Subtype bsgfx_Subtype;
 typedef enum bsgfx_ResourceType bsgfx_ResourceType;
@@ -79,6 +104,18 @@ typedef enum bsgfx_AnimatorTypeBit bsgfx_AnimatorTypeBit;
 typedef enum bsgfx_FontFlag bsgfx_FontFlag;
 typedef enum bsgfx_ModelSubtype bsgfx_ModelSubtype;
 typedef enum bsgfx_Pipe bsgfx_Pipe;
+typedef enum bsgfx_TypeId bsgfx_TypeId;
+typedef enum bsgfx_LightType bsgfx_LightType;
+typedef enum bsgfx_PrefabExtraSubtype bsgfx_PrefabExtraSubtype;
+typedef enum bsgfx_PrefabSubtype bsgfx_PrefabSubtype;
+typedef enum bsgfx_PrefabFlag bsgfx_PrefabFlag;
+typedef enum bsgfx_PrimitiveFlag bsgfx_PrimitiveFlag;
+typedef enum bsgfx_PrimitiveType bsgfx_PrimitiveType;
+typedef enum bsgfx_SpawnerType bsgfx_SpawnerType;
+typedef enum bsgfx_SpawnerFlag bsgfx_SpawnerFlag;
+typedef enum bsgfx_WidgetType bsgfx_WidgetType;
+typedef enum bsgfx_InputType bsgfx_InputType;
+typedef enum bsgfx_WidgetAdvanceType bsgfx_WidgetAdvanceType;
 
 #define BSGFX_MODEL_PATH                                             \
     "resources/models/"
@@ -398,23 +435,70 @@ typedef enum bsgfx_Pipe bsgfx_Pipe;
     X(BSGFX_MODEL_SUBTYPE_MIRRORED)                                  \
     X(BSGFX_MODEL_SUBTYPE_COUNT)
 
-#define BSGFX_FOREACH_PROC(X)                                        \
-    X(PFN_void, bsmod_onIni)                                         \
-    X(PFN_void, bsmod_onLateIni)                                     \
-    X(PFN_void, bsmod_onLoad)                                        \
-    X(PFN_void, bsmod_copyHoveringDataToBuffer)                      \
-    X(PFN_bsmod_onCreateSubtypes, bsmod_onCreateQuadSubtypes)        \
-    X(PFN_bsmod_onQueue, bsmod_onQueue)                              \
-    X(PFN_void, bsmod_onGfxRender)                                   \
-    X(PFN_bsmod_isSelected, bsmod_isSelected)                        \
-    X(PFN_bsmod_onMap, bsmod_onMap)                                  \
-    X(PFN_void, bsmod_onTrack)
-
 #define BSGFX_STRUCT_GEN(TYPE, FUNC, ...)                            \
     TYPE FUNC;
 
 #define BSGFX_COUNT_GEN(TYPE, FUNC, ...)                             \
     +1
+
+#define BSGFX_TYPE_MAGIC                                             \
+    0x65707974
+
+#define BSGFX_FOLIAGE_VERSION                                        \
+    1
+
+#define BSGFX_TYPE_STRUCTURE(type, name)                             \
+    type name;
+
+#define BSGFX_TYPE_FIELD_NAMES(type, name)                           \
+    #name,
+
+#define BSGFX_TYPE_NAMES(type, name)                                 \
+    #type,
+
+#define BSGFX_TYPE_SIZES(type, name)                                 \
+    sizeof(type),
+
+#define BSGFX_UNMAPPED_TYPE                                          \
+    struct {                                                         \
+        BSGFX_TYPE_FIELDS(BSGFX_TYPE_STRUCTURE)                      \
+    }
+
+#define BSGFX_MAX_NUM_FOLIAGES                                       \
+    256
+
+#define BSGFX_LIGHT_VERSION                                          \
+    2
+
+#define BSGFX_MAX_NUM_PREFABS                                        \
+    512
+
+#define BSGFX_PREFAB_VERSION                                         \
+    1
+
+#define BSGFX_MAX_PRIMITIVES_COUNT                                   \
+    (512)
+
+#define BSGFX_PRIMITIVE_VERSION                                      \
+    1
+
+#define BSGFX_SPAWNER_VERSION                                        \
+    1
+
+#define BSGFX_MAX_TILES_COUNT                                        \
+    8192
+
+#define BSGFX_MAX_TILE_PATH_LENGTH                                   \
+    16
+
+#define BSGFX_TILE_VERSION                                           \
+    2
+
+#define BSGFX_LIST_ROW_DIMENSIONS                                    \
+    BS_V2(320, 6.0 * BSGFX_PIXEL_SCALE)
+
+#define BSGFX_BACKGROUND_Z_COUNT                                     \
+    3
 
 typedef enum bsgfx_Id bsgfx_Id;
 typedef bs_U32 bsgfx_ColliderFlags;
@@ -424,6 +508,9 @@ typedef bool (__stdcall* PFN_bsmod_isSelected)(enum bsgfx_TypeId type, int id);
 typedef bool (__stdcall* PFN_bs_hoveringGrid)();
 typedef void (__stdcall* PFN_bsmod_onMap)(enum bsgfx_TypeId type_id, int id);
 typedef void (__stdcall* PFN_bsmod_onCreateSubtypes)(bs_Range range);
+typedef bs_U32 bsgfx_PrimitiveFlags;
+typedef bs_U32 bsgfx_SpawnerFlags;
+typedef void (__stdcall* PFN_bsgfx_TypeMapper)(void*, void*);
 struct bsgfx_Text {
     bs_vec4 position;
     float scale;
@@ -513,30 +600,6 @@ struct bsgfx_InstanceBuffer {
     char data[64];
 };
 
-struct bsgfx_MeshInstance {
-    bs_mat4 transform;
-};
-
-struct bsgfx_BoneInstance {
-    bs_mat4 transform;
-};
-
-struct bsgfx_QuadInstance {
-    bs_mat4x3 transform;
-    bs_vec2 coords;
-    bs_vec2 offset;
-};
-
-struct bsgfx_Text {
-    bs_vec4 position;
-    float scale;
-    float max_length;
-    bs_U32 flags;
-    int select_start, select_end;
-    int material_id;
-    bs_RGBA colors[8];
-};
-
 struct bsgfx_Settings {
     bool cull_backfaces;
     float master_volume;
@@ -576,10 +639,6 @@ struct Poser {
     bool menu_open;
 };
 
-struct bsgfx_Procedures {
-    BSGFX_FOREACH_PROC(BSGFX_STRUCT_GEN) ;
-};
-
 struct bsgfx_Callbacks {
     PFN_void tick;
     PFN_void fixedTick;
@@ -590,6 +649,439 @@ struct bsgfx_Callbacks {
 
 struct bsgfx_Application {
     const char* name;
+};
+
+struct bsgfx_TypeHeader {
+    bs_U32 magic;
+    bs_U32 version;
+    int flexible_count;
+    int count;
+    int accessors[];
+};
+
+struct bsgfx_Type {
+    int version;
+    int capacity;
+    int flexible_capacity;
+    int count;
+    int flexible_count;
+    int package_id;
+    const char* plural;
+    const char* singular;
+    void (*mapper)(void*, void*);
+    int* unmapped_accessors;
+    int* mapped_accessors;
+    unsigned char* mapped;
+    unsigned char* unmapped;
+    int mapped_unit_size;
+    int unmapped_unit_size;
+    int unmapped_flexible_offset;
+    int mapped_flexible_offset;
+    int unmapped_flexible_size;
+    int mapped_flexible_size;
+};
+
+struct bsgfx_Foliage {
+    bs_GUID guid;
+    int density;
+    int textures_count;
+    struct bsgfx_FoliageTexture {
+        bs_vec4 coords;
+        bs_vec2 size;
+        int id;
+        bs_RGBA color;
+    } textures[];
+};
+
+struct bsgfx_RawFoliage {
+    bs_GUID guid;
+    int density;
+    int textures_count;
+    struct bsgfx_RawFoliageTexture {
+        bs_U64 texture_hash;
+        bs_RGBA color;
+        int reserved;
+    } textures[];
+};
+
+struct bsgfx_Light {
+    bs_vec3 position;
+    bs_vec3 direction;
+    bsgfx_LightType type;
+};
+
+struct bsgfx_RawLight {
+    bs_vec3 position;
+    bs_vec3 rotation;
+    bsgfx_LightType type;
+    int reserved_a;
+    int reserved_b;
+    int reserved_c;
+    int reserved_d;
+    int reserved_e;
+};
+
+struct bsgfx_PrefabMetadata {
+    int variety_count;
+    struct bsgfx_PrefabVariety {
+        int texture_id;
+    }*varieties;
+};
+
+struct bsgfx_Prefab {
+    bs_vec3 position;
+    bs_vec4 rotation;
+    bs_vec3 scale;
+    int mesh_id;
+    int material_id;
+    int texture_id;
+    int z_order;
+    bs_U32 flags;
+    int shadow_subtype;
+    bs_GUID guid;
+};
+
+struct bsgfx_RawPrefab {
+    bs_vec3 position;
+    bs_vec3 rotation;
+    bs_vec3 scale;
+    bs_U32 flags;
+    bs_U64 name_hash;
+    bs_U64 material_hash;
+    bs_U64 texture_hash;
+    bs_GUID guid;
+    int z_order;
+    int reserved;
+};
+
+struct bsgfx_Primitive {
+    bs_vec3 position;
+    bs_vec4 rotation;
+    bs_vec3 scale;
+    int first_tile, last_tile;
+    bs_U32 collision;
+    bsgfx_PrimitiveFlags flags;
+    bsgfx_PrimitiveType type;
+    int subtype_index;
+    bs_GUID guid;
+};
+
+struct bsgfx_RawPrimitive {
+    bs_vec3 position;
+    bs_vec3 scale;
+    bs_vec3 rotation;
+    bs_U32 collision;
+    bsgfx_PrimitiveFlags flags;
+    bsgfx_PrimitiveType type;
+    bs_GUID guid;
+};
+
+struct bsgfx_TileAxis {
+    bs_vec3 normal;
+    bs_vec3 right;
+    bs_vec3 up;
+    bs_vec3 start_sign;
+    int width_axis;
+    int height_axis;
+};
+
+struct bsgfx_Spawner {
+    bs_vec3 position;
+    bsgfx_SpawnerType spawn_type;
+    bs_U64 spawn_name;
+    bsgfx_SpawnerFlags flags;
+    float spawn_periodicity;
+    int material_id;
+    int reserved;
+};
+
+struct bsgfx_RawSpawner {
+    bs_vec3 position;
+    bsgfx_SpawnerType spawn_type;
+    bs_U64 spawn_name;
+    bsgfx_SpawnerFlags flags;
+    float spawn_periodicity;
+    bs_U64 material_name;
+};
+
+struct bsgfx_Tile {
+    bs_ivec2 coords;
+    bs_U32 axis;
+    int index;
+    int image_index;
+    bs_U32 flags;
+    int material;
+};
+
+struct bsgfx_RawTile {
+    bs_ivec2 coords;
+    bs_U32 axis;
+    bs_U32 flags;
+    bs_U64 texture_hash;
+    bs_GUID primitive;
+};
+
+struct bsgfx_TileType {
+    int id;
+};
+
+struct bsgfx_RawTileV1 {
+    bs_vec2 coords;
+    bs_U32 flags;
+    bs_U64 texture_hash;
+    bs_GUID primitive;
+};
+
+struct bsgfx_ForeachVisibleRowParams {
+    bsgfx_Widget* widget;
+    bs_vec3* position;
+    int id;
+};
+
+struct bsgfx_ButtonParams {
+    bsgfx_Menu* menu;
+    bsgfx_Widget* widget;
+    bs_vec3 widget_position;
+    bool hovering;
+};
+
+struct bsgfx_TableField {
+    const char* name;
+    int count;
+    enum  {
+        BSGFX_TABLE_FIELD_INTEGER,
+        BSGFX_TABLE_FIELD_FLOAT,
+    } type;
+};
+
+struct bsgfx_Scrollbar {
+    int* value;
+    float width;
+    float border_radius;
+    int substeps_count;
+    int padding;
+    int material;
+    int outline_material;
+    int background_material;
+    int button_icon_material;
+    int button_outline_material;
+    int button_background_material;
+};
+
+struct bsgfx_GridParams {
+    bs_vec2 start;
+    bs_vec2* position;
+    int index;
+};
+
+struct bsgfx_Widget {
+    int indent;
+    int id;
+    int material_id;
+    const char* hint;
+    bsgfx_WidgetType type;
+    bool disabled;
+    bsgfx_WidgetAdvanceType advance_flags;
+    void* params;
+    bs_vec3 offset;
+    float align_height;
+    bs_Font* font;
+    union {
+        struct {
+            char* value;
+            void (*on_hover)(struct bsgfx_Widget*);
+        } string;
+        struct {
+            bsgfx_InputType type;
+            bool active;
+            bool new_line_on_enter;
+            const char* placeholder_text;
+            int placeholder_text_material_id;
+            int outline_material_id;
+            int background_outline_material_id;
+            int background_shadow_material_id;
+            bs_vec2 dimensions;
+            bs_U64 hash;
+            int* select_position;
+            int* select_size;
+            union {
+                double* as_double;
+                float* as_float;
+                long long* as_long;
+                unsigned long long* as_ulong;
+                int* as_int;
+                int* as_uint;
+                char* as_char;
+                unsigned char* as_uchar;
+                bs_String** as_string;
+                void* as_void;
+            };
+        } input;
+        struct {
+            bool always_active;
+            int selected;
+            int count;
+            bs_vec2 size;
+            bs_vec2 total_size;
+            float padding;
+            bool (*action)(bsgfx_Widget*, bsgfx_GridParams);
+            bsgfx_Scrollbar scrollbar;
+        } grid;
+        struct {
+            char* path;
+        } url;
+        struct {
+            int material;
+            int selected_material;
+            bs_vec2 size;
+            bool (*tick)(bsgfx_ButtonParams);
+            struct {
+                int* active_index;
+                int this_index;
+            } active_override;
+            const char* name;
+            const char* hint;
+            enum  {
+                BSGFX_BUTTON_ALIGN_CENTER,
+                BSGFX_BUTTON_ALIGN_LEFT,
+            } alignment;
+        } button;
+        struct {
+            int* value;
+            int min, max;
+            void (*on_change)(struct bsgfx_Widget*);
+        } range;
+        struct {
+            float* value;
+            float min, max;
+            float width;
+            bool integer;
+        } slider;
+        struct {
+            enum  {
+                BSGFX_ICON_ATLAS,
+                BSGFX_ICON_TILE,
+                BSGFX_ICON_MATERIAL,
+                BSGFX_ICON_64,
+                BSGFX_ICON_256,
+                BSGFX_ICON_512,
+            } type;
+            bs_vec2 scale;
+            const char* name;
+            const char* background_name;
+            const char* background_selected_name;
+            int frame;
+            void (*hover)(struct bsgfx_Widget*);
+            int material_id;
+            float border_radius;
+            int outline_material_id;
+            bs_Atlas* atlas;
+            int atlas_subtype;
+            bool flipped;
+            bool mirrored;
+        } icon;
+        struct {
+            bs_vec4* hsva;
+            bs_vec2 dimensions;
+            float hue_width;
+            float border_radius;
+            int padding;
+            int material_id;
+            int background_material_id;
+            int shadow_material_id;
+            int outline_material_id;
+            void (*on_change_color)(struct bsgfx_Widget*, bs_RGBA);
+        } color;
+        struct {
+            int max;
+            int vk_offset;
+            int count;
+            int* scroll;
+            char* (*foreach_visible_row)(bsgfx_ForeachVisibleRowParams params);
+        } list;
+        struct {
+            const char* name;
+            const char* mesh_name;
+            void (*instance)(const bs_mat4* transform);
+        } model;
+        struct {
+            const bs_List* fields;
+            unsigned char* data;
+            int count, unit_size;
+            int max_count;
+        } table;
+        struct {
+            bs_vec2 size;
+            float border_radius;
+            int subtype;
+            int material_id;
+            int outline_material_id;
+            int shadow_material_id;
+        } background;
+    };
+};
+
+struct bsgfx_AtlasCache {
+    const char* name;
+    int id;
+    bs_vec4 coords;
+    bs_vec2 size;
+};
+
+struct bsgfx_MenuTab {
+    const char* name;
+    bs_U64 hash;
+    bsgfx_AtlasCache* icon_cache;
+    int icon_material_id;
+    int material_id;
+    int outline_material_id;
+    int shadow_material_id;
+};
+
+struct bsgfx_MenuTabBar {
+    bsgfx_MenuTab* tabs;
+    int* active_tab;
+    int tabs_count;
+    float height;
+    int material_id;
+    int outline_material_id;
+    int shadow_material_id;
+};
+
+struct bsgfx_Menu {
+    bs_vec3 position;
+    bsgfx_Widget* widgets;
+    int widgets_count;
+    float spacing;
+    bool blocked;
+    int background_material_id_0;
+    int background_material_id_1;
+    struct {
+        bs_vec2 dimensions;
+        int border_id;
+        bool auto_scale_width;
+    } untextured;
+    bs_Font* font;
+    float border_radius;
+    int shadow_material_id;
+    int outline_material_id;
+    int text_subtype;
+};
+
+struct bsgfx_TitleBar {
+    const char* name;
+    bs_Font* font;
+    int material_id;
+    int button_unavailable_material_id;
+    int button_material_id;
+    int button_hovering_material_id;
+    int button_icon_material_id;
+    int button_shadow_material_id;
+    int button_selected_shadow_material_id;
+    void (*on_close)();
+    void (*on_maximize)();
+    void (*on_minimize)();
+    float border_radius;
 };
 
 enum bsgfx_Subtype {
@@ -772,6 +1264,103 @@ enum bsgfx_Pipe {
     BSGFX_RENDER_LINES = (1 << 5),
     BSGFX_RENDER_TILES = (1 << 6),
     BSGFX_ALL_PIPES = 0xFFFFFFFF,
+};
+
+enum bsgfx_TypeId {
+    BSGFX_TYPE_UNDEFINED = -1,
+    BSGFX_TYPE_PRIMITIVE,
+    BSGFX_TYPE_TILE,
+    BSGFX_TYPE_PREFAB,
+    BSGFX_TYPE_FOLIAGE,
+    BSGFX_TYPE_SPAWNER,
+    BSGFX_TYPE_LIGHT,
+    BSGFX_TYPE_COUNT,
+};
+
+enum bsgfx_LightType {
+    BSGFX_LIGHT_TYPE_POINT = 1,
+    BSGFX_LIGHT_TYPE_SUN = 2,
+};
+
+enum bsgfx_PrefabExtraSubtype {
+    BSGFX_PREFAB_SUBTYPE_PRIMITIVE,
+};
+
+enum bsgfx_PrefabSubtype {
+    BSGFX_PREFAB_SUBTYPE_MESH,
+    BSGFX_PREFAB_SUBTYPE_MESH_POLYGON_OUTLINE,
+    BSGFX_PREFAB_SUBTYPE_MESH_TEXTURED,
+    BSGFX_PREFAB_SUBTYPE_MESH_HI_RES_SCREEN,
+    BSGFX_PREFAB_SUBTYPE_MESH_LO_RES_SCREEN,
+    BSGFX_PREFAB_SUBTYPE_MESH_VOLUME,
+    BSGFX_PREFAB_SUBTYPE_COUNT,
+};
+
+enum bsgfx_PrefabFlag {
+    BSGFX_PREFAB_HAS_COLLIDER = 1 << 0,
+    BSGFX_PREFAB_HIDDEN = 1 << 1,
+    BSGFX_PREFAB_TEXTURED_SHADOWS = 1 << 2,
+    BSGFX_PREFAB_NO_DEPTH = 1 << 3,
+    BSGFX_PREFAB_WRITE_POSITION = 1 << 4,
+};
+
+enum bsgfx_PrimitiveFlag {
+    BSGFX_PRIMITIVE_HIDDEN = 1 << 0,
+};
+
+enum bsgfx_PrimitiveType {
+    BSGFX_PRIMITIVE_TYPE_BOX,
+    BSGFX_PRIMITIVE_TYPE_SPHERE,
+    BSGFX_PRIMITIVE_TYPE_COUNT,
+};
+
+enum bsgfx_SpawnerType {
+    BSGFX_SPAWNER_ITEM,
+    BSGFX_SPAWNER_ENTITY,
+};
+
+enum bsgfx_SpawnerFlag {
+    BSGFX_SPAWN_ON_SCENE_LOAD = 1 << 0,
+};
+
+enum bsgfx_WidgetType {
+    BSGFX_WIDGET_UNDEFINED,
+    BSGFX_WIDGET_STRING,
+    BSGFX_WIDGET_BUTTON,
+    BSGFX_WIDGET_INPUT,
+    BSGFX_WIDGET_GRID,
+    BSGFX_WIDGET_URL,
+    BSGFX_WIDGET_RANGE,
+    BSGFX_WIDGET_ICON,
+    BSGFX_WIDGET_LIST,
+    BSGFX_WIDGET_COLOR,
+    BSGFX_WIDGET_SLIDER,
+    BSGFX_WIDGET_MODEL,
+    BSGFX_WIDGET_TABLE,
+    BSGFX_WIDGET_BACKGROUND,
+};
+
+enum bsgfx_InputType {
+    BSGFX_INPUT_DOUBLE,
+    BSGFX_INPUT_FLOAT,
+    BSGFX_INPUT_ULONG,
+    BSGFX_INPUT_LONG,
+    BSGFX_INPUT_UINT,
+    BSGFX_INPUT_INT,
+    BSGFX_INPUT_CHAR,
+    BSGFX_INPUT_UCHAR,
+    BSGFX_INPUT_STRING,
+};
+
+enum bsgfx_WidgetAdvanceType {
+    BSGFX_WIDGET_ADVANCE_DOWN = (1 << 0),
+    BSGFX_WIDGET_ADVANCE_RIGHT = (1 << 1),
+    BSGFX_WIDGET_ADVANCE_RESET_X = (1 << 2),
+    BSGFX_WIDGET_ADVANCE_RESET_Y = (1 << 3),
+    BSGFX_WIDGET_ADVANCE_APPLY_OFFSET_X = (1 << 4),
+    BSGFX_WIDGET_ADVANCE_APPLY_OFFSET_Y = (1 << 5),
+    BSGFX_WIDGET_ADVANCE_APPLY_OFFSET_Z = (1 << 6),
+    BSGFX_WIDGET_ADVANCE_APPLY_OFFSET = (BSGFX_WIDGET_ADVANCE_APPLY_OFFSET_X | BSGFX_WIDGET_ADVANCE_APPLY_OFFSET_Y | BSGFX_WIDGET_ADVANCE_APPLY_OFFSET_Z),
 };
 
  /**
@@ -1594,6 +2183,542 @@ bsgfx_setCamera(
     const bs_mat4* proj,
     const bs_mat4* view);
 
+ /**
+  @param id
+  @param package_id
+  @param version
+  @param plural
+  @param singular
+  @param unmapped_size
+  @param mapped_size
+  @param mapper
+  @param unmapped_flexible_offset
+  @param mapped_flexible_offset
+  @param unmapped_flexible_size
+  @param mapped_flexible_size
+  @return void
+  */
+BSGFXAPI void
+bsgfx_type(
+    bsgfx_TypeId id,
+    int package_id,
+    int version,
+    const char* plural,
+    const char* singular,
+    size_t unmapped_size,
+    size_t mapped_size,
+    PFN_bsgfx_TypeMapper mapper,
+    size_t unmapped_flexible_offset,
+    size_t mapped_flexible_offset,
+    size_t unmapped_flexible_size,
+    size_t mapped_flexible_size);
+
+ /**
+  @param type
+  @param id
+  @return void
+  */
+BSGFXAPI void
+bsgfx_map(
+    bsgfx_TypeId type,
+    int id);
+
+ /**
+  @param type_id
+  @return void
+  */
+BSGFXAPI void
+bsgfx_remap(
+    bsgfx_TypeId type_id);
+
+ /**
+  @param type_id
+  @return int
+  */
+BSGFXAPI int
+bsgfx_count(
+    bsgfx_TypeId type_id);
+
+ /**
+  @param type_id
+  @param id
+  @return void*
+  */
+BSGFXAPI void*
+bsgfx_get(
+    bsgfx_TypeId type_id,
+    bs_U32 id);
+
+ /**
+  @param type_id
+  @return bsgfx_Type*
+  */
+BSGFXAPI bsgfx_Type*
+bsgfx_getType(
+    bsgfx_TypeId type_id);
+
+ /**
+  @param type_id
+  @param p
+  @return int
+  */
+BSGFXAPI int
+bsgfx_id(
+    bsgfx_TypeId type_id,
+    unsigned char* p);
+
+ /**
+  @param type_id
+  @param p
+  @return int
+  */
+BSGFXAPI int
+bsgfx_rawId(
+    bsgfx_TypeId type_id,
+    unsigned char* p);
+
+ /**
+  @param type_id
+  @param id
+  @return void*
+  */
+BSGFXAPI void*
+bsgfx_getRaw(
+    bsgfx_TypeId type_id,
+    int id);
+
+ /**
+  @param type_id
+  @param id
+  @return int
+  */
+BSGFXAPI int
+bsgfx_flexibleCount(
+    bsgfx_TypeId type_id,
+    int id);
+
+ /**
+  @param id
+  @param data
+  @return void*
+  */
+BSGFXAPI void*
+bsmod_add(
+    bsgfx_TypeId id,
+    void* data);
+
+ /**
+  @param plural
+  @return bsgfx_TypeId
+  */
+BSGFXAPI bsgfx_TypeId
+bsmod_queryType(
+    const char* plural);
+
+ /**
+  @param package_id
+  @return void
+  */
+BSGFXAPI void
+bsgfx_loadFoliages(
+    int package_id);
+
+ /**
+  @param guid
+  @return int
+  */
+BSGFXAPI int
+bsgfx_queryFoliage(
+    bs_GUID* guid);
+
+ /**
+  @param package_id
+  @return void
+  */
+BSGFXAPI void
+bsgfx_loadLights(
+    int package_id);
+
+ /**
+  @return void
+  */
+BSGFXAPI void
+bsgfx_computePrefabShadows();
+
+ /**
+  @return void
+  */
+BSGFXAPI void
+bsgfx_renderPrefabShadowVolumes();
+
+ /**
+  @param mesh_id
+  @return bsgfx_PrefabMetadata*
+  */
+BSGFXAPI bsgfx_PrefabMetadata*
+bsgfx_prefabMetadata(
+    int mesh_id);
+
+ /**
+  @return void
+  */
+BSGFXAPI void
+bsgfx_savePrefabs();
+
+ /**
+  @param package_id
+  @param model
+  @return void
+  */
+BSGFXAPI void
+bsgfx_loadPrefabs(
+    int package_id,
+    bs_Model* model);
+
+ /**
+  @param prefab
+  @return bs_mat4
+  */
+BSGFXAPI bs_mat4
+bsgfx_prefabTransform(
+    bsgfx_Prefab* prefab);
+
+ /**
+  @param mesh_id
+  @param transform
+  @param prefab_subtype
+  @param material_id
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instancePrefabModel(
+    int mesh_id,
+    bs_mat4 transform,
+    bsgfx_PrefabSubtype prefab_subtype,
+    int material_id);
+
+ /**
+  @param id
+  @param prefab_subtype
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instancePrefab(
+    int id,
+    bsgfx_PrefabSubtype prefab_subtype);
+
+ /**
+  @return void
+  */
+BSGFXAPI void
+bsgfx_instancePrefabs();
+
+ /**
+  @param pipeline
+  @param key_start
+  @return void
+  */
+BSGFXAPI void
+bsgfx_renderPrefabs(
+    bs_Pipeline* pipeline,
+    int key_start);
+
+ /**
+  @return void
+  */
+BSGFXAPI void
+bsgfx_renderScenePrefabs();
+
+ /**
+  @param pipeline
+  @param key_start
+  @return void
+  */
+BSGFXAPI void
+bsgfx_renderPrefabPrimitives(
+    bs_Pipeline* pipeline,
+    int key_start);
+
+ /**
+  @param coords
+  @return bsgfx_RawPrefab*
+  */
+BSGFXAPI bsgfx_RawPrefab*
+bsgfx_tilePrefab(
+    bs_vec2 coords);
+
+ /**
+  @param guid
+  @return int
+  */
+BSGFXAPI int
+bsgfx_queryPrefabId(
+    const bs_GUID* guid);
+
+ /**
+  @param mesh_name_hash
+  @param position
+  @param radius
+  @return int
+  */
+BSGFXAPI int
+bsgfx_closestPrefab(
+    bs_U64 mesh_name_hash,
+    bs_vec3 position,
+    float radius);
+
+ /**
+  @param primitive
+  @return bs_vec3
+  */
+BSGFXAPI bs_vec3
+bsgfx_primitivePosition(
+    bsgfx_RawPrimitive* primitive);
+
+ /**
+  @param package_id
+  @return void
+  */
+BSGFXAPI void
+bsgfx_loadPrimitives(
+    int package_id);
+
+ /**
+  @param type
+  @return int
+  */
+BSGFXAPI int
+bsgfx_primitiveSubtype(
+    bsgfx_PrimitiveType type);
+
+ /**
+  @param subtype
+  @param transform
+  @param flags
+  @param id
+  @param material
+  @return int
+  */
+BSGFXAPI int
+bsgfx_instancePrimitive(
+    int subtype,
+    bs_mat4 transform,
+    bs_U32 flags,
+    int id,
+    int material);
+
+ /**
+  @param tile_id
+  @return int
+  */
+BSGFXAPI int
+bsgfx_queryTilePrimitive(
+    int tile_id);
+
+ /**
+  @return void
+  */
+BSGFXAPI void
+bsgfx_instancePrimitives();
+
+ /**
+  @param camera
+  @return void
+  */
+BSGFXAPI void
+bsgfx_renderPrimitives(
+    bs_mat4 camera);
+
+ /**
+  @param guid
+  @return int
+  */
+BSGFXAPI int
+bsgfx_queryPrimitive(
+    bs_GUID* guid);
+
+ /**
+  @param package_id
+  @return void
+  */
+BSGFXAPI void
+bsgfx_loadSpawners(
+    int package_id);
+
+ /**
+  @param spawner
+  @return void
+  */
+BSGFXAPI void
+bsgfx_spawn(
+    bsgfx_Spawner* spawner);
+
+ /**
+  @return void
+  */
+BSGFXAPI void
+bsgfx_instanceSpawners();
+
+ /**
+  @param package_id
+  @param force_destroy
+  @return void
+  */
+BSGFXAPI void
+bsgfx_loadTiles(
+    int package_id,
+    bool force_destroy);
+
+ /**
+  @return void
+  */
+BSGFXAPI void
+bsgfx_instanceTiles();
+
+ /**
+  @param batch
+  @param quad
+  @param normal
+  @param index
+  @param image_index
+  @return bs_Range
+  */
+BSGFXAPI bs_Range
+bsgfx_pushTile(
+    bs_Batch* batch,
+    bs_Quad quad,
+    bs_vec3 normal,
+    bs_U32 index,
+    int image_index);
+
+ /**
+  @param batch
+  @param offset
+  @param quad
+  @param normal
+  @param index
+  @param image_index
+  @return void
+  */
+BSGFXAPI void
+bsgfx_batchTile(
+    bs_Batch* batch,
+    bs_U32* offset,
+    bs_Quad quad,
+    bs_vec3 normal,
+    bs_U32 index,
+    int image_index);
+
+ /**
+  @return const bsgfx_TileAxis*
+  */
+BSGFXAPI const bsgfx_TileAxis*
+bsgfx_tileAxes();
+
+ /**
+  @param primitive
+  @param axis
+  @param x
+  @param y
+  @return bs_vec3
+  */
+BSGFXAPI bs_vec3
+bsgfx_tilePosition(
+    bsgfx_Primitive* primitive,
+    int axis,
+    int x,
+    int y);
+
+ /**
+  @param axis
+  @return bs_vec4
+  */
+BSGFXAPI bs_vec4
+bsgfx_tileRotation(
+    int axis);
+
+ /**
+  @param axis
+  @return bs_vec3
+  */
+BSGFXAPI bs_vec3
+bsgfx_tileEulerRotation(
+    int axis);
+
+ /**
+  @param batch
+  @param primitive
+  @param axis
+  @param x
+  @param y
+  @param index
+  @param image_index
+  @return bs_U32
+  */
+BSGFXAPI bs_U32
+bsgfx_pushTileAt(
+    bs_Batch* batch,
+    bsgfx_Primitive* primitive,
+    int axis,
+    int x,
+    int y,
+    bs_U32 index,
+    int image_index);
+
+ /**
+  @param primitive
+  @param axis
+  @param index
+  @return bs_ivec2
+  */
+BSGFXAPI bs_ivec2
+bsgfx_tileCoordinate(
+    bsgfx_Primitive* primitive,
+    int axis,
+    int index);
+
+ /**
+  @param primitive
+  @param index
+  @return int
+  */
+BSGFXAPI int
+bsgfx_tileAxis(
+    bsgfx_Primitive* primitive,
+    int index);
+
+ /**
+  @param primitive
+  @param axis
+  @param x
+  @param y
+  @return bs_U32
+  */
+BSGFXAPI bs_U32
+bsgfx_tileIndex(
+    bsgfx_Primitive* primitive,
+    int axis,
+    int x,
+    int y);
+
+ /**
+  @param menu
+  @param title_bar
+  @param tab_bar
+  @return bool
+  */
+BSGFXAPI bool
+bsgfx_instanceWidgets(
+    bsgfx_Menu menu,
+    bsgfx_TitleBar* title_bar,
+    bsgfx_MenuTabBar* tab_bar);
+
+ /**
+  @return void
+  */
+BSGFXAPI void
+bsgfx_renderColorPickers();
+
 BSGFXAPI extern bsgfx_Scene _bsgfx_current_scene_;
 BSGFXAPI extern int _bsgfx_images_;
 BSGFXAPI extern int _bsgfx_samplers_;
@@ -1606,18 +2731,19 @@ BSGFXAPI extern int _bsgfx_atlases_;
 BSGFXAPI extern int _bsgfx_fonts_;
 BSGFXAPI extern bsgfx_Type _bsgfx_types_[BSGFX_TYPE_COUNT];
 BSGFXAPI extern int _bsgfx_subtypes_[BSGFX_SUBTYPE_COUNT];
-BSGFXAPI extern int _bsgfx_material_categories_[BSGFX_MATERIAL_CATEGORY_COUNT];
+BSGFXAPI extern const char* _bsgfx_material_categories_[BSGFX_MATERIAL_CATEGORY_COUNT];
 BSGFXAPI extern bs_List _bsgfx_materials_;
 BSGFXAPI extern bs_mat4* _bsgfx_shader_joints_;
 BSGFXAPI extern bs_U32 _bsgfx_num_shader_joints_;
 BSGFXAPI extern bsgfx_Settings _bsgfx_settings_;
 BSGFXAPI extern struct Poser* _poser_;
-BSGFXAPI extern bsgfx_Procedures _bsgfx_procs_;
 BSGFXAPI extern bsgfx_Application _bsgfx_app_;
 BSGFXAPI extern bs_Model* _bsgfx_prefab_model_;
 BSGFXAPI extern bsgfx_Callbacks _bsgfx_callbacks_;
 BSGFXAPI extern HINSTANCE _bsgfx_bsmod_dll_;
 BSGFXAPI extern bs_String* _bsgfx_variadic_;
 BSGFXAPI extern int _bsgfx_package_;
+BSGFXAPI extern bsgfx_PrefabMetadata* _bsgfx_prefabs_;
+BSGFXAPI extern int _bsgfx_prefabs_count_;
 
 #endif

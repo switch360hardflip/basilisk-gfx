@@ -1,3 +1,28 @@
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
 #include <basilisk-gfx.h>
 
 #include <windows.h>
@@ -5,17 +30,6 @@
 #include <math.h>
 #include <assert.h>
 #include <inttypes.h>
-
-#include <spawners/item/bsgfx_item.h>
-
-#include <types/bsgfx_type.h>
-#include <types/prefab/bsgfx_prefab.h>
-#include <types/foliage/bsgfx_foliage.h>
-#include <types/spawner/bsgfx_spawner.h>
-#include <types/primitive/bsgfx_primitive.h>
-#include <types/tile/bsgfx_tile.h>
-
-#include <UI/bsgfx_ui.h>
 
 /*
 #define VULKAN_H_
@@ -264,7 +278,7 @@ void bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc, char* ar
         bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), _bsgfx_bsmod_dll, &_bsgfx_procs_);
     }
 
-    bs_window(width, height, name, NULL);
+    bs_window(width, height, name);
 
     /*
     GFSDK_Aftermath_Result result = GFSDK_Aftermath_EnableGpuCrashDumps(

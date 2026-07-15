@@ -30,12 +30,13 @@
   the code is regenerated.
   */
         
-#include <stdarg.h>
-#include <string.h>
-#include <stdbool.h>
 
 #ifndef BASILISK_CORE_GEN_H
 #define BASILISK_CORE_GEN_H
+
+#include <stdarg.h>
+#include <string.h>
+#include <stdbool.h>
 
 typedef union bs_vec2 bs_vec2;
 typedef union bs_vec3 bs_vec3;

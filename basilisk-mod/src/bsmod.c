@@ -190,7 +190,7 @@ void bsmod_onTick() {
         bs_Aabb aabb = { .min = bs_v3V1(-1), .max = bs_v3V1(1) };
         bsgfx_obbInstance(&aabb, BS_WHITE, &transform);
 
-        bsmod_instanceAxisFace(primitive, bsmod.selected_tile_axis, bs_rgba(130, 245, 245, 255), &BS_MAT4_IDENTITY);
+        bsmod_instanceAxisFace(primitive, bsmod.selected_tile_axis, BS_RGBA(130, 245, 245, 255), &BS_MAT4_IDENTITY);
 
         last_selected_count = bsmod.selected_tiles.count;
         last_selected_type = bsmod.selected_type;
