@@ -128,7 +128,12 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 <xsl:text>    int _length = bs_formatStringLength(format, args);&#xA;</xsl:text>
                 <xsl:text>    char* _formatted = bs_alloca(_length + 1);&#xA;</xsl:text>
                 <xsl:text>    vsnprintf(_formatted, _length + 1, format, args);&#xA;</xsl:text>
-                <xsl:text>    return </xsl:text>
+
+				<xsl:text>    </xsl:text>
+				<xsl:if test="not(return = 'void')">
+					<xsl:text>return </xsl:text>
+				</xsl:if>
+				
                 <xsl:value-of select="@name"/>
                 <xsl:text>(</xsl:text>
                 <xsl:for-each select="param">
@@ -263,7 +268,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 			<return>float</return>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>a</name></param>
 			<param><type>const bs_vec<xsl:value-of select="n"/>*</type><name>b</name></param>
-			<body>    glm_vec<xsl:value-of select="n"/>_dot(a->a, b->a);</body>
+			<body>    return glm_vec<xsl:value-of select="n"/>_dot(a->a, b->a);</body>
         </function>
 		<function name="bs_v{n}Distance" comment="Distance between two {n}D vectors">
 			<return>float</return>

@@ -111,7 +111,7 @@ typedef void(__stdcall* PFN_bsgfx_renderShadowVolumes)();
 typedef void(__stdcall* PFN_bsgfx_computeShadowVolumes)();
 typedef bs_Model*(__stdcall* PFN_bsgfx_prefabModel)();
 typedef int(__stdcall* PFN_bsgfx_package)();
-typedef void(__stdcall* PFN_bsgfx_ini)(const char* name, bs_U32 width, bs_U32 height, int argc, char* argv);
+typedef void(__stdcall* PFN_bsgfx_ini)(const char* name, bs_U32 width, bs_U32 height, int argc, char* argv[]);
 typedef HINSTANCE(__stdcall* PFN_bsgfx_bsmodDll)();
 typedef void(__stdcall* PFN_bsgfx_checkGFSDK)(bs_U32 result);
 typedef void(__stdcall* PFN_bsgfx_logGFSDK)(bs_U32 result);

@@ -34,8 +34,7 @@
 #define BS_VALIDATION_H
 
 #include <basilisk-core.gen.h>
-#include <bs_internal.gen.h>
-#include <windows.h>
+#include <bs_internal.h>
 
 static inline bs_FunctionTable _val_bs_getFunctions() {
     bs_FunctionTable functions;

@@ -169,7 +169,7 @@ static void bs_swapchain(bs_Window* window) {
         .clipped = VK_TRUE,
         .preTransform = capabilities.currentTransform,
         .presentMode = window->present_mode,
-        .imageFormat = window->surface_format.format,
+        .imageFormat = (VkFormat)window->surface_format.format,
         .imageColorSpace = window->surface_format.color_space,
     };
 
@@ -201,7 +201,7 @@ static void bs_swapchain(bs_Window* window) {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = window->swapchain_image->image->_[i].vk_image,
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = window->surface_format.format,
+            .format = (VkFormat)window->surface_format.format,
             .subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
             .subresourceRange.levelCount = 1,
             .subresourceRange.layerCount = 1,
@@ -352,7 +352,7 @@ BSAPI void _bs_pause() {
 BSAPI void _val_bs_advance() {
     bs_Window* window = _bs_scope_.window;
     BS_VALIDATE(window->paused == true,,);
-    return bs_advance(window);
+    bs_advance(window);
 }
 
 BSAPI void _bs_advance() {
@@ -795,4 +795,6 @@ BSAPI bs_Result _bs_window(bs_Object* object, bs_U32 width, bs_U32 height, const
      UpdateWindow(window->hwnd);
 
 	 bs_setCursor(BS_CURSOR_DEFAULT);
+
+     return BS_RESULT_OK;
  }

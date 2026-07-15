@@ -87,21 +87,21 @@ BSAPI void _bs_eulToQ(const bs_vec3* eul, bs_vec4* out) {
 
 BSAPI void _bs_qToEul(const bs_vec4* qp, bs_vec3* out) {
     bs_vec4 q = *qp;
-    bs_vec3 eul;
 
     float sinr_cosp = 2.0f * (q.w * q.x + q.y * q.z);
     float cosr_cosp = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
-    eul.x = atan2(sinr_cosp, cosr_cosp);
+    out->x = atan2(sinr_cosp, cosr_cosp);
 
     float sinp = 2.0f * (q.w * q.y - q.z * q.x);
-    if (fabs(sinp) >= 1.0f) eul.y = copysign(BS_PI / 2.0f, sinp);
-    else eul.y = asin(sinp);
+
+    if (fabs(sinp) >= 1.0f) 
+        out->y = copysign(BS_PI / 2.0f, sinp);
+    else 
+        out->y = asin(sinp);
 
     float siny_cosp = 2.0f * (q.w * q.z + q.x * q.y);
     float cosy_cosp = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
-    eul.z = atan2(siny_cosp, cosy_cosp);
-
-    return eul;
+    out->z = atan2(siny_cosp, cosy_cosp);
 }
 
 bs_vec4 bs_qAxisAngle(bs_vec3 axis, float radians) {
@@ -461,7 +461,7 @@ BSAPI bool _bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point) {
   Sphere vs Box
   */
 
-static void bsi_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_mat4* transform, bs_vec3* closest_point, float* distance) {
+static bool bsi_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_mat4* transform, bs_vec3* closest_point) {
     *transform = BS_MAT4_IDENTITY;
 
     bs_m4Translate(transform, position, transform);
@@ -499,18 +499,18 @@ static void bsi_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* 
     bs_vec3 diff;
     bs_v3Sub(closest_point, &relative_center, &diff);
 
-    *distance = bs_v3MagnitudeSqrd(&diff);
-}
+    float distance = bs_v3MagnitudeSqrd(&diff);
 
+    return distance <= radius * radius;
+}
 
 BSAPI bool _bs_sphereVsObbTest(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale) {
     bs_mat4 transform;
     bs_vec3 closest_point;
     float distance;
 
-    bsi_sphereVsObb(center, radius, position, rotation, rotation, &transform, &closest_point, &distance);
-
-    if (distance > radius * radius)
+    bool inside = bsi_sphereVsObb(center, radius, position, rotation, rotation, &transform, &closest_point);
+    if (!inside)
         return false;
 
     return true;
@@ -521,11 +521,9 @@ BSAPI bool _bs_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* p
 
     bs_mat4 transform;
     bs_vec3 closest_point;
-    float distance;
 
-    bsi_sphereVsObb(center, radius, position, rotation, rotation, &transform, &closest_point, &distance);
-
-    if (distance > radius * radius)
+    bool inside = bsi_sphereVsObb(center, radius, position, rotation, rotation, &transform, &closest_point);
+    if (!inside)
         return false;
 
     bs_m4MulV3(&transform, &closest_point, &result->point);

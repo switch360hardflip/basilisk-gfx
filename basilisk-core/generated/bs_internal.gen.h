@@ -31,7 +31,7 @@
   */
         
 #include <basilisk-core.gen.h>
-#include <windows.h>
+#include <wtypes.h>
 #include <vulkan.h>
 
 #ifndef BS_INTERNAL_GEN_H
@@ -156,7 +156,7 @@ typedef int(__stdcall* PFN_bs_batchSize)(bs_Batch* batch);
 typedef void(__stdcall* PFN_bs_render)(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offset, bs_U32 vertex_count, bs_U32 first_instance, bs_U32 num_instances);
 typedef bs_Result(__stdcall* PFN_bs_barrier)(bs_U32 dependency_flags, bs_U32 src, bs_U32 dst, bs_U32 src_access, bs_U32 dst_access);
 typedef bs_Result(__stdcall* PFN_bs_rayTrace)(bs_RayTracer* ray_tracer, bs_Pipeline* pipeline, bs_U32 width, bs_U32 height, bs_U32 depth);
-typedef bs_Result(__stdcall* PFN_bs_rayTracer)(bs_Object* object, bs_U32 flags, bs_Shader* shaders, int shaders_count);
+typedef bs_Result(__stdcall* PFN_bs_rayTracer)(bs_Object* object, bs_U32 flags, bs_Shader* shaders[], int shaders_count);
 typedef bs_Result(__stdcall* PFN_bs_accelerateAabb)(bs_RayTracer* ray_tracer, bs_Aabb aabb);
 typedef bs_Result(__stdcall* PFN_bs_accelerateBatch)(bs_RayTracer* ray_tracer, bs_Batch* batch);
 typedef bs_Result(__stdcall* PFN_bs_build)(bs_RayTracer* ray_tracer);
@@ -188,7 +188,7 @@ typedef bs_Result(__stdcall* PFN_bs_ensureBatchSize)(bs_Batch* batch, bs_U32 num
 typedef void(__stdcall* PFN_bs_batchVertex)(bs_VertexDeclaration* declaration, const unsigned char* src);
 typedef bs_Range(__stdcall* PFN_bs_batchRange)(bs_Batch* batch, bs_U32 offset);
 typedef void(__stdcall* PFN_bs_pushIndex)(bs_Batch* batch, int index);
-typedef void(__stdcall* PFN_bs_pushIndices)(bs_Batch* batch, int indices, bs_U32 indices_count);
+typedef void(__stdcall* PFN_bs_pushIndices)(bs_Batch* batch, int indices[], bs_U32 indices_count);
 typedef bs_Range(__stdcall* PFN_bs_batchCube)(bs_Batch* batch, bs_U32* offset, bs_RGBA color);
 typedef bs_Range(__stdcall* PFN_bs_pushCube)(bs_Batch* batch, bs_RGBA color);
 typedef bs_Range(__stdcall* PFN_bs_batchCone)(bs_Batch* batch, bs_U32* offset, int segments, float height, float radius, bs_RGBA color);
@@ -226,7 +226,7 @@ typedef void(__stdcall* PFN_bs_input)(bs_Renderer* renderer, bs_Input input);
 typedef void(__stdcall* PFN_bs_dependency)(bs_Renderer* renderer, bs_U32 src_subpass, bs_U32 dst_subpass, bs_DependencyFlags flags, bs_PipelineStage src_stage, bs_PipelineStage dst_stage, bs_AccessMask src_access, bs_AccessMask dst_access);
 typedef void(__stdcall* PFN_bs_renderPass)(bs_Renderer* renderer);
 typedef bs_Result(__stdcall* PFN_bs_framebuffer)(bs_Renderer* renderer, bs_ivec2 resolution);
-typedef void(__stdcall* PFN_bs_runPass)(bs_Renderer* renderer, bs_Callback callbacks, int callbacks_count);
+typedef void(__stdcall* PFN_bs_runPass)(bs_Renderer* renderer, bs_Callback callbacks[], int callbacks_count);
 typedef bool(__stdcall* PFN_bs_rendererIsDynamic)(bs_Renderer* renderer);
 typedef void(__stdcall* PFN_bs_beginRender)(bs_Renderer* renderer);
 typedef void(__stdcall* PFN_bs_endRender)(bs_Renderer* renderer);
@@ -234,7 +234,7 @@ typedef void(__stdcall* PFN_bs_destroyRenderer)(bs_Renderer* renderer);
 typedef void(__stdcall* PFN_bs_resizeRenderer)(bs_Renderer* renderer, bs_ivec2 resolution);
 typedef bs_Queue*(__stdcall* PFN_bs_singleTimesQueue)();
 typedef bs_I32(__stdcall* PFN_bs_queueFamily)(bs_QueueBits flags);
-typedef bs_Result(__stdcall* PFN_bs_present)(bs_Queue* queue, bs_Queue* wait_queues, int wait_queues_count);
+typedef bs_Result(__stdcall* PFN_bs_present)(bs_Queue* queue, bs_Queue* wait_queues[], int wait_queues_count);
 typedef bs_Result(__stdcall* PFN_bs_acquire)();
 typedef int(__stdcall* PFN_bs_queueSwap)(bs_Queue* queue);
 typedef void(__stdcall* PFN_bs_awaitQueue)(bs_Queue* queue, bs_PipelineStage stage);
@@ -293,7 +293,7 @@ typedef int(__stdcall* PFN_bs_queryAtlasHash)(bs_Atlas* atlas, bs_U64 hash);
 typedef int(__stdcall* PFN_bs_queryAtlas)(bs_Atlas* atlas, const char* name);
 typedef bs_Result(__stdcall* PFN_bs_destroyAtlas)(bs_Atlas* atlas);
 typedef bs_Result(__stdcall* PFN_bs_loadAtlasMemory)(bs_Object* object, int package_id, char* resource_name, char* data, bs_U32 flags);
-typedef void(__stdcall* PFN_bs_parseArgs)(int argc, char* argv);
+typedef void(__stdcall* PFN_bs_parseArgs)(int argc, char* argv[]);
 typedef bs_Args*(__stdcall* PFN_bs_arguments)();
 typedef void(__stdcall* PFN_bs_ini)();
 typedef void(__stdcall* PFN_bs_load)(bs_Callback load_resources);
@@ -400,7 +400,7 @@ typedef void(__stdcall* PFN_bs_destroyList)(bs_List* list);
 typedef void(__stdcall* PFN_bs_seekList)(bs_List* list, bs_U32 unit_index);
 typedef void(__stdcall* PFN_bs_minimizeList)(bs_List* list);
 typedef bs_List(__stdcall* PFN_bs_list)(int unit_size, int increment);
-typedef void(__stdcall* PFN_bs_guidToString)(bs_GUID* guid, char out);
+typedef void(__stdcall* PFN_bs_guidToString)(bs_GUID* guid, char out[37]);
 typedef bs_GUID(__stdcall* PFN_bs_stringToGuid)(const char* str);
 typedef bool(__stdcall* PFN_bs_sameGuid)(bs_GUID* a, bs_GUID* b);
 typedef bs_GUID(__stdcall* PFN_bs_guid)();

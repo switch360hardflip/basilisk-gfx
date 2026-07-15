@@ -230,8 +230,8 @@ static void bs_loadMeshes(bs_Model* model, bs_Json* root) {
     int closest = 0;                                                                \
     float smallest = FLT_MAX;                                                       \
     for (int i = 0; i < animation_joint->channel##_count; i++) {                    \
-        if (animation_joint->channel##[i].time < time) {                            \
-            float diff = time - animation_joint->channel##[i].time;                 \
+        if (animation_joint->channel[i].time < time) {                              \
+            float diff = time - animation_joint->channel[i].time;                   \
             if (diff < smallest) {                                                  \
                 smallest = diff;                                                    \
                 closest = i;                                                        \
@@ -293,7 +293,7 @@ BSAPI void _val_bs_blendPose(bs_Armature* armature, bs_Animation* animation_a, b
         animation_a->name, animation_a->bones_count, 
         animation_b->name, animation_b->bones_count);
 
-    return bs_blendPose(armature, animation_a, animation_b, factor, time_a, time_b);
+    bs_blendPose(armature, animation_a, animation_b, factor, time_a, time_b);
 }
 
 BSAPI void _bs_blendPose(bs_Armature* armature, bs_Animation* animation_a, bs_Animation* animation_b, float factor, float time_a, float time_b) {
@@ -424,10 +424,10 @@ BSAPI void _bs_bindPose(bs_Armature* armature) {
 #define BS_SET_CHANNEL(channel, p)                                                                              \
     if (bone->channel##_count >= bone->channel##_allocated) {                                                   \
         bone->channel##_allocated += BS_CHANNEL_INCREMENT_BY;                                                   \
-        bone->channel## = bs_realloc(bone->channel##, bone->channel##_allocated * sizeof(*bone->channel##));    \
+        bone->channel = bs_realloc(bone->channel, bone->channel##_allocated * sizeof(*bone->channel));          \
     }                                                                                                           \
-    bone->channel##[bone->channel##_count].value = p##;                                                         \
-    bone->channel##[bone->channel##_count++].time = timestamp;
+    bone->channel[bone->channel##_count].value = p;                                                             \
+    bone->channel[bone->channel##_count++].time = timestamp;
 
 BSAPI void _bs_keyframePosition(bs_AnimationBone* bone, float timestamp, bs_vec3 translation) { 
     BS_SET_CHANNEL(translations, translation);

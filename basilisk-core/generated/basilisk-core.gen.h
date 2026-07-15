@@ -1315,7 +1315,7 @@ typedef enum bs_BindType bs_BindType;
     0xB6
 
 typedef int (__cdecl* bs_ThreadFunction)(void*);
-typedef void* (__cdecl* bs_ForeachDocumentFunction)(bs_FileInfo, void*);
+typedef void (__cdecl* bs_ForeachDocumentFunction)(bs_FileInfo, void*);
 typedef long long bs_I64;
 typedef int bs_I32;
 typedef short bs_I16;
@@ -1840,7 +1840,7 @@ struct bs_Attribute {
     bs_U64 name_hash;
     bs_U32 location;
     bs_U32 size;
-    bs_U32 format;
+    bs_Format format;
     bs_U32 offset;
 };
 

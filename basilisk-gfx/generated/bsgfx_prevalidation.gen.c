@@ -44,10 +44,8 @@ static bsgfx_Scene* _preval_bsgfx_currentScene() {
 }
 
 static void _preval_bsgfx_loadScene(const char* name) {
-    if (name == NULL)
-        return;
-
-    return next.bsgfx_loadScene(name);
+    BSGFX_VALIDATE(name != NULL, ,);
+    next.bsgfx_loadScene(name);
 }
 
 static int _preval_bsgfx_images() {
@@ -103,49 +101,45 @@ static bsgfx_Material* _preval_bsgfx_fetchMaterial(int id) {
 }
 
 static bsgfx_Material* _preval_bsgfx_queryMaterial(const char* name) {
-    if (name == NULL)
-        return NULL;
-
+    BSGFX_VALIDATE(name != NULL, NULL,);
     return next.bsgfx_queryMaterial(name);
 }
 
 static void _preval_bsgfx_loadMaterials() {
-    return next.bsgfx_loadMaterials();
+    next.bsgfx_loadMaterials();
 }
 
 static bsgfx_Material* _preval_bsgfx_material(char* name, int name_length) {
-    if (name == NULL)
-        return NULL;
-
+    BSGFX_VALIDATE(name != NULL, NULL,);
     return next.bsgfx_material(name, name_length);
 }
 
 static void _preval_bsgfx_highlightMaterial(int material_id, bool auto_unhighlight) {
-    return next.bsgfx_highlightMaterial(material_id, auto_unhighlight);
+    next.bsgfx_highlightMaterial(material_id, auto_unhighlight);
 }
 
 static void _preval_bsgfx_unhighlightMaterial(int material_id) {
-    return next.bsgfx_unhighlightMaterial(material_id);
+    next.bsgfx_unhighlightMaterial(material_id);
 }
 
 static void _preval_bsgfx_tickMaterials() {
-    return next.bsgfx_tickMaterials();
+    next.bsgfx_tickMaterials();
 }
 
 static void _preval_bsgfx_shadowPipe() {
-    return next.bsgfx_shadowPipe();
+    next.bsgfx_shadowPipe();
 }
 
 static void _preval_bsgfx_pipeline() {
-    return next.bsgfx_pipeline();
+    next.bsgfx_pipeline();
 }
 
 static void _preval_bsgfx_onDeviceLost() {
-    return next.bsgfx_onDeviceLost();
+    next.bsgfx_onDeviceLost();
 }
 
 static void _preval_bsgfx_sweepCollisions(float sweep_radius, bs_vec3 position) {
-    return next.bsgfx_sweepCollisions(sweep_radius, position);
+    next.bsgfx_sweepCollisions(sweep_radius, position);
 }
 
 static bsgfx_Collider _preval_bsgfx_collider(bs_Aabb aabb, bs_vec3 scale, bs_ivec3 resolution, float sweep_radius) {
@@ -153,85 +147,59 @@ static bsgfx_Collider _preval_bsgfx_collider(bs_Aabb aabb, bs_vec3 scale, bs_ive
 }
 
 static void _preval_bsgfx_applyCollisions(bsgfx_Collider* collider, bs_vec3 position, bs_vec3* velocity) {
-    if (collider == NULL)
-        return;
-
-    if (velocity == NULL)
-        return;
-
-    return next.bsgfx_applyCollisions(collider, position, velocity);
+    BSGFX_VALIDATE(collider != NULL, ,);
+    BSGFX_VALIDATE(velocity != NULL, ,);
+    next.bsgfx_applyCollisions(collider, position, velocity);
 }
 
 static void _preval_bsgfx_printCollisions(bsgfx_Collider* collider) {
-    if (collider == NULL)
-        return;
-
-    return next.bsgfx_printCollisions(collider);
+    BSGFX_VALIDATE(collider != NULL, ,);
+    next.bsgfx_printCollisions(collider);
 }
 
 static void _preval_bsgfx_instanceSweepCollisions() {
-    return next.bsgfx_instanceSweepCollisions();
+    next.bsgfx_instanceSweepCollisions();
 }
 
 static void _preval_bsgfx_instanceCollider(bsgfx_Collider* collider, bs_vec3 position, bs_vec3* velocity) {
-    if (collider == NULL)
-        return;
-
-    if (velocity == NULL)
-        return;
-
-    return next.bsgfx_instanceCollider(collider, position, velocity);
+    BSGFX_VALIDATE(collider != NULL, ,);
+    BSGFX_VALIDATE(velocity != NULL, ,);
+    next.bsgfx_instanceCollider(collider, position, velocity);
 }
 
 static int _preval_bsgfx_skeleton(bs_Armature* armature) {
-    if (armature == NULL)
-        return 0;
-
+    BSGFX_VALIDATE(armature != NULL, 0,);
     return next.bsgfx_skeleton(armature);
 }
 
 static int _preval_bsgfx_animationFrame(bs_Animation* animation, float time, int num_frames) {
-    if (animation == NULL)
-        return 0;
-
+    BSGFX_VALIDATE(animation != NULL, 0,);
     return next.bsgfx_animationFrame(animation, time, num_frames);
 }
 
 static int _preval_bsgfx_animationFrameCount(bs_Animation* animation, float time_scale) {
-    if (animation == NULL)
-        return 0;
-
+    BSGFX_VALIDATE(animation != NULL, 0,);
     return next.bsgfx_animationFrameCount(animation, time_scale);
 }
 
 static void _preval_bsgfx_applyAnimationVelocity(bsgfx_Animator* animator, bs_vec3* velocity, bs_vec2 input) {
-    if (animator == NULL)
-        return;
-
-    if (velocity == NULL)
-        return;
-
-    return next.bsgfx_applyAnimationVelocity(animator, velocity, input);
+    BSGFX_VALIDATE(animator != NULL, ,);
+    BSGFX_VALIDATE(velocity != NULL, ,);
+    next.bsgfx_applyAnimationVelocity(animator, velocity, input);
 }
 
 static void _preval_bsgfx_queueAnimation(bsgfx_Animator* animator, int animation_id) {
-    if (animator == NULL)
-        return;
-
-    return next.bsgfx_queueAnimation(animator, animation_id);
+    BSGFX_VALIDATE(animator != NULL, ,);
+    next.bsgfx_queueAnimation(animator, animation_id);
 }
 
 static void _preval_bsgfx_runAnimator(bsgfx_Animator* animator, bsgfx_AnimatorCallbacks callbacks) {
-    if (animator == NULL)
-        return;
-
-    return next.bsgfx_runAnimator(animator, callbacks);
+    BSGFX_VALIDATE(animator != NULL, ,);
+    next.bsgfx_runAnimator(animator, callbacks);
 }
 
 static bsgfx_Animator _preval_bsgfx_animator(bs_Armature* armature, int resting_animation_id, int animations_count) {
-    if (armature == NULL)
-        return (bsgfx_Animator) { 0 };
-
+    BSGFX_VALIDATE(armature != NULL, (bsgfx_Animator) { 0 },);
     return next.bsgfx_animator(armature, resting_animation_id, animations_count);
 }
 
@@ -244,7 +212,7 @@ static bs_Result _preval_bsgfx_iniInstances() {
 }
 
 static void _preval_bsgfx_instanceType(int type, int max_instance_count, int bind_set, int binding) {
-    return next.bsgfx_instanceType(type, max_instance_count, bind_set, binding);
+    next.bsgfx_instanceType(type, max_instance_count, bind_set, binding);
 }
 
 static bs_Range _preval_bsgfx_subtypeRange(int subtype) {
@@ -252,7 +220,7 @@ static bs_Range _preval_bsgfx_subtypeRange(int subtype) {
 }
 
 static void _preval_bsgfx_deleteSubtype(int subtype) {
-    return next.bsgfx_deleteSubtype(subtype);
+    next.bsgfx_deleteSubtype(subtype);
 }
 
 static int _preval_bsgfx_instanceCount(int subtype) {
@@ -268,21 +236,17 @@ static const int* _preval_bsgfx_subtypes() {
 }
 
 static int _preval_bsgfx_subtype(int type, bs_Batch* batch, bs_U32 flags, bs_Range range) {
-    if (batch == NULL)
-        return 0;
-
+    BSGFX_VALIDATE(batch != NULL, 0,);
     return next.bsgfx_subtype(type, batch, flags, range);
 }
 
 static int _preval_bsgfx_instance(int subtype, const char* data, int data_size, bs_U32 flags, unsigned int bone_index, int id, int material) {
-    if (data == NULL)
-        return 0;
-
+    BSGFX_VALIDATE(data != NULL, 0,);
     return next.bsgfx_instance(subtype, data, data_size, flags, bone_index, id, material);
 }
 
 static void _preval_bsgfx_tickInstances() {
-    return next.bsgfx_tickInstances();
+    next.bsgfx_tickInstances();
 }
 
 static bool _preval_bsgfx_subtypeHasFlag(int subtype, bs_U32 flag) {
@@ -290,44 +254,32 @@ static bool _preval_bsgfx_subtypeHasFlag(int subtype, bs_U32 flag) {
 }
 
 static void _preval_bsgfx_renderSubtype(int subtype, bs_Pipeline* pipeline) {
-    if (pipeline == NULL)
-        return;
-
-    return next.bsgfx_renderSubtype(subtype, pipeline);
+    BSGFX_VALIDATE(pipeline != NULL, ,);
+    next.bsgfx_renderSubtype(subtype, pipeline);
 }
 
 static void _preval_bsgfx_resetInstances() {
-    return next.bsgfx_resetInstances();
+    next.bsgfx_resetInstances();
 }
 
 static void _preval_bsgfx_resetSubtype(int subtype) {
-    return next.bsgfx_resetSubtype(subtype);
+    next.bsgfx_resetSubtype(subtype);
 }
 
 static void _preval_bsgfx_instanceHiResMesh(bs_Mesh* mesh, const bs_vec3* position, const bs_vec4* rotation, float scale, int subtype_offset, bool origin_at_center) {
-    if (mesh == NULL)
-        return;
-
-    if (position == NULL)
-        return;
-
-    if (rotation == NULL)
-        return;
-
-    return next.bsgfx_instanceHiResMesh(mesh, position, rotation, scale, subtype_offset, origin_at_center);
+    BSGFX_VALIDATE(mesh != NULL, ,);
+    BSGFX_VALIDATE(position != NULL, ,);
+    BSGFX_VALIDATE(rotation != NULL, ,);
+    next.bsgfx_instanceHiResMesh(mesh, position, rotation, scale, subtype_offset, origin_at_center);
 }
 
 static int _preval_bsgfx_instanceMesh(int subtype, const bsgfx_MeshInstance* data, bs_U32 flags, int id, int material) {
-    if (data == NULL)
-        return 0;
-
+    BSGFX_VALIDATE(data != NULL, 0,);
     return next.bsgfx_instanceMesh(subtype, data, flags, id, material);
 }
 
 static int _preval_bsgfx_instanceBoneMesh(int subtype, const bsgfx_BoneInstance* data, bs_U32 flags, int id, int material) {
-    if (data == NULL)
-        return 0;
-
+    BSGFX_VALIDATE(data != NULL, 0,);
     return next.bsgfx_instanceBoneMesh(subtype, data, flags, id, material);
 }
 
@@ -340,16 +292,12 @@ static int _preval_bsgfx_instanceLine(bs_vec3 start, bs_vec3 end, bs_RGBA color)
 }
 
 static int _preval_bsgfx_instanceRay(const bs_Ray* ray, bs_RGBA color) {
-    if (ray == NULL)
-        return 0;
-
+    BSGFX_VALIDATE(ray != NULL, 0,);
     return next.bsgfx_instanceRay(ray, color);
 }
 
 static bs_Range _preval_bsgfx_instanceAabb(const bs_Aabb* aabb, bs_RGBA color) {
-    if (aabb == NULL)
-        return 0;
-
+    BSGFX_VALIDATE(aabb != NULL, 0,);
     return next.bsgfx_instanceAabb(aabb, color);
 }
 
@@ -378,15 +326,9 @@ static int _preval_bsgfx_instanceAtlasFlipped(int subtype, bs_mat4x3 transform, 
 }
 
 static bs_vec2 _preval_bsgfx_instanceText(int subtype, bs_Font* font, bsgfx_Text* params, char* value, int value_length) {
-    if (font == NULL)
-        return 0;
-
-    if (params == NULL)
-        return 0;
-
-    if (value == NULL)
-        return 0;
-
+    BSGFX_VALIDATE(font != NULL, 0,);
+    BSGFX_VALIDATE(params != NULL, 0,);
+    BSGFX_VALIDATE(value != NULL, 0,);
     return next.bsgfx_instanceText(subtype, font, params, value, value_length);
 }
 
@@ -395,26 +337,24 @@ static bs_mat4x3 _preval_bsgfx_matrix(bs_vec3 position, bs_vec3 scale) {
 }
 
 static void _preval_bsgfx_renderFontSubtypes() {
-    return next.bsgfx_renderFontSubtypes();
+    next.bsgfx_renderFontSubtypes();
 }
 
 static void _preval_bsgfx_settingsEditor(bs_List* result) {
-    if (result == NULL)
-        return;
-
-    return next.bsgfx_settingsEditor(result);
+    BSGFX_VALIDATE(result != NULL, ,);
+    next.bsgfx_settingsEditor(result);
 }
 
 static void _preval_bsgfx_renderFineShadowVolumes() {
-    return next.bsgfx_renderFineShadowVolumes();
+    next.bsgfx_renderFineShadowVolumes();
 }
 
 static void _preval_bsgfx_renderShadowVolumes() {
-    return next.bsgfx_renderShadowVolumes();
+    next.bsgfx_renderShadowVolumes();
 }
 
 static void _preval_bsgfx_computeShadowVolumes() {
-    return next.bsgfx_computeShadowVolumes();
+    next.bsgfx_computeShadowVolumes();
 }
 
 static bs_Model* _preval_bsgfx_prefabModel() {
@@ -425,14 +365,10 @@ static int _preval_bsgfx_package() {
     return next.bsgfx_package();
 }
 
-static void _preval_bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc, char* argv) {
-    if (name == NULL)
-        return;
-
-    if (argv == NULL)
-        return;
-
-    return next.bsgfx_ini(name, width, height, argc, argv);
+static void _preval_bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc, char* argv[]) {
+    BSGFX_VALIDATE(name != NULL, ,);
+    BSGFX_VALIDATE(argv != NULL, ,);
+    next.bsgfx_ini(name, width, height, argc, argv);
 }
 
 static HINSTANCE _preval_bsgfx_bsmodDll() {
@@ -440,11 +376,11 @@ static HINSTANCE _preval_bsgfx_bsmodDll() {
 }
 
 static void _preval_bsgfx_checkGFSDK(bs_U32 result) {
-    return next.bsgfx_checkGFSDK(result);
+    next.bsgfx_checkGFSDK(result);
 }
 
 static void _preval_bsgfx_logGFSDK(bs_U32 result) {
-    return next.bsgfx_logGFSDK(result);
+    next.bsgfx_logGFSDK(result);
 }
 
 static bsgfx_Application* _preval_bsgfx_app() {
@@ -464,13 +400,9 @@ static struct Poser* _preval_poser() {
 }
 
 static void _preval_bsgfx_setCamera(const bs_mat4* proj, const bs_mat4* view) {
-    if (proj == NULL)
-        return;
-
-    if (view == NULL)
-        return;
-
-    return next.bsgfx_setCamera(proj, view);
+    BSGFX_VALIDATE(proj != NULL, ,);
+    BSGFX_VALIDATE(view != NULL, ,);
+    next.bsgfx_setCamera(proj, view);
 }
 
 bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {

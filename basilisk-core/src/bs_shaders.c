@@ -124,7 +124,7 @@ static inline VkDescriptorType bs_convertBindType(bs_BindType type) {
     case BS_BIND_TYPE_ACCELERATION_STRUCTURE: return VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
     case BS_BIND_TYPE_MUTABLE_VALVE: return VK_DESCRIPTOR_TYPE_MUTABLE_VALVE;
     default: 
-        return type;
+        return (VkDescriptorType)type;
     }
 }
 
@@ -209,7 +209,7 @@ BSAPI void _val_bs_pushDescriptors() {
         BS_VALIDATE(bind_set->vk_update_template != NULL,,);
     }
 
-    return bs_pushDescriptors();
+    bs_pushDescriptors();
 }
 
 BSAPI void _bs_pushDescriptors() {
@@ -288,13 +288,15 @@ static inline bs_Result bs_validateBinding(bs_U32 bind_set_slot, bs_U32 bind_poi
     bs_BindSet* bind_set;
     bs_Binding* binding;
 
-    BS_VALIDATE(bs_queryBindSet(bind_set_slot) != NULL, BS_RESULT_VALIDATION_ERROR, );
-    BS_VALIDATE(bs_queryBinding(bind_set, bind_point_slot) != NULL, BS_RESULT_VALIDATION_ERROR, "Binding (%d, %d) is not used by any shader", bind_set_slot, bind_point_slot);
+    BS_VALIDATE(bind_set = bs_queryBindSet(bind_set_slot) != NULL, BS_RESULT_VALIDATION_ERROR, );
+    BS_VALIDATE(binding = bs_queryBinding(bind_set, bind_point_slot) != NULL, BS_RESULT_VALIDATION_ERROR, "Binding (%d, %d) is not used by any shader", bind_set_slot, bind_point_slot);
 
     if (!binding->in_use) {
         BS_VALIDATE(descriptors_count <= binding->descriptors_count, BS_RESULT_VALIDATION_ERROR, );
         BS_VALIDATE((bind_set->bound_descriptors_count + descriptors_count) <= bind_set->descriptors_count, BS_RESULT_VALIDATION_ERROR, );
     }
+
+    return BS_RESULT_OK;
 }
 
 BSAPI bs_Result _val_bs_binding(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Descriptor* descriptors, int descriptors_count, bs_Binding** out) {
@@ -334,11 +336,11 @@ BSAPI bs_Result _val_bs_bindImages(bs_U32 bind_set_slot, bs_U32 bind_point_slot,
     for (int i = 0; i < images_count; i++) {
         bs_ImageDescriptor* descriptor = in_descriptors + i;
 
-        BS_VALIDATE(descriptor->image != NULL,,);
-        BS_VALIDATE(descriptor->sampler != NULL,,);
+        BS_VALIDATE(descriptor->image != NULL, BS_RESULT_VALIDATION_ERROR,);
+        BS_VALIDATE(descriptor->sampler != NULL, BS_RESULT_VALIDATION_ERROR,);
 
-        BS_VALIDATE(descriptor->image->head.source_id == BS_OBJECT_IMAGE,,);
-        BS_VALIDATE(descriptor->sampler->head.source_id == BS_OBJECT_SAMPLER,,);
+        BS_VALIDATE(descriptor->image->head.source_id == BS_OBJECT_IMAGE, BS_RESULT_VALIDATION_ERROR,);
+        BS_VALIDATE(descriptor->sampler->head.source_id == BS_OBJECT_SAMPLER, BS_RESULT_VALIDATION_ERROR,);
     }
 
     BS_VALIDATE(bs_validateBinding(bind_set_slot, bind_point_slot, images_count) == BS_RESULT_OK, BS_RESULT_VALIDATION_ERROR, );
@@ -419,12 +421,12 @@ BSAPI bs_Result _bs_bindBuffers(bs_U32 bind_set_slot, bs_U32 slot, bs_Buffer** b
 }
 
 BSAPI void _val_bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Buffer* buffer) {
-    BS_VALIDATE(bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK, BS_RESULT_VALIDATION_ERROR, );
-    return bs_bindBuffer(bind_set_slot, bind_point_slot, buffer);
+    BS_VALIDATE(bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK,,);
+    bs_bindBuffer(bind_set_slot, bind_point_slot, buffer);
 }
 
 BSAPI void _bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Buffer* buffer) {
-    return bs_bindBuffers(bind_set_slot, bind_point_slot, &buffer, 1);
+    bs_bindBuffers(bind_set_slot, bind_point_slot, &buffer, 1);
 }
 
 
@@ -432,8 +434,8 @@ BSAPI void _bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Buffe
   Bind acceleration structures
   */
 BSAPI void _val_bs_bindAccelerationStructures(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer** ray_tracers, int ray_tracers_count) {
-    BS_VALIDATE(bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK, BS_RESULT_VALIDATION_ERROR, );
-    return bs_bindAccelerationStructures(bind_set_slot, bind_point_slot, ray_tracers, ray_tracers_count);
+    BS_VALIDATE(bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK,,);
+    bs_bindAccelerationStructures(bind_set_slot, bind_point_slot, ray_tracers, ray_tracers_count);
 }
 
 BSAPI void _bs_bindAccelerationStructures(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer** ray_tracers, int ray_tracers_count) {
@@ -441,12 +443,12 @@ BSAPI void _bs_bindAccelerationStructures(bs_U32 bind_set_slot, bs_U32 bind_poin
 }
 
 BSAPI void _val_bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer* ray_tracer) {
-    BS_VALIDATE(bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK, BS_RESULT_VALIDATION_ERROR, );
-    return bs_bindAccelerationStructure(bind_set_slot, bind_point_slot, ray_tracer);
+    BS_VALIDATE(bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK,,);
+    bs_bindAccelerationStructure(bind_set_slot, bind_point_slot, ray_tracer);
 }
 
 BSAPI void _bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer* ray_tracer) {
-    return bs_bindAccelerationStructures(bind_set_slot, bind_point_slot, &ray_tracer, 1);
+    bs_bindAccelerationStructures(bind_set_slot, bind_point_slot, &ray_tracer, 1);
 }
 
  /**
@@ -680,36 +682,36 @@ static void bs_readBuffer(bs_Shader* shader, bs_Json* root, const char* name) {
     bs_free(objects.as_array.as_objects);
 }
 
-static inline VkFormat bs_convertFormatFromBaseType(bs_Format format, bs_U32 size) {
+static inline bs_Format bs_convertFormatFromBaseType(VkFormat format, bs_U32 size) {
     switch (format) {
     case VK_FORMAT_R8_UNORM: {
-        if      (size ==  4) return VK_FORMAT_R8_UNORM;
-        else if (size ==  8) return VK_FORMAT_R8G8_UNORM;
-        else if (size == 12) return VK_FORMAT_R8G8B8_UNORM;
-        else if (size == 16) return VK_FORMAT_R8G8B8A8_UNORM;
+        if      (size ==  4) return BS_FORMAT_R8_UNORM;
+        else if (size ==  8) return BS_FORMAT_R8G8_UNORM;
+        else if (size == 12) return BS_FORMAT_R8G8B8_UNORM;
+        else if (size == 16) return BS_FORMAT_R8G8B8A8_UNORM;
     } break;
     case VK_FORMAT_R32_SFLOAT: {
-        if      (size ==  4) return VK_FORMAT_R32_SFLOAT;
-        else if (size ==  8) return VK_FORMAT_R32G32_SFLOAT;
-        else if (size == 12) return VK_FORMAT_R32G32B32_SFLOAT;
-        else if (size == 16) return VK_FORMAT_R32G32B32A32_SFLOAT;
+        if      (size ==  4) return BS_FORMAT_R32_SFLOAT;
+        else if (size ==  8) return BS_FORMAT_R32G32_SFLOAT;
+        else if (size == 12) return BS_FORMAT_R32G32B32_SFLOAT;
+        else if (size == 16) return BS_FORMAT_R32G32B32A32_SFLOAT;
     } break;
     case VK_FORMAT_R32_SINT: {
-        if      (size ==  4) return VK_FORMAT_R32_SINT;
-        else if (size ==  8) return VK_FORMAT_R32G32_SINT;
-        else if (size == 12) return VK_FORMAT_R32G32B32_SINT;
-        else if (size == 16) return VK_FORMAT_R32G32B32A32_SINT;
+        if      (size ==  4) return BS_FORMAT_R32_SINT;
+        else if (size ==  8) return BS_FORMAT_R32G32_SINT;
+        else if (size == 12) return BS_FORMAT_R32G32B32_SINT;
+        else if (size == 16) return BS_FORMAT_R32G32B32A32_SINT;
     } break;
     case VK_FORMAT_R32_UINT: {
-        if      (size ==  4) return VK_FORMAT_R32_UINT;
-        else if (size ==  8) return VK_FORMAT_R32G32_UINT;
-        else if (size == 12) return VK_FORMAT_R32G32B32_UINT;
-        else if (size == 16) return VK_FORMAT_R32G32B32A32_UINT;
+        if      (size ==  4) return BS_FORMAT_R32_UINT;
+        else if (size ==  8) return BS_FORMAT_R32G32_UINT;
+        else if (size == 12) return BS_FORMAT_R32G32B32_UINT;
+        else if (size == 16) return BS_FORMAT_R32G32B32A32_UINT;
     } break;
     }
 
     bs_warnF("Failed to convert base format %d of invalid size %d\n", format, size);
-    return 0;
+    return BS_FORMAT_UNDEFINED;
 }
 
 BSAPI void _bs_configureAttribute(const char* name, bs_Format base_format) {
@@ -724,7 +726,7 @@ static inline void bs_readAttributeType(bs_Attribute* result) {
     for (int i = 0; i < _bs_config_.attributes.count; i++) {
         bs_AttributeType* config = bs_fetchUnit(&_bs_config_.attributes, i);
         if (config->name_hash == result->name_hash) {
-            result->format = bs_convertFormatFromBaseType(config->base_format, result->size);
+            result->format = bs_convertFormatFromBaseType((VkFormat)config->base_format, result->size);
             return;
         }
     }
@@ -732,7 +734,7 @@ static inline void bs_readAttributeType(bs_Attribute* result) {
     bs_criticalF("Attribute \"%s\" has not been configured, please configure with bs_configureAttribute(...)\n", result->name);
 }
 
-static void bs_compareAttributes(const bs_Attribute* a, const bs_Attribute* b) {
+static int bs_compareAttributes(const bs_Attribute* a, const bs_Attribute* b) {
     if      (a->location == b->location) return 0;
     else if (a->location <  b->location) return -1;
     else return 1;
@@ -943,7 +945,7 @@ BSAPI void _val_bs_pushConstant(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 siz
     BS_VALIDATE(pipeline != NULL, ,);
     BS_VALIDATE((offset + size) <= pipeline->constant_size, , "Push constant %d + %d > %d", offset, size, pipeline->constant_size);
 
-    return bs_pushConstant(pipeline, offset, size, data);
+    bs_pushConstant(pipeline, offset, size, data);
 }
 
 BSAPI void _bs_pushConstant(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 size, void* data) {
@@ -960,7 +962,7 @@ static void val_bs_createPipelineLayout(bs_Pipeline* pipeline, VkPipelineLayout*
     for (int i = 0; i < pipeline->num_bind_sets; i++) {
         if (_bs_instance_->layouts[i] == NULL) {
             bs_warnF("Pipeline cannot be created with unordered bind sets (bind set %d is not used by any shader)", i);
-            return BS_RESULT_INVALID_STATE;
+            return;
         }
     }
 }
@@ -1119,10 +1121,10 @@ BSAPI bs_Result _bs_computePipeline(bs_Shader* compute_shader, bs_PipelineFlags 
 
 static inline VkStencilOpState bs_mapStencilOpState(bs_StencilOperation op) {
     return (VkStencilOpState) {
-        .failOp = op.fail_op,
-        .passOp = op.pass_op,
-        .depthFailOp = op.depth_fail_op,
-        .compareOp = op.compare_op,
+        .failOp = (VkStencilOp)op.fail_op,
+        .passOp = (VkStencilOp)op.pass_op,
+        .depthFailOp = (VkStencilOp)op.depth_fail_op,
+        .compareOp = (VkCompareOp)op.compare_op,
         .compareMask = op.compare_mask,
         .writeMask = op.write_mask,
         .reference = op.reference,
@@ -1204,7 +1206,6 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
 
     VkPipelineDepthStencilStateCreateInfo depth_stencil_state;
     VkPipelineColorBlendAttachmentState blend_states[BS_MAX_ATTACHMENTS_COUNT];
-    VkFormat format1 = BS_FORMAT_R8G8B8A8_UNORM;
 
     int num_blend_states = 0;
 
@@ -1224,10 +1225,10 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
                     .colorWriteMask = descriptor->attachments[num_blend_states].skip_write ? 0 : VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
                     .srcColorBlendFactor = bs_defaultEnum(descriptor->src_color_factor, VK_BLEND_FACTOR_SRC_ALPHA),
                     .dstColorBlendFactor = bs_defaultEnum(descriptor->dst_color_factor, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA),
-                    .colorBlendOp = descriptor->color_op,
+                    .colorBlendOp = (VkBlendOp)descriptor->color_op,
                     .srcAlphaBlendFactor = bs_defaultEnum(descriptor->src_alpha_factor, VK_BLEND_FACTOR_ONE),
                     .dstAlphaBlendFactor = bs_defaultEnum(descriptor->dst_alpha_factor, VK_BLEND_FACTOR_ZERO),
-                    .alphaBlendOp = descriptor->alpha_op,
+                    .alphaBlendOp = (VkBlendOp)descriptor->alpha_op,
                     .blendEnable = descriptor->disable_blend ? false : bs_hasAlpha(output->image->format),
                 };
         }
@@ -1236,7 +1237,7 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
         for (int i = 0; i < _bs_scope_.renderer->num_outputs; i++) {
             bs_Output* output = _bs_scope_.renderer->outputs + i;
             if (bs_isDepthFormat(output->image->format)) {
-                render_info.depthAttachmentFormat = output->image->format; // TODO: ensure only one?
+                render_info.depthAttachmentFormat = (VkFormat)output->image->format; // TODO: ensure only one?
             }
         }
     }
@@ -1297,7 +1298,7 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
         bs_U32 offset = 0;
         for (int i = 0; i < vs->num_attributes; i++) {
             attributes[i].binding = 0;
-            attributes[i].format = vs->attributes[i].format;
+            attributes[i].format = (VkFormat)vs->attributes[i].format;
             attributes[i].offset = offset;
             attributes[i].location = vs->attributes[i].location;
             offset += vs->attributes[i].size;
@@ -1343,7 +1344,7 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
     if (fs) {
         rasterizer_ci = (VkPipelineRasterizationStateCreateInfo) {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-            .polygonMode = descriptor->polygon_type,
+            .polygonMode = (VkPolygonMode)descriptor->polygon_type,
             .lineWidth = 1.0f,
             .cullMode = descriptor->cull_type,
             .depthClampEnable = descriptor->clamp_depth,
@@ -1373,7 +1374,7 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
             .depthTestEnable = !descriptor->skip_depth_test,
             .depthWriteEnable = !descriptor->skip_depth_write,
-            .depthCompareOp = descriptor->depth_comparison,
+            .depthCompareOp = (VkCompareOp)descriptor->depth_comparison,
             .depthBoundsTestEnable = VK_FALSE,
             .minDepthBounds = 0.0f,
             .maxDepthBounds = 1.0f,
@@ -1410,8 +1411,8 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
     pipeline->name = bs_stringF(pipeline->name, BS_PRINT_COLOR("%" PRIx64, BS_PRINT_BLUE_BRIGHT), pipeline->hash);
     bsi_nameHandle(pipeline->vk_pipeline, VK_OBJECT_TYPE_PIPELINE, pipeline->name->value, pipeline->name->len);
 
-    char* vs_name = vs->resource->name;
-    char* fs_name = fs->resource->name;
+    char* vs_name = vs ? vs->resource->name : NULL;
+    char* fs_name = fs ? fs->resource->name : NULL;
     bs_infoF(BS_PRINT_COLOR("%" PRIx64, BS_PRINT_BLUE_BRIGHT) BS_PRINT_COLOR(" %s", BS_PRINT_CYAN) " -> " BS_PRINT_COLOR("%s", BS_PRINT_CYAN) "\n",
         pipeline->hash,
         vs_name,

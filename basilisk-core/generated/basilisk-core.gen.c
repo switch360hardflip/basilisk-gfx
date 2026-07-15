@@ -112,7 +112,7 @@ float bs_v2Dot(
     const bs_vec2* a, 
     const bs_vec2* b)
 {
-    glm_vec2_dot(a->a, b->a);
+    return glm_vec2_dot(a->a, b->a);
 }
 
 float bs_v2Distance(
@@ -156,7 +156,7 @@ void bs_v2Mid(
     const bs_vec3* b, 
     bs_vec3* out)
 {
-    return next.bs_v2Mid(a, b, out);
+    next.bs_v2Mid(a, b, out);
 }
 
 void bs_v3Add(
@@ -227,7 +227,7 @@ float bs_v3Dot(
     const bs_vec3* a, 
     const bs_vec3* b)
 {
-    glm_vec3_dot(a->a, b->a);
+    return glm_vec3_dot(a->a, b->a);
 }
 
 float bs_v3Distance(
@@ -272,7 +272,7 @@ void bs_v3Mid(
     const bs_vec3* b, 
     bs_vec3* out)
 {
-    return next.bs_v3Mid(a, b, out);
+    next.bs_v3Mid(a, b, out);
 }
 
 void bs_v3Cross(
@@ -358,7 +358,7 @@ float bs_v4Dot(
     const bs_vec4* a, 
     const bs_vec4* b)
 {
-    glm_vec4_dot(a->a, b->a);
+    return glm_vec4_dot(a->a, b->a);
 }
 
 float bs_v4Distance(
@@ -562,14 +562,14 @@ void bs_eulToQ(
     const bs_vec3* eul, 
     bs_vec4* out)
 {
-    return next.bs_eulToQ(eul, out);
+    next.bs_eulToQ(eul, out);
 }
 
 void bs_qToEul(
     const bs_vec4* q, 
     bs_vec3* out)
 {
-    return next.bs_qToEul(q, out);
+    next.bs_qToEul(q, out);
 }
 
 void bs_orthographic(
@@ -786,7 +786,7 @@ void bs_rayVsObb(
     const bs_vec3* scale, 
     bs_RayVsObb* out)
 {
-    return next.bs_rayVsObb(ray, position, rotation, scale, out);
+    next.bs_rayVsObb(ray, position, rotation, scale, out);
 }
 
 void bs_sphereVsPoint(
@@ -795,7 +795,7 @@ void bs_sphereVsPoint(
     bs_vec3 point, 
     bs_SphereVsPoint* out)
 {
-    return next.bs_sphereVsPoint(center, radius, point, out);
+    next.bs_sphereVsPoint(center, radius, point, out);
 }
 
 bool bs_sphereVsObbTest(
@@ -834,7 +834,7 @@ void bs_lineVsLine(
     bs_vec2 l2_end, 
     bs_LineVsLine* out)
 {
-    return next.bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, out);
+    next.bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, out);
 }
 
 void bs_populateVertexDeclaration(
@@ -842,7 +842,7 @@ void bs_populateVertexDeclaration(
     bs_Attribute* attributes, 
     int attributes_count)
 {
-    return next.bs_populateVertexDeclaration(declaration, attributes, attributes_count);
+    next.bs_populateVertexDeclaration(declaration, attributes, attributes_count);
 }
 
 int bs_currentSwap()
@@ -854,7 +854,7 @@ void bs_beginComment(
     char* value, 
     int value_length)
 {
-    return next.bs_beginComment(value, value_length);
+    next.bs_beginComment(value, value_length);
 }
 
 void bs_beginCommentV(
@@ -864,7 +864,7 @@ void bs_beginCommentV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bs_beginComment(_formatted, _length);
+    bs_beginComment(_formatted, _length);
 }
 
 void bs_beginCommentF(
@@ -879,7 +879,7 @@ void bs_beginCommentF(
 
 void bs_endComment()
 {
-    return next.bs_endComment();
+    next.bs_endComment();
 }
 
 bs_Image* bs_swapchainImage()
@@ -953,7 +953,7 @@ void bs_render(
     bs_U32 first_instance, 
     bs_U32 num_instances)
 {
-    return next.bs_render(batch, pipeline, vertex_offset, vertex_count, first_instance, num_instances);
+    next.bs_render(batch, pipeline, vertex_offset, vertex_count, first_instance, num_instances);
 }
 
 bs_Result bs_barrier(
@@ -1095,14 +1095,14 @@ bs_Result bs_unmapBuffer(
 void bs_stageNull(
     bs_Buffer* buffer)
 {
-    return next.bs_stageNull(buffer);
+    next.bs_stageNull(buffer);
 }
 
 void bs_stageList(
     bs_Buffer* buffer, 
     bs_List* list)
 {
-    return next.bs_stageList(buffer, list);
+    next.bs_stageList(buffer, list);
 }
 
 void bs_stageImage(
@@ -1111,13 +1111,13 @@ void bs_stageImage(
     bs_ivec2 dim, 
     const char* data)
 {
-    return next.bs_stageImage(buffer, format, dim, data);
+    next.bs_stageImage(buffer, format, dim, data);
 }
 
 void bs_destroyBuffer(
     bs_Buffer* buffer)
 {
-    return next.bs_destroyBuffer(buffer);
+    next.bs_destroyBuffer(buffer);
 }
 
 void bs_copyAsync(
@@ -1127,7 +1127,7 @@ void bs_copyAsync(
     bs_U32 dst_offset, 
     bs_U32 num_bytes)
 {
-    return next.bs_copyAsync(src, dst, src_offset, dst_offset, num_bytes);
+    next.bs_copyAsync(src, dst, src_offset, dst_offset, num_bytes);
 }
 
 void bs_setBufferAsync(
@@ -1136,7 +1136,7 @@ void bs_setBufferAsync(
     bs_U32 num_bytes, 
     bs_U32 value)
 {
-    return next.bs_setBufferAsync(buffer, offset, num_bytes, value);
+    next.bs_setBufferAsync(buffer, offset, num_bytes, value);
 }
 
 bs_Result bs_batch(
@@ -1235,7 +1235,7 @@ void bs_batchVertex(
     bs_VertexDeclaration* declaration, 
     const unsigned char* src)
 {
-    return next.bs_batchVertex(declaration, src);
+    next.bs_batchVertex(declaration, src);
 }
 
 bs_Range bs_batchRange(
@@ -1249,7 +1249,7 @@ void bs_pushIndex(
     bs_Batch* batch, 
     int index)
 {
-    return next.bs_pushIndex(batch, index);
+    next.bs_pushIndex(batch, index);
 }
 
 void bs_pushIndices(
@@ -1257,7 +1257,7 @@ void bs_pushIndices(
     int indices[], 
     bs_U32 indices_count)
 {
-    return next.bs_pushIndices(batch, indices, indices_count);
+    next.bs_pushIndices(batch, indices, indices_count);
 }
 
 bs_Range bs_batchCube(
@@ -1554,14 +1554,14 @@ void bs_output(
     bs_Renderer* renderer, 
     bs_Output output)
 {
-    return next.bs_output(renderer, output);
+    next.bs_output(renderer, output);
 }
 
 void bs_input(
     bs_Renderer* renderer, 
     bs_Input input)
 {
-    return next.bs_input(renderer, input);
+    next.bs_input(renderer, input);
 }
 
 void bs_dependency(
@@ -1574,13 +1574,13 @@ void bs_dependency(
     bs_AccessMask src_access, 
     bs_AccessMask dst_access)
 {
-    return next.bs_dependency(renderer, src_subpass, dst_subpass, flags, src_stage, dst_stage, src_access, dst_access);
+    next.bs_dependency(renderer, src_subpass, dst_subpass, flags, src_stage, dst_stage, src_access, dst_access);
 }
 
 void bs_renderPass(
     bs_Renderer* renderer)
 {
-    return next.bs_renderPass(renderer);
+    next.bs_renderPass(renderer);
 }
 
 bs_Result bs_framebuffer(
@@ -1595,7 +1595,7 @@ void bs_runPass(
     bs_Callback callbacks[], 
     int callbacks_count)
 {
-    return next.bs_runPass(renderer, callbacks, callbacks_count);
+    next.bs_runPass(renderer, callbacks, callbacks_count);
 }
 
 bool bs_rendererIsDynamic(
@@ -1607,26 +1607,26 @@ bool bs_rendererIsDynamic(
 void bs_beginRender(
     bs_Renderer* renderer)
 {
-    return next.bs_beginRender(renderer);
+    next.bs_beginRender(renderer);
 }
 
 void bs_endRender(
     bs_Renderer* renderer)
 {
-    return next.bs_endRender(renderer);
+    next.bs_endRender(renderer);
 }
 
 void bs_destroyRenderer(
     bs_Renderer* renderer)
 {
-    return next.bs_destroyRenderer(renderer);
+    next.bs_destroyRenderer(renderer);
 }
 
 void bs_resizeRenderer(
     bs_Renderer* renderer, 
     bs_ivec2 resolution)
 {
-    return next.bs_resizeRenderer(renderer, resolution);
+    next.bs_resizeRenderer(renderer, resolution);
 }
 
 bs_Queue* bs_singleTimesQueue()
@@ -1663,12 +1663,12 @@ void bs_awaitQueue(
     bs_Queue* queue, 
     bs_PipelineStage stage)
 {
-    return next.bs_awaitQueue(queue, stage);
+    next.bs_awaitQueue(queue, stage);
 }
 
 void bs_awaitAcquisition()
 {
-    return next.bs_awaitAcquisition();
+    next.bs_awaitAcquisition();
 }
 
 bs_Result bs_enqueue(
@@ -1699,18 +1699,18 @@ bs_Result bs_queue(
 void bs_destroyQueue(
     bs_Queue* queue)
 {
-    return next.bs_destroyQueue(queue);
+    next.bs_destroyQueue(queue);
 }
 
 void bs_stallGPU()
 {
-    return next.bs_stallGPU();
+    next.bs_stallGPU();
 }
 
 void bs_stallQueue(
     bs_Queue* queue)
 {
-    return next.bs_stallQueue(queue);
+    next.bs_stallQueue(queue);
 }
 
 bs_Result bs_stall(
@@ -1733,7 +1733,7 @@ bs_Scope bs_enterSingle()
 void bs_leaveSingle(
     bs_Scope* backup)
 {
-    return next.bs_leaveSingle(backup);
+    next.bs_leaveSingle(backup);
 }
 
 bs_Scope* bs_getScope()
@@ -1744,20 +1744,20 @@ bs_Scope* bs_getScope()
 void bs_setScope(
     bs_Scope* scope)
 {
-    return next.bs_setScope(scope);
+    next.bs_setScope(scope);
 }
 
 void bs_runSingle(
     bs_Callback function)
 {
-    return next.bs_runSingle(function);
+    next.bs_runSingle(function);
 }
 
 void bs_glyph(
     bs_TTF* ttf, 
     bs_U16 code)
 {
-    return next.bs_glyph(ttf, code);
+    next.bs_glyph(ttf, code);
 }
 
 void bs_ttf(
@@ -1765,7 +1765,7 @@ void bs_ttf(
     const char* path, 
     bs_U32 flags)
 {
-    return next.bs_ttf(existing, path, flags);
+    next.bs_ttf(existing, path, flags);
 }
 
 void bs_rasterizeGlyph(
@@ -1776,13 +1776,13 @@ void bs_rasterizeGlyph(
     char* out_bmp, 
     float scale)
 {
-    return next.bs_rasterizeGlyph(font, glyph, width, height, out_bmp, scale);
+    next.bs_rasterizeGlyph(font, glyph, width, height, out_bmp, scale);
 }
 
 void bs_kern(
     bs_TTF* ttf)
 {
-    return next.bs_kern(ttf);
+    next.bs_kern(ttf);
 }
 
 void bs_bindFont(
@@ -1791,7 +1791,7 @@ void bs_bindFont(
     int bind_set, 
     int bind_point)
 {
-    return next.bs_bindFont(font, sampler, bind_set, bind_point);
+    next.bs_bindFont(font, sampler, bind_set, bind_point);
 }
 
 bs_vec2 bs_textDimensions(
@@ -1805,7 +1805,7 @@ bs_vec2 bs_textDimensions(
 void bs_destroyFont(
     bs_Font* font)
 {
-    return next.bs_destroyFont(font);
+    next.bs_destroyFont(font);
 }
 
 bs_Result bs_loadFont(
@@ -1841,7 +1841,7 @@ void bs_transition(
     bs_ImageLayout old_layout, 
     bs_ImageLayout new_layout)
 {
-    return next.bs_transition(image, index, old_layout, new_layout);
+    next.bs_transition(image, index, old_layout, new_layout);
 }
 
 unsigned char* bs_inspectPng(
@@ -1958,7 +1958,7 @@ unsigned char* bs_encodePngF(
 void bs_destroyImage(
     bs_Image* image)
 {
-    return next.bs_destroyImage(image);
+    next.bs_destroyImage(image);
 }
 
 bs_Result bs_resizeImage(
@@ -2185,7 +2185,7 @@ void bs_parseArgs(
     int argc, 
     char* argv[])
 {
-    return next.bs_parseArgs(argc, argv);
+    next.bs_parseArgs(argc, argv);
 }
 
 bs_Args* bs_arguments()
@@ -2195,13 +2195,13 @@ bs_Args* bs_arguments()
 
 void bs_ini()
 {
-    return next.bs_ini();
+    next.bs_ini();
 }
 
 void bs_load(
     bs_Callback load_resources)
 {
-    return next.bs_load(load_resources);
+    next.bs_load(load_resources);
 }
 
 void bs_queryProcedures(
@@ -2210,7 +2210,7 @@ void bs_queryProcedures(
     void* dll_handle, 
     unsigned char* destination)
 {
-    return next.bs_queryProcedures(procedures, count, dll_handle, destination);
+    next.bs_queryProcedures(procedures, count, dll_handle, destination);
 }
 
 struct VkCommandBuffer_T* bsi_fetchCommands()
@@ -2225,7 +2225,7 @@ struct VkDevice_T* bsi_fetchDevice()
 
 void bsi_resizeObjects()
 {
-    return next.bsi_resizeObjects();
+    next.bsi_resizeObjects();
 }
 
 bs_Result bs_resetQueue(
@@ -2284,7 +2284,7 @@ void bs_enumerateJson(
     bs_Json* json, 
     bs_JsonEnumeration* e)
 {
-    return next.bs_enumerateJson(json, e);
+    next.bs_enumerateJson(json, e);
 }
 
 bs_Json bs_jsonRoot(
@@ -2297,7 +2297,7 @@ bs_Json bs_jsonRoot(
 void bs_ensureJsonMutable(
     bs_Json* root)
 {
-    return next.bs_ensureJsonMutable(root);
+    next.bs_ensureJsonMutable(root);
 }
 
 bs_Json bs_jsonCopy(
@@ -2366,7 +2366,7 @@ bs_Result bs_loadJsonF(
 void bs_destroyJson(
     bs_Json* json)
 {
-    return next.bs_destroyJson(json);
+    next.bs_destroyJson(json);
 }
 
 bs_JsonValue bs_parseJsonValue(
@@ -2414,7 +2414,7 @@ void bs_deleteJson(
     char* path, 
     int path_length)
 {
-    return next.bs_deleteJson(root, path, path_length);
+    next.bs_deleteJson(root, path, path_length);
 }
 
 void bs_deleteJsonV(
@@ -2425,7 +2425,7 @@ void bs_deleteJsonV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bs_deleteJson(root, _formatted, _length);
+    bs_deleteJson(root, _formatted, _length);
 }
 
 void bs_deleteJsonF(
@@ -2714,7 +2714,7 @@ void bs_critical(
     char* value, 
     int value_length)
 {
-    return next.bs_critical(value, value_length);
+    next.bs_critical(value, value_length);
 }
 
 void bs_criticalV(
@@ -2724,7 +2724,7 @@ void bs_criticalV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bs_critical(_formatted, _length);
+    bs_critical(_formatted, _length);
 }
 
 void bs_criticalF(
@@ -2739,23 +2739,23 @@ void bs_criticalF(
 
 void bs_logObjectDiff()
 {
-    return next.bs_logObjectDiff();
+    next.bs_logObjectDiff();
 }
 
 void bs_logUnchangedObjects()
 {
-    return next.bs_logUnchangedObjects();
+    next.bs_logUnchangedObjects();
 }
 
 void bs_logBindings()
 {
-    return next.bs_logBindings();
+    next.bs_logBindings();
 }
 
 void bs_infoF4(
     bs_mat4* m)
 {
-    return next.bs_infoF4(m);
+    next.bs_infoF4(m);
 }
 
 bs_Instance* bs_instance()
@@ -2793,7 +2793,7 @@ void bs_system(
     char* value, 
     int value_length)
 {
-    return next.bs_system(command, value, value_length);
+    next.bs_system(command, value, value_length);
 }
 
 void bs_systemV(
@@ -2804,7 +2804,7 @@ void bs_systemV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bs_system(command, _formatted, _length);
+    bs_system(command, _formatted, _length);
 }
 
 void bs_systemF(
@@ -2822,7 +2822,7 @@ void bs_createThread(
     bs_ThreadFunction function, 
     void* param)
 {
-    return next.bs_createThread(function, param);
+    next.bs_createThread(function, param);
 }
 
 int bs_formatStringLength(
@@ -2947,7 +2947,7 @@ void bs_setWorkingDirectory(
     char* path, 
     int path_length)
 {
-    return next.bs_setWorkingDirectory(path, path_length);
+    next.bs_setWorkingDirectory(path, path_length);
 }
 
 void bs_setWorkingDirectoryV(
@@ -2957,7 +2957,7 @@ void bs_setWorkingDirectoryV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bs_setWorkingDirectory(_formatted, _length);
+    bs_setWorkingDirectory(_formatted, _length);
 }
 
 void bs_setWorkingDirectoryF(
@@ -2984,7 +2984,7 @@ void bs_shortenString(
     bs_String* string, 
     int len)
 {
-    return next.bs_shortenString(string, len);
+    next.bs_shortenString(string, len);
 }
 
 bs_String* bs_appendChar(
@@ -2998,7 +2998,7 @@ void bs_removeLastCharsCount(
     bs_String* string, 
     int n)
 {
-    return next.bs_removeLastCharsCount(string, n);
+    next.bs_removeLastCharsCount(string, n);
 }
 
 void bs_removeCharRange(
@@ -3006,7 +3006,7 @@ void bs_removeCharRange(
     int start, 
     int count)
 {
-    return next.bs_removeCharRange(string, start, count);
+    next.bs_removeCharRange(string, start, count);
 }
 
 bs_String* bs_insertChar(
@@ -3031,7 +3031,7 @@ void bs_replaceCharOccurrences(
     char a, 
     char b)
 {
-    return next.bs_replaceCharOccurrences(string, string_len, a, b);
+    next.bs_replaceCharOccurrences(string, string_len, a, b);
 }
 
 char* bs_strndup(
@@ -3171,7 +3171,7 @@ void bs_ensureSize(
     bs_List* list, 
     bs_U32 num_units)
 {
-    return next.bs_ensureSize(list, num_units);
+    next.bs_ensureSize(list, num_units);
 }
 
 void bs_erase(
@@ -3179,7 +3179,7 @@ void bs_erase(
     int index, 
     bs_U32 count)
 {
-    return next.bs_erase(list, index, count);
+    next.bs_erase(list, index, count);
 }
 
 void* bs_pushBack(
@@ -3199,20 +3199,20 @@ void* bs_pushBackList(
 void bs_destroyList(
     bs_List* list)
 {
-    return next.bs_destroyList(list);
+    next.bs_destroyList(list);
 }
 
 void bs_seekList(
     bs_List* list, 
     bs_U32 unit_index)
 {
-    return next.bs_seekList(list, unit_index);
+    next.bs_seekList(list, unit_index);
 }
 
 void bs_minimizeList(
     bs_List* list)
 {
-    return next.bs_minimizeList(list);
+    next.bs_minimizeList(list);
 }
 
 bs_List bs_list(
@@ -3226,7 +3226,7 @@ void bs_guidToString(
     bs_GUID* guid, 
     char out[37])
 {
-    return next.bs_guidToString(guid, out);
+    next.bs_guidToString(guid, out);
 }
 
 bs_GUID bs_stringToGuid(
@@ -3288,7 +3288,7 @@ void bs_appendFile(
     const char* path, 
     const char* data)
 {
-    return next.bs_appendFile(path, data);
+    next.bs_appendFile(path, data);
 }
 
 void bs_saveFile(
@@ -3297,7 +3297,7 @@ void bs_saveFile(
     char* path, 
     int path_length)
 {
-    return next.bs_saveFile(data, data_len, path, path_length);
+    next.bs_saveFile(data, data_len, path, path_length);
 }
 
 void bs_saveFileV(
@@ -3309,7 +3309,7 @@ void bs_saveFileV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bs_saveFile(data, data_len, _formatted, _length);
+    bs_saveFile(data, data_len, _formatted, _length);
 }
 
 void bs_saveFileF(
@@ -3328,7 +3328,7 @@ void bs_convertWin32Path(
     char* path, 
     int path_length)
 {
-    return next.bs_convertWin32Path(path, path_length);
+    next.bs_convertWin32Path(path, path_length);
 }
 
 void bs_convertWin32PathV(
@@ -3338,7 +3338,7 @@ void bs_convertWin32PathV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bs_convertWin32Path(_formatted, _length);
+    bs_convertWin32Path(_formatted, _length);
 }
 
 void bs_convertWin32PathF(
@@ -3507,7 +3507,7 @@ bs_Result bs_model(
 void bs_destroyModel(
     bs_Model* model)
 {
-    return next.bs_destroyModel(model);
+    next.bs_destroyModel(model);
 }
 
 bs_vec4 bs_interpolateRotation(
@@ -3561,7 +3561,7 @@ void bs_blendPose(
     float time_a, 
     float time_b)
 {
-    return next.bs_blendPose(armature, animation_a, animation_b, factor, time_a, time_b);
+    next.bs_blendPose(armature, animation_a, animation_b, factor, time_a, time_b);
 }
 
 int bs_bone(
@@ -3580,13 +3580,13 @@ void bs_fabrik(
     int chain_length, 
     float* chain)
 {
-    return next.bs_fabrik(armature, end_effector_id, target, chain_length, chain);
+    next.bs_fabrik(armature, end_effector_id, target, chain_length, chain);
 }
 
 void bs_bindPose(
     bs_Armature* armature)
 {
-    return next.bs_bindPose(armature);
+    next.bs_bindPose(armature);
 }
 
 void bs_keyframePosition(
@@ -3594,7 +3594,7 @@ void bs_keyframePosition(
     float timestamp, 
     bs_vec3 position)
 {
-    return next.bs_keyframePosition(bone, timestamp, position);
+    next.bs_keyframePosition(bone, timestamp, position);
 }
 
 void bs_keyframeRotation(
@@ -3602,7 +3602,7 @@ void bs_keyframeRotation(
     float timestamp, 
     bs_vec4 rotation)
 {
-    return next.bs_keyframeRotation(bone, timestamp, rotation);
+    next.bs_keyframeRotation(bone, timestamp, rotation);
 }
 
 void bs_keyframeScale(
@@ -3610,7 +3610,7 @@ void bs_keyframeScale(
     float timestamp, 
     bs_vec3 scale)
 {
-    return next.bs_keyframeScale(bone, timestamp, scale);
+    next.bs_keyframeScale(bone, timestamp, scale);
 }
 
 bs_Result bs_loadAnimation(
@@ -3694,7 +3694,7 @@ bs_List* bs_objectSources()
 void bs_destroyResource(
     bs_Resource* resource)
 {
-    return next.bs_destroyResource(resource);
+    next.bs_destroyResource(resource);
 }
 
 bs_Result bs_queryResource(
@@ -3797,7 +3797,7 @@ bs_Result bs_shader(
 void bs_destroyShader(
     bs_Shader* shader)
 {
-    return next.bs_destroyShader(shader);
+    next.bs_destroyShader(shader);
 }
 
 bs_Pipeline* bs_computePipeline(
@@ -3810,7 +3810,7 @@ bs_Pipeline* bs_computePipeline(
 void bs_destroyComputePipeline(
     bs_Pipeline* pipeline)
 {
-    return next.bs_destroyComputePipeline(pipeline);
+    next.bs_destroyComputePipeline(pipeline);
 }
 
 bs_Pipeline* bs_queryPipeline(
@@ -3836,7 +3836,7 @@ bs_Result bs_pipeline(
 void bs_destroyPipeline(
     bs_Pipeline* pipeline)
 {
-    return next.bs_destroyPipeline(pipeline);
+    next.bs_destroyPipeline(pipeline);
 }
 
 void bs_pushConstant(
@@ -3845,7 +3845,7 @@ void bs_pushConstant(
     bs_U32 size, 
     void* data)
 {
-    return next.bs_pushConstant(pipeline, offset, size, data);
+    next.bs_pushConstant(pipeline, offset, size, data);
 }
 
 bs_Result bs_rayTracingPipeline(
@@ -3859,7 +3859,7 @@ void bs_loadBindings(
     int package_id, 
     const char* path)
 {
-    return next.bs_loadBindings(package_id, path);
+    next.bs_loadBindings(package_id, path);
 }
 
 bs_Result bs_binding(
@@ -3927,12 +3927,12 @@ bs_Result bs_bindAccelerationStructures(
 
 void bs_pushDescriptors()
 {
-    return next.bs_pushDescriptors();
+    next.bs_pushDescriptors();
 }
 
 void bs_pushBindings()
 {
-    return next.bs_pushBindings();
+    next.bs_pushBindings();
 }
 
 bs_BindSet* bs_queryBindSet(
@@ -3952,7 +3952,7 @@ void bs_configureAttribute(
     const char* name, 
     bs_Format base_format)
 {
-    return next.bs_configureAttribute(name, base_format);
+    next.bs_configureAttribute(name, base_format);
 }
 
 bs_Window* bs_wnd()
@@ -4008,13 +4008,13 @@ void bs_lockCursorPosition(
     bs_Window* window, 
     bool value)
 {
-    return next.bs_lockCursorPosition(window, value);
+    next.bs_lockCursorPosition(window, value);
 }
 
 void bs_disableUserInputs(
     bool value)
 {
-    return next.bs_disableUserInputs(value);
+    next.bs_disableUserInputs(value);
 }
 
 bool bs_middleClick()
@@ -4113,7 +4113,7 @@ void bs_resizeWindow(
     bs_U32 width, 
     bs_U32 height)
 {
-    return next.bs_resizeWindow(width, height);
+    next.bs_resizeWindow(width, height);
 }
 
 bs_ivec2 bs_screenDimensions()
@@ -4125,7 +4125,7 @@ void bs_moveWindow(
     int x, 
     int y)
 {
-    return next.bs_moveWindow(x, y);
+    next.bs_moveWindow(x, y);
 }
 
 void bs_window(
@@ -4133,7 +4133,7 @@ void bs_window(
     bs_U32 height, 
     const char* title)
 {
-    return next.bs_window(width, height, title);
+    next.bs_window(width, height, title);
 }
 
 void bs_tick(
@@ -4141,28 +4141,28 @@ void bs_tick(
     bs_Callback tick, 
     bs_Callback fixed_tick)
 {
-    return next.bs_tick(window, tick, fixed_tick);
+    next.bs_tick(window, tick, fixed_tick);
 }
 
 void bs_exit()
 {
-    return next.bs_exit();
+    next.bs_exit();
 }
 
 void bs_setCursor(
     bs_CursorIcon type)
 {
-    return next.bs_setCursor(type);
+    next.bs_setCursor(type);
 }
 
 void bs_maximize()
 {
-    return next.bs_maximize();
+    next.bs_maximize();
 }
 
 void bs_minimize()
 {
-    return next.bs_minimize();
+    next.bs_minimize();
 }
 
 double bs_deltaTime()
@@ -4172,12 +4172,12 @@ double bs_deltaTime()
 
 void bs_pause()
 {
-    return next.bs_pause();
+    next.bs_pause();
 }
 
 void bs_advance()
 {
-    return next.bs_advance();
+    next.bs_advance();
 }
 
 double bs_elapsedTime()
@@ -4194,7 +4194,7 @@ void bs_titleWindow(
     char* name, 
     int name_length)
 {
-    return next.bs_titleWindow(name, name_length);
+    next.bs_titleWindow(name, name_length);
 }
 
 void bs_titleWindowV(
@@ -4204,7 +4204,7 @@ void bs_titleWindowV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bs_titleWindow(_formatted, _length);
+    bs_titleWindow(_formatted, _length);
 }
 
 void bs_titleWindowF(
@@ -4225,7 +4225,7 @@ bool bs_inFixedTick()
 void bs_setTargetFramerate(
     int fps)
 {
-    return next.bs_setTargetFramerate(fps);
+    next.bs_setTargetFramerate(fps);
 }
 
 bs_Timer bs_timer()
@@ -4236,7 +4236,7 @@ bs_Timer bs_timer()
 void bs_checkTimer(
     bs_Timer* timer)
 {
-    return next.bs_checkTimer(timer);
+    next.bs_checkTimer(timer);
 }
 
 void bs_copyToClipboard(
@@ -4244,7 +4244,7 @@ void bs_copyToClipboard(
     char* value, 
     int value_length)
 {
-    return next.bs_copyToClipboard(timer, value, value_length);
+    next.bs_copyToClipboard(timer, value, value_length);
 }
 
 void bs_copyToClipboardV(
@@ -4255,7 +4255,7 @@ void bs_copyToClipboardV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bs_copyToClipboard(timer, _formatted, _length);
+    bs_copyToClipboard(timer, _formatted, _length);
 }
 
 void bs_copyToClipboardF(

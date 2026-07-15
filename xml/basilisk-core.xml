@@ -27,7 +27,7 @@
 		</trampolineHeader>
 		<internalHeader>
 			<include>basilisk-core.gen.h</include>
-			<include>windows.h</include>
+			<include>wtypes.h</include>
 			<include>vulkan.h</include>
 		</internalHeader>
 		<prevalidation>
@@ -40,13 +40,12 @@
 		<validationHeader>
 			<include>basilisk-core.gen.h</include>
 			<include>bs_internal.h</include>
-			<include>windows.h</include>
 		</validationHeader>
     </includes>
 
 	<typedefs>
         <typedef><type>int</type><name>(__cdecl* bs_ThreadFunction)(void*)</name></typedef>
-        <typedef><type>void*</type><name>(__cdecl* bs_ForeachDocumentFunction)(bs_FileInfo, void*)</name></typedef>
+        <typedef><type>void</type><name>(__cdecl* bs_ForeachDocumentFunction)(bs_FileInfo, void*)</name></typedef>
 
 		<typedef><type>long long</type><name>bs_I64</name></typedef>
 		<typedef><type>int</type><name>bs_I32</name></typedef>
@@ -1794,7 +1793,7 @@
             <field><type>bs_U64</type><name>name_hash</name></field>
             <field><type>bs_U32</type><name>location</name></field>
             <field><type>bs_U32</type><name>size</name></field>
-            <field><type>bs_U32</type><name>format</name></field>
+            <field><type>bs_Format</type><name>format</name></field>
             <field><type>bs_U32</type><name>offset</name></field>
         </structure>
         <structure name="bs_Shader">

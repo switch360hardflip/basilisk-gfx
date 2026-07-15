@@ -59,7 +59,12 @@
         <xsl:value-of select="body"/>
 
         <xsl:if test="not(body)">
-            <xsl:text>    return next.</xsl:text>
+			<xsl:text>    </xsl:text>
+			<xsl:if test="not(return = 'void')">
+				<xsl:text>return </xsl:text>
+			</xsl:if>
+			
+            <xsl:text>next.</xsl:text>
             <xsl:value-of select="@name"/>
             <xsl:text>(</xsl:text>
 

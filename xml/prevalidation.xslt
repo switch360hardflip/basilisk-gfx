@@ -53,6 +53,11 @@
                 <xsl:value-of select="type"/>
                 <xsl:text> </xsl:text>
                 <xsl:value-of select="name"/>
+				<xsl:for-each select="size">
+                    <xsl:text>[</xsl:text>
+                    <xsl:value-of select="."/>
+                    <xsl:text>]</xsl:text>
+				</xsl:for-each>
                 <xsl:if test="not(position() = last())">
                     <xsl:text>, </xsl:text>
                 </xsl:if>
@@ -63,60 +68,59 @@
             <xsl:variable name="returnValue">
                 <xsl:choose>
                     <xsl:when test="return = 'bs_Result'">
-                        <xsl:text>return BS_RESULT_VALIDATION_ERROR</xsl:text>
+                        <xsl:text>BS_RESULT_VALIDATION_ERROR</xsl:text>
                     </xsl:when>
                     <xsl:when test="return = 'void'">
-                        <xsl:text>return</xsl:text>
                     </xsl:when>
                     <xsl:when test="contains(return, '*')">
-                        <xsl:text>return NULL</xsl:text>
+                        <xsl:text>NULL</xsl:text>
                     </xsl:when>
                     <xsl:when test="return = 'bool'">
-                        <xsl:text>return false</xsl:text>
+                        <xsl:text>false</xsl:text>
                     </xsl:when>
                     <xsl:when test="/registry/structures/structure[@name = current()/return]">
-                        <xsl:text>return (</xsl:text>
+                        <xsl:text>(</xsl:text>
                         <xsl:value-of select="return"/>
                         <xsl:text>) { 0 }</xsl:text>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:text>return 0</xsl:text>
+                        <xsl:text>0</xsl:text>
                     </xsl:otherwise>
                 </xsl:choose>
             </xsl:variable>
 
             <xsl:for-each select="param">
                 <xsl:if test="contains(type, '*')">
-                    <xsl:text>    if (</xsl:text>
+                    <xsl:text>    </xsl:text>
+                    <xsl:value-of select="/registry/functionPrefixCaps"/>
+                    <xsl:text>VALIDATE(</xsl:text>
                     <xsl:value-of select="name"/>
-                    <xsl:text> == NULL)&#xA;        </xsl:text>
+                    <xsl:text> != NULL, </xsl:text>
                     <xsl:value-of select="$returnValue"/>
-                    <xsl:text>;&#xA;&#xA;</xsl:text>
+                    <xsl:text>,);&#xA;</xsl:text>
 
                     <!-- Object type safety check-->
                     <xsl:variable name="objectType" select="/registry/structures/structure[@name = translate(current()/type, '*', '')]/@object"/>
-                    <xsl:if test="not(contains(type, '**')) and $objectType">
-                        <xsl:text>    if (</xsl:text>
+                    <xsl:if test="not(contains(type, '**')) and $objectType and not(size)">
+                        <xsl:text>    </xsl:text>
+                        <xsl:value-of select="/registry/functionPrefixCaps"/>
+                        <xsl:text>VALIDATE(</xsl:text>
                         <xsl:value-of select="name"/>
                         <xsl:text>->head.source_id != </xsl:text>
                         <xsl:value-of select="$objectType"/>
-                        <xsl:text>)&#xA;        </xsl:text>
+                        <xsl:text>, </xsl:text>
                         <xsl:value-of select="$returnValue"/>
-                        <xsl:text>;&#xA;&#xA;</xsl:text>
+                        <xsl:text>,);&#xA;</xsl:text>
                     </xsl:if>
                 </xsl:if>
             </xsl:for-each>
 
-            <xsl:for-each select="param/assert">
-                <xsl:text>    if (!(</xsl:text>
-                <xsl:value-of select="."/>
-                <xsl:text>))&#xA;        </xsl:text>
-                <xsl:value-of select="$returnValue"/>
-                <xsl:text>;&#xA;&#xA;</xsl:text>
-            </xsl:for-each>
-
-            <xsl:text>    return next.</xsl:text>
-            <xsl:value-of select="@name"/>
+			<xsl:text>    </xsl:text>
+			<xsl:if test="not(return = 'void')">
+				<xsl:text>return </xsl:text>
+			</xsl:if>
+			<xsl:text>next.</xsl:text>
+			<xsl:value-of select="@name"/>
             <xsl:text>(</xsl:text>
             <xsl:for-each select="param">
                 <xsl:value-of select="name"/>

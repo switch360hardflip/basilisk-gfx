@@ -55,7 +55,7 @@ BSAPI bs_Procedure* _bs_procedures() {
 
 BSAPI void _val_bs_beginComment(char* message, int message_len) {
     BS_VALIDATE(_bs_procs_.vkCmdBeginDebugUtilsLabelEXT != NULL,,);
-    return bs_beginComment(message, message_len);
+    bs_beginComment(message, message_len);
 }
 
 BSAPI void _bs_beginComment(char* message, int message_len) {
@@ -72,7 +72,7 @@ BSAPI void _bs_beginComment(char* message, int message_len) {
 
 BSAPI void _val_bs_endComment() {
     BS_VALIDATE(_bs_procs_.vkCmdEndDebugUtilsLabelEXT != NULL,,);
-    return bs_endComment();
+    bs_endComment();
 }
 
 BSAPI void _bs_endComment() {
@@ -146,11 +146,8 @@ BSAPI void _bs_clearColor(bs_U32 index, bs_ivec2 dim, bs_RGBA color) {
 }
 
 BSAPI void _bs_stencilReference(bs_FaceType face, bs_U32 reference) {
-    assert(BS_FACE_FRONT == VK_STENCIL_FACE_FRONT_BIT);
-    assert(BS_FACE_BACK == VK_STENCIL_FACE_BACK_BIT);
-    assert(BS_FACE_FRONT_AND_BACK == VK_STENCIL_FACE_FRONT_AND_BACK);
     VkCommandBuffer commands = bsi_fetchCommands();
-    vkCmdSetStencilReference(commands, face, reference);
+    vkCmdSetStencilReference(commands, (VkStencilFaceFlags)face, reference);
 }
 
 BSAPI void _bs_cull(bs_CullFlags flags) {
@@ -333,7 +330,7 @@ BSAPI void _val_bs_stageList(bs_Buffer* buffer, bs_List* list) {
     BS_VALIDATE(bs_bufferIsMapped(buffer),,);
     BS_VALIDATE((list->count * list->unit_size) < buffer->num_bytes,,);
 
-    return bs_stageList(buffer, list);
+    bs_stageList(buffer, list);
 }
 
 BSAPI void _bs_stageList(bs_Buffer* buffer, bs_List* list) {
@@ -359,7 +356,6 @@ BSAPI void _bs_stageImage(bs_Buffer* buffer, bs_Format format, bs_ivec2 dim, con
     }
 
     memcpy(bs_bufferMap(buffer), data, size);
-    return BS_RESULT_OK;
 }
 
 BSAPI void _bs_destroyBuffer(bs_Buffer* buffer) {
@@ -390,7 +386,7 @@ BSAPI void _bs_destroyBuffer(bs_Buffer* buffer) {
 BSAPI void _val_bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 dst_offset, bs_U32 src_offset, bs_U32 num_bytes) {
     BS_VALIDATE(num_bytes < src->num_bytes,,);
 
-    return bs_copyAsync(src, dst, dst_offset, src_offset, num_bytes);
+    bs_copyAsync(src, dst, dst_offset, src_offset, num_bytes);
 }
 
 BSAPI void _bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 dst_offset, bs_U32 src_offset, bs_U32 num_bytes) {
@@ -1446,7 +1442,7 @@ BSAPI void _val_bs_renderPass(bs_Renderer* renderer) {
     BS_VALIDATE(!renderer->render_pass, , "Renderer (%d) already has a render pass\n", renderer->head.id)
 }
 
-BSAPI void _bs_renderPass(bs_Renderer* renderer) {
+BSAPI bs_Result _bs_renderPass(bs_Renderer* renderer) {
     VkSubpassDescription subpasses[BS_MAX_NUM_SUBPASSES] = { 0 };
     VkAttachmentDescription attachments[BS_MAX_ATTACHMENTS_COUNT] = { 0 };
 
@@ -1467,13 +1463,13 @@ BSAPI void _bs_renderPass(bs_Renderer* renderer) {
 
         attachments[i] = (VkAttachmentDescription) {
             .samples = VK_SAMPLE_COUNT_1_BIT,
-            .loadOp = output->load_op,
-            .storeOp = output->store_op,
+            .loadOp = (VkAttachmentLoadOp)output->load_op,
+            .storeOp = (VkAttachmentStoreOp)output->store_op,
             .stencilLoadOp = is_stencil ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-            .stencilStoreOp = is_stencil ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_STORE_OP_DONT_CARE,
-            .format = output->image->format,
-            .initialLayout = output->old_layout,
-            .finalLayout = output->new_layout,
+            .stencilStoreOp = is_stencil ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .format = (VkFormat)output->image->format,
+            .initialLayout = (VkImageLayout)output->old_layout,
+            .finalLayout = (VkImageLayout)output->new_layout,
         };
 
         VkSubpassDescription* subpass = subpasses + output->subpass;
@@ -1531,16 +1527,22 @@ BSAPI void _bs_renderPass(bs_Renderer* renderer) {
 
     VkResult result = vkCreateRenderPass(_bs_instance_->device, &render_pass_ci, NULL, &renderer->render_pass);
 
+    if (result != VK_SUCCESS) {
+        BS_WARN_VULKAN_ERROR("vkCreateRenderPass", result,);
+        return bs_convertVulkanResult(result);
+    }
+
     const char* id_name = renderer->head.id == 0 ? NULL : bs_idName(renderer->head.source_id, renderer->head.id);
     if (id_name)
         bsi_nameHandleF(renderer->render_pass, VK_OBJECT_TYPE_RENDER_PASS, "(%d) renderer " BS_PRINT_CYAN "%s" BS_PRINT_RESET, renderer->head.id, id_name);
-
-    return bs_convertVulkanResult(result);
+    
+    return BS_RESULT_OK;
 }
 
 BSAPI void _val_bs_framebuffer(bs_Renderer* renderer, bs_ivec2 dim) {
-    if (renderer->_->framebuffer)
-        return bs_warnF("Renderer (%d) already has a framebuffer\n", renderer->head.id);
+    BS_VALIDATE(renderer->_->framebuffer == NULL,, "Renderer (%d) already has a framebuffer\n", renderer->head.id);
+
+    bs_framebuffer(renderer, dim);
 }
 
 BSAPI bs_Result _bs_framebuffer(bs_Renderer* renderer, bs_ivec2 dim) {
@@ -1590,7 +1592,7 @@ BSAPI void _val_bs_beginRender(bs_Renderer* renderer) {
         BS_VALIDATE(_bs_procs_.vkCmdEndRenderingKHR != NULL, , );
     }
 
-    return bs_beginRender(renderer);
+    bs_beginRender(renderer);
 }
 
 BSAPI void _bs_beginRender(bs_Renderer* renderer) {
@@ -1709,7 +1711,7 @@ BSAPI void _val_bs_runPass(bs_Renderer* renderer, bs_Callback subpasses[], int s
         BS_VALIDATE(subpasses[i] != NULL,,);
     }
 
-    return bs_runPass(renderer, subpasses, subpasses_count);
+    bs_runPass(renderer, subpasses, subpasses_count);
 }
 
 BSAPI void _bs_runPass(bs_Renderer* renderer, bs_Callback callbacks[], int callbacks_count) {
@@ -2455,7 +2457,7 @@ BSAPI bool _bs_poll(bs_Queue* queue) {
 }
 
 BSAPI bs_Result _val_bs_resetQueue(bs_Queue* queue) {
-    BS_VALIDATE(!_bs_scope_.has_begun,,);
+    BS_VALIDATE(!_bs_scope_.has_begun, BS_RESULT_VALIDATION_ERROR,);
 
     return bs_resetQueue(queue);
 }
@@ -2488,7 +2490,7 @@ BSAPI bs_Result _bs_resetQueue(bs_Queue* queue) {
 }
 
 BSAPI bs_Result _val_bs_pushQueue(bs_Queue* queue) {
-    BS_VALIDATE(!_bs_scope_.has_begun, , );
+    BS_VALIDATE(!_bs_scope_.has_begun, BS_RESULT_VALIDATION_ERROR,);
     return bs_pushQueue(queue);
 }
 
@@ -2680,7 +2682,7 @@ BSAPI void _val_bs_present(bs_Queue* queue, bs_Queue* wait_queues[], int wait_qu
         BS_VALIDATE(wait_queues[i]->head.source_id == BS_OBJECT_QUEUE,,);
     }
 
-    return bs_present(queue, wait_queues, wait_queues_count);
+    bs_present(queue, wait_queues, wait_queues_count);
 }
 
 BSAPI void _bs_present(bs_Queue* queue, bs_Queue* wait_queues[], int wait_queues_count) {

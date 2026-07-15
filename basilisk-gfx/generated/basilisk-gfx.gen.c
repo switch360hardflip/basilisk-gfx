@@ -46,7 +46,7 @@ bsgfx_Scene* bsgfx_currentScene()
 void bsgfx_loadScene(
     const char* name)
 {
-    return next.bsgfx_loadScene(name);
+    next.bsgfx_loadScene(name);
 }
 
 int bsgfx_images()
@@ -125,7 +125,7 @@ bsgfx_Material* bsgfx_queryMaterial(
 
 void bsgfx_loadMaterials()
 {
-    return next.bsgfx_loadMaterials();
+    next.bsgfx_loadMaterials();
 }
 
 bsgfx_Material* bsgfx_material(
@@ -160,40 +160,40 @@ void bsgfx_highlightMaterial(
     int material_id, 
     bool auto_unhighlight)
 {
-    return next.bsgfx_highlightMaterial(material_id, auto_unhighlight);
+    next.bsgfx_highlightMaterial(material_id, auto_unhighlight);
 }
 
 void bsgfx_unhighlightMaterial(
     int material_id)
 {
-    return next.bsgfx_unhighlightMaterial(material_id);
+    next.bsgfx_unhighlightMaterial(material_id);
 }
 
 void bsgfx_tickMaterials()
 {
-    return next.bsgfx_tickMaterials();
+    next.bsgfx_tickMaterials();
 }
 
 void bsgfx_shadowPipe()
 {
-    return next.bsgfx_shadowPipe();
+    next.bsgfx_shadowPipe();
 }
 
 void bsgfx_pipeline()
 {
-    return next.bsgfx_pipeline();
+    next.bsgfx_pipeline();
 }
 
 void bsgfx_onDeviceLost()
 {
-    return next.bsgfx_onDeviceLost();
+    next.bsgfx_onDeviceLost();
 }
 
 void bsgfx_sweepCollisions(
     float sweep_radius, 
     bs_vec3 position)
 {
-    return next.bsgfx_sweepCollisions(sweep_radius, position);
+    next.bsgfx_sweepCollisions(sweep_radius, position);
 }
 
 bsgfx_Collider bsgfx_collider(
@@ -210,18 +210,18 @@ void bsgfx_applyCollisions(
     bs_vec3 position, 
     bs_vec3* velocity)
 {
-    return next.bsgfx_applyCollisions(collider, position, velocity);
+    next.bsgfx_applyCollisions(collider, position, velocity);
 }
 
 void bsgfx_printCollisions(
     bsgfx_Collider* collider)
 {
-    return next.bsgfx_printCollisions(collider);
+    next.bsgfx_printCollisions(collider);
 }
 
 void bsgfx_instanceSweepCollisions()
 {
-    return next.bsgfx_instanceSweepCollisions();
+    next.bsgfx_instanceSweepCollisions();
 }
 
 void bsgfx_instanceCollider(
@@ -229,7 +229,7 @@ void bsgfx_instanceCollider(
     bs_vec3 position, 
     bs_vec3* velocity)
 {
-    return next.bsgfx_instanceCollider(collider, position, velocity);
+    next.bsgfx_instanceCollider(collider, position, velocity);
 }
 
 int bsgfx_skeleton(
@@ -258,21 +258,21 @@ void bsgfx_applyAnimationVelocity(
     bs_vec3* velocity, 
     bs_vec2 input)
 {
-    return next.bsgfx_applyAnimationVelocity(animator, velocity, input);
+    next.bsgfx_applyAnimationVelocity(animator, velocity, input);
 }
 
 void bsgfx_queueAnimation(
     bsgfx_Animator* animator, 
     int animation_id)
 {
-    return next.bsgfx_queueAnimation(animator, animation_id);
+    next.bsgfx_queueAnimation(animator, animation_id);
 }
 
 void bsgfx_runAnimator(
     bsgfx_Animator* animator, 
     bsgfx_AnimatorCallbacks callbacks)
 {
-    return next.bsgfx_runAnimator(animator, callbacks);
+    next.bsgfx_runAnimator(animator, callbacks);
 }
 
 bsgfx_Animator bsgfx_animator(
@@ -300,7 +300,7 @@ void bsgfx_instanceType(
     int bind_set, 
     int binding)
 {
-    return next.bsgfx_instanceType(type, max_instance_count, bind_set, binding);
+    next.bsgfx_instanceType(type, max_instance_count, bind_set, binding);
 }
 
 bs_Range bsgfx_subtypeRange(
@@ -312,7 +312,7 @@ bs_Range bsgfx_subtypeRange(
 void bsgfx_deleteSubtype(
     int subtype)
 {
-    return next.bsgfx_deleteSubtype(subtype);
+    next.bsgfx_deleteSubtype(subtype);
 }
 
 int bsgfx_instanceCount(
@@ -355,7 +355,7 @@ int bsgfx_instance(
 
 void bsgfx_tickInstances()
 {
-    return next.bsgfx_tickInstances();
+    next.bsgfx_tickInstances();
 }
 
 bool bsgfx_subtypeHasFlag(
@@ -369,18 +369,18 @@ void bsgfx_renderSubtype(
     int subtype, 
     bs_Pipeline* pipeline)
 {
-    return next.bsgfx_renderSubtype(subtype, pipeline);
+    next.bsgfx_renderSubtype(subtype, pipeline);
 }
 
 void bsgfx_resetInstances()
 {
-    return next.bsgfx_resetInstances();
+    next.bsgfx_resetInstances();
 }
 
 void bsgfx_resetSubtype(
     int subtype)
 {
-    return next.bsgfx_resetSubtype(subtype);
+    next.bsgfx_resetSubtype(subtype);
 }
 
 void bsgfx_instanceHiResMesh(
@@ -391,7 +391,7 @@ void bsgfx_instanceHiResMesh(
     int subtype_offset, 
     bool origin_at_center)
 {
-    return next.bsgfx_instanceHiResMesh(mesh, position, rotation, scale, subtype_offset, origin_at_center);
+    next.bsgfx_instanceHiResMesh(mesh, position, rotation, scale, subtype_offset, origin_at_center);
 }
 
 int bsgfx_instanceMesh(
@@ -548,28 +548,28 @@ bs_mat4x3 bsgfx_matrix(
 
 void bsgfx_renderFontSubtypes()
 {
-    return next.bsgfx_renderFontSubtypes();
+    next.bsgfx_renderFontSubtypes();
 }
 
 void bsgfx_settingsEditor(
     bs_List* result)
 {
-    return next.bsgfx_settingsEditor(result);
+    next.bsgfx_settingsEditor(result);
 }
 
 void bsgfx_renderFineShadowVolumes()
 {
-    return next.bsgfx_renderFineShadowVolumes();
+    next.bsgfx_renderFineShadowVolumes();
 }
 
 void bsgfx_renderShadowVolumes()
 {
-    return next.bsgfx_renderShadowVolumes();
+    next.bsgfx_renderShadowVolumes();
 }
 
 void bsgfx_computeShadowVolumes()
 {
-    return next.bsgfx_computeShadowVolumes();
+    next.bsgfx_computeShadowVolumes();
 }
 
 bs_Model* bsgfx_prefabModel()
@@ -589,7 +589,7 @@ void bsgfx_ini(
     int argc, 
     char* argv[])
 {
-    return next.bsgfx_ini(name, width, height, argc, argv);
+    next.bsgfx_ini(name, width, height, argc, argv);
 }
 
 HINSTANCE bsgfx_bsmodDll()
@@ -600,13 +600,13 @@ HINSTANCE bsgfx_bsmodDll()
 void bsgfx_checkGFSDK(
     bs_U32 result)
 {
-    return next.bsgfx_checkGFSDK(result);
+    next.bsgfx_checkGFSDK(result);
 }
 
 void bsgfx_logGFSDK(
     bs_U32 result)
 {
-    return next.bsgfx_logGFSDK(result);
+    next.bsgfx_logGFSDK(result);
 }
 
 bsgfx_Application* bsgfx_app()
@@ -633,6 +633,6 @@ void bsgfx_setCamera(
     const bs_mat4* proj, 
     const bs_mat4* view)
 {
-    return next.bsgfx_setCamera(proj, view);
+    next.bsgfx_setCamera(proj, view);
 }
 

@@ -84,7 +84,7 @@ BSAPI bs_Result _bs_saveJson(bs_Json* json, bs_SaveJsonBits flags, char** out) {
 
 	if (error.code) {
 		bs_warnF("Failed to save JSON: %s\n", error.msg);
-		return ;
+		return BS_RESULT_FAILED_TO_WRITE;
 	}
 
 	*out = result;
@@ -512,9 +512,9 @@ BSAPI bs_JsonValue _bs_fetchJson(bs_Json* root, bs_JsonType expect, char* path, 
 }
 
 BSAPI void _val_bs_deleteJson(bs_Json* root, char* path, int path_length) {
-	BS_VALIDATE(root->is_mutable == true, false, );
+	BS_VALIDATE(root->is_mutable == true,, );
 
-	return bs_deleteJson(root, path, path_length);
+	bs_deleteJson(root, path, path_length);
 }
 
 BSAPI void _bs_deleteJson(bs_Json* root, char* path, int path_length) {
@@ -755,8 +755,10 @@ static void bs_enumerateMutableJson(bs_Json* json, bs_JsonEnumeration* e) {
 }
 
 BSAPI void _bs_enumerateJson(bs_Json* json, bs_JsonEnumeration* e) {
-	if (json->is_mutable)
-		return bs_enumerateMutableJson(json, e);
+	if (json->is_mutable) {
+		bs_enumerateMutableJson(json, e);
+		return;
+	}
 
 	yyjson_val* key = yyjson_obj_iter_next(&e->iter);
 

@@ -43,6 +43,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     dwmapi
 )
 
+# _alloca
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /wd6255 /wd4047 /wd4090 /wd4024 /wd4133)
+endif()
+
 IF (WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE
         winhttp

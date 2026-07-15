@@ -67,6 +67,12 @@
 
                 <xsl:value-of select="name"/>
 
+				<xsl:for-each select="size">
+					<xsl:text>[</xsl:text>
+					<xsl:value-of select="."/>
+					<xsl:text>]</xsl:text>
+				</xsl:for-each>
+				
                 <xsl:if test="position() != last()">
                     <xsl:text>, </xsl:text>
                 </xsl:if>

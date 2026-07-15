@@ -338,7 +338,7 @@ BSAPI void _val_bs_removeCharRange(bs_String* string, int start, int count) {
     BS_VALIDATE(count >= 0,,);
     BS_VALIDATE(start < string->len,,);
 
-    return bs_removeCharRange(string, start, count);
+    bs_removeCharRange(string, start, count);
 }
 
 BSAPI void _bs_removeCharRange(bs_String* string, int start, int count) {
@@ -402,7 +402,7 @@ BSAPI void _bs_replaceCharOccurrences(char* string, int string_len, char a, char
   */
 BSAPI void _val_bs_toLower(char* string, int len) {
     BS_VALIDATE(len >= 0,,);
-    return bs_toLower(string, len);
+    bs_toLower(string, len);
 }
 
 BSAPI void _bs_toLower(char* string, int len) {
@@ -415,7 +415,7 @@ BSAPI void _bs_toLower(char* string, int len) {
   */
 BSAPI void _val_bs_toUpper(char* string, int len) {
     BS_VALIDATE(len >= 0,,);
-    return bs_toUpper(string, len);
+    bs_toUpper(string, len);
 }
 
 BSAPI void _bs_toUpper(char* string, int len) {
@@ -601,7 +601,7 @@ BSAPI void* _bs_pushBackList(bs_List* source, bs_List* destination) {
 BSAPI void _val_bs_erase(bs_List* list, int index, bs_U32 count) {
     BS_VALIDATE((index + count - 1) < list->count,, );
 
-    return bs_erase(list, index, count);
+    bs_erase(list, index, count);
 }
 
 BSAPI void _bs_erase(bs_List* list, int index, bs_U32 count) {
@@ -698,16 +698,16 @@ BSAPI bs_Result _bs_foreachDirectory(void(*x)(bs_FileInfo, void*), void* param, 
     Document counting
     */
 
-static inline int bs_increment(bs_FileInfo info, int* i) { (*i)++; return 0; }
+static inline void bs_increment(bs_FileInfo info, void* i) { (*(int*)i)++; }
 BSAPI int _bs_numFiles(char* directory, int directory_length) {
     int i = 0;
-    bs_foreachFile(bs_increment, &i, directory, directory_length);
+    bs_foreachFile(bs_increment, (void*)&i, directory, directory_length);
     return i;
 }
 
 BSAPI int _bs_numDirectories(char* directory, int directory_length) {
     int i = 0;
-    bs_foreachDirectory(bs_increment, &i, directory, directory_length);
+    bs_foreachDirectory(bs_increment, (void*)&i, directory, directory_length);
     return i;
 }
 
@@ -1017,9 +1017,8 @@ BSAPI bs_Result _bs_deleteFile(char* path, int path_length) {
     return BS_RESULT_OK;
 }
 
-static int bs_doDeleteFile(char* path, int* path_length) {
-    bs_deleteFile(path, *path_length);
-    return 0;
+static void bs_doDeleteFile(bs_FileInfo file_info, int* path_length) {
+    bs_deleteFile(file_info.path, *path_length);
 }
 
 BSAPI bs_Result _bs_deleteDirectoryContents(char* path, int path_length) {

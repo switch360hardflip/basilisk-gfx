@@ -54,7 +54,8 @@ BSAPI bs_Props* _bs_props() { return &_bs_props_; }
 BSAPI bs_Config* _bs_config() { return &_bs_config_; }
 
 BSAPI void _bsi_nameHandle(bs_U64 handle, bs_U32 type, char* name, int name_length) {
-    PFN_vkSetDebugUtilsObjectNameEXT pfn_vkSetDebugUtilsObjectNameEXT = vkGetDeviceProcAddr(_bs_instance_->device, "vkSetDebugUtilsObjectNameEXT");
+    PFN_vkSetDebugUtilsObjectNameEXT pfn_vkSetDebugUtilsObjectNameEXT = 
+        (PFN_vkSetDebugUtilsObjectNameEXT)vkGetDeviceProcAddr(_bs_instance_->device, "vkSetDebugUtilsObjectNameEXT");
 
     const VkDebugUtilsObjectNameInfoEXT name_i = {
         .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
@@ -273,8 +274,11 @@ static void bs_prepareInstance() {
         .pfnUserCallback = bs_debugCallback,
     };
 
-    PFN_vkCreateDebugUtilsMessengerEXT create_messenger = vkGetInstanceProcAddr(_bs_instance_->instance, "vkCreateDebugUtilsMessengerEXT");
-    PFN_vkCreateDebugUtilsMessengerEXT create_reporter = vkGetInstanceProcAddr(_bs_instance_->instance, "vkCreateDebugReportCallbackEXT");
+    PFN_vkCreateDebugUtilsMessengerEXT create_messenger = 
+        (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_bs_instance_->instance, "vkCreateDebugUtilsMessengerEXT");
+
+    PFN_vkCreateDebugUtilsMessengerEXT create_reporter = 
+        (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_bs_instance_->instance, "vkCreateDebugReportCallbackEXT");
 
     if (create_messenger)
         create_messenger(_bs_instance_->instance, &debug_ci, NULL, &messenger);
@@ -552,8 +556,8 @@ BSAPI void _bs_queryProcedures(bs_Procedure* procedures, int count, HMODULE dll_
 
     for (int i = 0; i < count; i++) {
         void* data = dll_handle == 0 ?
-            vkGetDeviceProcAddr(_bs_instance_->device, procedures[i].func) :
-            GetProcAddress(dll_handle, procedures[i].func);
+            (void*)vkGetDeviceProcAddr(_bs_instance_->device, procedures[i].func) :
+            (void*)GetProcAddress(dll_handle, procedures[i].func);
 
         if (data)
             memcpy(destination, &data, procedures[i].size);
