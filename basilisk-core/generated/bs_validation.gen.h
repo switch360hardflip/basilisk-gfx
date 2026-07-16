@@ -104,10 +104,14 @@ static inline bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_m4Translate = (PFN_bs_m4Translate)GetProcAddress(module, "_val_bs_m4Translate");
     functions.bs_m4Rotate = (PFN_bs_m4Rotate)GetProcAddress(module, "_val_bs_m4Rotate");
     functions.bs_m4Scale = (PFN_bs_m4Scale)GetProcAddress(module, "_val_bs_m4Scale");
+    functions.bs_m3ToM4 = (PFN_bs_m3ToM4)GetProcAddress(module, "_val_bs_m3ToM4");
     functions.bs_m3ToQ = (PFN_bs_m3ToQ)GetProcAddress(module, "_val_bs_m3ToQ");
     functions.bs_m4ToQ = (PFN_bs_m4ToQ)GetProcAddress(module, "_val_bs_m4ToQ");
     functions.bs_qToM3 = (PFN_bs_qToM3)GetProcAddress(module, "_val_bs_qToM3");
     functions.bs_qToM4 = (PFN_bs_qToM4)GetProcAddress(module, "_val_bs_qToM4");
+    functions.bs_qMulQ = (PFN_bs_qMulQ)GetProcAddress(module, "_val_bs_qMulQ");
+    functions.bs_qAxisAngle = (PFN_bs_qAxisAngle)GetProcAddress(module, "_val_bs_qAxisAngle");
+    functions.bs_qSlerp = (PFN_bs_qSlerp)GetProcAddress(module, "_val_bs_qSlerp");
     functions.bs_qNormalize = (PFN_bs_qNormalize)GetProcAddress(module, "_val_bs_qNormalize");
     functions.bs_qSlerp = (PFN_bs_qSlerp)GetProcAddress(module, "_val_bs_qSlerp");
     functions.bs_qRotateV3 = (PFN_bs_qRotateV3)GetProcAddress(module, "_val_bs_qRotateV3");
@@ -122,7 +126,11 @@ static inline bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_v2QuadBezier = (PFN_bs_v2QuadBezier)GetProcAddress(module, "_val_bs_v2QuadBezier");
     functions.bs_v3CubicBezier = (PFN_bs_v3CubicBezier)GetProcAddress(module, "_val_bs_v3CubicBezier");
     functions.bs_v3QuadBezier = (PFN_bs_v3QuadBezier)GetProcAddress(module, "_val_bs_v3QuadBezier");
+    functions.bs_rotateAabb = (PFN_bs_rotateAabb)GetProcAddress(module, "_val_bs_rotateAabb");
+    functions.bs_fitAabb = (PFN_bs_fitAabb)GetProcAddress(module, "_val_bs_fitAabb");
+    functions.bs_round = (PFN_bs_round)GetProcAddress(module, "_val_bs_round");
     functions.bs_abs = (PFN_bs_abs)GetProcAddress(module, "_val_bs_abs");
+    functions.bs_sqrt = (PFN_bs_sqrt)GetProcAddress(module, "_val_bs_sqrt");
     functions.bs_sin = (PFN_bs_sin)GetProcAddress(module, "_val_bs_sin");
     functions.bs_cos = (PFN_bs_cos)GetProcAddress(module, "_val_bs_cos");
     functions.bs_tan = (PFN_bs_tan)GetProcAddress(module, "_val_bs_tan");

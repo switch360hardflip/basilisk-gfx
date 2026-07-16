@@ -412,6 +412,12 @@ static void _preval_bs_m4Scale(const bs_mat4* m, const bs_vec3* v, bs_mat4* out)
     next.bs_m4Scale(m, v, out);
 }
 
+static void _preval_bs_m3ToM4(const bs_mat3* m, bs_mat4* out) {
+    BS_VALIDATE(m != NULL, ,);
+    BS_VALIDATE(out != NULL, ,);
+    next.bs_m3ToM4(m, out);
+}
+
 static void _preval_bs_m3ToQ(const bs_mat3* m, bs_vec4* out) {
     BS_VALIDATE(m != NULL, ,);
     BS_VALIDATE(out != NULL, ,);
@@ -434,6 +440,26 @@ static void _preval_bs_qToM4(const bs_vec4* q, bs_mat4* out) {
     BS_VALIDATE(q != NULL, ,);
     BS_VALIDATE(out != NULL, ,);
     next.bs_qToM4(q, out);
+}
+
+static void _preval_bs_qMulQ(const bs_vec4* p, const bs_vec4* q, bs_vec4* out) {
+    BS_VALIDATE(p != NULL, ,);
+    BS_VALIDATE(q != NULL, ,);
+    BS_VALIDATE(out != NULL, ,);
+    next.bs_qMulQ(p, q, out);
+}
+
+static void _preval_bs_qAxisAngle(const bs_vec3* axis, float radians, bs_vec4* out) {
+    BS_VALIDATE(axis != NULL, ,);
+    BS_VALIDATE(out != NULL, ,);
+    next.bs_qAxisAngle(axis, radians, out);
+}
+
+static void _preval_bs_qSlerp(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out) {
+    BS_VALIDATE(from != NULL, ,);
+    BS_VALIDATE(to != NULL, ,);
+    BS_VALIDATE(out != NULL, ,);
+    next.bs_qSlerp(from, to, t, out);
 }
 
 static void _preval_bs_qNormalize(const bs_vec4* q, bs_vec4* out) {
@@ -535,8 +561,31 @@ static float _preval_bs_v3QuadBezier(const bs_vec3* p0, const bs_vec3* p1, const
     return next.bs_v3QuadBezier(p0, p1, p2, out, out_length);
 }
 
+static void _preval_bs_rotateAabb(const bs_Aabb* aabb, const bs_mat3* rotation_matrix, bs_Aabb* out) {
+    BS_VALIDATE(aabb != NULL, ,);
+    BS_VALIDATE(rotation_matrix != NULL, ,);
+    BS_VALIDATE(out != NULL, ,);
+    next.bs_rotateAabb(aabb, rotation_matrix, out);
+}
+
+static void _preval_bs_fitAabb(const bs_Aabb* aabb, const bs_vec2* size, const bs_vec4* rotation, bs_mat4* out) {
+    BS_VALIDATE(aabb != NULL, ,);
+    BS_VALIDATE(size != NULL, ,);
+    BS_VALIDATE(rotation != NULL, ,);
+    BS_VALIDATE(out != NULL, ,);
+    next.bs_fitAabb(aabb, size, rotation, out);
+}
+
+static float _preval_bs_round(float v) {
+    return next.bs_round(v);
+}
+
 static float _preval_bs_abs(float v) {
     return next.bs_abs(v);
+}
+
+static float _preval_bs_sqrt(float v) {
+    return next.bs_sqrt(v);
 }
 
 static float _preval_bs_sin(float v) {
@@ -2872,10 +2921,14 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_m4Translate = _preval_bs_m4Translate;
     functions.bs_m4Rotate = _preval_bs_m4Rotate;
     functions.bs_m4Scale = _preval_bs_m4Scale;
+    functions.bs_m3ToM4 = _preval_bs_m3ToM4;
     functions.bs_m3ToQ = _preval_bs_m3ToQ;
     functions.bs_m4ToQ = _preval_bs_m4ToQ;
     functions.bs_qToM3 = _preval_bs_qToM3;
     functions.bs_qToM4 = _preval_bs_qToM4;
+    functions.bs_qMulQ = _preval_bs_qMulQ;
+    functions.bs_qAxisAngle = _preval_bs_qAxisAngle;
+    functions.bs_qSlerp = _preval_bs_qSlerp;
     functions.bs_qNormalize = _preval_bs_qNormalize;
     functions.bs_qSlerp = _preval_bs_qSlerp;
     functions.bs_qRotateV3 = _preval_bs_qRotateV3;
@@ -2890,7 +2943,11 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_v2QuadBezier = _preval_bs_v2QuadBezier;
     functions.bs_v3CubicBezier = _preval_bs_v3CubicBezier;
     functions.bs_v3QuadBezier = _preval_bs_v3QuadBezier;
+    functions.bs_rotateAabb = _preval_bs_rotateAabb;
+    functions.bs_fitAabb = _preval_bs_fitAabb;
+    functions.bs_round = _preval_bs_round;
     functions.bs_abs = _preval_bs_abs;
+    functions.bs_sqrt = _preval_bs_sqrt;
     functions.bs_sin = _preval_bs_sin;
     functions.bs_cos = _preval_bs_cos;
     functions.bs_tan = _preval_bs_tan;

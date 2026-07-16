@@ -151,14 +151,14 @@ void bsmod_packAtlasTexture(
     next.bsmod_packAtlasTexture(packer, name, data, width, height, category);
 }
 
-void bsmod_packAtlas(
+bs_Result bsmod_packAtlas(
     bsmod_AtlasPacker* packer, 
     int width, 
     int height, 
     char* package, 
     char* resource_name)
 {
-    next.bsmod_packAtlas(packer, width, height, package, resource_name);
+    return next.bsmod_packAtlas(packer, width, height, package, resource_name);
 }
 
 bsmod_AtlasPacker bsmod_createAtlasPacker()
@@ -209,6 +209,28 @@ bs_Result bsmod_packBMFontF(
     bs_Result _return = bsmod_packBMFontV(package_name, bmfont_path, png_path, format, args);
     va_end(args);
     return _return;
+}
+
+bsgfx_Scrollbar bsmod_scrollbar(
+    int* scroll)
+{
+    return next.bsmod_scrollbar(scroll);
+}
+
+bsgfx_Widget bsmod_dividerWidget(
+    float width, 
+    int indent)
+{
+    return next.bsmod_dividerWidget(width, indent);
+}
+
+bsgfx_Widget bsmod_iconWidget(
+    bsgfx_AtlasCache* cache, 
+    float align_height, 
+    bs_vec3 offset, 
+    bs_U32 advance_flags)
+{
+    return next.bsmod_iconWidget(cache, align_height, offset, advance_flags);
 }
 
 bs_List* bsmod_packages()
@@ -388,15 +410,15 @@ void bsmod_deleteSelected(
     next.bsmod_deleteSelected(type_id);
 }
 
-void bsmod_saveType(
+bs_Result bsmod_saveType(
     bsgfx_TypeId id, 
     char* value, 
     int value_length)
 {
-    next.bsmod_saveType(id, value, value_length);
+    return next.bsmod_saveType(id, value, value_length);
 }
 
-void bsmod_saveTypeV(
+bs_Result bsmod_saveTypeV(
     bsgfx_TypeId id, 
     char* format, 
     va_list args)
@@ -404,18 +426,19 @@ void bsmod_saveTypeV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    bsmod_saveType(id, _formatted, _length);
+    return bsmod_saveType(id, _formatted, _length);
 }
 
-void bsmod_saveTypeF(
+bs_Result bsmod_saveTypeF(
     bsgfx_TypeId id, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bsmod_saveTypeV(id, format, args);
+    bs_Result _return = bsmod_saveTypeV(id, format, args);
     va_end(args);
+    return _return;
 }
 
 void* bsmod_add(

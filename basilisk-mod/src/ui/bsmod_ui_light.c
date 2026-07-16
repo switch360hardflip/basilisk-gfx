@@ -1,10 +1,29 @@
-#include <ui/bsgfx_ui.h>
-#include <ui/bsmod_ui.h>
-#include <ui/context/bsmod_ui_context.h>
-#include <_bsmod_.h>
-#include <bsmod_type.h>
-#include <types/light/bsgfx_light.h>
-#include <types/tile/bsgfx_tile.h>
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+#include <basilisk-mod.h>
 #include <bsmod_cache.h>
 
 
@@ -15,6 +34,7 @@
 
 void bsmod_instanceLightBillboards() {
     bs_vec2 resolution = BS_IV2_TO_V2(bs_resolution());
+    bs_vec2 cursor = bs_cursorPosition();
     const bs_mat4 identity = BS_MAT4_IDENTITY;
 
     for (int i = 0; i < bsgfx_count(BSGFX_TYPE_LIGHT); i++) {
@@ -33,14 +53,16 @@ void bsmod_instanceLightBillboards() {
         default: continue;
         }
 
-        bsgfx_instanceQuad(_bsmod_subtypes[BSMOD_SUBTYPE_BILLBOARD], m, cache->coords, 0, 0, $white_material()->id);
+        bsgfx_instanceQuad(_bsmod_subtypes_[BSMOD_SUBTYPE_BILLBOARD], m, cache->coords, 0, 0, $white_material()->id);
 
         const float length = 100.0;
-        bsgfx_lineScreenInstance(light->position, bs_v3Add(light->position, bs_v3MulS(light->direction, length)), BS_BLACK);
+        bsgfx_instanceLine(light->position, BS_V3_ADD(light->position, BS_V3_MUL_S(light->direction, length)), BS_BLACK);
 
-        bs_vec2 p = bsgfx_worldToScreen(light->position, poser()->camera.result, resolution);
+        bs_vec2 p;
+        bsgfx_worldToScreen(&light->position, &poser()->camera.result, &resolution, &p);
 
-        bs_vec4 clip = bs_m4MulV4(poser()->camera.result, bs_v4V3(light->position, 1.0f));
+        bs_vec4 clip;
+        bs_m4MulV4(&poser()->camera.result, &BS_V3_TO_V4(light->position, 1.0f), &clip);
 
         float pixels_per_unit = poser()->camera.proj.a[1][1] * resolution.y * 0.5f;
         float scaled_size = pixels_per_unit / clip.w;
@@ -52,7 +74,7 @@ void bsmod_instanceLightBillboards() {
        // bs_mat4x3 m2 = bsgfx_matrix(bs_v3V2(p, 50.0f), BS_V3(scaled_size, scaled_size, 0.0f));
        // bsgfx_instanceQuad(bsgfx_subtypes()[BSGFX_SUBTYPE_UI], m2, white->coords, 0, 0, $white_material()->id);
 
-        bool hovering = bs_rectangleVsPoint(p, BS_V2(scaled_size, scaled_size), bs_cursorPosition());
+        bool hovering = bs_rectangleVsPoint(&p, &BS_V2(scaled_size, scaled_size), &cursor);
         if (hovering) {
             _bsmod_.hovering.billboard = true;
 
@@ -79,15 +101,20 @@ static inline void bsmod_addLight(bsgfx_LightType type) {
     int primitive_id = bsgfx_queryTilePrimitive(tile_id);
     bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, primitive_id);
 
-    int axis = bsgfx_tileAxis(primitive, tile_id);
-    bs_ivec2 coords = bsgfx_tileCoordinate(primitive, axis, tile_id);
+    int axis;
+    bsgfx_tileAxis(primitive, tile_id, &axis);
 
-    bsmod_add(BSGFX_TYPE_LIGHT, &(bsgfx_RawLight) {
+    bs_ivec2 coords;
+    bsgfx_tileCoordinate(primitive, axis, tile_id, &coords);
+
+    bsgfx_RawLight data = {
         .type = type,
-        .position = bsgfx_tilePosition(primitive, axis, coords.x, coords.y),
         .rotation = { 0.0 }
         //.direction = { 0.0, -1.0, 0.0 },
-    });
+    };
+    bsgfx_tilePosition(primitive, axis, coords.x, coords.y, &data.position);
+
+    bsmod_add(BSGFX_TYPE_LIGHT, &data);
 }
 
 static bool bsmod_onAddPointTick(bsgfx_ButtonParams params) {
@@ -104,7 +131,7 @@ static bool bsmod_onAddSunTick(bsgfx_ButtonParams params) {
     return params.hovering;
 }
 
-bool bsmod_onAddLightTick(bsgfx_ButtonParams params) {
+BSMODAPI bool _bsmod_onAddLightTick(bsgfx_ButtonParams params) {
     static bool was_hovering;
 
     bs_vec3 position = params.widget_position;
@@ -115,7 +142,10 @@ bool bsmod_onAddLightTick(bsgfx_ButtonParams params) {
     bs_vec2 size = BS_V2(125.0, 175.0);
 
     if (!params.hovering && was_hovering) {
-        if (bs_rectangleVsPoint(BS_V2(position.x - (BSMOD_CONTEXT_MENU_PADDING + 2), position.y - size.y), size, bs_cursorPosition())) {
+        bs_vec2 cursor = bs_cursorPosition();
+        bs_vec2 p = { position.x - (BSMOD_CONTEXT_MENU_PADDING + 2), position.y - size.y };
+
+        if (bs_rectangleVsPoint(&p, &size, &cursor)) {
             params.hovering = true;
         }
     }

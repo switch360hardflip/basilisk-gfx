@@ -23,14 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <_bsmod_.h>
-#include <bsmod_type.h>
-#include <bsgfx.h>
-#include <types/bsgfx_type.h>
-#include <types/primitive/bsgfx_primitive.h>
-#include <types/prefab/bsgfx_prefab.h>
-#include <ui/bsgfx_ui.h>
-#include <types/light/bsgfx_light.h>
+#include <basilisk-mod.h>
 
 #define BSGFX_AXIS_CLICK_SIZE (48)
 
@@ -43,28 +36,36 @@
 
 static bs_mat4 bsgfx_primitiveOrigin(bsgfx_RawPrimitive* primitive, bs_vec3 origin) {
 	bs_mat4 m = BS_MAT4_IDENTITY;
-	bs_vec3 p = bsgfx_primitivePosition(primitive);
 
+	bs_vec3 p;
+	bsgfx_primitivePosition(primitive, &p);
 
-	bs_translateP(&m, &p);
+	bs_m4Translate(&m, &p, &m);
+
 	if (primitive->rotation.x != 0.0 || primitive->rotation.y != 0.0 || primitive->rotation.z != 0.0) {
-		bs_vec4 q = bs_qFromDegrees(primitive->rotation);
-		bs_rotateP(&m, &q);
+		bs_vec4 q;
+		bs_eulToQ(&BS_V3_TO_RADIANS(primitive->rotation), &q);
+		bs_m4Rotate(&m, &q, &m);
 	}
 
 	//bs_vec3 s = bs_v3MulS(primitive->scale, -1.0);
-	bs_vec3 o = bs_v3MulS(origin, 1.0);
-	o = bs_v3Mul(o, primitive->scale);
-	bs_translateP(&m, &o);
+	bs_vec3 o;
+	bs_v3MulS(&origin, 1.0, &o);
+	bs_v3Mul(&o, &primitive->scale, &o);
 
-	bs_scaleP(&m, &primitive->scale);
+	bs_m4Translate(&m, &o, &m);
+	bs_m4Scale(&m, &primitive->scale, &m);
 
 	return m;
 }
 
-void bsmod_snapPrimitive() {
+BSMODAPI void _bsmod_snapPrimitive() {
 	static bs_vec2 cursor_start;
-	bs_vec2 cursor = bs_v2Add(bs_v2MulV1(poser()->world_camera.position, 4.0), bs_cursorPosition());
+
+	bs_vec2 cursor = bs_cursorPosition();
+	bs_vec2 temp;
+	bs_v2MulS(&poser()->world_camera.position, 4.0, &temp); // what is 4 pixel scale maybe?
+	bs_v2Add(&temp, &cursor, &cursor);
 
 	if (_bsmod_.edit_type_old != _bsmod_.edit_type) {
 		bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, bsmod_firstSelectedId(BSGFX_TYPE_PRIMITIVE));
@@ -100,17 +101,24 @@ void bsmod_snapPrimitive() {
 				bsgfx_RawPrimitive* closest_primitive = bsgfx_getRaw(BSGFX_TYPE_PRIMITIVE, _bsmod_.hovering.closest_primitive);
 
 				bs_mat4 m = bsgfx_primitiveOrigin(closest_primitive, _bsmod_.hovering.closest_vertex);
-				bs_vec3 target = bs_m4MulV3(m, bs_v3V1(0));
-				float dist = bs_v3Dist(raw_primitive->position, target);
+
+				bs_vec3 target;
+				bs_m4MulV3(&m, &BS_V3(0.0, 0.0, 0.0), &target);
+
+				float dist = bs_v3Distance(&raw_primitive->position, &target);
 				if (bs_keyDown(BS_KEY_LEFT_SHIFT)) {
 					bs_vec3 v1 = raw_primitive->position;
 					bs_vec3 v2 = target;
 					bs_vec4 q;
-					bs_vec3 a = bs_v3Cross(v1, v2);
+
+					bs_vec3 a;
+					bs_v3Cross(&v1, &v2, &a);
+
 					q.xyz = a;
-					q.w = sqrt(bs_v3MagnitudeSqrd(v1) * bs_v3MagnitudeSqrd(v2)) + bs_v3Dot(v1, v2);
-					q = bs_qNormalize(q);
-					raw_primitive->rotation = bs_degreesFromQ(q);
+					q.w = bs_sqrt(bs_v3MagnitudeSqrd(&v1) * bs_v3MagnitudeSqrd(&v2)) + bs_v3Dot(&v1, &v2);
+					bs_qNormalize(&q, &q);
+
+					bs_qToEul(&q, &raw_primitive->rotation);
 				}
 				else
 					raw_primitive->position = target;
@@ -118,7 +126,10 @@ void bsmod_snapPrimitive() {
 				bsgfx_map(BSGFX_TYPE_PRIMITIVE, i);
 			}
 
-			transform = bs_transform(primitive->position, primitive->rotation, primitive->scale);
+			transform = BS_MAT4_IDENTITY;
+			bs_m4Translate(&transform, &primitive->position, &transform);
+			bs_m4Rotate(&transform, &primitive->rotation, &transform);
+			bs_m4Scale(&transform, &primitive->scale, &transform);
 
 			bsgfx_instance(bsgfx_subtypes()[BSGFX_SUBTYPE_PRIMITIVE_BOX], &transform, sizeof(bs_mat4), BSGFX_ID_SELECTED | BSGFX_ID_INSTANCE_TYPE_MESH | BSGFX_ID_HIGHLIGHT | BSGFX_ID_IS_PRIMITIVE, 0, 0, 0);
 
@@ -166,18 +177,24 @@ static inline bs_vec3 bsmod_axisScreenPosition(bs_vec3 position) {
 static inline bs_vec3 bsmod_worldToScreenCoords(bs_vec3 world_coords, float width) {
 	bs_ivec2 resolution = bs_resolution();
 	bs_mat4 camera = poser()->camera.result;
-	bs_vec4 px = bs_m4MulV4(camera, bs_v4V3(world_coords, 1.0));
-	bs_vec3 px1 = bs_v3DivV1(px.xyz, px.w);
+
+	bs_vec4 px;
+	bs_m4MulV4(&camera, &BS_V3_TO_V4(world_coords, 1.0), &px);
+
+	bs_vec3 px1; 
+	bs_v3DivS(&px.xyz, px.w, &px1);
+
 	px1.x = (px1.x + 1.0f) * 0.5f * resolution.x - width / 2.0;
 	px1.y = (px1.y + 1.0f) * 0.5f * resolution.y - width / 2.0;
 	px1.z *= 100.0;
+
 	return px1;
 }
 
  /**
   Will rebuild this when needed, should be multi-purpose
   */
-void bsmod_instanceTransform() {
+BSMODAPI void _bsmod_instanceTransform() {
 	if (_bsmod_.selected_ids.count == 0)
 		return;
 	return;
@@ -219,19 +236,26 @@ void bsmod_instanceTransform() {
 		bs_vec3* p = data + position_offset;
 		bs_vec3* r = data + rotation_offset;
 
-		position = bs_v3Add(position, *p);
-		if (rotation_offset != -1)
-			rotation = _bsmod_.selected_ids.count == 1 ?
-				bs_qFromDegrees(*r) :
-				BS_QUAT_IDENTITY;
+		bs_v3Add(&position, p, &position);
+
+		if (rotation_offset != -1) {
+			rotation = BS_QUAT_IDENTITY;
+
+			if (_bsmod_.selected_ids.count == 1)
+				bs_eulToQ(r, &rotation);
+		}
+			
 	}
 
-	position = bs_v3DivV1(position, _bsmod_.selected_ids.count);
+	bs_v3DivS(&position, _bsmod_.selected_ids.count, &position);
 
-	bs_mat4 transform = bs_transform(position, rotation, scale);
+	bs_mat4 transform = BS_MAT4_IDENTITY;
+	bs_m4Translate(&transform, &position, &transform);
+	bs_m4Rotate(&transform, &rotation, &transform);
+	bs_m4Scale(&transform, &scale, &transform);
 
 	if (bs_leftClickUpOnce() && _bsmod_.axis != -1) {
-		bsmod_saveType(type, NULL);
+		bsmod_saveType(type, NULL, 0);
 
 		_bsmod_.axis = -1;
 	}
@@ -240,28 +264,58 @@ void bsmod_instanceTransform() {
 	const float radius = 0.2;
 	float theta = BS_PI / 2.0;
 
-	bs_vec3 origin = bs_m4MulV3(transform, bs_v3V1(0));
-	bs_vec3 x = bs_m4MulV3(transform, BS_V3(axis_length, 0, 0));
-	bs_vec3 y = bs_m4MulV3(transform, BS_V3(0, axis_length, 0));
-	bs_vec3 z = bs_m4MulV3(transform, BS_V3(0, 0, axis_length));
+	bs_vec3 origin;
+	bs_m4MulV3(&transform, &BS_V3(0.0, 0.0, 0.0), &origin);
 
-	bs_vec3 directions[3] = {
-		bs_v3Normalize(bs_v3Sub(origin, x)),
-		bs_v3Normalize(bs_v3Sub(origin, y)),
-		bs_v3Normalize(bs_v3Sub(origin, z))
-	};
+	bs_vec3 x, y, z; 
+	bs_m4MulV3(&transform, &BS_V3(axis_length, 0, 0), &x);
+	bs_m4MulV3(&transform, &BS_V3(0, axis_length, 0), &y);
+	bs_m4MulV3(&transform, &BS_V3(0, 0, axis_length), &z);
 
-	bs_vec4 xr = bs_qMulq(rotation, bs_qAxisAngle(BS_V3(0, 0, 1), -BS_PI / 2.0));
-	bs_vec4 zr = bs_qMulq(rotation, bs_qAxisAngle(BS_V3(1, 0, 0), BS_PI / 2.0));
+	bs_vec3 directions[3] = { 0 };
 
-	bs_mat4 om = bs_transform(origin, rotation, bs_v3V1(radius));
-	bs_mat4 xm = bs_transform(x, xr, bs_v3V1(radius));
-	bs_mat4 ym = bs_transform(y, rotation, bs_v3V1(radius));
-	bs_mat4 zm = bs_transform(z, zr, bs_v3V1(radius));
+	bs_v3Normalize(&BS_V3_SUB(origin, x), directions + 0);
+	bs_v3Normalize(&BS_V3_SUB(origin, y), directions + 1);
+	bs_v3Normalize(&BS_V3_SUB(origin, z), directions + 2);
 
-	bsgfx_transformedDepthlessLineInstance(bs_v3V1(0), BS_V3(axis_length, 0.0, 0.0), BS_RED, &transform);
-	bsgfx_transformedDepthlessLineInstance(bs_v3V1(0), BS_V3(0.0, axis_length, 0.0), BS_GREEN, &transform);
-	bsgfx_transformedDepthlessLineInstance(bs_v3V1(0), BS_V3(0.0, 0.0, axis_length), BS_BLUE, &transform);
+	bs_vec4 xr, zr;
+	bs_qAxisAngle(&BS_V3(0, 0, 1), -BS_PI / 2.0, &xr);
+	bs_qAxisAngle(&BS_V3(1, 0, 0), BS_PI / 2.0, &zr);
+
+	bs_qMulQ(&rotation, &xr, &xr);
+	bs_qMulQ(&rotation, &zr, &zr);
+
+	bs_mat4 om = BS_MAT4_IDENTITY;
+	bs_m4Translate(&om, &origin, &om);
+	bs_m4Rotate(&om, &rotation, &om);
+	bs_m4Scale(&om, &BS_V3(radius, radius, radius), &om);
+
+	bs_mat4 xm = BS_MAT4_IDENTITY;
+	bs_m4Translate(&xm, &x, &xm);
+	bs_m4Rotate(&xm, &xr, &xm);
+	bs_m4Scale(&xm, &BS_V3(radius, radius, radius), &xm);
+
+	bs_mat4 ym = BS_MAT4_IDENTITY;
+	bs_m4Translate(&ym, &y, &ym);
+	bs_m4Rotate(&ym, &rotation, &ym);
+	bs_m4Scale(&ym, &BS_V3(radius, radius, radius), &ym);
+
+	bs_mat4 zm = BS_MAT4_IDENTITY;
+	bs_m4Translate(&zm, &z, &zm);
+	bs_m4Rotate(&zm, &zr, &zm);
+	bs_m4Scale(&zm, &BS_V3(radius, radius, radius), &zm);
+
+	bs_vec3 v0;
+	bs_m4MulV3(&transform, &BS_V3(0.0, 0.0, 0.0), &v0);
+
+	bs_vec3 vx, vy, vz;
+	bs_m4MulV3(&transform, &BS_V3(axis_length, 0.0, 0.0), &vx);
+	bs_m4MulV3(&transform, &BS_V3(0.0, axis_length, 0.0), &vy);
+	bs_m4MulV3(&transform, &BS_V3(0.0, 0.0, axis_length), &vz);
+
+	bsgfx_instanceDepthlessLine(v0, vx, BS_RED);
+	bsgfx_instanceDepthlessLine(v0, vy, BS_GREEN);
+	bsgfx_instanceDepthlessLine(v0, vz, BS_BLUE);
 
 	bsgfx_instanceCone(xm, radius, 0, 0, _bsmod_.axis == 0 ? $yellow_material()->id : $red_material()->id);
 	bsgfx_instanceCone(ym, radius, 0, 0, _bsmod_.axis == 1 ? $yellow_material()->id : $green_material()->id);
@@ -270,12 +324,7 @@ void bsmod_instanceTransform() {
 	bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 	int white = bs_queryAtlas(atlas, "white");
 
-	bs_vec3 op = bs_m4MulV3(om, BS_V3(0, 0, 0));
-	bs_vec3 xp = bs_m4MulV3(xm, BS_V3(0, 0, 0));
-	bs_vec3 yp = bs_m4MulV3(ym, BS_V3(0, 0, 0));
-	bs_vec3 zp = bs_m4MulV3(zm, BS_V3(0, 0, 0));
-
-	bs_vec2 click_size = bs_v2V1(BSGFX_AXIS_CLICK_SIZE);
+	bs_vec2 click_size = { BSGFX_AXIS_CLICK_SIZE, BSGFX_AXIS_CLICK_SIZE };
 
 	// dux_atlasHiResInstance(atlas, xs, white, 0, click_size, BS_V4(1, 0, 0, 1), false);
 	// dux_atlasHiResInstance(atlas, ys, white, 0, click_size, 
@@ -319,7 +368,7 @@ void bsmod_instanceTransform() {
 	for (int i = 0; i < 3; i++) {
 		if (screen_coordinates[i].z < closest_z) {
 
-			if (bs_rectangleVsPoint(screen_coordinates[i].xy, BS_V2(width, width), cursor)) {
+			if (bs_rectangleVsPoint(&screen_coordinates[i].xy, &BS_V2(width, width), &cursor)) {
 				closest_coordinate = screen_coordinates[i];
 				closest_z = screen_coordinates[i].z;
 				closest_axis = i;
@@ -332,7 +381,7 @@ void bsmod_instanceTransform() {
 			_bsmod_.ui_blocked = true;
 			_bsmod_.axis = closest_axis;
 			start_coordinate = bsmod_worldToScreenCoords(origin, 1.0);
-			start_direction = bs_v2Normalize(bs_v2Sub(cursor, start_coordinate.xy));
+			bs_v2Normalize(&BS_V2_SUB(cursor, start_coordinate.xy), &start_direction);
 		}
 	}
 
@@ -353,10 +402,10 @@ void bsmod_instanceTransform() {
 
 	if (rotation_offset != -1 && bs_keyDownOnce(BS_KEY_ALT)) {
 		bs_vec2 up = BS_V2(0.0, 1.0);
-		bs_vec2 diff = bs_v2Sub(cursor, start_coordinate.xy);
-		diff = bs_v2NormalizeV2(diff.x, diff.y);
+		bs_vec2 diff = BS_V2_SUB(cursor, start_coordinate.xy);
+		bs_v2Normalize(&BS_V2(diff.x, diff.y), &diff);
 
-		float dot = bs_v2Dot(up, diff);
+		float dot = bs_v2Dot(&up, &diff);
 		float cross = up.x * diff.y - up.y * diff.x;
 		last_angle = bs_degrees(atan2(cross, dot));
 		if (last_angle < 0.0)
@@ -379,22 +428,32 @@ void bsmod_instanceTransform() {
 		if (rotation_offset != -1 && bs_keyDown(BS_KEY_ALT)) {
 
 			bs_vec2 up = BS_V2(0.0, 1.0);
-			bs_vec2 diff = bs_v2Sub(cursor, start_coordinate.xy);
+			bs_vec2 diff = BS_V2_SUB(cursor, start_coordinate.xy);
 
 			const float angle_snap = 15.0;
 			const int segments = 16;
 			unsigned char alpha = 255;
 
-			if (_bsmod_.axis == 0)
-				bsgfx_transformedDepthlessCircle(bs_transform(origin, zr, bs_v3V1(1)), segments, axis_length, BS_RGBA(0, 0, 255, alpha));
-			else if (_bsmod_.axis == 1)
-				bsgfx_transformedDepthlessCircle(bs_transform(origin, rotation, bs_v3V1(1)), segments, axis_length, BS_RGBA(0, 255, 0, alpha));
-			else if (_bsmod_.axis == 2)
-				bsgfx_transformedDepthlessCircle(bs_transform(origin, xr, bs_v3V1(1)), segments, axis_length, BS_RGBA(255, 0, 0, alpha));
+			bs_Range range;
+			bs_mat4 m = BS_MAT4_IDENTITY;
+			bs_m4Translate(&m, &origin, &m);
 
-			diff = bs_v2NormalizeV2(diff.x, diff.y);
+			if (_bsmod_.axis == 0) {
+				bs_m4Rotate(&m, &zr, &m);
+				bsgfx_instanceDepthlessCircle(&m, segments, axis_length, BS_RGBA(0, 0, 255, alpha), &range);
+			}
+			else if (_bsmod_.axis == 1) {
+				bs_m4Rotate(&m, &zr, &m);
+				bsgfx_instanceDepthlessCircle(&m, segments, axis_length, BS_RGBA(0, 255, 0, alpha), &range);
+			}
+			else if (_bsmod_.axis == 2) {
+				bs_m4Rotate(&m, &xr, &m);
+				bsgfx_instanceDepthlessCircle(&m, segments, axis_length, BS_RGBA(255, 0, 0, alpha), &range);
+			}
 
-			float dot = bs_v2Dot(up, diff);
+			bs_v2Normalize(&diff, &diff);
+
+			float dot = bs_v2Dot(&up, &diff);
 
 			float cross = up.x * diff.y - up.y * diff.x;
 			float current_angle = bs_degrees(atan2(cross, dot));
@@ -411,7 +470,7 @@ void bsmod_instanceTransform() {
 
 				float* result = r->a + _bsmod_.axis;
 				*result = initial_values[i].rotation + delta_angle;
-				*result = roundf((*result) / angle_snap) * angle_snap;
+				*result = bs_round((*result) / angle_snap) * angle_snap;
 
 				//bsgfx_instanceHintF(menu, origins[_bsmod_.axis], "%f", *result);
 
@@ -429,15 +488,19 @@ void bsmod_instanceTransform() {
 				0, sin(d45), cos(d45)
 			};
 
-			bs_vec3 mul = bs_m3MulV3(r, directions[_bsmod_.axis]);
+			bs_vec3 mul;
+			bs_m3MulV3(&r, &directions[_bsmod_.axis], &mul);
+
 			if (bs_abs(mul.y) < 0.1) // hack
 				mul.y += mul.z;
 
-			bs_vec2 diff = bs_v2Sub(last_cursor, cursor);
-			float magnitude = bs_v2Magnitude(diff);
-			diff = bs_v2NormalizeV2(diff.x, diff.y);
+			bs_vec2 diff;
+			bs_v2Sub(&last_cursor, &cursor, &diff);
 
-			float d = bs_v2Dot(mul.xy, diff) * magnitude;
+			float magnitude = bs_v2Magnitude(&diff);
+			bs_v2Normalize(&diff, &diff);
+
+			float d = bs_v2Dot(&mul.xy, &diff) * magnitude;
 
 			float scales[3] = { BSGFX_TILE_SIZE.x, BSGFX_TILE_SIZE.y, BSGFX_TILE_SIZE.y };
 
@@ -460,7 +523,7 @@ void bsmod_instanceTransform() {
 
 					tile_remainder[_bsmod_.axis] += move_tiles;
 
-					if (fabs(tile_remainder[_bsmod_.axis]) >= 0.5f) {
+					if (bs_abs(tile_remainder[_bsmod_.axis]) >= 0.5f) {
 						int half_tile_steps = (int)round(tile_remainder[_bsmod_.axis] * 1.0f);
 
 						for (int i = 0; i < _bsmod_.selected_ids.count; i++) {
@@ -481,15 +544,15 @@ void bsmod_instanceTransform() {
 
 						tile_remainder[j] += move_tiles;
 
-						if (fabs(tile_remainder[j]) >= 0.5f) {
-							int half_tile_steps = (int)round(tile_remainder[j] * 2.0f);
+						if (bs_abs(tile_remainder[j]) >= 0.5f) {
+							int half_tile_steps = (int)bs_round(tile_remainder[j] * 2.0f);
 							for (int i = 0; i < _bsmod_.selected_ids.count; i++) {
 								int* id = bs_fetchUnit(&_bsmod_.selected_ids, i);
 								unsigned char* data = bsgfx_getRaw(type, *id);
 								bs_vec3* p = data + position_offset;
 
 								p->a[j] += half_tile_steps * 0.5;
-								p->a[j] = roundf(p->a[j] * 2.0) * 0.5;
+								p->a[j] = bs_round(p->a[j] * 2.0) * 0.5;
 								bsgfx_map(type, *id);
 							}
 							tile_remainder[j] -= half_tile_steps / 2.0f;

@@ -95,6 +95,14 @@ static bool _preval_bsgfx_validateInstanceType(const char* library_name, int ins
     return next.bsgfx_validateInstanceType(library_name, instance_type_id);
 }
 
+static void _preval_bsgfx_worldToScreen(const bs_vec3* position, const bs_mat4* camera, const bs_vec3* resolution, bs_vec2* out) {
+    BSGFX_VALIDATE(position != NULL, ,);
+    BSGFX_VALIDATE(camera != NULL, ,);
+    BSGFX_VALIDATE(resolution != NULL, ,);
+    BSGFX_VALIDATE(out != NULL, ,);
+    next.bsgfx_worldToScreen(position, camera, resolution, out);
+}
+
 static const char* _preval_bsgfx_materialCategoryName(bsgfx_MaterialCategory category) {
     return next.bsgfx_materialCategoryName(category);
 }
@@ -324,6 +332,12 @@ static int _preval_bsgfx_instancePoint(bs_vec3 position, bs_RGBA color, float si
 
 static int _preval_bsgfx_instanceQuad(int subtype, bs_mat4x3 transform, bs_vec4 coords, bs_U32 flags, int id, int material) {
     return next.bsgfx_instanceQuad(subtype, transform, coords, flags, id, material);
+}
+
+static void _preval_bsgfx_instanceDepthlessCircle(const bs_mat4* transform, int segments, float radius, bs_RGBA color, bs_Range* out) {
+    BSGFX_VALIDATE(transform != NULL, ,);
+    BSGFX_VALIDATE(out != NULL, ,);
+    next.bsgfx_instanceDepthlessCircle(transform, segments, radius, color, out);
 }
 
 static int _preval_bsgfx_instanceAtlas(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material) {
@@ -687,6 +701,7 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_fonts = _preval_bsgfx_fonts;
     functions.bsgfx_validateSubtype = _preval_bsgfx_validateSubtype;
     functions.bsgfx_validateInstanceType = _preval_bsgfx_validateInstanceType;
+    functions.bsgfx_worldToScreen = _preval_bsgfx_worldToScreen;
     functions.bsgfx_materialCategoryName = _preval_bsgfx_materialCategoryName;
     functions.bsgfx_materials = _preval_bsgfx_materials;
     functions.bsgfx_queryMaterialHash = _preval_bsgfx_queryMaterialHash;
@@ -738,6 +753,7 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_instanceCone = _preval_bsgfx_instanceCone;
     functions.bsgfx_instancePoint = _preval_bsgfx_instancePoint;
     functions.bsgfx_instanceQuad = _preval_bsgfx_instanceQuad;
+    functions.bsgfx_instanceDepthlessCircle = _preval_bsgfx_instanceDepthlessCircle;
     functions.bsgfx_instanceAtlas = _preval_bsgfx_instanceAtlas;
     functions.bsgfx_instanceAtlasFlipped = _preval_bsgfx_instanceAtlasFlipped;
     functions.bsgfx_instanceText = _preval_bsgfx_instanceText;

@@ -1310,6 +1310,14 @@
 			<param><type>int</type><name>instance_type_id</name></param>
 		</function>
 		
+		<function name="bsgfx_worldToScreen">
+			<return>void</return>
+			<param><type>const bs_vec3*</type><name>position</name></param>
+			<param><type>const bs_mat4*</type><name>camera</name></param>
+			<param><type>const bs_vec3*</type><name>resolution</name></param>
+			<param><type>bs_vec2*</type><name>out</name></param>
+		</function>
+		
 		<function name="bsgfx_materialCategoryName">
 			<return>const char*</return>
 			<param><type>bsgfx_MaterialCategory</type><name>category</name></param>
@@ -1551,6 +1559,14 @@
 			<param><type>bs_U32</type><name>flags</name></param>
 			<param><type>int</type><name>id</name></param>
 			<param><type>int</type><name>material</name></param>
+		</function>
+		<function name="bsgfx_instanceDepthlessCircle">
+			<return>void</return>
+			<param><type>const bs_mat4*</type><name>transform</name></param>
+			<param><type>int</type><name>segments</name></param>
+			<param><type>float</type><name>radius</name></param>
+			<param><type>bs_RGBA</type><name>color</name></param>
+			<param><type>bs_Range*</type><name>out</name></param>
 		</function>
 		<function name="bsgfx_instanceAtlas">
 			<return>int</return>

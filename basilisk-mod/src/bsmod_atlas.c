@@ -137,8 +137,14 @@ void bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* pac
 }
 */
 
-void bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* package_name, char* resource_name) {
-	assert(packer->info.count == packer->rects.count);
+BSMODAPI bs_Result _val_bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* package_name, char* resource_name) {
+	BSMOD_VALIDATE(packer->info.count == packer->rects.count, BS_RESULT_OK,);
+
+	return bsmod_packAtlas(packer, width, height, package_name, resource_name);
+}
+
+BSMODAPI bs_Result _bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* package_name, char* resource_name) {
+	bs_Result result;
 
 	bs_BatlHeader header = {
 		.magic = 0x6C746162,
@@ -216,8 +222,16 @@ void bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* pac
 	bs_destroyList(&packer->rects);
 	bs_destroyList(&packer->info);
 
-	bs_savePng(batl + header.binary_offset, bs_iv2(width, height), BS_PNG_RGBA, "test.png");
+	result = bs_savePng(batl + header.binary_offset, BS_IV2(width, height), BS_PNG_RGBA, BS_CONSTANT_STRING("test.png"));
+	if (result != BS_RESULT_OK) {
+		bs_free(batl);
+		return result;
+	}
 
-	bsmod_packResource(BS_RESOURCE_ATLAS, batl, total_size, package_name, resource_name);
+	result = bsmod_packResource(BS_RESOURCE_ATLAS, batl, total_size, package_name, resource_name);
 	bs_free(batl);
+//	if (result != BS_RESULT_OK)
+//		return result;
+
+	return BS_RESULT_OK;
 }

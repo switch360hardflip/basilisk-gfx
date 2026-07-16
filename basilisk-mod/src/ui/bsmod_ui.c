@@ -30,7 +30,56 @@
 
 #include <basilisk-mod.h>
 
-void bsmod_pushInputWidget(
+BSMODAPI bsgfx_Scrollbar _bsmod_scrollbar(int* scroll) {
+    return (bsgfx_Scrollbar) {
+        .value = scroll,
+        .substeps_count = 4,
+        .padding = 8,
+        .width = 16.0,
+        .border_radius = BSMOD_DEFAULT_RADIUS,
+
+        .material = $bsmod_grey_138()->id,
+        .outline_material = $bsmod_grey_30()->id,
+        .background_material = $bsmod_grey_61()->id,
+
+        .button_icon_material = $bsmod_grey_61()->id,
+        .button_background_material = $bsmod_grey_138()->id,
+        .button_outline_material = $bsmod_grey_30()->id,
+    };
+}
+
+BSMODAPI bsgfx_Widget _bsmod_dividerWidget(float width, int indent) {
+    return (bsgfx_Widget) {
+       // .name = "",
+        .type = BSGFX_WIDGET_ICON,
+        .offset.x = indent,
+        .icon = {
+            .atlas = bs_fetch(BSMOD_ATLASES, BSMOD_ATLAS_UI)->atlas,
+            .name = "white",
+            .material_id = $context_menu_grey_text_material()->id,
+            .scale = { width - indent * 2 - 1, 1 },
+        }
+    };
+}
+
+BSMODAPI bsgfx_Widget _bsmod_iconWidget(bsgfx_AtlasCache* cache, float align_height, bs_vec3 offset, bs_U32 advance_flags) {
+    return (bsgfx_Widget) {
+        .type = BSGFX_WIDGET_ICON,
+        .icon = {
+            .atlas = bs_fetch(BSMOD_ATLASES, BSMOD_ATLAS_UI)->atlas,
+            .atlas_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_UI],
+            .type = BSGFX_ICON_ATLAS,
+            .name = cache->name, // todo skip query
+            .material_id = $white_material()->id,
+        },
+        .advance_flags = advance_flags,
+        .material_id = $white_material()->id,
+        .align_height = align_height,
+        .offset = offset,
+    };
+}
+
+BSMODAPI void _bsmod_pushInputWidget(
     bs_List* widgets,
     void* value,
     bs_vec3 offset, 
@@ -100,9 +149,13 @@ void bsmod_pushInputWidget(
     });
 }
 
-void bsmod_pushVecNWidget(bs_List* widgets, const char* name, bs_vec3 offset, float width, float* v, int n) {
-    assert(n <= 4);
+BSMODAPI void _val_bsmod_pushVecNWidget(bs_List* widgets, const char* name, bs_vec3 offset, float width, float* v, int n) {
+    BSMOD_VALIDATE(n <= 4,,);
 
+    return bsmod_pushVecNWidget(widgets, name, offset, width, v, n);
+}
+
+BSMODAPI void _bsmod_pushVecNWidget(bs_List* widgets, const char* name, bs_vec3 offset, float width, float* v, int n) {
     const char* xyzw[] = { "x", "y", "z", "w" };
 
     const float align_height = 16;
@@ -149,7 +202,7 @@ void bsmod_pushVecNWidget(bs_List* widgets, const char* name, bs_vec3 offset, fl
 #define BSMOD_DIRECTORY_BACKGROUND_PADDING 8
 #define BSMOD_DIRECTORY_BACKGROUND_DIMENSIONS ((bs_vec2) { 256, 512 })
 
-void bsmod_instanceBackgroundMenu(bs_vec3 position, bs_vec2 dimensions) {
+BSMODAPI void _bsmod_instanceBackgroundMenu(bs_vec3 position, bs_vec2 dimensions) {
     const int width = 64;
     static int scroll;
     static bs_List tabs = { .unit_size = sizeof(bsgfx_MenuTab), .increment = 16 };
@@ -251,8 +304,10 @@ static void bsmod_instanceDraggingIcon() {
     }
 }
 
-void bsmod_renderBillboards() {
-    bs_beginComment("Billboards");
+BSMODAPI void _bsmod_renderBillboards() {
+    bs_Pipeline* pipeline;
+    bs_PipelineHash hash;
+
     struct {
         bs_mat4 camera;
         bs_mat4 view;
@@ -262,18 +317,24 @@ void bsmod_renderBillboards() {
         .view = poser()->camera.view,
     };
 
-    bs_Pipeline* pipeline = bs_pipeline(&(bs_PipelineHash) {
+    hash = (bs_PipelineHash){
         .shaders = {
             $vs_bsmod_billboard(),
             $fs_bsmod_billboard(),
         },
         .skip_depth_test = true,
         BSGFX_TRANSPARENT_OPTIONS,
+    };
 
-    });
-    bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
-    bsgfx_renderSubtype(_bsmod_subtypes[BSMOD_SUBTYPE_BILLBOARD], pipeline);
-    bs_endComment();
+    if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
+
+        bs_beginComment(BS_CONSTANT_STRING("Billboards"));
+
+        bs_pushConstant(pipeline, 0, sizeof(push_const), &push_const);
+        bsgfx_renderSubtype(_bsmod_subtypes_[BSMOD_SUBTYPE_BILLBOARD], pipeline);
+
+        bs_endComment();
+    }
 }
 
 static void bsmod_instanceBillboards() {
@@ -281,7 +342,7 @@ static void bsmod_instanceBillboards() {
     bsmod_instanceLightBillboards();
 }
 
-void bsmod_instanceUI() {
+BSMODAPI void _bsmod_instanceUI() {
     _bsmod_.ui_blocked = false;
     static bool right_clicked;
     static bs_vec2 position;
@@ -309,22 +370,22 @@ void bsmod_instanceUI() {
 
     if (bs_keyDown(BS_KEY_ALT) && !bs_keyDown(BS_KEY_LEFT_CONTROL)) {
         if (bs_keyDownOnce(BS_KEY_1)) {
-            bsmod_instance_grid_menu = true;
+            _bsmod_instance_grid_menu_ = true;
 
         }
 
         for (int i = BS_KEY_2; i < BS_KEY_9; i++) {
             if (bs_keyDownOnce(i)) {
-                bsmod_instance_grid_menu = false;
+                _bsmod_instance_grid_menu_ = false;
                 bs_disableUserInputs(false);
             }
         }
     }
 
     if (_bsmod_.dragging_subtype >= 0)
-        bsmod_instance_grid_menu = false;
+        _bsmod_instance_grid_menu_ = false;
 
-    if (bsmod_instance_grid_menu) {
+    if (_bsmod_instance_grid_menu_) {
         bs_disableUserInputs(true);
 
         bs_vec2 dimensions = { 1600.0, 900.0 };

@@ -1,11 +1,29 @@
-#include <bs_types.h>
-#include <types/tile/bsgfx_tile.h>
-#include <ui/bsgfx_ui.h>
-#include <bsmod_type.h>
-#include <ui/bsmod_ui.h>
-#include <ui/grid/bsmod_ui_grid.h>
-#include <types/primitive/bsgfx_primitive.h>
-#include <_bsmod_.h>
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+#include <basilisk-mod.h>
 
 
 
@@ -27,7 +45,7 @@ static void bsmod_pushDividerWidget(bs_List* widgets, bs_vec3 offset) {
     });
 }
 
-void bsmod_pushDropdownWidget(bs_List* widgets, bs_vec3 offset) {
+static void bsmod_pushDropdownWidget(bs_List* widgets, bs_vec3 offset) {
     const int height = 24;
 
     bs_pushBack(widgets, &(bsgfx_Widget) {
@@ -60,7 +78,7 @@ void bsmod_pushDropdownWidget(bs_List* widgets, bs_vec3 offset) {
     bsmod_pushDividerWidget(widgets, BS_V3(0.0, offset.y, offset.z));
 }
 
-void bsmod_pushTileMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
+BSMODAPI void _bsmod_pushTileMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
     const int indent = 24;
 
     if (_bsmod_.selected_ids.count <= 0) {
@@ -94,11 +112,11 @@ void bsmod_pushTileMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
    * Grid Icon
    *============================================================================*/
 
-bool bsmod_instanceTilePreview(bsgfx_Widget* widget, bs_vec2* position, int id, bool hovering) {
+BSMODAPI bool _bsmod_instanceTilePreview(bsgfx_Widget* widget, bs_vec2* position, int id, bool hovering) {
     bs_Image* image = bs_fetch(BSGFX_IMAGES, BSGFX_IMAGE_TILE)->image;
     bs_ImageIndex* index = image->indices + id;
 
-    if (bsmod_search_input->len > 0 && strstr(index->name, bsmod_search_input->value) == NULL) {
+    if (_bsmod_search_input_->len > 0 && strstr(index->name, _bsmod_search_input_->value) == NULL) {
         return false;
     }
 
@@ -115,22 +133,35 @@ bool bsmod_instanceTilePreview(bsgfx_Widget* widget, bs_vec2* position, int id, 
    * Dragging Icon
    *============================================================================*/
 
-void bsmod_onDragTile(bsmod_DraggingParams params) {
+BSMODAPI void _bsmod_onDragTile(bsmod_DraggingParams params) {
     if (_bsmod_.hovering.tile < 0 || _bsmod_.hovering.primitive < 0)
         return;
 
     bsgfx_Primitive* hovering_primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, _bsmod_.hovering.primitive);
 
-    bs_ivec2 coords = bsgfx_tileCoordinate(hovering_primitive, _bsmod_.hovering.tile_axis, _bsmod_.hovering.tile);
+    bs_ivec2 coords;
+    bsgfx_tileCoordinate(hovering_primitive, _bsmod_.hovering.tile_axis, _bsmod_.hovering.tile, &coords);
 
-    bs_vec3 tile_position = bsgfx_tilePosition(hovering_primitive, _bsmod_.hovering.tile_axis, coords.x, coords.y);
-    bs_vec4 rotation = bsgfx_tileRotation(_bsmod_.hovering.tile_axis);
-    bs_vec3 euler_rotation = bsgfx_tileEulerRotation(_bsmod_.hovering.tile_axis);
-    rotation = bs_qMulq(hovering_primitive->rotation, rotation);
-    bs_mat4 matrix = bs_transform(tile_position, rotation, bs_v3V1(1.0));
+    bs_vec3 tile_position;
+    bsgfx_tilePosition(hovering_primitive, _bsmod_.hovering.tile_axis, coords.x, coords.y, &tile_position);
 
-    bs_Image* tile_image = bs_fetch(BSGFX_IMAGES, BSGFX_IMAGE_TILE)->image;
-    assert(_bsmod_.dragging_id >= 0 && _bsmod_.dragging_id < tile_image->num_indices);
+    bs_vec4 rotation;
+    bsgfx_tileRotation(_bsmod_.hovering.tile_axis, &rotation);
+
+    bs_vec3 euler_rotation;
+    bsgfx_tileEulerRotation(_bsmod_.hovering.tile_axis, &euler_rotation);
+
+    bs_qMulQ(&hovering_primitive->rotation, &rotation, &rotation);
+
+    bs_mat4 matrix = BS_MAT4_IDENTITY;
+    bs_m4Translate(&matrix, &tile_position, &matrix);
+    bs_m4Rotate(&matrix, &rotation, &matrix);
+
+    bs_Object* tile_image_object = bs_fetch(BSGFX_IMAGES, BSGFX_IMAGE_TILE);
+    if (!tile_image_object)
+        return;
+
+    assert(_bsmod_.dragging_id >= 0 && _bsmod_.dragging_id < tile_image_object->image->num_indices);
 
     if (bs_leftClickUpOnce()) {
         if (bsmod_isSelected(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, _bsmod_.hovering.tile)) {
@@ -142,16 +173,16 @@ void bsmod_onDragTile(bsmod_DraggingParams params) {
                     bsgfx_Tile* tile = bsgfx_get(BSGFX_TYPE_TILE, existing_id);
                     if (id == tile->index) {
                         bsgfx_RawTile* raw_tile = bsgfx_getRaw(BSGFX_TYPE_TILE, existing_id);
-                        raw_tile->texture_hash = tile_image->indices[_bsmod_.dragging_id].name_hash;
+                        raw_tile->texture_hash = tile_image_object->image->indices[_bsmod_.dragging_id].name_hash;
                         goto next;
                     }
                 }
 
-                coords = bsgfx_tileCoordinate(hovering_primitive, _bsmod_.hovering.tile_axis, id);
+                bsgfx_tileCoordinate(hovering_primitive, _bsmod_.hovering.tile_axis, id, &coords);
 
                 bsmod_add(BSGFX_TYPE_TILE, &(bsgfx_RawTile) {
                     .coords = coords,
-                    .texture_hash = tile_image->indices[_bsmod_.dragging_id].name_hash,
+                    .texture_hash = tile_image_object->image->indices[_bsmod_.dragging_id].name_hash,
                     .primitive = hovering_primitive->guid,
                     .axis = _bsmod_.hovering.tile_axis,
                 });

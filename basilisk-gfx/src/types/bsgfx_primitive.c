@@ -29,7 +29,7 @@
 
 BSGFXAPI void _bsgfx_primitivePosition(const bsgfx_RawPrimitive* primitive, bs_vec3* out) {
     bs_vec4 q;
-    bs_eulToQ(&BS_V3_RADIANS(primitive->rotation), &q);
+    bs_eulToQ(&BS_V3_TO_RADIANS(primitive->rotation), &q);
 
     bs_vec3 rotated_scale;
     bs_qRotateV3(&q, &primitive->scale, &rotated_scale);
@@ -46,7 +46,7 @@ static void bsgfx_mapPrimitive(bsgfx_RawPrimitive* unmapped, bsgfx_Primitive* ma
 
     bsgfx_primitivePosition(unmapped, &mapped->position);
 
-    bs_eulToQ(&BS_V3_RADIANS(unmapped->rotation), &mapped->rotation);
+    bs_eulToQ(&BS_V3_TO_RADIANS(unmapped->rotation), &mapped->rotation);
 
     switch (unmapped->type) {
     case BSGFX_PRIMITIVE_TYPE_BOX: mapped->subtype_index = BSGFX_SUBTYPE_PRIMITIVE_BOX; break;

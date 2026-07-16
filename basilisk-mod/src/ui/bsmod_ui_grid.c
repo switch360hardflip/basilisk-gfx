@@ -1,26 +1,35 @@
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+#include <basilisk-mod.h>
+#include <bsmod_cache.h>
+
 #include <direct.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-
-#include <bsgfx.h>
-#include <bs_json.h>
-#include <bs_window.h>
-#include <bsmod_compile.h>
-#include <bsmod_cache.h>
-#include <_bsmod_.h>
-
-#include <ui/bsgfx_ui.h>
-#include <ui/bsmod_ui.h>
-#include <ui/material/bsmod_ui_material.h>
-#include <ui/side/bsmod_ui_side.h>
-#include <ui/primitive/bsmod_ui_primitive.h>
-#include <ui/tile/bsmod_ui_tile.h>
-#include <ui/prefab/bsmod_ui_prefab.h>
-
-#include <types/prefab/bsgfx_prefab.h>
-#include <types/primitive/bsgfx_primitive.h>
-#include <types/tile/bsgfx_tile.h>
 
 #define BSMOD_DIRECTORY_BACKGROUND_PADDING 32
 #define BSMOD_DIRECTORY_BACKGROUND_DIMENSIONS ((bs_vec2) { 256, 512 })
@@ -69,7 +78,7 @@ static void bsmod_directoryWidget(bs_List* widgets, const char* name, int indent
         .type = BSGFX_WIDGET_ICON,
         .align_height = align_height,
         .icon = {
-            .atlas = bs_fetch(_bsmod_atlases, BSMOD_ATLAS_UI)->atlas,
+            .atlas = bs_fetch(_bsmod_atlases_, BSMOD_ATLAS_UI)->atlas,
             .atlas_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_UI],
             .type = BSGFX_ICON_ATLAS,
             .name = "minimize",
@@ -87,7 +96,7 @@ static void bsmod_directoryWidget(bs_List* widgets, const char* name, int indent
         .type = BSGFX_WIDGET_ICON,
         .align_height = align_height,
         .icon = {
-            .atlas = bs_fetch(_bsmod_atlases, BSMOD_ATLAS_UI)->atlas,
+            .atlas = bs_fetch(_bsmod_atlases_, BSMOD_ATLAS_UI)->atlas,
             .atlas_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_UI],
             .type = BSGFX_ICON_ATLAS,
             .name = "folder",
@@ -233,7 +242,7 @@ static void bsmod_instanceDirectoryMenu(bs_vec3 center, bs_vec2 dimensions) {
     bool hovering = bsgfx_instanceWidgets((bsgfx_Menu) {
         .position = center,
         .font = bs_fetch(BSGFX_FONTS, BSGFX_FONT_ARIAL_16)->head,
-        .text_subtype = _bsmod_subtypes[BSMOD_SUBTYPE_FONT_CONSOLAS],
+        .text_subtype = _bsmod_subtypes_[BSMOD_SUBTYPE_FONT_CONSOLAS],
         .spacing = 4.0,
         .widgets = widgets.data,
         .widgets_count = widgets.count,
@@ -314,8 +323,10 @@ typedef struct {
 } bsmod_GridPreviewParams;
 
 static void bsmod_checkHoverGrid(bsgfx_Widget* widget, bsgfx_GridParams* grid) {
+    bs_vec2 cursor = bs_cursorPosition();
+
     bsmod_GridPreviewParams* params = widget->params;
-    bool hovering = bs_rectangleVsPoint(*grid->position, widget->grid.size, bs_cursorPosition());
+    bool hovering = bs_rectangleVsPoint(grid->position, &widget->grid.size, &cursor);
 
     if (hovering) {
         if (bs_leftClickOnce()) {
@@ -356,9 +367,8 @@ static bool bsmod_instanceAtlasPreview(bsgfx_Widget* widget, bsgfx_GridParams gr
     if (params->object_id == BSMOD_ATLAS_MATERIAL_ICONS) {
         static int last_category = 0;
 
-        bs_except(BSX_FAILED_TO_QUERY);
         bsgfx_Material* material = bsgfx_queryMaterial(atlas->unmapped[grid.index].name);
-        if (bs_except(0))
+        if (!material)
             return false;
 
         if (last_category != material->category) {
@@ -367,11 +377,12 @@ static bool bsmod_instanceAtlasPreview(bsgfx_Widget* widget, bsgfx_GridParams gr
                 bs_Font* font = bs_fetch(BSGFX_FONTS, BSGFX_FONT_ARIAL_16)->font;
                 grid.position->y -= font->height;
                 grid.position->x = grid.start.x;
-                bs_vec2 category_name_dimensions = bsgfx_instanceText(_bsmod_subtypes[BSMOD_SUBTYPE_FONT_CONSOLAS], font, &(bsgfx_Text) {
+                bs_vec2 category_name_dimensions;
+                bsgfx_instanceText(_bsmod_subtypes_[BSMOD_SUBTYPE_FONT_CONSOLAS], font, &(bsgfx_Text) {
                     .position = { grid.position->x, grid.position->y, 70.0, 1 },
                     .scale = 16.0,
                     .material_id = $bsmod_grey_30()->id,
-                }, category_name, strlen(category_name));
+                }, &category_name_dimensions, category_name, strlen(category_name));
 
                 grid.position->y -= widget->grid.size.y;
                 //position->x = 0.0;
@@ -399,7 +410,7 @@ static bool bsmod_instanceImageArrayPreview(bsgfx_Widget* widget, bsgfx_GridPara
     bsmod_GridPreviewParams* params = widget->params;
     grid.index = params->sorted_ids[grid.index].id;
 
-    bs_Image* image = bs_fetch(_bsmod_images, params->object_id)->image;
+    bs_Image* image = bs_fetch(_bsmod_images_, params->object_id)->image;
     bs_mat4x3 matrix = bsgfx_matrix(
         BS_V3(grid.position->x, grid.position->y, 60.0),
         BS_V3(widget->grid.size.x, widget->grid.size.y, 0.0)
@@ -422,7 +433,7 @@ static int bsmod_compareCategories(const bsmod_IdCategory* a, const bsmod_IdCate
     else return 1;
 }
 
-void bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
+BSMODAPI void _bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
     bsmod_instanceDirectoryMenu(position, dimensions);
 
     bs_vec2 size = { dimensions.x - (BSMOD_DIRECTORY_BACKGROUND_DIMENSIONS.x + BSMOD_DIRECTORY_BACKGROUND_PADDING), dimensions.y };
@@ -455,18 +466,18 @@ void bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
   //  case BSMOD_DIRECTORY_PREFABS: widget.grid.count = bsgfx_prefabModel()->meshes_count; break;
   //  case BSMOD_DIRECTORY_TILES: widget.grid.count = bsgfx_tileTypes()->count; break;
     case BSMOD_DIRECTORY_PREFABS:
-        atlas = bs_fetch(_bsmod_atlases, params.object_id = BSMOD_ATLAS_PREFAB_ICONS)->head;
+        atlas = bs_fetch(_bsmod_atlases_, params.object_id = BSMOD_ATLAS_PREFAB_ICONS)->head;
         widget.grid.action = bsmod_instanceAtlasPreview;
         widget.grid.count = atlas->count;
-        params.subtype = _bsmod_subtypes[BSMOD_SUBTYPE_PREFAB_ICON];
+        params.subtype = _bsmod_subtypes_[BSMOD_SUBTYPE_PREFAB_ICON];
 
         break;
     case BSMOD_DIRECTORY_PRIMITIVES:
         //bs_Atlas* atlas = bs_fetch(BSMOD_ATLAS_MATERIAL_ICONS)->head;
-        atlas = bs_fetch(_bsmod_atlases, params.object_id = BSMOD_ATLAS_PRIMITIVE_ICONS)->head;
+        atlas = bs_fetch(_bsmod_atlases_, params.object_id = BSMOD_ATLAS_PRIMITIVE_ICONS)->head;
         widget.grid.count = atlas->count;
         widget.grid.action = bsmod_instanceAtlasPreview;
-        params.subtype = _bsmod_subtypes[BSMOD_SUBTYPE_PRIMITIVE_ICON];
+        params.subtype = _bsmod_subtypes_[BSMOD_SUBTYPE_PRIMITIVE_ICON];
 
         break;
     case BSMOD_DIRECTORY_TILES: 
@@ -474,20 +485,21 @@ void bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
         widget.grid.count = image_array->num_indices;
         widget.grid.action = bsmod_instanceImageArrayPreview;
         widget.grid.padding = 8.0;
-        params.subtype = _bsmod_subtypes[BSGFX_SUBTYPE_TILE];
+        params.subtype = _bsmod_subtypes_[BSGFX_SUBTYPE_TILE];
         params.object_id = BSGFX_IMAGE_TILE;
         scale = 2.0;
         break;
     case BSMOD_DIRECTORY_MATERIALS_CACHED: 
-        bs_except(BSX_NOT_FOUND);
-        atlas = bs_fetch(_bsmod_atlases, BSMOD_ATLAS_MATERIAL_ICONS)->atlas;
-        if (!bs_except(0)) {
-            widget.grid.count = atlas->count;
+        bs_Object* atlas_object = bs_fetch(_bsmod_atlases_, BSMOD_ATLAS_MATERIAL_ICONS);
+
+        if (atlas_object) {
+            widget.grid.count = atlas_object->atlas->count;
             widget.grid.action = bsmod_instanceAtlasPreview;
-            params.subtype = _bsmod_subtypes[BSMOD_SUBTYPE_MATERIAL_ICON];
+            params.subtype = _bsmod_subtypes_[BSMOD_SUBTYPE_MATERIAL_ICON];
             params.tab_id = BSMOD_TAB_MATERIAL;
             params.object_id = BSMOD_ATLAS_MATERIAL_ICONS;
         }
+        
         break;
     default:
         return;
@@ -522,7 +534,7 @@ void bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
 
     bool hovering = bsgfx_instanceWidgets((bsgfx_Menu) {
         .position = position,
-        .text_subtype = _bsmod_subtypes[BSMOD_SUBTYPE_FONT_CONSOLAS],
+        .text_subtype = _bsmod_subtypes_[BSMOD_SUBTYPE_FONT_CONSOLAS],
         .font = bs_fetch(BSGFX_FONTS, BSGFX_FONT_ARIAL_16)->head,
         .spacing = 16.0,
         .widgets = &widget,

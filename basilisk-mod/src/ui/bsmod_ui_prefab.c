@@ -1,15 +1,32 @@
-#include <bs_types.h>
-#include <bsmod_rasterize.h>
-#include <bsmod_cache.h>
-#include <bsmod_type.h>
-#include <types/prefab/bsgfx_prefab.h>
-#include <ui/bsgfx_ui.h>
-#include <ui/bsmod_ui.h>
-#include <ui/grid/bsmod_ui_grid.h>
-#include <types/primitive/bsgfx_primitive.h>
-#include <types/tile/bsgfx_tile.h>
 
-void bsmod_pushPrefabMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+#include <basilisk-mod.h>
+#include <bsmod_cache.h>
+
+BSMODAPI void _bsmod_pushPrefabMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
     bs_vec3 offset = { 8 + 16, 0, 0 };
     offset.z += BSGFX_BACKGROUND_Z_COUNT;
 
@@ -27,22 +44,23 @@ void bsmod_pushPrefabMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
     bsmod_pushVecNWidget(widgets, "Scale", offset, input_width, &sca, 3);
 }
 
-bool bsmod_instancePrefabPreview(bsgfx_Widget* widget, bs_vec2* position, int id, bool hovering) {
+BSMODAPI bool _bsmod_instancePrefabPreview(bsgfx_Widget* widget, bs_vec2* position, int id, bool hovering) {
     bs_Model* model = bsgfx_prefabModel();
     bs_Atlas* atlas = bs_fetch(BSMOD_ATLASES, BSMOD_ATLAS_UI)->head;
 
-    if (bsmod_search_input->len > 0 && strstr(model->meshes[id].name, bsmod_search_input->value) == NULL) {
+    if (_bsmod_search_input_->len > 0 && strstr(model->meshes[id].name, _bsmod_search_input_->value) == NULL) {
         return false;
     }
 
-    bs_vec4 rotation = bs_qFromRadians(BS_V3(bs_radians(-45), bs_radians(-45), bs_radians(45)));
+    bs_vec4 rotation;
+    bs_eulToQ(&BS_V3_TO_RADIANS(BS_V3(-45, -45, 45)), &rotation);
 
     const float scale = 1.0; // todo figure out AABB fitting with rotation instead
     bsgfx_instanceHiResMesh(
         model->meshes + id,
-        BS_V3(position->x + widget->grid.size.x / 2.0, position->y + widget->grid.size.x / 2.0, 0),
+        &BS_V3(position->x + widget->grid.size.x / 2.0, position->y + widget->grid.size.x / 2.0, 0),
         //bsgfx_adjustPosition(BS_V3(position->x + widget->grid.size.x, position->y, 13), hovering, id),
-        rotation,
+        &rotation,
         widget->grid.size.x * scale,
         BSGFX_PREFAB_SUBTYPE_MESH_HI_RES_SCREEN,
         false);
@@ -56,19 +74,29 @@ bool bsmod_instancePrefabPreview(bsgfx_Widget* widget, bs_vec2* position, int id
    * Dragging Icon
    *============================================================================*/
 
-void bsmod_onDragPrefab(bsmod_DraggingParams params) {
+BSMODAPI void _bsmod_onDragPrefab(bsmod_DraggingParams params) {
     if (_bsmod_.hovering.tile < 0 || _bsmod_.hovering.primitive < 0)
         return;
 
     bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, _bsmod_.hovering.primitive);
 
-    bs_ivec2 coords = bsgfx_tileCoordinate(primitive, _bsmod_.hovering.tile_axis, _bsmod_.hovering.tile);
+    bs_ivec2 coords;
+    bsgfx_tileCoordinate(primitive, _bsmod_.hovering.tile_axis, _bsmod_.hovering.tile, &coords);
 
-    bs_vec3 tile_position = bsgfx_tilePosition(primitive, _bsmod_.hovering.tile_axis, coords.x, coords.y);
-    bs_vec4 rotation = bsgfx_tileRotation(_bsmod_.hovering.tile_axis);
-    bs_vec3 euler_rotation = bsgfx_tileEulerRotation(_bsmod_.hovering.tile_axis);
-    rotation = bs_qMulq(primitive->rotation, rotation);
-    bs_mat4 matrix = bs_transform(tile_position, rotation, bs_v3V1(1.0));
+    bs_vec3 tile_position;
+    bsgfx_tilePosition(primitive, _bsmod_.hovering.tile_axis, coords.x, coords.y, &tile_position);
+
+    bs_vec4 rotation;
+    bsgfx_tileRotation(_bsmod_.hovering.tile_axis, &rotation);
+
+    bs_vec3 euler_rotation;
+    bsgfx_tileEulerRotation(_bsmod_.hovering.tile_axis, &euler_rotation);
+
+    bs_qMulQ(&primitive->rotation, &rotation, &rotation);
+
+    bs_mat4 matrix = BS_MAT4_IDENTITY;
+    bs_m4Translate(&matrix, &tile_position, &matrix);
+    bs_m4Rotate(&matrix, &rotation, &matrix);
 
     bsgfx_instancePrefabModel(_bsmod_.dragging_id, matrix, BSGFX_PREFAB_SUBTYPE_MESH, $bsmod_light_blue()->id);
     bs_Model* prefab_model = bsgfx_prefabModel();
@@ -81,7 +109,7 @@ void bsmod_onDragPrefab(bsmod_DraggingParams params) {
             .scale = bs_v3V1(1),
             .name_hash = prefab_mesh->name_hash,
         });
-        bsmod_saveType(BSGFX_TYPE_PREFAB, "Created prefab");
+        bsmod_saveType(BSGFX_TYPE_PREFAB, BS_CONSTANT_STRING("Created prefab"));
     }
 }
 
@@ -90,57 +118,68 @@ void bsmod_onDragPrefab(bsmod_DraggingParams params) {
    * Rasterizing Icons
    *============================================================================*/
 
-void bsmod_rasterizePrefabIcons() {
-#define WIDTH (84)
-    const bs_ivec2 render_size = { WIDTH * 2, WIDTH * 2 };
-    const bs_ivec2 output_size = { WIDTH, WIDTH };
-#undef WIDTH
+BSMODAPI void _bsmod_rasterizePrefabIcons() {
+    bs_Pipeline* pipeline;
+    bs_PipelineHash hash;
 
-    bs_PipelineHash pipeline_hash = {
+    const int width = 84;
+
+    const bs_ivec2 render_size = { width * 2, width * 2 };
+    const bs_ivec2 output_size = { width, width };
+
+    hash = (bs_PipelineHash) {
         .shaders = {
             $vs_bsmod_mesh_instanced(),
             $fs_bsmod_rasterize(),
         },
     };
 
-    struct {
-        bs_mat4x3 camera;
-        bs_mat4x3 model;
-        bs_vec4 color;
-        int material_texture_size;
-        int material_texture_id;
-    } push_const = {
-        .camera = bs_m4x3(bs_m4Mul(
-            bs_ortho(0, render_size.x, 0, render_size.y, -500.0, 500.0),
-            bs_lookAt(BS_V3(0, 0, 1), BS_V3(0, 0, 0), BS_V3(0, 1, 0))
-        )),
-    };
+    if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
 
-    int instance = 0;
+        bs_mat4 proj, view, camera;
+        bs_orthographic(0, render_size.x, 0, render_size.y, -500.0, 500.0, &proj);
+        bs_lookAt(&BS_V3(0, 0, 1), &BS_V3(0, 0, 0), &BS_V3(0, 1, 0), &view);
+        bs_m4Mul(&proj, &view, &camera);
 
-    bsmod_beginRasterize(render_size, output_size);
+        struct {
+            bs_mat4x3 camera;
+            bs_mat4x3 model;
+            bs_vec4 color;
+            int material_texture_size;
+            int material_texture_id;
+        } push_const = {
+            .camera = bs_m4x3(&camera),
+        };
 
-    bsgfx_Material* material = $bsmod_light_blue();
+        int instance = 0;
 
-    bs_Model* model = bsgfx_prefabModel();
+        bsmod_beginRasterize(render_size, output_size);
 
-    int count = model->meshes_count;
-    bs_vec4 rotation = bs_qFromDegreesV3(15.0, 30.0, -15.0);
+        bsgfx_Material* material = $bsmod_light_blue();
 
-    for (int i = 0; i < count; i++) {
-        bs_Mesh* mesh = model->meshes + i;
-        int subtype = mesh->extra[BSGFX_MODEL_SUBTYPE_DEFAULT];
+        bs_Model* model = bsgfx_prefabModel();
 
-        bs_mat4 transform = bs_fitAabb(mesh->aabb, BS_IV2_TO_V2(render_size), rotation);
+        int count = model->meshes_count;
+        
+        bs_vec4 rotation;
+        bs_eulToQ(&BS_V3_TO_RADIANS(BS_V3(15.0, 30.0, -15.0)), &rotation);
 
-        push_const.color = material->contract->color;
-        push_const.material_texture_size = material->contract->image_binding;
-        push_const.material_texture_id = material->contract->image;
-        push_const.model = bs_m4x3(transform);
+        for (int i = 0; i < count; i++) {
+            bs_Mesh* mesh = model->meshes + i;
+            int subtype = mesh->extra[BSGFX_MODEL_SUBTYPE_DEFAULT];
 
-        instance = bsgfx_instancePrefabModel(i, transform, BSGFX_PREFAB_SUBTYPE_MESH, $bsmod_light_blue()->id);
-        bsmod_rasterizeInstance(pipeline_hash, subtype, instance, material->category, material->name, render_size.x, render_size.y, sizeof(push_const), &push_const);
+            bs_mat4 transform;
+            bs_fitAabb(&mesh->aabb, &BS_IV2_TO_V2(render_size), &rotation, &transform);
+
+            push_const.color = material->contract->color;
+            push_const.material_texture_size = material->contract->image_binding;
+            push_const.material_texture_id = material->contract->image;
+            push_const.model = bs_m4x3(&transform);
+
+            instance = bsgfx_instancePrefabModel(i, transform, BSGFX_PREFAB_SUBTYPE_MESH, $bsmod_light_blue()->id);
+            bsmod_rasterizeInstance(hash, subtype, instance, material->category, material->name, render_size.x, render_size.y, sizeof(push_const), &push_const);
+        }
+
+        bsmod_endRasterize();
     }
-
-    bsmod_endRasterize();
 }

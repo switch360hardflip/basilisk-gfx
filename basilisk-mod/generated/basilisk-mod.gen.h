@@ -536,9 +536,9 @@ bsmod_packAtlasTexture(
   @param height
   @param package
   @param resource_name
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_packAtlas(
     bsmod_AtlasPacker* packer,
     int width,
@@ -611,6 +611,38 @@ bsmod_packBMFontF(
     char* png_path,
     char* format,
      ...);
+
+ /**
+  @param scroll
+  @return bsgfx_Scrollbar
+  */
+BSMODAPI bsgfx_Scrollbar
+bsmod_scrollbar(
+    int* scroll);
+
+ /**
+  @param width
+  @param indent
+  @return bsgfx_Widget
+  */
+BSMODAPI bsgfx_Widget
+bsmod_dividerWidget(
+    float width,
+    int indent);
+
+ /**
+  @param cache
+  @param align_height
+  @param offset
+  @param advance_flags
+  @return bsgfx_Widget
+  */
+BSMODAPI bsgfx_Widget
+bsmod_iconWidget(
+    bsgfx_AtlasCache* cache,
+    float align_height,
+    bs_vec3 offset,
+    bs_U32 advance_flags);
 
  /**
   @return bs_List*
@@ -852,9 +884,9 @@ bsmod_deleteSelected(
   @param id
   @param value
   @param value_length
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_saveType(
     bsgfx_TypeId id,
     char* value,
@@ -864,9 +896,9 @@ bsmod_saveType(
   @param id
   @param format
   @param args
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_saveTypeV(
     bsgfx_TypeId id,
     char* format,
@@ -876,9 +908,9 @@ bsmod_saveTypeV(
   @param id
   @param format
   @param ...
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_saveTypeF(
     bsgfx_TypeId id,
     char* format,

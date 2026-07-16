@@ -1452,6 +1452,20 @@ bsgfx_validateInstanceType(
     int instance_type_id);
 
  /**
+  @param position
+  @param camera
+  @param resolution
+  @param out
+  @return void
+  */
+BSGFXAPI void
+bsgfx_worldToScreen(
+    const bs_vec3* position,
+    const bs_mat4* camera,
+    const bs_vec3* resolution,
+    bs_vec2* out);
+
+ /**
   @param category
   @return const char*
   */
@@ -1988,6 +2002,22 @@ bsgfx_instanceQuad(
     bs_U32 flags,
     int id,
     int material);
+
+ /**
+  @param transform
+  @param segments
+  @param radius
+  @param color
+  @param out
+  @return void
+  */
+BSGFXAPI void
+bsgfx_instanceDepthlessCircle(
+    const bs_mat4* transform,
+    int segments,
+    float radius,
+    bs_RGBA color,
+    bs_Range* out);
 
  /**
   @param subtype

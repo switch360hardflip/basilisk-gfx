@@ -59,6 +59,7 @@ static inline bsgfx_FunctionTable _val_bsgfx_getFunctions() {
     functions.bsgfx_fonts = (PFN_bsgfx_fonts)GetProcAddress(module, "_val_bsgfx_fonts");
     functions.bsgfx_validateSubtype = (PFN_bsgfx_validateSubtype)GetProcAddress(module, "_val_bsgfx_validateSubtype");
     functions.bsgfx_validateInstanceType = (PFN_bsgfx_validateInstanceType)GetProcAddress(module, "_val_bsgfx_validateInstanceType");
+    functions.bsgfx_worldToScreen = (PFN_bsgfx_worldToScreen)GetProcAddress(module, "_val_bsgfx_worldToScreen");
     functions.bsgfx_materialCategoryName = (PFN_bsgfx_materialCategoryName)GetProcAddress(module, "_val_bsgfx_materialCategoryName");
     functions.bsgfx_materials = (PFN_bsgfx_materials)GetProcAddress(module, "_val_bsgfx_materials");
     functions.bsgfx_queryMaterialHash = (PFN_bsgfx_queryMaterialHash)GetProcAddress(module, "_val_bsgfx_queryMaterialHash");
@@ -110,6 +111,7 @@ static inline bsgfx_FunctionTable _val_bsgfx_getFunctions() {
     functions.bsgfx_instanceCone = (PFN_bsgfx_instanceCone)GetProcAddress(module, "_val_bsgfx_instanceCone");
     functions.bsgfx_instancePoint = (PFN_bsgfx_instancePoint)GetProcAddress(module, "_val_bsgfx_instancePoint");
     functions.bsgfx_instanceQuad = (PFN_bsgfx_instanceQuad)GetProcAddress(module, "_val_bsgfx_instanceQuad");
+    functions.bsgfx_instanceDepthlessCircle = (PFN_bsgfx_instanceDepthlessCircle)GetProcAddress(module, "_val_bsgfx_instanceDepthlessCircle");
     functions.bsgfx_instanceAtlas = (PFN_bsgfx_instanceAtlas)GetProcAddress(module, "_val_bsgfx_instanceAtlas");
     functions.bsgfx_instanceAtlasFlipped = (PFN_bsgfx_instanceAtlasFlipped)GetProcAddress(module, "_val_bsgfx_instanceAtlasFlipped");
     functions.bsgfx_instanceText = (PFN_bsgfx_instanceText)GetProcAddress(module, "_val_bsgfx_instanceText");

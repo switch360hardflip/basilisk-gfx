@@ -108,6 +108,15 @@ bool bsgfx_validateInstanceType(
     return next.bsgfx_validateInstanceType(library_name, instance_type_id);
 }
 
+void bsgfx_worldToScreen(
+    const bs_vec3* position, 
+    const bs_mat4* camera, 
+    const bs_vec3* resolution, 
+    bs_vec2* out)
+{
+    next.bsgfx_worldToScreen(position, camera, resolution, out);
+}
+
 const char* bsgfx_materialCategoryName(
     bsgfx_MaterialCategory category)
 {
@@ -488,6 +497,16 @@ int bsgfx_instanceQuad(
     int material)
 {
     return next.bsgfx_instanceQuad(subtype, transform, coords, flags, id, material);
+}
+
+void bsgfx_instanceDepthlessCircle(
+    const bs_mat4* transform, 
+    int segments, 
+    float radius, 
+    bs_RGBA color, 
+    bs_Range* out)
+{
+    next.bsgfx_instanceDepthlessCircle(transform, segments, radius, color, out);
 }
 
 int bsgfx_instanceAtlas(

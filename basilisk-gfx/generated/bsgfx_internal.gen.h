@@ -51,6 +51,7 @@ typedef int(__stdcall* PFN_bsgfx_atlases)();
 typedef int(__stdcall* PFN_bsgfx_fonts)();
 typedef bool(__stdcall* PFN_bsgfx_validateSubtype)(const char* library_name, int subtype);
 typedef bool(__stdcall* PFN_bsgfx_validateInstanceType)(const char* library_name, int instance_type_id);
+typedef void(__stdcall* PFN_bsgfx_worldToScreen)(const bs_vec3* position, const bs_mat4* camera, const bs_vec3* resolution, bs_vec2* out);
 typedef const char*(__stdcall* PFN_bsgfx_materialCategoryName)(bsgfx_MaterialCategory category);
 typedef bs_List*(__stdcall* PFN_bsgfx_materials)();
 typedef bsgfx_Material*(__stdcall* PFN_bsgfx_queryMaterialHash)(bs_U64 hash);
@@ -102,6 +103,7 @@ typedef int(__stdcall* PFN_bsgfx_instanceSphere)(bs_vec3 position, float radius)
 typedef int(__stdcall* PFN_bsgfx_instanceCone)(bs_mat4 transform, float radius, bs_U32 flags, int id, int material);
 typedef int(__stdcall* PFN_bsgfx_instancePoint)(bs_vec3 position, bs_RGBA color, float size);
 typedef int(__stdcall* PFN_bsgfx_instanceQuad)(int subtype, bs_mat4x3 transform, bs_vec4 coords, bs_U32 flags, int id, int material);
+typedef void(__stdcall* PFN_bsgfx_instanceDepthlessCircle)(const bs_mat4* transform, int segments, float radius, bs_RGBA color, bs_Range* out);
 typedef int(__stdcall* PFN_bsgfx_instanceAtlas)(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material);
 typedef int(__stdcall* PFN_bsgfx_instanceAtlasFlipped)(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material);
 typedef void(__stdcall* PFN_bsgfx_instanceText)(int subtype, bs_Font* font, bsgfx_Text* params, bs_vec2* out_text_size, char* value, int value_length);
@@ -192,6 +194,7 @@ typedef struct {
     PFN_bsgfx_fonts bsgfx_fonts;
     PFN_bsgfx_validateSubtype bsgfx_validateSubtype;
     PFN_bsgfx_validateInstanceType bsgfx_validateInstanceType;
+    PFN_bsgfx_worldToScreen bsgfx_worldToScreen;
     PFN_bsgfx_materialCategoryName bsgfx_materialCategoryName;
     PFN_bsgfx_materials bsgfx_materials;
     PFN_bsgfx_queryMaterialHash bsgfx_queryMaterialHash;
@@ -243,6 +246,7 @@ typedef struct {
     PFN_bsgfx_instanceCone bsgfx_instanceCone;
     PFN_bsgfx_instancePoint bsgfx_instancePoint;
     PFN_bsgfx_instanceQuad bsgfx_instanceQuad;
+    PFN_bsgfx_instanceDepthlessCircle bsgfx_instanceDepthlessCircle;
     PFN_bsgfx_instanceAtlas bsgfx_instanceAtlas;
     PFN_bsgfx_instanceAtlasFlipped bsgfx_instanceAtlasFlipped;
     PFN_bsgfx_instanceText bsgfx_instanceText;
@@ -342,6 +346,7 @@ static inline bsgfx_FunctionTable _bsgfx_getFunctions() {
     functions.bsgfx_fonts = (PFN_bsgfx_fonts)GetProcAddress(module, "_bsgfx_fonts");
     functions.bsgfx_validateSubtype = (PFN_bsgfx_validateSubtype)GetProcAddress(module, "_bsgfx_validateSubtype");
     functions.bsgfx_validateInstanceType = (PFN_bsgfx_validateInstanceType)GetProcAddress(module, "_bsgfx_validateInstanceType");
+    functions.bsgfx_worldToScreen = (PFN_bsgfx_worldToScreen)GetProcAddress(module, "_bsgfx_worldToScreen");
     functions.bsgfx_materialCategoryName = (PFN_bsgfx_materialCategoryName)GetProcAddress(module, "_bsgfx_materialCategoryName");
     functions.bsgfx_materials = (PFN_bsgfx_materials)GetProcAddress(module, "_bsgfx_materials");
     functions.bsgfx_queryMaterialHash = (PFN_bsgfx_queryMaterialHash)GetProcAddress(module, "_bsgfx_queryMaterialHash");
@@ -393,6 +398,7 @@ static inline bsgfx_FunctionTable _bsgfx_getFunctions() {
     functions.bsgfx_instanceCone = (PFN_bsgfx_instanceCone)GetProcAddress(module, "_bsgfx_instanceCone");
     functions.bsgfx_instancePoint = (PFN_bsgfx_instancePoint)GetProcAddress(module, "_bsgfx_instancePoint");
     functions.bsgfx_instanceQuad = (PFN_bsgfx_instanceQuad)GetProcAddress(module, "_bsgfx_instanceQuad");
+    functions.bsgfx_instanceDepthlessCircle = (PFN_bsgfx_instanceDepthlessCircle)GetProcAddress(module, "_bsgfx_instanceDepthlessCircle");
     functions.bsgfx_instanceAtlas = (PFN_bsgfx_instanceAtlas)GetProcAddress(module, "_bsgfx_instanceAtlas");
     functions.bsgfx_instanceAtlasFlipped = (PFN_bsgfx_instanceAtlasFlipped)GetProcAddress(module, "_bsgfx_instanceAtlasFlipped");
     functions.bsgfx_instanceText = (PFN_bsgfx_instanceText)GetProcAddress(module, "_bsgfx_instanceText");

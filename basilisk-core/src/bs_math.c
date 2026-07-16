@@ -128,6 +128,13 @@ BSAPI bs_mat4x3 _bs_m4x3(const bs_mat4* m) {
     };
 }
 
+BSAPI void _bs_m3ToM4(const bs_mat3* m, bs_mat4* out) {
+    out->v[0] = BS_V3_TO_V4(m->v[0], 0.0f);
+    out->v[1] = BS_V3_TO_V4(m->v[1], 0.0f);
+    out->v[2] = BS_V3_TO_V4(m->v[2], 0.0f);
+    out->v[3] = BS_V4(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
 
 
   /*==============================================================================
@@ -261,6 +268,80 @@ BSAPI void _bs_v3QuadBezier(const bs_vec3* p0, const bs_vec3* p1, const bs_vec3*
     bs_nQuadBezier(3, p0, p1, p2, out, out_length);
 }
 
+
+
+  /*==============================================================================
+   * AABB
+   =============================================================================*/
+
+BSAPI void _bs_rotateAabb(const bs_Aabb* aabb, const bs_mat3* rotation_matrix, bs_Aabb* out) {
+    bs_vec3 min = aabb->min;
+    bs_vec3 max = aabb->max;
+
+    bs_vec3 corners[8] = {
+        {min.x, min.y, min.z},
+        {max.x, min.y, min.z},
+        {min.x, max.y, min.z},
+        {max.x, max.y, min.z},
+        {min.x, min.y, max.z},
+        {max.x, min.y, max.z},
+        {min.x, max.y, max.z},
+        {max.x, max.y, max.z},
+    };
+
+    bs_vec3 new_min = { BS_FLT_MAX,  BS_FLT_MAX,  BS_FLT_MAX };
+    bs_vec3 new_max = { -BS_FLT_MAX, -BS_FLT_MAX, -BS_FLT_MAX };
+
+    for (int i = 0; i < 8; i++) {
+        bs_vec3 p;
+        bs_m3MulV3(rotation_matrix, corners + i, &p);
+
+        new_min = BS_V3_MIN(new_min, p);
+        new_max = BS_V3_MAX(new_max, p);
+    }
+
+    return (bs_Aabb) {
+        .min = new_min,
+        .max = new_max,
+    };
+}
+
+BSAPI void _bs_fitAabb(const bs_Aabb* aabb, const bs_vec2* size, const bs_vec4* rotation, bs_mat4* out) {
+    bs_Aabb rotated_aabb = *aabb;
+
+    bs_vec3 center;
+    bs_v3MulS(&BS_V3_ADD(rotated_aabb.min, rotated_aabb.max), 0.5, &center);
+
+    bs_mat3 rotation_matrix;
+    bs_qToM3(rotation, &rotation_matrix);
+
+    bs_rotateAabb(&rotated_aabb, &rotation_matrix, &rotated_aabb);
+
+    bs_vec3 rotated_size;
+    bs_v3Sub(&aabb->max, &aabb->min, &rotated_size);
+
+    float scale_x = size->x / rotated_size.x;
+    float scale_y = size->y / rotated_size.y;
+    float scale = BS_MIN(scale_x, scale_y);
+
+    // float padding = 4.0;
+    // scale *= (render_size.x - padding) / render_size.x;
+
+    bs_mat4 translation_matrix, scale_matrix, center_translation_matrix;
+
+    bs_m4Translate(&BS_MAT4_IDENTITY, &BS_V3(size->x * 0.5, size->y * 0.5, 0.0), &translation_matrix);
+    bs_m4Scale(&BS_MAT4_IDENTITY, &BS_V3(scale, scale, scale), &scale_matrix);
+    bs_m4Translate(&BS_MAT4_IDENTITY, &BS_V3_MUL_S(center, -1.0), &center_translation_matrix);
+
+    bs_mat4 transform;
+    bs_m3ToM4(&rotation_matrix, &transform);
+
+    bs_m4Mul(&transform, &center_translation_matrix, &transform);
+    bs_m4Mul(&scale_matrix, &transform, &transform);
+    bs_m4Mul(&translation_matrix, &transform, &transform);
+
+    *out = transform;
+}
 
 
 

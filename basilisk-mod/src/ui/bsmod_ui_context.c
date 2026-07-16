@@ -1,15 +1,35 @@
-#include <ui/context/bsmod_ui_context.h>
-#include <ui/light/bsmod_ui_light.h>
-#include <ui/bsgfx_ui.h>
-#include <ui/bsmod_ui.h>
-#include <types/light/bsgfx_light.h>
-#include <bsmod_type.h>
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+#include <basilisk-mod.h>
 #include <bsmod_cache.h>
 
-void bsmod_instanceContextMenu(bs_List* widgets, bs_vec3 position, bs_vec2 size) {
+BSMODAPI void _bsmod_instanceContextMenu(bs_List* widgets, bs_vec3 position, bs_vec2 size) {
     bool hovering = bsgfx_instanceWidgets((bsgfx_Menu) {
         .position = position,
-        .text_subtype = _bsmod_subtypes[BSMOD_SUBTYPE_FONT_CONSOLAS],
+        .text_subtype = _bsmod_subtypes_[BSMOD_SUBTYPE_FONT_CONSOLAS],
         .font = bs_fetch(BSGFX_FONTS, BSGFX_FONT_ARIAL_16)->head,
         .spacing = 4.0,
         .widgets = widgets->data,
@@ -30,7 +50,7 @@ void bsmod_instanceContextMenu(bs_List* widgets, bs_vec3 position, bs_vec2 size)
         _bsmod_.ui_blocked = hovering;
 }
 
-void bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, bs_vec3 icon_offset, bsgfx_AtlasCache* icon, const char* name, int indent, bool(*action)(struct bsgfx_Widget*), bool expandable) {
+BSMODAPI void _bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, bs_vec3 icon_offset, bsgfx_AtlasCache* icon, const char* name, int indent, bool(*action)(struct bsgfx_Widget*), bool expandable) {
     const int padding = BSMOD_CONTEXT_MENU_PADDING;
     const int align_height = BSMOD_CONTEXT_MENU_BUTTON_HEIGHT;
 
@@ -48,8 +68,18 @@ void bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, bs_vec3 ic
     });
     bsgfx_AtlasCache* expand = $BSMOD_ATLAS_UI_expand();
 
-    bsgfx_Widget expand_widget = bsmod_iconWidget(expand, align_height, BS_V3(menu_size.x - padding * 2 - expand->size.x, 0.0, 0.0), 0);
-    bsgfx_Widget icon_widget = bsmod_iconWidget(icon, align_height, bs_v3AddX(icon_offset, padding), BSGFX_WIDGET_ADVANCE_RIGHT);
+    bsgfx_Widget expand_widget = bsmod_iconWidget(
+        expand, 
+        align_height, 
+        BS_V3(menu_size.x - padding * 2 - expand->size.x, 0.0, 0.0), 
+        0
+    );
+    bsgfx_Widget icon_widget = bsmod_iconWidget(
+        icon, 
+        align_height, 
+        BS_V3(icon_offset.x + padding, icon_offset.y, icon_offset.z), 
+        BSGFX_WIDGET_ADVANCE_RIGHT
+    );
 
     if (expandable)
         bs_pushBack(widgets, &expand_widget);
@@ -70,7 +100,7 @@ void bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, bs_vec3 ic
     });
 }
 
-void bsmod_instanceTileContextMenu(bs_vec3 position, bs_vec2 size) {
+BSMODAPI void _bsmod_instanceTileContextMenu(bs_vec3 position, bs_vec2 size) {
     static bs_List widgets = { .unit_size = sizeof(bsgfx_Widget), .increment = 16 };
     widgets.count = 0;
 

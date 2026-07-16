@@ -3930,6 +3930,16 @@ bs_m4Scale(
   @return void
   */
 BSAPI void
+bs_m3ToM4(
+    const bs_mat3* m,
+    bs_mat4* out);
+
+ /**
+  @param m
+  @param out
+  @return void
+  */
+BSAPI void
 bs_m3ToQ(
     const bs_mat3* m,
     bs_vec4* out);
@@ -3963,6 +3973,44 @@ BSAPI void
 bs_qToM4(
     const bs_vec4* q,
     bs_mat4* out);
+
+ /**
+  @param p
+  @param q
+  @param out
+  @return void
+  */
+BSAPI void
+bs_qMulQ(
+    const bs_vec4* p,
+    const bs_vec4* q,
+    bs_vec4* out);
+
+ /**
+  @param axis
+  @param radians
+  @param out
+  @return void
+  */
+BSAPI void
+bs_qAxisAngle(
+    const bs_vec3* axis,
+    float radians,
+    bs_vec4* out);
+
+ /**
+  @param from
+  @param to
+  @param t
+  @param out
+  @return void
+  */
+BSAPI void
+bs_qSlerp(
+    const bs_vec4* from,
+    const bs_vec4* to,
+    float t,
+    bs_vec4* out);
 
  /**
   @param q
@@ -4167,11 +4215,53 @@ bs_v3QuadBezier(
     int out_length);
 
  /**
+  @param aabb
+  @param rotation_matrix
+  @param out
+  @return void
+  */
+BSAPI void
+bs_rotateAabb(
+    const bs_Aabb* aabb,
+    const bs_mat3* rotation_matrix,
+    bs_Aabb* out);
+
+ /**
+  @param aabb
+  @param size
+  @param rotation
+  @param out
+  @return void
+  */
+BSAPI void
+bs_fitAabb(
+    const bs_Aabb* aabb,
+    const bs_vec2* size,
+    const bs_vec4* rotation,
+    bs_mat4* out);
+
+ /**
+  @param v
+  @return float
+  */
+BSAPI float
+bs_round(
+    float v);
+
+ /**
   @param v
   @return float
   */
 BSAPI float
 bs_abs(
+    float v);
+
+ /**
+  @param v
+  @return float
+  */
+BSAPI float
+bs_sqrt(
     float v);
 
  /**

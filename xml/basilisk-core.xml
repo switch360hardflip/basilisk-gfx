@@ -2543,6 +2543,12 @@
             <body>    glm_scale_to(m->v, v->a, out->a);</body>
         </function>
 
+		<function name="bs_m3ToM4">
+            <return>void</return>
+            <param><type>const bs_mat3*</type><name>m</name></param>
+            <param><type>bs_mat4*</type><name>out</name></param>
+        </function>
+		
         <function name="bs_m3ToQ">
             <return>void</return>
             <param><type>const bs_mat3*</type><name>m</name></param>
@@ -2569,6 +2575,31 @@
             <param><type>const bs_vec4*</type><name>q</name></param>
             <param><type>bs_mat4*</type><name>out</name></param>
             <body>    glm_quat_mat4(q->a, out->v);</body>
+        </function>
+		
+        <function name="bs_qMulQ">
+            <return>void</return>
+            <param><type>const bs_vec4*</type><name>p</name></param>
+            <param><type>const bs_vec4*</type><name>q</name></param>
+            <param><type>bs_vec4*</type><name>out</name></param>
+            <body>    glm_quat_mul(p->a, q->a, out->a);</body>
+        </function>
+		
+		<function name="bs_qAxisAngle">
+            <return>void</return>
+            <param><type>const bs_vec3*</type><name>axis</name></param>
+            <param><type>float</type><name>radians</name></param>
+            <param><type>bs_vec4*</type><name>out</name></param>
+            <body>    glm_quatv(axis->a, radians, out->a);</body>
+        </function>
+		
+        <function name="bs_qSlerp">
+            <return>void</return>
+            <param><type>const bs_vec4*</type><name>from</name></param>
+            <param><type>const bs_vec4*</type><name>to</name></param>
+            <param><type>float</type><name>t</name></param>
+            <param><type>bs_vec4*</type><name>out</name></param>
+            <body>    glm_quat_slerp(from->a, to->a, t, out->a);</body>
         </function>
 		
         <function name="bs_qNormalize">
@@ -2694,10 +2725,38 @@
             <param><type>int</type><name>out_length</name></param>
         </function>
 
+		<function name="bs_rotateAabb">
+            <return>void</return>
+            <param><type>const bs_Aabb*</type><name>aabb</name></param>
+            <param><type>const bs_mat3*</type><name>rotation_matrix</name></param>
+            <param><type>bs_Aabb*</type><name>out</name></param>
+        </function>
+
+		<function name="bs_fitAabb">
+            <return>void</return>
+            <param><type>const bs_Aabb*</type><name>aabb</name></param>
+            <param><type>const bs_vec2*</type><name>size</name></param>
+            <param><type>const bs_vec4*</type><name>rotation</name></param>
+            <param><type>bs_mat4*</type><name>out</name></param>
+        </function>
+		
+        <function name="bs_round">
+            <return>float</return>
+            <param><type>float</type><name>v</name></param>
+            <body>    return roundf(v);</body>
+        </function>
+		
+		
         <function name="bs_abs">
             <return>float</return>
             <param><type>float</type><name>v</name></param>
             <body>    return fabsf(v);</body>
+        </function>
+		
+		<function name="bs_sqrt">
+            <return>float</return>
+            <param><type>float</type><name>v</name></param>
+            <body>    return sqrtf(v);</body>
         </function>
 		
 		<function name="bs_sin">

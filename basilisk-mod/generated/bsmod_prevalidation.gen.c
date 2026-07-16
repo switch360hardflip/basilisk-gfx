@@ -122,11 +122,11 @@ static void _preval_bsmod_packAtlasTexture(bsmod_AtlasPacker* packer, char* name
     next.bsmod_packAtlasTexture(packer, name, data, width, height, category);
 }
 
-static void _preval_bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* package, char* resource_name) {
-    BSMOD_VALIDATE(packer != NULL, ,);
-    BSMOD_VALIDATE(package != NULL, ,);
-    BSMOD_VALIDATE(resource_name != NULL, ,);
-    next.bsmod_packAtlas(packer, width, height, package, resource_name);
+static bs_Result _preval_bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* package, char* resource_name) {
+    BSMOD_VALIDATE(packer != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(package != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(resource_name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_packAtlas(packer, width, height, package, resource_name);
 }
 
 static bsmod_AtlasPacker _preval_bsmod_createAtlasPacker() {
@@ -146,6 +146,20 @@ static bs_Result _preval_bsmod_packBMFont(char* package_name, char* bmfont_path,
     BSMOD_VALIDATE(png_path != NULL, BS_RESULT_VALIDATION_ERROR,);
     BSMOD_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
     return next.bsmod_packBMFont(package_name, bmfont_path, png_path, value, value_length);
+}
+
+static bsgfx_Scrollbar _preval_bsmod_scrollbar(int* scroll) {
+    BSMOD_VALIDATE(scroll != NULL, 0,);
+    return next.bsmod_scrollbar(scroll);
+}
+
+static bsgfx_Widget _preval_bsmod_dividerWidget(float width, int indent) {
+    return next.bsmod_dividerWidget(width, indent);
+}
+
+static bsgfx_Widget _preval_bsmod_iconWidget(bsgfx_AtlasCache* cache, float align_height, bs_vec3 offset, bs_U32 advance_flags) {
+    BSMOD_VALIDATE(cache != NULL, 0,);
+    return next.bsmod_iconWidget(cache, align_height, offset, advance_flags);
 }
 
 static bs_List* _preval_bsmod_packages() {
@@ -258,9 +272,9 @@ static void _preval_bsmod_deleteSelected(bsgfx_TypeId type_id) {
     next.bsmod_deleteSelected(type_id);
 }
 
-static void _preval_bsmod_saveType(bsgfx_TypeId id, char* value, int value_length) {
-    BSMOD_VALIDATE(value != NULL, ,);
-    next.bsmod_saveType(id, value, value_length);
+static bs_Result _preval_bsmod_saveType(bsgfx_TypeId id, char* value, int value_length) {
+    BSMOD_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_saveType(id, value, value_length);
 }
 
 static void* _preval_bsmod_add(bsgfx_TypeId id, void* data) {
@@ -486,6 +500,9 @@ bsmod_FunctionTable _preval_bsmod_getFunctionTable() {
     functions.bsmod_createAtlasPacker = _preval_bsmod_createAtlasPacker;
     functions.bsmod_packImageDirectory = _preval_bsmod_packImageDirectory;
     functions.bsmod_packBMFont = _preval_bsmod_packBMFont;
+    functions.bsmod_scrollbar = _preval_bsmod_scrollbar;
+    functions.bsmod_dividerWidget = _preval_bsmod_dividerWidget;
+    functions.bsmod_iconWidget = _preval_bsmod_iconWidget;
     functions.bsmod_packages = _preval_bsmod_packages;
     functions.bsmod_queryPackage = _preval_bsmod_queryPackage;
     functions.bsmod_ensurePackage = _preval_bsmod_ensurePackage;

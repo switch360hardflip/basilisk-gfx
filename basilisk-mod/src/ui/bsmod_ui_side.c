@@ -1,28 +1,35 @@
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
 #include <direct.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 
-#include <bsgfx.h>
-#include <bs_json.h>
-#include <bs_window.h>
-#include <bsmod_compile.h>
+#include <basilisk-mod.h>
 #include <bsmod_cache.h>
-#include <_bsmod_.h>
-
-#include <ui/bsgfx_ui.h>
-#include <ui/grid/bsmod_ui_grid.h>
-#include <ui/side/bsmod_ui_side.h>
-#include <ui/bsmod_ui.h>
-#include <ui/material/bsmod_ui_material.h>
-#include <ui/primitive/bsmod_ui_primitive.h>
-#include <ui/tile/bsmod_ui_tile.h>
-#include <ui/prefab/bsmod_ui_prefab.h>
-#include <ui/type/bsmod_ui_type.h>
-
-#include <types/prefab/bsgfx_prefab.h>
-#include <types/primitive/bsgfx_primitive.h>
-#include <types/tile/bsgfx_tile.h>
 
 static int _bsmod_active_side_menu_tab;
 
@@ -42,15 +49,20 @@ bsmod_SideMenuTab _bsmod_side_menu_tabs[BSMOD_TABS_COUNT] = {
     [BSMOD_TAB_SETTINGS] = {.name = "Settings", .cache = $BSMOD_ATLAS_UI_instance, },
 };
 
-void bsmod_setSideMenuTab(int id, bsmod_GridClickParams params) {
-    assert(id >= 0 && id < BSMOD_TABS_COUNT);
+BSMODAPI void _bsmod_setSideMenuTab(int id, bsmod_GridClickParams params) {
+    BSMOD_VALIDATE(id >= 0,,);
+    BSMOD_VALIDATE(id < BSMOD_TABS_COUNT,,);
 
+    return bsmod_setSideMenuTab(id, params);
+}
+
+BSMODAPI void _bsmod_setSideMenuTab(int id, bsmod_GridClickParams params) {
     _bsmod_active_side_menu_tab = id;
     if (_bsmod_side_menu_tabs[id].on_click)
         _bsmod_side_menu_tabs[id].on_click(params);
 }
 
-void bsmod_instanceSideMenu(bs_vec3 position, bs_vec2 dimensions) {
+BSMODAPI void _bsmod_instanceSideMenu(bs_vec3 position, bs_vec2 dimensions) {
     const int width = 64;
     static int scroll;
     static bs_List tabs = {.unit_size = sizeof(bsgfx_MenuTab), .increment = 16 };
@@ -104,7 +116,7 @@ void bsmod_instanceSideMenu(bs_vec3 position, bs_vec2 dimensions) {
 
     bool hovering = bsgfx_instanceWidgets((bsgfx_Menu) {
         .position = position,
-        .text_subtype = _bsmod_subtypes[BSMOD_SUBTYPE_FONT_CONSOLAS],
+        .text_subtype = _bsmod_subtypes_[BSMOD_SUBTYPE_FONT_CONSOLAS],
         .font = bs_fetch(BSGFX_FONTS, BSGFX_FONT_ARIAL_16)->head,
         .spacing = 8.0,
         .widgets = widgets.data,

@@ -69,6 +69,9 @@ static inline bsmod_FunctionTable _val_bsmod_getFunctions() {
     functions.bsmod_createAtlasPacker = (PFN_bsmod_createAtlasPacker)GetProcAddress(module, "_val_bsmod_createAtlasPacker");
     functions.bsmod_packImageDirectory = (PFN_bsmod_packImageDirectory)GetProcAddress(module, "_val_bsmod_packImageDirectory");
     functions.bsmod_packBMFont = (PFN_bsmod_packBMFont)GetProcAddress(module, "_val_bsmod_packBMFont");
+    functions.bsmod_scrollbar = (PFN_bsmod_scrollbar)GetProcAddress(module, "_val_bsmod_scrollbar");
+    functions.bsmod_dividerWidget = (PFN_bsmod_dividerWidget)GetProcAddress(module, "_val_bsmod_dividerWidget");
+    functions.bsmod_iconWidget = (PFN_bsmod_iconWidget)GetProcAddress(module, "_val_bsmod_iconWidget");
     functions.bsmod_packages = (PFN_bsmod_packages)GetProcAddress(module, "_val_bsmod_packages");
     functions.bsmod_queryPackage = (PFN_bsmod_queryPackage)GetProcAddress(module, "_val_bsmod_queryPackage");
     functions.bsmod_ensurePackage = (PFN_bsmod_ensurePackage)GetProcAddress(module, "_val_bsmod_ensurePackage");

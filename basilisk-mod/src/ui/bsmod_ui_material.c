@@ -1,13 +1,30 @@
-#include <ui/bsmod_ui.h>
-#include <ui/bsgfx_ui.h>
-#include <bs_types.h>
-#include <types/primitive/bsgfx_primitive.h>
-#include <_bsmod_.h>
-#include <bsmod_type.h>
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+#include <basilisk-mod.h>
 #include <bsmod_cache.h>
-#include <bsmod_rasterize.h>
-#include <ui/grid/bsmod_ui_grid.h>
-#include <types/prefab/bsgfx_prefab.h>
 
 
 
@@ -15,13 +32,13 @@
    * Dragging Material
    *============================================================================*/
 
-void bsmod_onDragMaterial(bsmod_DraggingParams params) {
+BSMODAPI void _bsmod_onDragMaterial(bsmod_DraggingParams params) {
     if (_bsmod_.hovering.flags & BSGFX_ID_IS_PREFAB) {
         bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, _bsmod_.hovering.instance_id);
         bsgfx_RawPrefab* raw_prefab = bsgfx_getRaw(BSGFX_TYPE_PREFAB, _bsmod_.hovering.instance_id);
         if (bs_leftClickUpOnce()) {
             raw_prefab->material_hash = bsgfx_materialHash(_bsmod_.dragging_id);
-            bsmod_saveType(BSGFX_TYPE_PREFAB, "Changed prefab material");
+            bsmod_saveType(BSGFX_TYPE_PREFAB, BS_CONSTANT_STRING("Changed prefab material"));
         }
     }
 
@@ -50,7 +67,7 @@ static void bsgfx_onChangeColor(struct bsgfx_Widget* widget, bs_RGBA color) {
         bsmod_selected_material->contract->hsva = bsmod_material_hsva;
 }
 
-void bsmod_onClickMaterialMenu(bsmod_GridClickParams params) {
+BSMODAPI void _bsmod_onClickMaterialMenu(bsmod_GridClickParams params) {
     bs_Atlas* atlas = bs_fetch(BSMOD_ATLASES, BSMOD_ATLAS_MATERIAL_ICONS)->atlas;
 
     char* name = atlas->unmapped[params.atlas_id].name;
@@ -58,21 +75,21 @@ void bsmod_onClickMaterialMenu(bsmod_GridClickParams params) {
     bsmod_selected_material = bsgfx_queryMaterial(name);
     bs_infoF("Selected material \"%s\"\n", name);
 
-    bs_vec4 rgba_f = bs_v4MulV1(bsmod_selected_material->contract->color, 255.0);
+    bs_vec4 rgba_f;
+    bs_v4MulS(&bsmod_selected_material->contract->color, 255.0, &rgba_f);
+
     bs_RGBA rgba = BS_RGBA(rgba_f.x, rgba_f.y, rgba_f.z, rgba_f.w);
-
-
     bsgfx_onChangeColor(NULL, rgba);
 
     bsmod_material_name = bs_string(bsmod_material_name, name, strlen(name));
-    bsmod_material_hsva.xyz = bs_hsv(rgba);
+    bsmod_material_hsva.xyz = bs_rgbToHsv(&rgba);
     bsmod_material_hsva.w = bsmod_selected_material->contract->color.w;
     bsmod_selected_material->contract->hsva = bsmod_material_hsva;
 
     bsmod_click_params = params;
 }
 
-void bsmod_pushMaterialWidgets(bs_List* widgets, bs_vec2 background_size) {
+BSMODAPI void _bsmod_pushMaterialWidgets(bs_List* widgets, bs_vec2 background_size) {
 
     bs_vec3 offset = { 8 + 16, -8, 0 };
     offset.z += BSGFX_BACKGROUND_Z_COUNT;
@@ -152,49 +169,57 @@ void bsmod_pushMaterialWidgets(bs_List* widgets, bs_vec2 background_size) {
    * Rasterizing Icons
    *============================================================================*/
 
-void bsmod_rasterizeMaterialIcons() {
-#define WIDTH (74)
-    const bs_ivec2 render_size = { WIDTH * 2, WIDTH * 2 };
-    const bs_ivec2 output_size = { WIDTH, WIDTH };
-#undef WIDTH
+BSMODAPI void _bsmod_rasterizeMaterialIcons() {
+    bs_PipelineHash hash;
+    bs_Pipeline* pipeline;
 
-    bs_PipelineHash pipeline_hash = {
+    hash = (bs_PipelineHash) {
         .shaders = {
             $vs_bsmod_mesh_instanced(),
             $fs_bsmod_rasterize(),
         },
     };
 
-    struct {
-        bs_mat4x3 camera;
-        bs_mat4x3 model;
-        bs_vec4 color;
-        int material_texture_size;
-        int material_texture_id;
-    } push_const = {
-        .camera = bs_m4x3(bs_m4Mul(
-            bs_ortho(0, render_size.x, 0, render_size.y, -500.0, 500.0),
-            bs_lookAt(BS_V3(0, 0, 1), BS_V3(0, 0, 0), BS_V3(0, 1, 0))
-        )),
-    };
+    if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
+        const int width = 74;
 
-    bsmod_beginRasterize(render_size, output_size);
+        const bs_ivec2 render_size = { width * 2, width * 2 };
+        const bs_ivec2 output_size = { width, width };
 
-    int sphere_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_PRIMITIVE_SPHERE];
+        bs_mat4 proj, view, camera;
+        bs_orthographic(0, render_size.x, 0, render_size.y, -500.0, 500.0, &proj);
+        bs_lookAt(&BS_V3(0, 0, 1), &BS_V3(0, 0, 0), &BS_V3(0, 1, 0), &view);
 
-    bs_List* materials = bsgfx_materials();
-    bs_mat4x3 transform = bs_m4x3(bs_transform(BS_V3(render_size.x / 2, render_size.y / 2, 0.0), BS_QUAT_IDENTITY, bs_v3V1(render_size.x / 2.0 - 4.0)));
+        bs_m4Mul(&proj, &view, &camera);
 
-    for (int i = 0; i < materials->count; i++) {
-        bsgfx_Material* material = bs_fetchUnit(materials, i);
-        push_const.color = material->contract->color;
-        push_const.material_texture_size = material->contract->image_binding;
-        push_const.material_texture_id = material->contract->image;
-        push_const.model = transform;
+        struct {
+            bs_mat4x3 camera;
+            bs_mat4x3 model;
+            bs_vec4 color;
+            int material_texture_size;
+            int material_texture_id;
+        } push_const = {
+            .camera = bs_m4x3(&camera),
+        };
 
-        int instance = bsgfx_instancePrimitive(sphere_subtype, BS_MAT4_IDENTITY, 0, 0, 0);
-        bsmod_rasterizeInstance(pipeline_hash, sphere_subtype, instance, material->category, material->name, render_size.x, render_size.y, sizeof(push_const), &push_const);
+        bsmod_beginRasterize(render_size, output_size);
+
+        int sphere_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_PRIMITIVE_SPHERE];
+
+        bs_List* materials = bsgfx_materials();
+        bs_mat4x3 transform = bs_m4x3(bs_transform(BS_V3(render_size.x / 2, render_size.y / 2, 0.0), BS_QUAT_IDENTITY, bs_v3V1(render_size.x / 2.0 - 4.0)));
+
+        for (int i = 0; i < materials->count; i++) {
+            bsgfx_Material* material = bs_fetchUnit(materials, i);
+            push_const.color = material->contract->color;
+            push_const.material_texture_size = material->contract->image_binding;
+            push_const.material_texture_id = material->contract->image;
+            push_const.model = transform;
+
+            int instance = bsgfx_instancePrimitive(sphere_subtype, BS_MAT4_IDENTITY, 0, 0, 0);
+            bsmod_rasterizeInstance(hash, sphere_subtype, instance, material->category, material->name, render_size.x, render_size.y, sizeof(push_const), &push_const);
+        }
+
+        bsmod_endRasterize();
     }
-
-    bsmod_endRasterize();
 }

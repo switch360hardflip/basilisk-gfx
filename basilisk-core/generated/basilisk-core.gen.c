@@ -497,6 +497,13 @@ void bs_m4Scale(
     glm_scale_to(m->v, v->a, out->a);
 }
 
+void bs_m3ToM4(
+    const bs_mat3* m, 
+    bs_mat4* out)
+{
+    next.bs_m3ToM4(m, out);
+}
+
 void bs_m3ToQ(
     const bs_mat3* m, 
     bs_vec4* out)
@@ -523,6 +530,31 @@ void bs_qToM4(
     bs_mat4* out)
 {
     glm_quat_mat4(q->a, out->v);
+}
+
+void bs_qMulQ(
+    const bs_vec4* p, 
+    const bs_vec4* q, 
+    bs_vec4* out)
+{
+    glm_quat_mul(p->a, q->a, out->a);
+}
+
+void bs_qAxisAngle(
+    const bs_vec3* axis, 
+    float radians, 
+    bs_vec4* out)
+{
+    glm_quatv(axis->a, radians, out->a);
+}
+
+void bs_qSlerp(
+    const bs_vec4* from, 
+    const bs_vec4* to, 
+    float t, 
+    bs_vec4* out)
+{
+    glm_quat_slerp(from->a, to->a, t, out->a);
 }
 
 void bs_qNormalize(
@@ -654,10 +686,39 @@ float bs_v3QuadBezier(
     return next.bs_v3QuadBezier(p0, p1, p2, out, out_length);
 }
 
+void bs_rotateAabb(
+    const bs_Aabb* aabb, 
+    const bs_mat3* rotation_matrix, 
+    bs_Aabb* out)
+{
+    next.bs_rotateAabb(aabb, rotation_matrix, out);
+}
+
+void bs_fitAabb(
+    const bs_Aabb* aabb, 
+    const bs_vec2* size, 
+    const bs_vec4* rotation, 
+    bs_mat4* out)
+{
+    next.bs_fitAabb(aabb, size, rotation, out);
+}
+
+float bs_round(
+    float v)
+{
+    return roundf(v);
+}
+
 float bs_abs(
     float v)
 {
     return fabsf(v);
+}
+
+float bs_sqrt(
+    float v)
+{
+    return sqrtf(v);
 }
 
 float bs_sin(

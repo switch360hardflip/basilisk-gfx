@@ -423,7 +423,7 @@
 			<param><type>int</type><name>category</name></param>
 		</function>
 		<function name="bsmod_packAtlas">
-			<return>void</return>
+			<return>bs_Result</return>
 			<param><type>bsmod_AtlasPacker*</type><name>packer</name></param>
 			<param><type>int</type><name>width</name></param>
 			<param><type>int</type><name>height</name></param>
@@ -440,7 +440,7 @@
 			<param><type>char*</type><name>package_name</name></param>
 			<param><type>char*</type><name>resource_name</name></param>
 		</function>
-
+	
 		<variadicStringTemplate name="bsmod_packBMFont">
 			<return>bs_Result</return>
 			<param><type>char*</type><name>package_name</name></param>
@@ -448,6 +448,25 @@
 			<param><type>char*</type><name>png_path</name></param>
 		</variadicStringTemplate>
 
+		<function name="bsmod_scrollbar">
+			<return>bsgfx_Scrollbar</return>
+			<param><type>int*</type><name>scroll</name></param>
+		</function>
+		
+		<function name="bsmod_dividerWidget">
+			<return>bsgfx_Widget</return>
+			<param><type>float</type><name>width</name></param>
+			<param><type>int</type><name>indent</name></param>
+		</function>
+		
+		<function name="bsmod_iconWidget">
+			<return>bsgfx_Widget</return>
+			<param><type>bsgfx_AtlasCache*</type><name>cache</name></param>
+			<param><type>float</type><name>align_height</name></param>
+			<param><type>bs_vec3</type><name>offset</name></param>
+			<param><type>bs_U32</type><name>advance_flags</name></param>
+		</function>
+		
 		<function name="bsmod_packages">
 			<return>bs_List*</return>
 		</function>
@@ -555,7 +574,7 @@
 			<param><type>bsgfx_TypeId</type><name>type_id</name></param>
 		</function>
 		<variadicStringTemplate name="bsmod_saveType">
-			<return>void</return>
+			<return>bs_Result</return>
 			<param><type>bsgfx_TypeId</type><name>id</name></param>
 		</variadicStringTemplate>
 		<function name="bsmod_add">

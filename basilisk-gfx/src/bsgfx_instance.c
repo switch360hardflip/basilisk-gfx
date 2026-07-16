@@ -668,7 +668,7 @@ BSGFXAPI int _bsgfx_atlasInstanceFlipped(int subtype, bs_mat4x3 transform, int t
 	return bsgfx_instance(subtype, &tmp, sizeof(tmp), flags, 0, id, material);
 }
 
-BSGFXAPI bs_Range _bsgfx_instanceDepthlessCircle(const bs_mat4* transform, int segments, float radius, bs_RGBA color) {
+BSGFXAPI void _bsgfx_instanceDepthlessCircle(const bs_mat4* transform, int segments, float radius, bs_RGBA color, bs_Range* out) {
 	bs_Range result = { 0 };
 
 	float prev_x = 0.0f, prev_z = 0.0f;
@@ -692,7 +692,7 @@ BSGFXAPI bs_Range _bsgfx_instanceDepthlessCircle(const bs_mat4* transform, int s
 	}
 
 	result.offset -= result.num;
-	return result;
+	*out = result;
 }
 
 BSGFXAPI void _bsgfx_instanceText(int subtype, bs_Font* font, bsgfx_Text* params, bs_vec2* out_text_size, char* text, int text_length) {
