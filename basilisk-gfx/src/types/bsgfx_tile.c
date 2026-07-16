@@ -151,15 +151,13 @@ BSGFXAPI void _bsgfx_tileAxis(const bsgfx_Primitive* primitive, int index, int* 
   Tile Index
   */
 BSGFXAPI void _val_bsgfx_tileIndex(const bsgfx_Primitive* primitive, int axis, int x, int y, bs_U32* out) {
+    *out = 0;
     BSGFX_VALIDATE(axis < 6,,);
 
-    return bsgfx_tileIndex(primitive, axis, x, y, out);
+    bsgfx_tileIndex(primitive, axis, x, y, out);
 }
 
 BSGFXAPI void _bsgfx_tileIndex(const bsgfx_Primitive* primitive, int axis, int x, int y, bs_U32* out) {
-    if (axis >= 6)
-        return primitive->first_tile;
-
     float sx = primitive->scale.x;
     float sy = primitive->scale.y;
     float sz = primitive->scale.z;

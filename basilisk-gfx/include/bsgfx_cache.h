@@ -4,7 +4,7 @@
 #include <basilisk-gfx.gen.h>
 
 #define BSGFX_CACHE_SHADER(path, type)                                                          \
-    inline bs_Shader* $##path##() {                                                             \
+    inline bs_Shader* $##path() {                                                               \
         static bs_Resource* resource = NULL;                                                    \
         if (!resource) {                                                                        \
             bs_shader(BSGFX_PACKAGE, "shaders/" #path "." #type, 0, &resource);                 \
@@ -32,20 +32,20 @@ static inline bs_vec4 bsgfx_convertColor(bs_RGBA color) {
 }
 
 #define BSGFX_CACHE_COLOR_MATERIAL(name, _color)                                    \
-    inline bsgfx_Material* $##name##() {                                            \
+    inline bsgfx_Material* $##name() {                                              \
         static int id = -1;                                                         \
-        if (id == -1) { \
+        if (id == -1) {                                                             \
             id = bsgfx_material(BS_CONSTANT_STRING(#name))->id;                     \
             bsgfx_Material* material = bs_fetchUnit(bsgfx_materials(), id);         \
-        material->category = BSGFX_CATEGORY;                                        \
-        material->contract->color = bsgfx_convertColor(_color);                     \
-        }                                                               \
+            material->category = BSGFX_CATEGORY;                                    \
+            material->contract->color = bsgfx_convertColor(_color);                 \
+        }                                                                           \
         bsgfx_Material* material = bs_fetchUnit(bsgfx_materials(), id);             \
         return material;                                                            \
     }
 
 #define BSGFX_CACHE_ATLAS_QUERY(source_id, atlas_id, n)                             \
-    inline bsgfx_AtlasCache* $##atlas_id##_##n##() {                                \
+    inline bsgfx_AtlasCache* $##atlas_id##_##n() {                                  \
         static bsgfx_AtlasCache cache = {.id = -1};                                 \
         if (cache.id == -1) {                                                       \
             bs_Atlas* atlas = bs_fetch(source_id, atlas_id)->head;                  \
@@ -142,6 +142,8 @@ BSGFX_CACHE_CS(cs_bsgfx_textured_volume)
 
 
 #define BSGFX_PACKAGE bsgfx_package()
+
+#undef BSGFX_CATEGORY 
 #define BSGFX_CATEGORY BSGFX_MATERIAL_CATEGORY_NONE
 
 BSGFX_CACHE_COLOR_MATERIAL(menu_background, BS_RGBA(112, 112, 112, 248))
@@ -173,6 +175,7 @@ BSGFX_CACHE_COLOR_MATERIAL(bsmod_blue_border, BS_RGBA(75, 167, 114, 255))
 BSGFX_CACHE_COLOR_MATERIAL(bsmod_blue, BS_RGBA(135, 232, 57, 255))
 BSGFX_CACHE_COLOR_MATERIAL(bsmod_red, BS_RGBA(230, 73, 58, 255))
 
+#undef BSGFX_CATEGORY 
 #define BSGFX_CATEGORY BSGFX_MATERIAL_CATEGORY_UI_COLOR_SCHEME
 
 BSGFX_CACHE_COLOR_MATERIAL(bsmod_light_blue, BS_RGBA(175, 204, 222, 255))

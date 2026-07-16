@@ -92,7 +92,7 @@ BSGFXAPI void _val_bsgfx_instanceType(int instance_type_id, int max_instance_cou
 	BSGFX_VALIDATE(bind_set_query != NULL,,);
 	BSGFX_VALIDATE(bs_queryBinding(bind_set_query, point) != NULL,,);
 
-	return bsgfx_instanceType(instance_type_id, max_instance_count, bind_set, point);
+	bsgfx_instanceType(instance_type_id, max_instance_count, bind_set, point);
 }
 
 BSGFXAPI void _bsgfx_instanceType(int instance_type_id, int max_instance_count, int bind_set, int point) {
@@ -169,7 +169,7 @@ BSGFXAPI void _val_bsgfx_deleteSubtype(int subtype) {
 	if (!bsgfx_validateSubtype(subtype))
 		return;
 
-	return bsgfx_deleteSubtype(subtype);
+	bsgfx_deleteSubtype(subtype);
 }
 
 BSGFXAPI void _bsgfx_deleteSubtype(int subtype) {
@@ -333,7 +333,7 @@ BSGFXAPI void _val_bsgfx_renderSubtype(int subtype, bs_Pipeline* pipeline) {
 	if (!bsgfx_validateSubtype(subtype))
 		return;
 
-	return bsgfx_renderSubtype(subtype, pipeline);
+	bsgfx_renderSubtype(subtype, pipeline);
 }
 
 BSGFXAPI void _bsgfx_renderSubtype(int subtype, bs_Pipeline* pipeline) {
@@ -355,7 +355,7 @@ BSGFXAPI void _val_bsgfx_resetSubtype(int subtype) {
 	if (!bsgfx_validateSubtype(subtype))
 		return;
 	
-	return bsgfx_resetSubtype(subtype);
+	bsgfx_resetSubtype(subtype);
 }
 
 BSGFXAPI void _bsgfx_resetSubtype(int subtype) {
@@ -439,13 +439,13 @@ BSGFXAPI int _bsgfx_instance(int subtype, const char* data, int data_size, bs_U3
   Tick instances
   */
 BSGFXAPI void _val_bsgfx_tickInstances() {
-	BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA), 0, );
+	BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA),,);
 
 	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
 
-	BSGFX_VALIDATE(bs_bufferIsMapped(metadata_buffer), 0, );
+	BSGFX_VALIDATE(bs_bufferIsMapped(metadata_buffer),,);
 
-	return bsgfx_tickInstances();
+	bsgfx_tickInstances();
 }
 
 BSGFXAPI void _bsgfx_tickInstances() {
@@ -484,12 +484,12 @@ BSGFXAPI void _bsgfx_tickInstances() {
   Reset instances
   */
 BSGFXAPI void _val_bsgfx_resetInstances() {
-	BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA), 0, );
+	BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA),,);
 
 	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	BSGFX_VALIDATE(bs_bufferIsMapped(metadata_buffer), 0, );
+	BSGFX_VALIDATE(bs_bufferIsMapped(metadata_buffer),,);
 
-	return bsgfx_resetInstances();
+	bsgfx_resetInstances();
 }
 
 BSGFXAPI void _bsgfx_resetInstances() {
@@ -610,11 +610,11 @@ BSGFXAPI int _bsgfx_instanceSphere(bs_vec3 position, float radius) {
 	bs_m4Translate(&transform, &position, &transform);
 	bs_m4Scale(&transform, &BS_V3(radius, radius, radius), &transform);
 
-	bsgfx_instance(bsgfx_subtypes()[BSGFX_SUBTYPE_SPHERE_MESH], &transform, sizeof(bs_mat4), 0, 0, 0, 0);
+	return bsgfx_instance(bsgfx_subtypes()[BSGFX_SUBTYPE_SPHERE_MESH], &transform, sizeof(bs_mat4), 0, 0, 0, 0);
 }
 
 BSGFXAPI int _bsgfx_instanceCone(bs_mat4 transform, float radius, bs_U32 flags, int id, int material) {
-	bsgfx_instance(bsgfx_subtypes()[BSGFX_SUBTYPE_CONE_MESH], &transform, sizeof(bs_mat4), flags, 0, id, material);
+	return bsgfx_instance(bsgfx_subtypes()[BSGFX_SUBTYPE_CONE_MESH], &transform, sizeof(bs_mat4), flags, 0, id, material);
 }
 
 BSGFXAPI int _bsgfx_instancePoint(bs_vec3 position, bs_RGBA color, float size) {
@@ -651,7 +651,7 @@ BSGFXAPI int _bsgfx_instanceAtlas(int subtype, bs_mat4x3 transform, int texture,
 		.coords = coords.zw,
 	};
 
-	bsgfx_instance(subtype, &tmp, sizeof(tmp), flags, 0, id, material);
+	return bsgfx_instance(subtype, &tmp, sizeof(tmp), flags, 0, id, material);
 }
 
 BSGFXAPI int _bsgfx_atlasInstanceFlipped(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material) {
@@ -665,7 +665,7 @@ BSGFXAPI int _bsgfx_atlasInstanceFlipped(int subtype, bs_mat4x3 transform, int t
 		.coords = coords.zw,
 	};
 
-	bsgfx_instance(subtype, &tmp, sizeof(tmp), flags, 0, id, material);
+	return bsgfx_instance(subtype, &tmp, sizeof(tmp), flags, 0, id, material);
 }
 
 BSGFXAPI bs_Range _bsgfx_instanceDepthlessCircle(const bs_mat4* transform, int segments, float radius, bs_RGBA color) {
@@ -695,7 +695,7 @@ BSGFXAPI bs_Range _bsgfx_instanceDepthlessCircle(const bs_mat4* transform, int s
 	return result;
 }
 
-BSGFXAPI bs_vec2 _bsgfx_instanceText(int subtype, bs_Font* font, bsgfx_Text* params, char* text, int text_length) {
+BSGFXAPI void _bsgfx_instanceText(int subtype, bs_Font* font, bsgfx_Text* params, bs_vec2* out_text_size, char* text, int text_length) {
 	if (!text)
 		text = "(null)";
 
@@ -778,7 +778,7 @@ BSGFXAPI bs_vec2 _bsgfx_instanceText(int subtype, bs_Font* font, bsgfx_Text* par
 
 	}
 
-	return offset;
+	*out_text_size = offset;
 }
 
 BSGFXAPI bs_mat4x3 _bsgfx_matrix(bs_vec3 position, bs_vec3 scale) {

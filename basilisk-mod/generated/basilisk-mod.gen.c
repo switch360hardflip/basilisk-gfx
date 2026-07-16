@@ -1,0 +1,799 @@
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+ /**
+  This file was generated from basilisk-gfx.com
+
+  It is not recommended to make changes to this file as it will be lost if
+  the code is regenerated.
+  */
+        
+#include <basilisk-mod.h>
+#include <bsmod_internal.gen.h>
+
+bsmod_FunctionTable next = { 0 };
+
+void bsmod_copyHoveringDataToBuffer()
+{
+    next.bsmod_copyHoveringDataToBuffer();
+}
+
+void bsmod_onIni()
+{
+    next.bsmod_onIni();
+}
+
+void bsmod_onLateIni()
+{
+    next.bsmod_onLateIni();
+}
+
+void bsmod_onCreateQuadSubtypes(
+    bs_Range range)
+{
+    next.bsmod_onCreateQuadSubtypes(range);
+}
+
+void bsmod_onLoad()
+{
+    next.bsmod_onLoad();
+}
+
+void bsmod_bindAtlases()
+{
+    next.bsmod_bindAtlases();
+}
+
+void bsmod_onGfxRender()
+{
+    next.bsmod_onGfxRender();
+}
+
+void bsmod_onPostRender()
+{
+    next.bsmod_onPostRender();
+}
+
+void bsmod_onTick()
+{
+    next.bsmod_onTick();
+}
+
+void bsmod_onMap(
+    bsgfx_TypeId type_id, 
+    int id)
+{
+    next.bsmod_onMap(type_id, id);
+}
+
+void bsmod_onTrack()
+{
+    next.bsmod_onTrack();
+}
+
+void bsmod_packBindings()
+{
+    next.bsmod_packBindings();
+}
+
+void bsmod_onCompileShader(
+    bsmod_TrackParams params)
+{
+    next.bsmod_onCompileShader(params);
+}
+
+void bsmod_onLoadTTF(
+    bsmod_TrackParams params)
+{
+    next.bsmod_onLoadTTF(params);
+}
+
+void bsmod_onConvertBMFont(
+    bsmod_TrackParams params)
+{
+    next.bsmod_onConvertBMFont(params);
+}
+
+void bsmod_onPackAtlas(
+    bsmod_TrackParams params)
+{
+    next.bsmod_onPackAtlas(params);
+}
+
+void bsmod_onPackModels(
+    bsmod_TrackParams params)
+{
+    next.bsmod_onPackModels(params);
+}
+
+void bsmod_onPackBinary(
+    bsmod_TrackParams params)
+{
+    next.bsmod_onPackBinary(params);
+}
+
+void bsmod_onPackTextureArray(
+    bsmod_TrackParams params)
+{
+    next.bsmod_onPackTextureArray(params);
+}
+
+bool bsmod_keyHeld(
+    bs_U32 code)
+{
+    return next.bsmod_keyHeld(code);
+}
+
+bool bsmod_keyDown(
+    bs_U32 code)
+{
+    return next.bsmod_keyDown(code);
+}
+
+bool bsmod_keyDownOnce(
+    bs_U32 code)
+{
+    return next.bsmod_keyDownOnce(code);
+}
+
+bool bsmod_keyUpOnce(
+    bs_U32 code)
+{
+    return next.bsmod_keyUpOnce(code);
+}
+
+bool bsmod_charDown(
+    unsigned char code)
+{
+    return next.bsmod_charDown(code);
+}
+
+bool bsmod_charDownOnce(
+    unsigned char code)
+{
+    return next.bsmod_charDownOnce(code);
+}
+
+bool bsmod_charUpOnce(
+    unsigned char code)
+{
+    return next.bsmod_charUpOnce(code);
+}
+
+bool bsmod_middleClick()
+{
+    return next.bsmod_middleClick();
+}
+
+bool bsmod_middleClickOnce()
+{
+    return next.bsmod_middleClickOnce();
+}
+
+bool bsmod_middleClickUpOnce()
+{
+    return next.bsmod_middleClickUpOnce();
+}
+
+bool bsmod_leftClick()
+{
+    return next.bsmod_leftClick();
+}
+
+bool bsmod_rightClick()
+{
+    return next.bsmod_rightClick();
+}
+
+bool bsmod_rightClickOnce()
+{
+    return next.bsmod_rightClickOnce();
+}
+
+bool bsmod_leftClickOnce()
+{
+    return next.bsmod_leftClickOnce();
+}
+
+bool bsmod_rightClickUpOnce()
+{
+    return next.bsmod_rightClickUpOnce();
+}
+
+bool bsmod_leftClickUpOnce()
+{
+    return next.bsmod_leftClickUpOnce();
+}
+
+void bsmod_packAtlasTexture(
+    bsmod_AtlasPacker* packer, 
+    char* name, 
+    bs_RGBA* data, 
+    int width, 
+    int height, 
+    int category)
+{
+    next.bsmod_packAtlasTexture(packer, name, data, width, height, category);
+}
+
+void bsmod_packAtlas(
+    bsmod_AtlasPacker* packer, 
+    int width, 
+    int height, 
+    char* package, 
+    char* resource_name)
+{
+    next.bsmod_packAtlas(packer, width, height, package, resource_name);
+}
+
+bsmod_AtlasPacker bsmod_createAtlasPacker()
+{
+    return next.bsmod_createAtlasPacker();
+}
+
+void bsmod_packImageDirectory(
+    char* directory_name, 
+    char* package_name, 
+    char* resource_name)
+{
+    next.bsmod_packImageDirectory(directory_name, package_name, resource_name);
+}
+
+void bsmod_packBMFont(
+    char* package_name, 
+    char* bmfont_path, 
+    char* png_path, 
+    char* value, 
+    int value_length)
+{
+    next.bsmod_packBMFont(package_name, bmfont_path, png_path, value, value_length);
+}
+
+void bsmod_packBMFontV(
+    char* package_name, 
+    char* bmfont_path, 
+    char* png_path, 
+    char* format, 
+    va_list args)
+{
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    bsmod_packBMFont(package_name, bmfont_path, png_path, _formatted, _length);
+}
+
+void bsmod_packBMFontF(
+    char* package_name, 
+    char* bmfont_path, 
+    char* png_path, 
+    char* format, 
+    ...)
+{
+    va_list args;
+    va_start(args, format);
+    bsmod_packBMFontV(package_name, bmfont_path, png_path, format, args);
+    va_end(args);
+}
+
+bs_List* bsmod_packages()
+{
+    return next.bsmod_packages();
+}
+
+bsmod_Package* bsmod_queryPackage(
+    const char* name)
+{
+    return next.bsmod_queryPackage(name);
+}
+
+bsmod_Package* bsmod_ensurePackage(
+    const char* name)
+{
+    return next.bsmod_ensurePackage(name);
+}
+
+void bsmod_iniPackage(
+    const char* package_name)
+{
+    next.bsmod_iniPackage(package_name);
+}
+
+void bsmod_packResource(
+    bs_ResourceType type, 
+    unsigned char* data, 
+    size_t data_size, 
+    const char* package_name, 
+    char* value, 
+    int value_length)
+{
+    next.bsmod_packResource(type, data, data_size, package_name, value, value_length);
+}
+
+void bsmod_packResourceV(
+    bs_ResourceType type, 
+    unsigned char* data, 
+    size_t data_size, 
+    const char* package_name, 
+    char* format, 
+    va_list args)
+{
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    bsmod_packResource(type, data, data_size, package_name, _formatted, _length);
+}
+
+void bsmod_packResourceF(
+    bs_ResourceType type, 
+    unsigned char* data, 
+    size_t data_size, 
+    const char* package_name, 
+    char* format, 
+    ...)
+{
+    va_list args;
+    va_start(args, format);
+    bsmod_packResourceV(type, data, data_size, package_name, format, args);
+    va_end(args);
+}
+
+void bsmod_savePackage(
+    const char* name)
+{
+    next.bsmod_savePackage(name);
+}
+
+void bsmod_loadShaderReferences()
+{
+    next.bsmod_loadShaderReferences();
+}
+
+void bsmod_updateShaderReferences()
+{
+    next.bsmod_updateShaderReferences();
+}
+
+void bsmod_iniCompiler()
+{
+    next.bsmod_iniCompiler();
+}
+
+bs_Result bsmod_compileShader(
+    char* path, 
+    char* name, 
+    char* package)
+{
+    return next.bsmod_compileShader(path, name, package);
+}
+
+void bsmod_updateBindings()
+{
+    next.bsmod_updateBindings();
+}
+
+void bsmod_iniLisk()
+{
+    next.bsmod_iniLisk();
+}
+
+void bsmod_tickLisk()
+{
+    next.bsmod_tickLisk();
+}
+
+bs_Queue* bsmod_onQueue()
+{
+    return next.bsmod_onQueue();
+}
+
+void bsmod_queueRasterize(
+    const char* package, 
+    const char* name, 
+    bs_Callback callback)
+{
+    next.bsmod_queueRasterize(package, name, callback);
+}
+
+void bsmod_pollRasterizer()
+{
+    next.bsmod_pollRasterizer();
+}
+
+void bsmod_beginRasterize(
+    bs_ivec2 render_size, 
+    bs_ivec2 output_size)
+{
+    next.bsmod_beginRasterize(render_size, output_size);
+}
+
+void bsmod_endRasterize()
+{
+    next.bsmod_endRasterize();
+}
+
+void bsmod_rasterizeInstance(
+    bs_PipelineHash pipeline_hash, 
+    int subtype, 
+    int instance_id, 
+    int category, 
+    char* name, 
+    int width, 
+    int height, 
+    size_t push_constant_size, 
+    unsigned char* push_constant)
+{
+    next.bsmod_rasterizeInstance(pipeline_hash, subtype, instance_id, category, name, width, height, push_constant_size, push_constant);
+}
+
+void bsmod_instanceTransform()
+{
+    next.bsmod_instanceTransform();
+}
+
+void bsmod_selectHoveringTypes()
+{
+    next.bsmod_selectHoveringTypes();
+}
+
+bsgfx_TypeId bsmod_queryType(
+    const char* plural)
+{
+    return next.bsmod_queryType(plural);
+}
+
+void bsmod_delete(
+    bsgfx_TypeId type_id, 
+    int id)
+{
+    next.bsmod_delete(type_id, id);
+}
+
+void bsmod_deleteSelected(
+    bsgfx_TypeId type_id)
+{
+    next.bsmod_deleteSelected(type_id);
+}
+
+void bsmod_saveType(
+    bsgfx_TypeId id, 
+    char* value, 
+    int value_length)
+{
+    next.bsmod_saveType(id, value, value_length);
+}
+
+void bsmod_saveTypeV(
+    bsgfx_TypeId id, 
+    char* format, 
+    va_list args)
+{
+    int _length = bs_formatStringLength(format, args);
+    char* _formatted = bs_alloca(_length + 1);
+    vsnprintf(_formatted, _length + 1, format, args);
+    bsmod_saveType(id, _formatted, _length);
+}
+
+void bsmod_saveTypeF(
+    bsgfx_TypeId id, 
+    char* format, 
+    ...)
+{
+    va_list args;
+    va_start(args, format);
+    bsmod_saveTypeV(id, format, args);
+    va_end(args);
+}
+
+void* bsmod_add(
+    bsgfx_TypeId id, 
+    void* data)
+{
+    return next.bsmod_add(id, data);
+}
+
+bool bsmod_isSelected(
+    bs_List* list, 
+    bsgfx_TypeId type, 
+    int id)
+{
+    return next.bsmod_isSelected(list, type, id);
+}
+
+void bsmod_select(
+    bs_List* list, 
+    bsgfx_TypeId type, 
+    int id)
+{
+    next.bsmod_select(list, type, id);
+}
+
+void bsmod_deselectAll()
+{
+    next.bsmod_deselectAll();
+}
+
+void bsmod_deselectRange(
+    bs_List* list, 
+    int first, 
+    int count)
+{
+    next.bsmod_deselectRange(list, first, count);
+}
+
+void bsmod_deselectIndex(
+    bs_List* list, 
+    int id)
+{
+    next.bsmod_deselectIndex(list, id);
+}
+
+void bsmod_deselect(
+    bs_List* list, 
+    int id)
+{
+    next.bsmod_deselect(list, id);
+}
+
+int bsmod_firstSelectedId(
+    bs_List* list)
+{
+    return next.bsmod_firstSelectedId(list);
+}
+
+int bsmod_lastSelectedId(
+    bs_List* list)
+{
+    return next.bsmod_lastSelectedId(list);
+}
+
+void* bsmod_removeFlexible(
+    bsgfx_TypeId type_id, 
+    int id)
+{
+    return next.bsmod_removeFlexible(type_id, id);
+}
+
+void* bsmod_addFlexible(
+    bsgfx_TypeId type_id, 
+    int id, 
+    void* data)
+{
+    return next.bsmod_addFlexible(type_id, id, data);
+}
+
+void bsmod_readHoveringOutputs()
+{
+    next.bsmod_readHoveringOutputs();
+}
+
+void bsmod_readHoveringInstanceData()
+{
+    next.bsmod_readHoveringInstanceData();
+}
+
+void bsmod_readHoveringVertex()
+{
+    next.bsmod_readHoveringVertex();
+}
+
+void bsmod_editSelectedType()
+{
+    next.bsmod_editSelectedType();
+}
+
+void bsmod_ensureTypeVersionsAreUpToDate(
+    int package_id)
+{
+    next.bsmod_ensureTypeVersionsAreUpToDate(package_id);
+}
+
+void bsmod_renderBillboards()
+{
+    next.bsmod_renderBillboards();
+}
+
+void bsmod_instanceUI()
+{
+    next.bsmod_instanceUI();
+}
+
+void bsmod_pushVecNWidget(
+    bs_List* widgets, 
+    const char* name, 
+    bs_vec3 offset, 
+    float width, 
+    float* v, 
+    int n)
+{
+    next.bsmod_pushVecNWidget(widgets, name, offset, width, v, n);
+}
+
+void bsmod_pushInputWidget(
+    bs_List* widgets, 
+    void* value, 
+    bs_vec3 offset, 
+    float width, 
+    int name_padding, 
+    bool skip_advance, 
+    bool is_last, 
+    bool has_buttons, 
+    const char* name)
+{
+    next.bsmod_pushInputWidget(widgets, value, offset, width, name_padding, skip_advance, is_last, has_buttons, name);
+}
+
+void bsmod_instanceTileContextMenu(
+    bs_vec3 position, 
+    bs_vec2 size)
+{
+    next.bsmod_instanceTileContextMenu(position, size);
+}
+
+void bsmod_instanceContextMenu(
+    bs_List* widgets, 
+    bs_vec3 position, 
+    bs_vec2 size)
+{
+    next.bsmod_instanceContextMenu(widgets, position, size);
+}
+
+void bsmod_pushContextMenuButton(
+    bs_List* widgets, 
+    bs_vec2 menu_size, 
+    bs_vec3 icon_offset, 
+    bsgfx_AtlasCache* icon, 
+    const char* name, 
+    int indent, 
+    PFN_bsmod_PushContextMenuButton action, 
+    bool expandable)
+{
+    next.bsmod_pushContextMenuButton(widgets, menu_size, icon_offset, icon, name, indent, action, expandable);
+}
+
+void bsmod_instanceGridMenu(
+    bs_vec3 position, 
+    bs_vec2 dimensions)
+{
+    next.bsmod_instanceGridMenu(position, dimensions);
+}
+
+void bsmod_instanceLightBillboards()
+{
+    next.bsmod_instanceLightBillboards();
+}
+
+bool bsmod_onAddLightTick(
+    bsgfx_ButtonParams params)
+{
+    return next.bsmod_onAddLightTick(params);
+}
+
+void bsmod_pushMaterialWidgets(
+    bs_List* widgets, 
+    bs_vec2 background_size)
+{
+    next.bsmod_pushMaterialWidgets(widgets, background_size);
+}
+
+void bsmod_onDragMaterial(
+    bsmod_DraggingParams params)
+{
+    next.bsmod_onDragMaterial(params);
+}
+
+void bsmod_onClickMaterialMenu(
+    bsmod_GridClickParams params)
+{
+    next.bsmod_onClickMaterialMenu(params);
+}
+
+void bsmod_rasterizeMaterialIcons()
+{
+    next.bsmod_rasterizeMaterialIcons();
+}
+
+void bsmod_pushPrefabMenuWidgets(
+    bs_List* widgets, 
+    bs_vec2 background_size)
+{
+    next.bsmod_pushPrefabMenuWidgets(widgets, background_size);
+}
+
+bool bsmod_instancePrefabPreview(
+    bsgfx_Widget* widget, 
+    bs_vec2* position, 
+    int id, 
+    bool hovering)
+{
+    return next.bsmod_instancePrefabPreview(widget, position, id, hovering);
+}
+
+void bsmod_onDragPrefab(
+    bsmod_DraggingParams params)
+{
+    next.bsmod_onDragPrefab(params);
+}
+
+void bsmod_rasterizePrefabIcons()
+{
+    next.bsmod_rasterizePrefabIcons();
+}
+
+bool bsmod_instancePrimitivePreview(
+    bsgfx_Widget* widget, 
+    bs_vec2* position, 
+    int id, 
+    bool hovering)
+{
+    return next.bsmod_instancePrimitivePreview(widget, position, id, hovering);
+}
+
+void bsmod_onDragPrimitive(
+    bsmod_DraggingParams params)
+{
+    next.bsmod_onDragPrimitive(params);
+}
+
+void bsmod_rasterizePrimitiveIcons()
+{
+    next.bsmod_rasterizePrimitiveIcons();
+}
+
+void bsmod_setSideMenuTab(
+    int id, 
+    bsmod_GridClickParams params)
+{
+    next.bsmod_setSideMenuTab(id, params);
+}
+
+void bsmod_instanceSideMenu(
+    bs_vec3 position, 
+    bs_vec2 dimensions)
+{
+    next.bsmod_instanceSideMenu(position, dimensions);
+}
+
+void bsmod_pushTileMenuWidgets(
+    bs_List* widgets, 
+    bs_vec2 background_size)
+{
+    next.bsmod_pushTileMenuWidgets(widgets, background_size);
+}
+
+bool bsmod_instanceTilePreview(
+    bsgfx_Widget* widget, 
+    bs_vec2* position, 
+    int id, 
+    bool hovering)
+{
+    return next.bsmod_instanceTilePreview(widget, position, id, hovering);
+}
+
+void bsmod_onDragTile(
+    bsmod_DraggingParams params)
+{
+    next.bsmod_onDragTile(params);
+}
+

@@ -32,7 +32,7 @@
   Current frame
   */
 BSGFXAPI int _val_bsgfx_animationFrame(bs_Animation* animation, float time, int frames_count) {
-    BSGFX_VALIDATE(frames_count > 0,,);
+    BSGFX_VALIDATE(frames_count > 0, 0,);
     return bsgfx_animationFrame(animation, time, frames_count);
 }
 
@@ -44,7 +44,7 @@ BSGFXAPI int _bsgfx_animationFrame(bs_Animation* animation, float time, int fram
   Frame count
   */
 BSGFXAPI int _val_bsgfx_animationFrameCount(bs_Animation* animation, float time_scale) {
-    BSGFX_VALIDATE(time_scale != 0.0,,);
+    BSGFX_VALIDATE(time_scale != 0.0, 0,);
     return bsgfx_animationFrameCount(animation, time_scale);
 }
 
@@ -59,7 +59,7 @@ BSGFXAPI void _val_bsgfx_applyAnimationVelocity(bsgfx_Animator* animator, bs_vec
     BS_VALIDATE(animator->current_animation_id >= 0,,);
     BS_VALIDATE(animator->current_animation_id < animator->animations_count,,);
 
-    return bsgfx_applyAnimationVelocity(animator, velocity, input);
+    bsgfx_applyAnimationVelocity(animator, velocity, input);
 }
 
 BSGFXAPI void _bsgfx_applyAnimationVelocity(bsgfx_Animator* animator, bs_vec3* velocity, bs_vec2 input) {
@@ -158,7 +158,7 @@ BSGFXAPI void _val_bsgfx_runAnimator(bsgfx_Animator* animator, bsgfx_AnimatorCal
     BSGFX_VALIDATE(animator->queued_animation_id < animator->animations_count, , );
     BSGFX_VALIDATE(_bsgfx_shader_joints_ != NULL, , );
 
-    return bsgfx_runAnimator(animator, callbacks);
+    bsgfx_runAnimator(animator, callbacks);
 }
 
 BSGFXAPI void _bsgfx_runAnimator(bsgfx_Animator* animator, bsgfx_AnimatorCallbacks callbacks) {

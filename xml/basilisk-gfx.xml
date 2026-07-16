@@ -617,7 +617,7 @@
 
         <macro><name>#define BSGFX_COLLIDER_SKIN</name><line>(0.015)</line></macro>
 
-        <macro><name>#define du_animatorCallback(name)</name><line>void(*##name)(bsgfx_Animator*)</line></macro>
+        <macro><name>#define du_animatorCallback(name)</name><line>void(*name)(bsgfx_Animator*)</line></macro>
 
         <macro><name>#define BSGFX_ALPHABET_DEFAULT</name><line>" !\"#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"</line></macro>
 

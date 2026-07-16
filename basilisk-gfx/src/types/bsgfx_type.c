@@ -91,7 +91,7 @@ BSGFXAPI void* _bsgfx_getRaw(bsgfx_TypeId type_id, int id) {
   Flexible count
   */
 static int bsgfx_flexibleCountPointer(int flexible_offset, unsigned char* p) {
-    return flexible_offset == 0 ? NULL :*(int*)(p + flexible_offset);
+    return flexible_offset == 0 ? 0 :*(int*)(p + flexible_offset);
 }
 
 BSGFXAPI int _bsgfx_flexibleCount(bsgfx_TypeId type_id, int id) {
@@ -120,7 +120,7 @@ BSGFXAPI void _val_bsgfx_map(bsgfx_TypeId type_id, int id) {
     bsgfx_Type* type = _bsgfx_types_ + type_id;
     BSGFX_VALIDATE(type->mapped != NULL,,);
 
-    return bsgfx_map(type_id, id);
+    bsgfx_map(type_id, id);
 }
 
 BSGFXAPI void _bsgfx_map(bsgfx_TypeId type_id, int id) {
@@ -171,20 +171,20 @@ BSGFXAPI void _bsgfx_type(
     type->mapped_flexible_size = mapped_flexible_size;
 
     bs_Resource* resource;
-    bs_loadResourceF(package_id, 0, &resource, "levels/%s_%s", _bsgfx_current_scene_.name, plural);
+    result = bs_loadResourceF(package_id, 0, &resource, "levels/%s_%s", _bsgfx_current_scene_.name, plural);
     if (result != BS_RESULT_OK)
         return;
 
     type->package_id = package_id;
     bs_String* binary = resource->data;
 
-    unsigned char* buffer = NULL;
+    unsigned char* unmapped_data = NULL;
 
     bsgfx_TypeHeader* data = NULL;
     if (binary) {
         // binary->len--; // null terminator terminator
         assert(binary->len >= sizeof(bsgfx_TypeHeader));
-        data = binary->value;
+        data = (bsgfx_TypeHeader*)binary->value;
 
         if (data->magic == BSGFX_TYPE_MAGIC) {
             bs_warnF("Invalid magic number for type \"%s\"\n", singular); // TODO: bsgfx warn
@@ -195,8 +195,6 @@ BSGFXAPI void _bsgfx_type(
             bs_warnF("Unsupported type version %d\n", data->version); // TODO: bsgfx warn
             return;
         }
-
-        buffer = data->accessors + data->count;
 
         if ((data->count * sizeof(int) + sizeof(*data)) > binary->len) {
             bs_warnF("Type \"%s\" has corrupted data", singular);  // TODO: bsgfx warn
@@ -216,7 +214,7 @@ BSGFXAPI void _bsgfx_type(
 
         memcpy(type->unmapped_accessors, data->accessors, data->count * sizeof(int));
 
-        unsigned char* unmapped_data = data->accessors + data->count;
+        unmapped_data = (unsigned char*)(data->accessors + data->count);
 
         for (int i = 0, unmapped_offset = 0, mapped_offset = 0; i < data->count; i++) {
             int flexible_count = unmapped_flexible_offset == 0 ? 0 : bsgfx_flexibleCountPointer(unmapped_flexible_offset, unmapped_data + unmapped_offset);
@@ -241,8 +239,8 @@ BSGFXAPI void _bsgfx_type(
         type->unmapped = bs_realloc(type->unmapped, unmapped_capacity);
         size_t unmapped_count_capacity = type->count * unmapped_size + type->flexible_count * unmapped_flexible_size;
 
-        if (buffer)
-            memcpy(type->unmapped, buffer, unmapped_count_capacity);
+        if (unmapped_data)
+            memcpy(type->unmapped, unmapped_data, unmapped_count_capacity);
     }
 
     if (type->unmapped) {

@@ -132,6 +132,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     #GFSDK_Aftermath_Lib.x64
 )
 
+if (MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /wd6255 /wd4047 /wd4090 /wd4024 /wd4133)
+endif()
+
 SET(COPY_BASILISK_GFX_DLL_DEBUG ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-gfx/Debug/basilisk-gfx.dll" "${CMAKE_SOURCE_DIR}/build/${BS_APP_NAME}/Debug/")
 SET(COPY_BASILISK_GFX_DLL_RELEASE ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-gfx/Release/basilisk-gfx.dll" "${CMAKE_SOURCE_DIR}/build/${BS_APP_NAME}/Release")
 SET(COPY_BASILISK_GFX_DLL_RELEASE_DEBUG ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-gfx/RelWithDebInfo/basilisk-gfx.dll" "${CMAKE_SOURCE_DIR}/build/${BS_APP_NAME}/RelWithDebInfo")
@@ -140,29 +144,29 @@ SET(COPY_BASILISK_GFX_DLL_DEBUG_TO_TEST ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE
 SET(COPY_BASILISK_GFX_DLL_RELEASE_TO_TEST ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-gfx/Release/basilisk-gfx.dll" "${CMAKE_SOURCE_DIR}/build/basilisk-test-runner/Release")
 SET(COPY_BASILISK_GFX_DLL_RELEASE_DEBUG_TO_TEST ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-gfx/RelWithDebInfo/basilisk-gfx.dll" "${CMAKE_SOURCE_DIR}/build/basilisk-test-runner/RelWithDebInfo")
 
-add_custom_command(
-    TARGET ${PROJECT_NAME} 
-    POST_BUILD
-    COMMAND "$<$<CONFIG:Debug>:${COPY_BASILISK_GFX_DLL_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/"
-    COMMAND "$<$<CONFIG:Debug>:${COPY_BASILISK_GFX_DLL_DEBUG_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/ to test"
-	COMMAND_EXPAND_LISTS
-    CONFIGURATIONS Debug
-)
-
-add_custom_command(
-    TARGET ${PROJECT_NAME} 
-    POST_BUILD
-    COMMAND "$<$<CONFIG:Release>:${COPY_BASILISK_GFX_DLL_RELEASE}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/"
-    COMMAND "$<$<CONFIG:Release>:${COPY_BASILISK_GFX_DLL_RELEASE_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/ to test"
-	COMMAND_EXPAND_LISTS
-    CONFIGURATIONS Release
-)
-
-add_custom_command(
-    TARGET ${PROJECT_NAME} 
-    POST_BUILD
-    COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_BASILISK_GFX_DLL_RELEASE_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/"
-    COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_BASILISK_GFX_DLL_RELEASE_DEBUG_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/ to test"
-	COMMAND_EXPAND_LISTS
-    CONFIGURATIONS RelWithDebInfo
-)
+#add_custom_command(
+#    TARGET ${PROJECT_NAME} 
+#    POST_BUILD
+#    COMMAND "$<$<CONFIG:Debug>:${COPY_BASILISK_GFX_DLL_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/"
+#    COMMAND "$<$<CONFIG:Debug>:${COPY_BASILISK_GFX_DLL_DEBUG_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/ to test"
+#	COMMAND_EXPAND_LISTS
+#    CONFIGURATIONS Debug
+#)
+#
+#add_custom_command(
+#    TARGET ${PROJECT_NAME} 
+#    POST_BUILD
+#    COMMAND "$<$<CONFIG:Release>:${COPY_BASILISK_GFX_DLL_RELEASE}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/"
+#    COMMAND "$<$<CONFIG:Release>:${COPY_BASILISK_GFX_DLL_RELEASE_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/ to test"
+#	COMMAND_EXPAND_LISTS
+#    CONFIGURATIONS Release
+#)
+#
+#add_custom_command(
+#    TARGET ${PROJECT_NAME} 
+#    POST_BUILD
+#    COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_BASILISK_GFX_DLL_RELEASE_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/"
+#    COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_BASILISK_GFX_DLL_RELEASE_DEBUG_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk-gfx.dll/ to test"
+#	COMMAND_EXPAND_LISTS
+#    CONFIGURATIONS RelWithDebInfo
+#)

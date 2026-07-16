@@ -370,7 +370,7 @@ typedef enum bsgfx_WidgetAdvanceType bsgfx_WidgetAdvanceType;
     (0.015)
 
 #define du_animatorCallback(name)                                    \
-    void(*##name)(bsgfx_Animator*)
+    void(*name)(bsgfx_Animator*)
 
 #define BSGFX_ALPHABET_DEFAULT                                       \
     " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"

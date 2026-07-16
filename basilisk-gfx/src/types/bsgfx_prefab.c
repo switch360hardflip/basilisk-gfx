@@ -140,7 +140,7 @@ BSGFXAPI void _val_bsgfx_renderPrefabShadowVolumes() {
     BSGFX_VALIDATE(bs_exists(BSGFX_BATCHES, BSGFX_BATCH_PREFAB_SHADOWS),,);
     BSGFX_VALIDATE(bs_exists(BSGFX_BATCHES, BSGFX_BATCH_VOLUME_SCREEN),,);
 
-    return bsgfx_renderPrefabShadowVolumes();
+    bsgfx_renderPrefabShadowVolumes();
 }
 
 BSGFXAPI void _bsgfx_renderPrefabShadowVolumes() {
@@ -283,7 +283,7 @@ BSGFXAPI void _val_bsgfx_loadPrefabs(int package_id, bs_Model* model) {
     BSGFX_VALIDATE(bs_exists(BSGFX_BATCHES, BSGFX_BATCH_MESH_INSTANCED),,);
     BSGFX_VALIDATE(bs_exists(BSGFX_ATLASES, BSGFX_ATLAS_ANY),,);
 
-    return bsgfx_loadPrefabs(package_id, model);
+    bsgfx_loadPrefabs(package_id, model);
 }
 
 BSGFXAPI void _bsgfx_loadPrefabs(int package_id, bs_Model* model) {

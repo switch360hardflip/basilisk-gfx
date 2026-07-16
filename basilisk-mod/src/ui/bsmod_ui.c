@@ -1,32 +1,34 @@
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
 #include <direct.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 
-#include <bsgfx.h>
-#include <bs_json.h>
-#include <bs_window.h>
-#include <bsmod_compile.h>
-#include <bsmod_type.h>
-#include <bsmod_cache.h>
-#include <bsmod.h>
-
-#include <ui/bsgfx_ui.h>
-#include <ui/bsmod_ui.h>
-#include <ui/primitive/bsmod_ui_primitive.h>
-#include <ui/material/bsmod_ui_material.h>
-#include <ui/tile/bsmod_ui_tile.h>
-#include <ui/prefab/bsmod_ui_prefab.h>
-#include <ui/light/bsmod_ui_light.h>
-#include <ui/grid/bsmod_ui_grid.h>
-#include <ui/side/bsmod_ui_side.h>
-#include <ui/context/bsmod_ui_context.h>
-
-#include <types/prefab/bsgfx_prefab.h>
-#include <types/primitive/bsgfx_primitive.h>
-#include <types/tile/bsgfx_tile.h>
-#include <types/light/bsgfx_light.h>
-#include <bsgfx_pipeline.h>
+#include <basilisk-mod.h>
 
 void bsmod_pushInputWidget(
     bs_List* widgets,
@@ -43,10 +45,9 @@ void bsmod_pushInputWidget(
     if (has_buttons) {
         const int button_padding = 2;
         bsgfx_AtlasCache* increment = $BSMOD_ATLAS_UI_increment();
-        bs_pushBack(widgets, &(bsgfx_Widget) {
+        bsgfx_Widget* increment_button = bs_pushBack(widgets, &(bsgfx_Widget) {
             //.name = "",
             .type = BSGFX_WIDGET_ICON,
-            .offset = bs_v3Add(offset, BS_V3(width - increment->size.x - button_padding, -button_padding, 10.0)),
             .icon = {
                 .atlas = bs_fetch(BSMOD_ATLASES, BSMOD_ATLAS_UI)->atlas,
                 .atlas_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_UI],
@@ -59,11 +60,11 @@ void bsmod_pushInputWidget(
             .advance_flags = BSGFX_WIDGET_ADVANCE_RIGHT,
             .material_id = $bsmod_grey_120()->id,
         });
+        bs_v3Add(&offset, &BS_V3(width - increment->size.x - button_padding, -button_padding, 10.0), &increment_button->offset);
 
-        bs_pushBack(widgets, &(bsgfx_Widget) {
+        bsgfx_Widget* decrement_button = bs_pushBack(widgets, &(bsgfx_Widget) {
            // .name = "",
             .type = BSGFX_WIDGET_ICON,
-            .offset = bs_v3Add(offset, BS_V3(width - increment->size.x - button_padding, -BSMOD_INPUT_HEIGHT + increment->size.y + button_padding, 10.0)),
             .icon = {
                 .atlas = bs_fetch(BSMOD_ATLASES, BSMOD_ATLAS_UI)->atlas,
                 .atlas_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_UI],
@@ -77,6 +78,7 @@ void bsmod_pushInputWidget(
             .advance_flags = BSGFX_WIDGET_ADVANCE_RIGHT,
             .material_id = $bsmod_grey_120()->id,
         });
+        bs_v3Add(&offset, &BS_V3(width - increment->size.x - button_padding, -BSMOD_INPUT_HEIGHT + increment->size.y + button_padding, 10.0), &decrement_button->offset);
     }
 
     bs_pushBack(widgets, &(bsgfx_Widget) {
@@ -184,7 +186,7 @@ void bsmod_instanceBackgroundMenu(bs_vec3 position, bs_vec2 dimensions) {
 
     bool hovering = bsgfx_instanceWidgets((bsgfx_Menu) {
         .position = position,
-        .text_subtype = _bsmod_subtypes[BSMOD_SUBTYPE_FONT_CONSOLAS],
+        .text_subtype = _bsmod_subtypes_[BSMOD_SUBTYPE_FONT_CONSOLAS],
         .font = bs_fetch(BSGFX_FONTS, BSGFX_FONT_ARIAL_16)->head,
         .spacing = 4.0,
         .widgets = NULL,

@@ -2,7 +2,7 @@
 #define BSMOD_CACHE_H
 
 #include <bsgfx_cache.h>
-#include <bsmod.h>
+#include <basilisk-mod.h>
 
 #define BSGFX_PACKAGE bsmod.package
 

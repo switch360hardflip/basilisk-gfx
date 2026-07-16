@@ -94,9 +94,8 @@ static void bsgfx_instanceBackground(
 	}
 }
 
-#define BSGFX_PIXEL_SCALE 1.0
 bool bsgfx_rectangleVsPointExpand(const bs_vec2* position, const bs_vec2* dimensions, const bs_vec2* point, float expand) {
-	expand *= BSGFX_PIXEL_SCALE;
+	// expand *= BSGFX_PIXEL_SCALE;
 
 	bs_vec2 new_position, new_dimensions;
 
@@ -1094,11 +1093,9 @@ static void bsgfx_deserializeInputValue(bsgfx_Widget* widget, bs_String* string)
 	case BSGFX_INPUT_INT: *widget->input.as_uint = bs_toLong(string->value); break;
 	case BSGFX_INPUT_CHAR: *widget->input.as_uint = bs_toLong(string->value); break;
 	case BSGFX_INPUT_UCHAR: *widget->input.as_uint = bs_toULong(string->value); break;
-	case BSGFX_INPUT_STRING:
-		return *widget->input.as_string = bs_string(*widget->input.as_string, string->value, string->len);
+	case BSGFX_INPUT_STRING: *widget->input.as_string = bs_string(*widget->input.as_string, string->value, string->len); break;
 	default:
 		bs_warnF("Input type %d", widget->input.type); // TODO: bsgfx warn
-		return NULL;
 	}
 }
 

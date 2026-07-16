@@ -24,12 +24,14 @@ file(GLOB UI_LIGHT_FILES "src/ui/light/*.*")
 file(GLOB VS_SHADER_FILES "resources/shaders/vert/*.*")
 file(GLOB FS_SHADER_FILES "resources/shaders/frag/*.*")
 
+file(GLOB_RECURSE GENERATE_FILES "generated/*.*")
 file(GLOB_RECURSE HEADER_FILES "include/*.h")
 file(GLOB PROJECT_FILES "./*" LIST_DIRECTORIES false)
 
 add_library(${PROJECT_NAME} SHARED
     ${SOURCE_FILES}
     ${HEADER_FILES}
+    ${GENERATE_FILES}
 
     ${UI_FILES}
 
@@ -71,11 +73,14 @@ source_group("Source Files/UI/Side" FILES ${UI_SIDE_FILES})
 source_group("Source Files/Types" FILES ${TYPE_FILES})
 source_group("Project Files" FILES ${PROJECT_FILES})
 source_group("Headers" FILES ${HEADER_FILES})
+source_group("Generated Files" FILES ${GENERATE_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/basilisk-core/include
+    ${CMAKE_SOURCE_DIR}/basilisk-core/generated
     #${CMAKE_SOURCE_DIR}/basilisk-steam/include
     ${CMAKE_SOURCE_DIR}/basilisk-gfx/include
+    ${CMAKE_SOURCE_DIR}/basilisk-gfx/generated
     ${CMAKE_SOURCE_DIR}/basilisk-gfx/src
     ${CMAKE_SOURCE_DIR}/basilisk-mod/include
     ${CMAKE_SOURCE_DIR}/external
@@ -83,6 +88,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/external/glslang
     ${CMAKE_SOURCE_DIR}/external/SPIRV-Cross
     include/
+    generated/
     src/
     ${CMAKE_SOURCE_DIR}/include/objects/
     levels/

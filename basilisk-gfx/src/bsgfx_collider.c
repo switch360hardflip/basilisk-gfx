@@ -348,7 +348,7 @@ static void bsgfx_applySecondarySlopeRaycast(
 	bs_RayVsObb result;
 	bs_rayVsObb(&ray, position, rotation, scale, &result);
 	if (!result.hit)
-		return false;
+		return;
 
 #ifdef _DEBUG
 	if (result.normal.x == 0.0 && result.normal.y == 0.0 && result.normal.z == 0.0)
@@ -357,7 +357,7 @@ static void bsgfx_applySecondarySlopeRaycast(
 
 	float distance = bs_v3Distance(&ray->origin, &result.coordinate);
 	if (distance > ray->length)
-		return false;
+		return;
 
 	float angle = bs_v3Angle(&result.normal, &BS_V3(0, 1, 0));
 #ifdef _DEBUG
@@ -371,8 +371,6 @@ static void bsgfx_applySecondarySlopeRaycast(
 		collider->normal = result.normal;
 		ray->length = distance;
 	}
-
-	return true;
 }
 
 static void bsgfx_applySecondarySlopeAxis(bsgfx_Collider* collider, bs_vec3* velocity, const bs_vec3* position, int axis) {
