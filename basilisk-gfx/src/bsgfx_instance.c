@@ -72,7 +72,7 @@ BSGFXAPI bs_Result _bsgfx_iniInstances() {
    * Instance Types
    =============================================================================*/
 
-static bool bsgfx_validateInstanceType(int instance_type) {
+BSGFXAPI bool _bsgfx_validateInstanceType(const char* library_name, int instance_type) { // TODO: use library_name
 	BSGFX_VALIDATE(instance_type >= 0, false,);
 	BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA), false,);
 	BSGFX_VALIDATE(instance_type < BSGFX_INSTANCE_TYPE_COUNT, false,);
@@ -147,7 +147,7 @@ BSGFXAPI void _bsgfx_instanceType(int instance_type_id, int max_instance_count, 
    * Subtypes
    =============================================================================*/
 
-static bool bsgfx_validateSubtype(int subtype) {
+BSGFXAPI bool _bsgfx_validateSubtype(const char* library_name, int subtype) { // TODO: use library_name
 	BSGFX_VALIDATE(subtype >= 0, false, );
 	BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA), false, );
 
@@ -166,7 +166,7 @@ static bool bsgfx_validateSubtype(int subtype) {
   Delete subtype
   */
 BSGFXAPI void _val_bsgfx_deleteSubtype(int subtype) {
-	if (!bsgfx_validateSubtype(subtype))
+	if (!bsgfx_validateSubtype("GFX", subtype))
 		return;
 
 	bsgfx_deleteSubtype(subtype);
@@ -191,7 +191,7 @@ BSGFXAPI void _bsgfx_deleteSubtype(int subtype) {
   Subtype range
   */
 BSGFXAPI bs_Range _val_bsgfx_subtypeRange(int subtype) {
-	if (!bsgfx_validateSubtype(subtype))
+	if (!bsgfx_validateSubtype("GFX", subtype))
 		return (bs_Range) { 0 };
 
 	return bsgfx_subtypeRange(subtype);
@@ -215,7 +215,7 @@ BSGFXAPI bs_Range _bsgfx_subtypeRange(int subtype) {
   Instance count
   */
 BSGFXAPI int _val_bsgfx_instanceCount(int subtype) {
-	if (!bsgfx_validateSubtype(subtype))
+	if (!bsgfx_validateSubtype("GFX", subtype))
 		return 0;
 
 	return bsgfx_instanceCount(subtype);
@@ -233,7 +233,7 @@ BSGFXAPI int _bsgfx_instanceCount(int subtype) {
   Subtype count
   */
 BSGFXAPI int _val_bsgfx_subtypeCount(int instance_type_id) {
-	if (!bsgfx_validateInstanceType(instance_type_id))
+	if (!bsgfx_validateInstanceType("GFX", instance_type_id))
 		return 0;
 
 	return bsgfx_subtypeCount(instance_type_id);
@@ -255,7 +255,7 @@ BSGFXAPI const int* _bsgfx_subtypes() {
   Create subtype
   */
 BSGFXAPI int _val_bsgfx_subtype(int instance_type_id, bs_Batch* batch, bs_U32 flags, bs_Range range) {
-	if (!bsgfx_validateInstanceType(instance_type_id))
+	if (!bsgfx_validateInstanceType("GFX", instance_type_id))
 		return 0;
 
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
@@ -314,7 +314,7 @@ BSGFXAPI int _bsgfx_subtype(int instance_type_id, bs_Batch* batch, bs_U32 flags,
   Subtype has flag
   */
 BSGFXAPI bool _val_bsgfx_subtypeHasFlag(int subtype, bs_U32 flag) {
-	if (!bsgfx_validateSubtype(subtype))
+	if (!bsgfx_validateSubtype("GFX", subtype))
 		return false;
 
 	return bsgfx_subtypeHasFlag(subtype, flag);
@@ -330,7 +330,7 @@ BSGFXAPI bool _bsgfx_subtypeHasFlag(int subtype, bs_U32 flag) {
   Render subtype
   */
 BSGFXAPI void _val_bsgfx_renderSubtype(int subtype, bs_Pipeline* pipeline) {
-	if (!bsgfx_validateSubtype(subtype))
+	if (!bsgfx_validateSubtype("GFX", subtype))
 		return;
 
 	bsgfx_renderSubtype(subtype, pipeline);
@@ -352,7 +352,7 @@ BSGFXAPI void _bsgfx_renderSubtype(int subtype, bs_Pipeline* pipeline) {
   Reset subtype
   */
 BSGFXAPI void _val_bsgfx_resetSubtype(int subtype) {
-	if (!bsgfx_validateSubtype(subtype))
+	if (!bsgfx_validateSubtype("GFX", subtype))
 		return;
 	
 	bsgfx_resetSubtype(subtype);

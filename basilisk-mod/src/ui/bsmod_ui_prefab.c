@@ -57,24 +57,24 @@ bool bsmod_instancePrefabPreview(bsgfx_Widget* widget, bs_vec2* position, int id
    *============================================================================*/
 
 void bsmod_onDragPrefab(bsmod_DraggingParams params) {
-    if (bsmod.hovering.tile < 0 || bsmod.hovering.primitive < 0)
+    if (_bsmod_.hovering.tile < 0 || _bsmod_.hovering.primitive < 0)
         return;
 
-    bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, bsmod.hovering.primitive);
+    bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, _bsmod_.hovering.primitive);
 
-    bs_ivec2 coords = bsgfx_tileCoordinate(primitive, bsmod.hovering.tile_axis, bsmod.hovering.tile);
+    bs_ivec2 coords = bsgfx_tileCoordinate(primitive, _bsmod_.hovering.tile_axis, _bsmod_.hovering.tile);
 
-    bs_vec3 tile_position = bsgfx_tilePosition(primitive, bsmod.hovering.tile_axis, coords.x, coords.y);
-    bs_vec4 rotation = bsgfx_tileRotation(bsmod.hovering.tile_axis);
-    bs_vec3 euler_rotation = bsgfx_tileEulerRotation(bsmod.hovering.tile_axis);
+    bs_vec3 tile_position = bsgfx_tilePosition(primitive, _bsmod_.hovering.tile_axis, coords.x, coords.y);
+    bs_vec4 rotation = bsgfx_tileRotation(_bsmod_.hovering.tile_axis);
+    bs_vec3 euler_rotation = bsgfx_tileEulerRotation(_bsmod_.hovering.tile_axis);
     rotation = bs_qMulq(primitive->rotation, rotation);
     bs_mat4 matrix = bs_transform(tile_position, rotation, bs_v3V1(1.0));
 
-    bsgfx_instancePrefabModel(bsmod.dragging_id, matrix, BSGFX_PREFAB_SUBTYPE_MESH, $bsmod_light_blue()->id);
+    bsgfx_instancePrefabModel(_bsmod_.dragging_id, matrix, BSGFX_PREFAB_SUBTYPE_MESH, $bsmod_light_blue()->id);
     bs_Model* prefab_model = bsgfx_prefabModel();
-    bs_Mesh* prefab_mesh = prefab_model->meshes + bsmod.dragging_id;
+    bs_Mesh* prefab_mesh = prefab_model->meshes + _bsmod_.dragging_id;
 
-    if (bsmod_leftClickUpOnce()) {
+    if (bs_leftClickUpOnce()) {
         bsgfx_RawPrefab* prefab = bsmod_add(BSGFX_TYPE_PREFAB, &(bsgfx_RawPrefab) {
             .position = tile_position,
             .rotation = euler_rotation,

@@ -8,7 +8,7 @@
 #include <bs_window.h>
 #include <bsmod_compile.h>
 #include <bsmod_cache.h>
-#include <bsmod.h>
+#include <_bsmod_.h>
 
 #include <ui/bsgfx_ui.h>
 #include <ui/grid/bsmod_ui_grid.h>
@@ -27,7 +27,7 @@
 static int _bsmod_active_side_menu_tab;
 
 static void bsmod_pushInstanceWidgets(bs_List* widgets, bs_vec2 background_size) {
-    switch (bsmod.selected_type) {
+    switch (_bsmod_.selected_type) {
     case BSGFX_TYPE_PREFAB: bsmod_pushPrefabMenuWidgets(widgets, background_size); break;
     case BSGFX_TYPE_TILE: bsmod_pushTileMenuWidgets(widgets, background_size); break;
     default:
@@ -143,6 +143,6 @@ void bsmod_instanceSideMenu(bs_vec3 position, bs_vec2 dimensions) {
         .height = BSMOD_TAB_BAR_HEIGHT,
     });
 
-    if (!bsmod.ui_blocked)
-        bsmod.ui_blocked = hovering;
+    if (!_bsmod_.ui_blocked)
+        _bsmod_.ui_blocked = hovering;
 }

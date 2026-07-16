@@ -503,7 +503,7 @@ BSGFXAPI void _bsgfx_renderScenePrefabs() {
         // }
     };
     // TODO: screenshot reimplementation
-    //if (bsmod.queue.screenshot)
+    //if (_bsmod_.queue.screenshot)
     //    hash.attachments[0].skip_write = false;
     bs_Pipeline* mesh_pipeline;
     if (bs_pipeline(&hash, &mesh_pipeline) == BS_RESULT_OK) {

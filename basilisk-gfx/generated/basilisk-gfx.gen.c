@@ -94,6 +94,20 @@ int bsgfx_fonts()
     return next.bsgfx_fonts();
 }
 
+bool bsgfx_validateSubtype(
+    const char* library_name, 
+    int subtype)
+{
+    return next.bsgfx_validateSubtype(library_name, subtype);
+}
+
+bool bsgfx_validateInstanceType(
+    const char* library_name, 
+    int instance_type_id)
+{
+    return next.bsgfx_validateInstanceType(library_name, instance_type_id);
+}
+
 const char* bsgfx_materialCategoryName(
     bsgfx_MaterialCategory category)
 {

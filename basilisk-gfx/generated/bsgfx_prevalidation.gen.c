@@ -85,6 +85,16 @@ static int _preval_bsgfx_fonts() {
     return next.bsgfx_fonts();
 }
 
+static bool _preval_bsgfx_validateSubtype(const char* library_name, int subtype) {
+    BSGFX_VALIDATE(library_name != NULL, false,);
+    return next.bsgfx_validateSubtype(library_name, subtype);
+}
+
+static bool _preval_bsgfx_validateInstanceType(const char* library_name, int instance_type_id) {
+    BSGFX_VALIDATE(library_name != NULL, false,);
+    return next.bsgfx_validateInstanceType(library_name, instance_type_id);
+}
+
 static const char* _preval_bsgfx_materialCategoryName(bsgfx_MaterialCategory category) {
     return next.bsgfx_materialCategoryName(category);
 }
@@ -675,6 +685,8 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_rayTracers = _preval_bsgfx_rayTracers;
     functions.bsgfx_atlases = _preval_bsgfx_atlases;
     functions.bsgfx_fonts = _preval_bsgfx_fonts;
+    functions.bsgfx_validateSubtype = _preval_bsgfx_validateSubtype;
+    functions.bsgfx_validateInstanceType = _preval_bsgfx_validateInstanceType;
     functions.bsgfx_materialCategoryName = _preval_bsgfx_materialCategoryName;
     functions.bsgfx_materials = _preval_bsgfx_materials;
     functions.bsgfx_queryMaterialHash = _preval_bsgfx_queryMaterialHash;

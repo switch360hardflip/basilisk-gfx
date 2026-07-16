@@ -1,20 +1,33 @@
-#include <stdio.h>
-#include <bsmod.h>
-#include <bsmod_lisk.h>
-#include <bsmod_type.h>
-#include <bsmod_track.h>
-#include <bsmod_compile.h>
-#include <ui/bsgfx_ui.h>
-#include <bsmod_bpak.h>
-#include <bsgfx.h>
-#include <bsgfx_cache.h>
-#include <bsmod_transform.h>
-#include <ui/bsmod_ui.h>
-#include <types/primitive/bsgfx_primitive.h>
-#include <types/prefab/bsgfx_prefab.h>
-#include <types/tile/bsgfx_tile.h>
 
-struct Bsmod bsmod = {
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+#include <basilisk-mod.h>
+#include <bsmod_cache.h>
+#include <stdio.h>
+
+struct Bsmod _bsmod_ = {
     .bsgfx_package = -1,
     .package = -1,
     .history = BS_I64_MAX,
@@ -30,54 +43,16 @@ struct Bsmod bsmod = {
     .selected_tiles = {.unit_size = sizeof(int), .increment = 32 },
 };
 
-bs_Json _bsmod_config = { 0 };
+bs_Json _bsmod_config__ = { 0 };
 
-int _bsmod_images = -1, _bsmod_samplers = -1, _bsmod_buffers = -1,
-    _bsmod_batches = -1, _bsmod_renderers = -1, _bsmod_ray_tracers = -1,
-    _bsmod_queues = -1, _bsmod_atlases = -1, _bsmod_fonts = -1;
+int _bsmod_images_ = -1, _bsmod_samplers_ = -1, _bsmod_buffers_ = -1,
+    _bsmod_batches_ = -1, _bsmod_renderers_ = -1, _bsmod_ray_tracers_ = -1,
+    _bsmod_queues_ = -1, _bsmod_atlases_ = -1, _bsmod_fonts_ = -1;
 
-volatile long _bsmod_has_performed_tracked_changes = 1;
+volatile long _bsmod_has_performed_tracked_changes_ = 1;
 
 bsmod_Procedures _bsmod_procs = { 0 };
 int _bsmod_subtypes[BSMOD_SUBTYPE_COUNT] = { 0 };
-
-bool bsmod_keyHeld(bs_U32 code) {
-    return code > BS_KEYS_COUNT ? false : BS_GET_BIT(bs_io()->hold_keys, code);
-}
-
-bool bsmod_keyDown(bs_U32 code) {
-    return code > BS_KEYS_COUNT ? false : BS_GET_BIT(bs_io()->keys, code);
-}
-
-bool bsmod_keyDownOnce(bs_U32 code) {
-    return code > BS_KEYS_COUNT ? false : (BS_GET_BIT(bs_io()->keys, code) && !BS_GET_BIT(bs_io()->keys_old, code));
-}
-
-bool bsmod_keyUpOnce(bs_U32 code) {
-    return code > BS_KEYS_COUNT ? false : (!BS_GET_BIT(bs_io()->keys, code) && BS_GET_BIT(bs_io()->keys_old, code));
-}
-
-bool bsmod_charDown(unsigned char code) {
-    return BS_GET_BIT(bs_io()->chars, code);
-}
-
-bool bsmod_charDownOnce(unsigned char code) {
-    return code > BS_KEY_BYTES_COUNT ? false : (BS_GET_BIT(bs_io()->chars, code) && !BS_GET_BIT(bs_io()->chars_old, code));
-}
-
-bool bsmod_charUpOnce(unsigned char code) {
-    return code > BS_KEY_BYTES_COUNT ? false : (!BS_GET_BIT(bs_io()->chars, code) && BS_GET_BIT(bs_io()->chars_old, code));
-}
-
-bool bsmod_middleClick() { return bs_io()->middle_clicked; }
-bool bsmod_middleClickOnce() { return bs_io()->middle_clicked && !bs_io()->middle_clicked_last; }
-bool bsmod_middleClickUpOnce() { return !bs_io()->middle_clicked && bs_io()->middle_clicked_last; }
-bool bsmod_leftClick() { return bs_io()->left_clicked; }
-bool bsmod_rightClick() { return bs_io()->right_clicked; }
-bool bsmod_rightClickOnce() { return bs_io()->right_clicked && !bs_io()->right_clicked_last; }
-bool bsmod_leftClickOnce() { return bs_io()->left_clicked && !bs_io()->left_clicked_last; }
-bool bsmod_rightClickUpOnce() { return !bs_io()->right_clicked && bs_io()->right_clicked_last; }
-bool bsmod_leftClickUpOnce() { return !bs_io()->left_clicked && bs_io()->left_clicked_last; }
 
 static void bsmod_instanceAxisFace(
     bsgfx_Primitive* primitive,
@@ -90,30 +65,32 @@ static void bsmod_instanceAxisFace(
     int width = (int)(primitive->scale.a[ax->width_axis] * 2.0f);
     int height = (int)(primitive->scale.a[ax->height_axis] * 2.0f);
 
-    bs_vec3 right = bs_qRotateVec3(&primitive->rotation, &ax->right);
-    bs_vec3 up = bs_qRotateVec3(&primitive->rotation, &ax->up);
+    bs_vec3 right, up, start, m;
+    bs_qRotateV3(&primitive->rotation, &ax->right, &right);
+    bs_qRotateV3(&primitive->rotation, &ax->up, &up);
 
-    bs_vec3 m = bs_v3Mul(ax->start_sign, primitive->scale);
-    bs_vec3 start = bs_qRotateVec3(&primitive->rotation, &m);
+    bs_v3Mul(&ax->start_sign, &primitive->scale, &m);
+    bs_qRotateV3(&primitive->rotation, &m, &start);
 
-    start = bs_v3Add(start, primitive->position);
+    bs_v3Add(&start, &primitive->position, &start);
 
-    bs_vec3 full_right = bs_v3MulS(right, (float)width);
-    bs_vec3 full_up = bs_v3MulS(up, (float)height);
+    bs_vec3 full_right, full_up; 
+    bs_v3MulS(&right, (float)width, &full_right);
+    bs_v3MulS(&up, (float)height, &full_up);
 
-    bs_vec3 a = start;
-    bs_vec3 b = bs_v3Add(a, full_right);
-    bs_vec3 c = bs_v3Add(a, full_up);
-    bs_vec3 d = bs_v3Add(c, full_right);
+    bs_vec3 a = start, b, c, d;
+    bs_v3Add(&a, &full_right, &b);
+    bs_v3Add(&a, &full_up, &c);
+    bs_v3Add(&c, &full_right, &d);
 
-    bsgfx_transformedDepthlessLineInstance(a, b, color, transform);
-    bsgfx_transformedDepthlessLineInstance(b, d, color, transform);
-    bsgfx_transformedDepthlessLineInstance(d, c, color, transform);
-    bsgfx_transformedDepthlessLineInstance(c, a, color, transform);
+    bsgfx_instanceDepthlessLine(a, b, color);
+    bsgfx_instanceDepthlessLine(b, d, color);
+    bsgfx_instanceDepthlessLine(d, c, color);
+    bsgfx_instanceDepthlessLine(c, a, color);
 }
 
-void bsmod_onTick() {
-    memset(&bsmod.queue, 0, sizeof(bsmod.queue));
+BSMODAPI void _bsmod_onTick() {
+    memset(&_bsmod_.queue, 0, sizeof(_bsmod_.queue));
 
   //  static float lisk_time = 0.0;
   //  lisk_time += bs_elapsedTime();
@@ -123,11 +100,11 @@ void bsmod_onTick() {
   //      lisk_time = 0.0;
   //  }
 
-    if (InterlockedCompareExchange(&_bsmod_has_performed_tracked_changes, 1, 1) == 1) {
+    if (InterlockedCompareExchange(&_bsmod_has_performed_tracked_changes_, 1, 1) == 1) {
 
         bsmod_savePackage(BSMOD_CONTENT_PATH);
         bsmod_savePackage(BSGFX_CONTENT_PATH);
-        if (_bsmod_config.doc)
+        if (_bsmod_config_.doc)
             bsmod_savePackage(bsmod_applicationContentPath());
 
     }
@@ -136,33 +113,39 @@ void bsmod_onTick() {
     bsmod_readHoveringInstanceData();
     bsmod_readHoveringVertex();
     bsmod_instanceUI();
-    if (!bsmod.ui_blocked)
+    if (!_bsmod_.ui_blocked)
         bsmod_instanceTransform();
-    if (!bsmod.ui_blocked)
+    if (!_bsmod_.ui_blocked)
         bsmod_selectHoveringTypes();
-    if (!bsmod.ui_blocked)
+    if (!_bsmod_.ui_blocked)
         bsmod_editSelectedType();
-    if (bsmod_keyDown(BS_KEY_LEFT_CONTROL) && bsmod_keyDownOnce(BS_KEY_C))
+
+    if (bs_keyDown(BS_KEY_LEFT_CONTROL) && bs_keyDownOnce(BS_KEY_C))
         bsmod_deselectAll();
 
     static int last_selected_count = 0;
     static int last_selected_type = 0;
-    switch (bsmod.selected_type) {
+    switch (_bsmod_.selected_type) {
     case BSGFX_TYPE_TILE: {
-        bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, bsmod.selected_tile_primitive);
+        bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, _bsmod_.selected_tile_primitive);
 
-        if (last_selected_type != bsmod.selected_type || last_selected_count != bsmod.selected_tiles.count) {
-            bs_Batch* batch = bs_fetch(_bsmod_batches, BSMOD_BATCH_TILE)->batch;
+        if (last_selected_type != _bsmod_.selected_type || last_selected_count != _bsmod_.selected_tiles.count) {
+            bs_Batch* batch = bs_fetch(_bsmod_batches_, BSMOD_BATCH_TILE)->batch;
             bs_Scope last = *bs_getScope();
             bs_setScope(&(bs_Scope) { .queue = bs_singleTimesQueue() });
             bs_unpushBatch(batch);
 
-            for (int i = 0; i < bsmod.selected_tiles.count; i++) {
-                int* this = bs_fetchUnit(&bsmod.selected_tiles, i);
-                bs_ivec2 coord = bsgfx_tileCoordinate(primitive, bsmod.selected_tile_axis, *this);
+            for (int i = 0; i < _bsmod_.selected_tiles.count; i++) {
+                int* this = bs_fetchUnit(&_bsmod_.selected_tiles, i);
+
+                bs_ivec2 coord;
+                bsgfx_tileCoordinate(primitive, _bsmod_.selected_tile_axis, *this, &coord);
+
                 if (coord.x == BS_I32_MAX)
                     continue;
-                bsgfx_pushTileAt(batch, primitive, bsmod.selected_tile_axis, coord.x, coord.y, 0, 0);
+
+                bs_U32 tile_index;
+                bsgfx_pushTileAt(batch, primitive, _bsmod_.selected_tile_axis, coord.x, coord.y, 0, 0, &tile_index);
             }
 
             bs_pushBatch(batch, BS_U32_MAX, BS_U32_MAX);
@@ -176,42 +159,54 @@ void bsmod_onTick() {
             for (int i = 0; i < bsgfx_count(BSGFX_TYPE_TILE); i++) {
                 bsgfx_Tile* tile = bsgfx_get(BSGFX_TYPE_TILE, i);
 
-                for (int j = 0; j < bsmod.selected_tiles.count; j++) {
-                    int id = *(int*)bs_fetchUnit(&bsmod.selected_tiles, j);
+                for (int j = 0; j < _bsmod_.selected_tiles.count; j++) {
+                    int id = *(int*)bs_fetchUnit(&_bsmod_.selected_tiles, j);
                     if (tile->index == id) {
-                        bsmod_select(&bsmod.selected_ids, BSGFX_TYPE_TILE, i);
+                        bsmod_select(&_bsmod_.selected_ids, BSGFX_TYPE_TILE, i);
                     }
                 }
             }
 
         }
 
-        bs_mat4 transform = bs_transform(primitive->position, primitive->rotation, primitive->scale);
+        bs_mat4 transform = BS_MAT4_IDENTITY;
+        bs_m4Translate(&transform, &primitive->position, &transform);
+        bs_m4Rotate(&transform, &primitive->rotation, &transform);
+        bs_m4Scale(&transform, &primitive->scale, &transform);
+
         bs_Aabb aabb = { .min = bs_v3V1(-1), .max = bs_v3V1(1) };
-        bsgfx_obbInstance(&aabb, BS_WHITE, &transform);
+        //bsgfx_instanceObb(&aabb, BS_WHITE, &transform); //TODO:
 
-        bsmod_instanceAxisFace(primitive, bsmod.selected_tile_axis, BS_RGBA(130, 245, 245, 255), &BS_MAT4_IDENTITY);
+        bsmod_instanceAxisFace(primitive, _bsmod_.selected_tile_axis, BS_RGBA(130, 245, 245, 255), &BS_MAT4_IDENTITY);
 
-        last_selected_count = bsmod.selected_tiles.count;
-        last_selected_type = bsmod.selected_type;
+        last_selected_count = _bsmod_.selected_tiles.count;
+        last_selected_type = _bsmod_.selected_type;
     } return;
     case BSGFX_TYPE_PRIMITIVE: {
-        for (int i = 0; i < bsmod.selected_ids.count; i++) {
-            int* this = bs_fetchUnit(&bsmod.selected_ids, i);
+        for (int i = 0; i < _bsmod_.selected_ids.count; i++) {
+            int* this = bs_fetchUnit(&_bsmod_.selected_ids, i);
             bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, *this);
 
-            bs_mat4 transform = bs_transform(primitive->position, primitive->rotation, primitive->scale);
+            bs_mat4 transform = BS_MAT4_IDENTITY;
+            bs_m4Translate(&transform, &primitive->position, &transform);
+            bs_m4Rotate(&transform, &primitive->rotation, &transform);
+            bs_m4Scale(&transform, &primitive->scale, &transform);
+
             bs_Aabb aabb = { .min = bs_v3V1(-1), .max = bs_v3V1(1) };
-            bsgfx_obbInstance(&aabb, BS_WHITE, &transform);
+            // bsgfx_obbInstance(&aabb, BS_WHITE, &transform); // TODO:
         }
     } break;
     case BSGFX_TYPE_PREFAB: {
-        for (int i = 0; i < bsmod.selected_ids.count; i++) {
-            int* this = bs_fetchUnit(&bsmod.selected_ids, i);
+        for (int i = 0; i < _bsmod_.selected_ids.count; i++) {
+            int* this = bs_fetchUnit(&_bsmod_.selected_ids, i);
             bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, *this);
 
-            bs_mat4 transform = bs_transform(prefab->position, prefab->rotation, prefab->scale);
-            bs_Aabb aabb = { .min = bs_v3V1(-1), .max = bs_v3V1(1) };
+            bs_mat4 transform = BS_MAT4_IDENTITY;
+            bs_m4Translate(&transform, &prefab->position, &transform);
+            bs_m4Rotate(&transform, &prefab->rotation, &transform);
+            bs_m4Scale(&transform, &prefab->scale, &transform);
+
+            bs_Aabb aabb = { .min = { -1, -1, -1 }, .max = { 1, 1, 1 } };
 
             bsgfx_instancePrefab(*this, BSGFX_PREFAB_SUBTYPE_MESH_POLYGON_OUTLINE);
         }
@@ -219,15 +214,15 @@ void bsmod_onTick() {
     }
 
     end:
-    last_selected_count = bsmod.selected_ids.count;
-    last_selected_type = bsmod.selected_type;
+    last_selected_count = _bsmod_.selected_ids.count;
+    last_selected_type = _bsmod_.selected_type;
 }
 
-void bsmod_onMap(bsgfx_TypeId type_id, int id) {
+BSMODAPI void _bsmod_onMap(bsgfx_TypeId type_id, int id) {
     switch (type_id) {
     case BSGFX_TYPE_PRIMITIVE:
         bsgfx_Primitive* primitive = bsgfx_get(type_id, id);
-        if (bsmod.settings.draw_hidden_primitives && primitive->flags & BSGFX_PRIMITIVE_HIDDEN)
+        if (_bsmod_.settings.draw_hidden_primitives && primitive->flags & BSGFX_PRIMITIVE_HIDDEN)
             primitive->flags &= ~BSGFX_PRIMITIVE_HIDDEN;
         break;
     }
@@ -250,15 +245,15 @@ static void bsmod_computeFlyCamera() {
 
     bs_vec2 cursor = bs_cursorPosition();
 
-    if (bsmod_keyDown(BS_KEY_LEFT_SHIFT))
+    if (bs_keyDown(BS_KEY_LEFT_SHIFT))
         move_speed = 0.5;
 
-    if (bsmod_middleClickOnce()) {
+    if (bs_middleClickOnce()) {
         rotating = true;
         last_cursor = cursor;
     }
 
-    if (bsmod_middleClick()) {
+    if (bs_middleClick()) {
         bs_vec2 delta = {
             last_cursor.x - cursor.x,
             last_cursor.y - cursor.y
@@ -273,52 +268,69 @@ static void bsmod_computeFlyCamera() {
         last_cursor = cursor;
     }
 
-    if (bsmod_middleClickUpOnce()) {
+    if (bs_middleClickUpOnce()) {
         rotating = false;
     }
 
     bs_vec3 forward = {
-        cosf(pitch) * sinf(yaw),
-        sinf(pitch),
-        cosf(pitch) * cosf(yaw)
+        bs_cos(pitch) * bs_sin(yaw),
+        bs_sin(pitch),
+        bs_cos(pitch) * bs_cos(yaw)
     };
 
     static bs_vec3 camera_direction;
     static bs_vec3 camera_position = { 7.7, 12.7, 18.0 };
 
-    camera_direction = bs_v3Normalize(forward);
-    bs_vec3 right = bs_v3Normalize(bs_v3Cross(camera_direction, BS_V3(0.0, 1.0, 0.0)));
-    bs_vec3 up = BS_V3(0.0, 1.0, 0.0);
+    bs_vec3 temp;
+    bs_vec3 right, up = BS_V3(0.0, 1.0, 0.0);
 
-    if (bsmod_keyDown(BS_KEY_W))
-        camera_position = bs_v3Add(camera_position, bs_v3MulS(camera_direction, move_speed));
+    bs_v3Normalize(&forward, &camera_direction);
+    bs_v3Cross(&camera_direction, &BS_V3(0.0, 1.0, 0.0), &right);
+    bs_v3Normalize(&right, &right);
 
-    if (bsmod_keyDown(BS_KEY_S))
-        camera_position = bs_v3Sub(camera_position, bs_v3MulS(camera_direction, move_speed));
+    if (bs_keyDown(BS_KEY_W)) {
+        bs_v3MulS(&camera_direction, move_speed, &temp);
+        bs_v3Add(&camera_position, &temp, &camera_position);
+    }
 
-    if (bsmod_keyDown(BS_KEY_D))
-        camera_position = bs_v3Add(camera_position, bs_v3MulS(right, move_speed));
+    if (bs_keyDown(BS_KEY_S)) {
+        bs_v3MulS(&camera_direction, move_speed, &temp);
+        bs_v3Sub(&camera_position, &temp, &camera_position);
+    }
 
-    if (bsmod_keyDown(BS_KEY_A))
-        camera_position = bs_v3Sub(camera_position, bs_v3MulS(right, move_speed));
+    if (bs_keyDown(BS_KEY_D)) {
+        bs_v3MulS(&right, move_speed, &temp);
+        bs_v3Add(&camera_position, &temp, &camera_position);
+    }
 
-    bs_mat4 proj = bs_perspective(
+    if (bs_keyDown(BS_KEY_A)) {
+        bs_v3MulS(&right, move_speed, &temp);
+        bs_v3Sub(&camera_position, &temp, &camera_position);
+    }
+
+    bs_mat4 proj, view;
+    
+    bs_perspective(
         bs_radians(50.0),
         resolution.x / resolution.y,
         0.1,
-        1000.0
+        1000.0,
+        &proj
     );
 
-    bs_mat4 view = bs_lookAt(
-        camera_position,
-        bs_v3Add(camera_position, camera_direction),
-        BS_V3(0.0, 1.0, 0.0)
+    bs_vec3 center;
+    bs_v3Add(&camera_position, &camera_direction, &center),
+    bs_lookAt(
+        &camera_position,
+        &center,
+        &BS_V3(0.0, 1.0, 0.0),
+        &view
     );
 
     bsgfx_setCamera(&proj, &view);
 }
 
-void bsmod_onGfxRender() {
+BSMODAPI void _bsmod_onGfxRender() {
     static bool override_camera;
 
     if (BS_GET_BIT(bs_io()->keys, BS_KEY_TAB) && !BS_GET_BIT(bs_io()->keys_old, BS_KEY_TAB)) {
@@ -327,7 +339,7 @@ void bsmod_onGfxRender() {
 
     }
 
-    if (bsmod.ui_blocked)
+    if (_bsmod_.ui_blocked)
         bs_lockCursorPosition(false);
 
     if (override_camera) {
@@ -339,51 +351,53 @@ void bsmod_onGfxRender() {
 
 static DWORD WINAPI bsmod_tickAsync(void* param) {
     while (1) {
-        InterlockedExchange(&_bsmod_has_performed_tracked_changes, 0);
+        InterlockedExchange(&_bsmod_has_performed_tracked_changes_, 0);
         bsmod_onTrack();
-        InterlockedExchange(&_bsmod_has_performed_tracked_changes, 1);
+        InterlockedExchange(&_bsmod_has_performed_tracked_changes_, 1);
         Sleep(1000);
     }
 }
 
-void bsmod_onLoadVariables() {
-    if (_bsmod_config.doc)
-        bs_destroyJson(&_bsmod_config);
+BSMODAPI void _bsmod_onLoadVariables() {
+    if (_bsmod_config_.doc)
+        bs_destroyJson(&_bsmod_config_);
 
-    _bsmod_config = bs_loadJson(BSMOD_CONFIG_PATH);
-    if (_bsmod_config.doc)
+    bs_loadJson(&_bsmod_config_, BS_CONSTANT_STRING(BSMOD_CONFIG_PATH));
+    if (_bsmod_config_.doc)
         bs_infoF("Loaded \"%s\"\n", BSMOD_CONFIG_PATH);
 
 }
 
-void bsmod_onIni() {
-    _bsmod_images = bs_configureSource(BS_OBJECT_IMAGE, BSMOD_IMAGES_COUNT, (const char* []) { BSMOD_IMAGE_IDS(BS_STRING_GEN) });
-    _bsmod_samplers = bs_configureSource(BS_OBJECT_SAMPLER, BSMOD_SAMPLERS_COUNT, (const char* []) { BSMOD_SAMPLER_IDS(BS_STRING_GEN) });
-    _bsmod_buffers = bs_configureSource(BS_OBJECT_BUFFER, BSMOD_BUFFERS_COUNT, (const char* []) { BSMOD_BUFFER_IDS(BS_STRING_GEN) });
-    _bsmod_queues = bs_configureSource(BS_OBJECT_QUEUE, BSMOD_QUEUES_COUNT, (const char* []) { BSMOD_QUEUE_IDS(BS_STRING_GEN) });
-    _bsmod_batches = bs_configureSource(BS_OBJECT_BATCH, BSMOD_BATCHES_COUNT, (const char* []) { BSMOD_BATCH_IDS(BS_STRING_GEN) });
-    _bsmod_renderers = bs_configureSource(BS_OBJECT_RENDERER, BSMOD_RENDERERS_COUNT, (const char* []) { BSMOD_RENDERER_IDS(BS_STRING_GEN) });
-    _bsmod_ray_tracers = bs_configureSource(BS_OBJECT_RAY_TRACER, BSMOD_RAY_TRACERS_COUNT, (const char* []) { BSMOD_RAY_TRACER_IDS(BS_STRING_GEN) });
-    _bsmod_fonts = bs_configureSource(BS_OBJECT_FONT, BSMOD_FONTS_COUNT, (const char* []) { BSMOD_FONT_IDS(BS_STRING_GEN) });
-    _bsmod_atlases = bs_configureSource(BS_OBJECT_ATLAS, BSMOD_ATLASES_COUNT, (const char* []) { BSMOD_ATLAS_IDS(BS_STRING_GEN) });
+BSMODAPI void _bsmod_onIni() {
+    bs_Result result;
+
+    _bsmod_images_ = bs_configureSource(BS_OBJECT_IMAGE, BSMOD_IMAGES_COUNT, (const char* []) { BSMOD_IMAGE_IDS(BS_STRING_GEN) });
+    _bsmod_samplers_ = bs_configureSource(BS_OBJECT_SAMPLER, BSMOD_SAMPLERS_COUNT, (const char* []) { BSMOD_SAMPLER_IDS(BS_STRING_GEN) });
+    _bsmod_buffers_ = bs_configureSource(BS_OBJECT_BUFFER, BSMOD_BUFFERS_COUNT, (const char* []) { BSMOD_BUFFER_IDS(BS_STRING_GEN) });
+    _bsmod_queues_ = bs_configureSource(BS_OBJECT_QUEUE, BSMOD_QUEUES_COUNT, (const char* []) { BSMOD_QUEUE_IDS(BS_STRING_GEN) });
+    _bsmod_batches_ = bs_configureSource(BS_OBJECT_BATCH, BSMOD_BATCHES_COUNT, (const char* []) { BSMOD_BATCH_IDS(BS_STRING_GEN) });
+    _bsmod_renderers_ = bs_configureSource(BS_OBJECT_RENDERER, BSMOD_RENDERERS_COUNT, (const char* []) { BSMOD_RENDERER_IDS(BS_STRING_GEN) });
+    _bsmod_ray_tracers_ = bs_configureSource(BS_OBJECT_RAY_TRACER, BSMOD_RAY_TRACERS_COUNT, (const char* []) { BSMOD_RAY_TRACER_IDS(BS_STRING_GEN) });
+    _bsmod_fonts_ = bs_configureSource(BS_OBJECT_FONT, BSMOD_FONTS_COUNT, (const char* []) { BSMOD_FONT_IDS(BS_STRING_GEN) });
+    _bsmod_atlases_ = bs_configureSource(BS_OBJECT_ATLAS, BSMOD_ATLASES_COUNT, (const char* []) { BSMOD_ATLAS_IDS(BS_STRING_GEN) });
 
     bsmod_onLoadVariables();
     bsmod_loadShaderReferences();
 
-    bs_except(BSX_NOT_FOUND);
-    bsmod.bsgfx_package = bs_loadPackage(BSGFX_CONTENT_PATH);
-    if (!bs_except(0)) {
-        bs_except(BSX_FAILED_TO_QUERY);
-        bs_Resource* resource = bs_loadResource(bsmod.bsgfx_package, "bindings", 0);
-        bs_except(0);
+    result = bs_loadPackage(BSGFX_CONTENT_PATH, &_bsmod_.bsgfx_package);
 
-        if (resource) {
-            bsmod.bindings_json = bs_json(resource->data->value, resource->data->len);
+    if (result == BS_RESULT_OK) {
+
+        bs_Resource* resource;
+        result = bs_loadResource(_bsmod_.bsgfx_package, 0, &resource, BS_CONSTANT_STRING("bindings"));
+
+        if (result == BS_RESULT_OK) {
+            result = bs_json(resource->data->value, resource->data->len, &_bsmod_.bindings_json);
         }
     }
 
-    if (!bsmod.bindings_json.doc)
-        bsmod.bindings_json = bs_emptyJson();
+    if (!_bsmod_.bindings_json.doc)
+        _bsmod_.bindings_json = bs_emptyJson();
 
     bsmod_iniPackage(BSMOD_CONTENT_PATH);
     bsmod_iniPackage(BSGFX_CONTENT_PATH);
@@ -391,12 +405,12 @@ void bsmod_onIni() {
     // bsmod_iniLisk();
     bsmod_iniCompiler();
 
-    bsmod.bsgfx = LoadLibrary("basilisk-gfx.dll");
-    if (bsmod.bsgfx) {
+    _bsmod_.bsgfx = LoadLibrary("basilisk-gfx.dll");
+    if (_bsmod_.bsgfx) {
         bs_Procedure procedures[] = {
             BSMOD_FOREACH_PROC(BS_STRING_GEN_2)
         };
-        bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), bsmod.bsgfx, &_bsmod_procs);
+        bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), _bsmod_.bsgfx, &_bsmod_procs);
     }
 
     bs_configureSource(BS_OBJECT_IMAGE, BSMOD_IMAGES_COUNT, (const char* []) { BSMOD_IMAGE_IDS(BS_STRING_GEN) });
@@ -410,20 +424,20 @@ void bsmod_onIni() {
     bs_configureSource(BS_OBJECT_ATLAS, BSMOD_ATLASES_COUNT, (const char* []) { BSMOD_ATLAS_IDS(BS_STRING_GEN) });
 }
 
-void bsmod_onLateIni() { // ugly, called after first track
+BSMODAPI void _bsmod_onLateIni() { // ugly, called after first track
+    bs_Result result;
+
     bsmod_savePackage(BSMOD_CONTENT_PATH);
     bsmod_savePackage(BSGFX_CONTENT_PATH);
     bsmod_savePackage(bsmod_applicationContentPath());
 
-    bs_except(BSX_NOT_FOUND);
-    bsmod.package = bs_loadPackage(BSMOD_CONTENT_PATH);
-    bs_except(0);
+    result = bs_loadPackage(BSMOD_CONTENT_PATH, &_bsmod_.package);
 
     if (bs_args()->track_changes)
         CreateThread(NULL, 0, bsmod_tickAsync, NULL, 0, NULL);
 }
 
-void bsmod_onCreateQuadSubtypes(bs_Range range) {
+BSMODAPI void _bsmod_onCreateQuadSubtypes(bs_Range range) {
     bs_Batch* batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_QUAD_INSTANCED)->batch;
     _bsmod_subtypes[BSMOD_SUBTYPE_MATERIAL_ICON] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, batch, 0, range);
     _bsmod_subtypes[BSMOD_SUBTYPE_PRIMITIVE_ICON] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, batch, 0, range);
@@ -431,7 +445,7 @@ void bsmod_onCreateQuadSubtypes(bs_Range range) {
     _bsmod_subtypes[BSMOD_SUBTYPE_BILLBOARD] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, batch, 0, range);
 }
 
-void bsmod_bindAtlases() {
+BSMODAPI void _bsmod_bindAtlases() {
     bs_Sampler* nearest_sampler = bs_fetch(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)->sampler;
 
     if (bs_exists(BSMOD_ATLASES, BSMOD_ATLAS_UI)) {
@@ -472,39 +486,46 @@ void bsmod_bindAtlases() {
         bs_bindImages(BSMOD_SET_IMAGE_ATLAS_ICONS, BSMOD_BINDING_IMAGE_ATLAS_ICONS, icon_atlases, BSMOD_ATLAS_ICONS_COUNT);
 }
 
-void bsmod_onLoad() {
+BSMODAPI void _bsmod_onLoad() {
+    bs_Result result;
+
     bs_Sampler* nearest_sampler = bs_fetch(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)->sampler;
 
-    bs_Object* font = bs_loadFont(BS_FONT(BSGFX_FONTS, BSGFX_FONT_ARIAL_16, 0), bsmod.package, "fonts/consolas_16", BSGFX_ALPHABET_DEFAULT, 32.0, 0);
+    bs_Object* font = bs_loadFont(BS_FONT(BSGFX_FONTS, BSGFX_FONT_ARIAL_16, 0), _bsmod_.package, "fonts/consolas_16", BSGFX_ALPHABET_DEFAULT, 32.0, 0);
     if (font)
         bs_bindFont(font->font, bs_fetch(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)->sampler, BSGFX_SET_FONTS, BSGFX_BINDING_FONT_ARIAL);
 
+    bs_Object* quad_instanced_batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_QUAD_INSTANCED);
     bs_Range range = {
-		.batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_QUAD_INSTANCED)->batch,
 		.num = 6, // single quad
 	};
-	_bsmod_subtypes[BSMOD_SUBTYPE_FONT_CONSOLAS] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, range.batch, 0, range);
+	_bsmod_subtypes[BSMOD_SUBTYPE_FONT_CONSOLAS] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instanced_batch->batch, 0, range);
 
     bs_Object* batch = bs_batch(BS_BATCH(BSMOD_BATCHES, BSMOD_BATCH_TILE, 0), sizeof(int), $vs_bsgfx_tile_static(), BS_BATCH_KEEP_DATA);
     if (batch && !bs_batchIsPushed(batch->batch)) {
-        bsgfx_pushTile(batch->batch, bs_quad(BS_V3(0, 0, 0), BS_V2(1, 1)), BS_V3(0, 0, 0), 0, 0);
+        bs_Range range;
+        bsgfx_pushTile(batch->batch, bs_quad(BS_V3(0, 0, 0), BS_V2(1, 1)), BS_V3(0, 0, 0), 0, 0, &range);
         bs_pushBatch(batch->batch, BS_U32_MAX, BS_U32_MAX);
     }
 
     //_bsmod_subtypes[BSMOD_SUBTYPE_SPHERE_HIGH_QUALITY] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, BSGFX_BATCH_MESH_INSTANCED, BSGFX_SUBTYPE_HAS_SHADOWS, sphere_high_quality_range);
 
-    bs_queue(BS_QUEUE(BSMOD_QUEUES, BSMOD_QUEUE_GRAPHICS, BS_OBJECT_HAS_SWAPS_BIT), BS_QUEUE_GRAPHICS_BIT)->queue;
-    bs_queue(BS_QUEUE(BSMOD_QUEUES, BSMOD_QUEUE_GRAPHICS_RASTERIZATION, 0), BS_QUEUE_GRAPHICS_BIT | BS_QUEUE_DONT_SIGNAL)->queue;
+    bs_queue(BS_QUEUE(BSMOD_QUEUES, BSMOD_QUEUE_GRAPHICS, BS_OBJECT_HAS_SWAPS_BIT), BS_QUEUE_GRAPHICS_BIT);
+    bs_queue(BS_QUEUE(BSMOD_QUEUES, BSMOD_QUEUE_GRAPHICS_RASTERIZATION, 0), BS_QUEUE_GRAPHICS_BIT | BS_QUEUE_DONT_SIGNAL);
 
     bs_Object* renderer = bs_renderer(BS_RENDERER(BSMOD_RENDERERS, BSMOD_RENDERER, BS_OBJECT_HAS_SWAPS_BIT), 0);
     bs_ivec2 resolution = bs_resolution();
     if (renderer) {
-        bs_Image* depth = bs_image(BS_IMAGE(BSMOD_IMAGES, BSMOD_IMAGE_DEPTH, 0), resolution, 0, BS_FORMAT_D32_SFLOAT_S8_UINT, BS_IMAGE_ATTACHMENT_BIT)->image;
-        bs_Image* color = bs_image(BS_IMAGE(BSMOD_IMAGES, BSMOD_IMAGE_COLOR, 0), resolution, 0, BS_FORMAT_R8G8B8A8_UNORM, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT)->image;
+        bs_Object* depth = BS_IMAGE(BSMOD_IMAGES, BSMOD_IMAGE_DEPTH, 0);
+        bs_Object* color = BS_IMAGE(BSMOD_IMAGES, BSMOD_IMAGE_COLOR, 0);
+
+        result = bs_image(depth, resolution, 0, BS_FORMAT_D32_SFLOAT_S8_UINT, BS_IMAGE_ATTACHMENT_BIT);
+        result = bs_image(color, resolution, 0, BS_FORMAT_R8G8B8A8_UNORM, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT);
+
         // bs_U32 subpass, bs_Image* image, bs_ImageLayout old_layout, bs_ImageLayout new_layout, bs_OutputFlags flags
         bs_output(renderer->renderer, (bs_Output) {
             .subpass = 0, 
-            .image = bs_swapchain()->image->image,
+            .image = bs_scope()->window->swapchain_image->image,
             .load_op = BS_LOAD_OP_CLEAR,
             .store_op = BS_STORE_OP_STORE,
             .old_layout = BS_LAYOUT_UNDEFINED,
@@ -536,14 +557,15 @@ void bsmod_onLoad() {
         bs_framebuffer(renderer->renderer, resolution);
     }
 
-    bs_Object* renderer_3d = bs_renderer(BS_RENDERER(_bsmod_renderers, BSMOD_RENDERER_3D, BS_OBJECT_HAS_SWAPS_BIT), 0);
+    bs_Object* renderer_3d = bs_renderer(BS_RENDERER(_bsmod_renderers_, BSMOD_RENDERER_3D, BS_OBJECT_HAS_SWAPS_BIT), 0);
     if (renderer_3d) {
-        bs_Image* depth = bs_image(BS_IMAGE(BSMOD_IMAGES, BSMOD_IMAGE_DEPTH_3D, 0), resolution, 0, BS_FORMAT_D32_SFLOAT_S8_UINT, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_DST_BIT)->image;
+        bs_Object* depth = BS_IMAGE(BSMOD_IMAGES, BSMOD_IMAGE_DEPTH_3D, 0);
+        bs_image(depth, resolution, 0, BS_FORMAT_D32_SFLOAT_S8_UINT, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_DST_BIT);
        // bs_Image* color = bs_image(BS_IMAGE(BSMOD_IMAGE_COLOR, 0), resolution, 0, BS_FORMAT_R8G8B8A8_UNORM, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT)->image;
 
         bs_output(renderer_3d->renderer, (bs_Output) {
             .subpass = 0, 
-            .image = bs_swapchain()->image->image,
+            .image = bs_scope()->window->swapchain_image->image,
             .load_op = BS_LOAD_OP_LOAD,
             .store_op = BS_STORE_OP_STORE,
             .old_layout = BS_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -570,15 +592,15 @@ void bsmod_onLoad() {
         bs_framebuffer(renderer_3d->renderer, resolution);
     }
 
-    bs_except(BSX_FAILED_TO_QUERY);
-    bs_Object* ui = bs_loadAtlas(BS_ATLAS(BSMOD_ATLASES, BSMOD_ATLAS_UI, 0), bsmod.package, "ui", 0);
-    bs_except(BSX_FAILED_TO_QUERY);
-    bs_Object* material_icons = bs_loadAtlas(BS_ATLAS(BSMOD_ATLASES, BSMOD_ATLAS_MATERIAL_ICONS, 0), bsmod.package, "material_icons", 0);
-    bs_except(BSX_FAILED_TO_QUERY);
-    bs_Object* primitive_icons = bs_loadAtlas(BS_ATLAS(BSMOD_ATLASES, BSMOD_ATLAS_PRIMITIVE_ICONS, 0), bsmod.package, "primitive_icons", 0);
-    bs_except(BSX_FAILED_TO_QUERY);
-    bs_Object* prefab_icons = bs_loadAtlas(BS_ATLAS(BSMOD_ATLASES, BSMOD_ATLAS_PREFAB_ICONS, 0), bsmod.package, "prefab_icons", 0);
-    bs_except(0);
+    bs_Object* ui = BS_ATLAS(BSMOD_ATLASES, BSMOD_ATLAS_UI, 0);
+    bs_Object* material_icons = BS_ATLAS(BSMOD_ATLASES, BSMOD_ATLAS_MATERIAL_ICONS, 0);
+    bs_Object* primitive_icons = BS_ATLAS(BSMOD_ATLASES, BSMOD_ATLAS_PRIMITIVE_ICONS, 0);
+    bs_Object* prefab_icons = BS_ATLAS(BSMOD_ATLASES, BSMOD_ATLAS_PREFAB_ICONS, 0);
+
+    bs_loadAtlas(ui, _bsmod_.package, 0, BS_CONSTANT_STRING("ui"));
+    bs_loadAtlas(material_icons, _bsmod_.package, 0, BS_CONSTANT_STRING("material_icons"));
+    bs_loadAtlas(primitive_icons, _bsmod_.package, 0, BS_CONSTANT_STRING("primitive_icons"));
+    bs_loadAtlas(prefab_icons, _bsmod_.package, 0, BS_CONSTANT_STRING("prefab_icons"));
 
     bsmod_bindAtlases();
 }

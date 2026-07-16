@@ -93,9 +93,9 @@ void bsmod_onTrack()
     next.bsmod_onTrack();
 }
 
-void bsmod_packBindings()
+bs_Result bsmod_packBindings()
 {
-    next.bsmod_packBindings();
+    return next.bsmod_packBindings();
 }
 
 void bsmod_onCompileShader(
@@ -140,93 +140,6 @@ void bsmod_onPackTextureArray(
     next.bsmod_onPackTextureArray(params);
 }
 
-bool bsmod_keyHeld(
-    bs_U32 code)
-{
-    return next.bsmod_keyHeld(code);
-}
-
-bool bsmod_keyDown(
-    bs_U32 code)
-{
-    return next.bsmod_keyDown(code);
-}
-
-bool bsmod_keyDownOnce(
-    bs_U32 code)
-{
-    return next.bsmod_keyDownOnce(code);
-}
-
-bool bsmod_keyUpOnce(
-    bs_U32 code)
-{
-    return next.bsmod_keyUpOnce(code);
-}
-
-bool bsmod_charDown(
-    unsigned char code)
-{
-    return next.bsmod_charDown(code);
-}
-
-bool bsmod_charDownOnce(
-    unsigned char code)
-{
-    return next.bsmod_charDownOnce(code);
-}
-
-bool bsmod_charUpOnce(
-    unsigned char code)
-{
-    return next.bsmod_charUpOnce(code);
-}
-
-bool bsmod_middleClick()
-{
-    return next.bsmod_middleClick();
-}
-
-bool bsmod_middleClickOnce()
-{
-    return next.bsmod_middleClickOnce();
-}
-
-bool bsmod_middleClickUpOnce()
-{
-    return next.bsmod_middleClickUpOnce();
-}
-
-bool bsmod_leftClick()
-{
-    return next.bsmod_leftClick();
-}
-
-bool bsmod_rightClick()
-{
-    return next.bsmod_rightClick();
-}
-
-bool bsmod_rightClickOnce()
-{
-    return next.bsmod_rightClickOnce();
-}
-
-bool bsmod_leftClickOnce()
-{
-    return next.bsmod_leftClickOnce();
-}
-
-bool bsmod_rightClickUpOnce()
-{
-    return next.bsmod_rightClickUpOnce();
-}
-
-bool bsmod_leftClickUpOnce()
-{
-    return next.bsmod_leftClickUpOnce();
-}
-
 void bsmod_packAtlasTexture(
     bsmod_AtlasPacker* packer, 
     char* name, 
@@ -253,25 +166,25 @@ bsmod_AtlasPacker bsmod_createAtlasPacker()
     return next.bsmod_createAtlasPacker();
 }
 
-void bsmod_packImageDirectory(
+bs_Result bsmod_packImageDirectory(
     char* directory_name, 
     char* package_name, 
     char* resource_name)
 {
-    next.bsmod_packImageDirectory(directory_name, package_name, resource_name);
+    return next.bsmod_packImageDirectory(directory_name, package_name, resource_name);
 }
 
-void bsmod_packBMFont(
+bs_Result bsmod_packBMFont(
     char* package_name, 
     char* bmfont_path, 
     char* png_path, 
     char* value, 
     int value_length)
 {
-    next.bsmod_packBMFont(package_name, bmfont_path, png_path, value, value_length);
+    return next.bsmod_packBMFont(package_name, bmfont_path, png_path, value, value_length);
 }
 
-void bsmod_packBMFontV(
+bs_Result bsmod_packBMFontV(
     char* package_name, 
     char* bmfont_path, 
     char* png_path, 
@@ -281,10 +194,10 @@ void bsmod_packBMFontV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    bsmod_packBMFont(package_name, bmfont_path, png_path, _formatted, _length);
+    return bsmod_packBMFont(package_name, bmfont_path, png_path, _formatted, _length);
 }
 
-void bsmod_packBMFontF(
+bs_Result bsmod_packBMFontF(
     char* package_name, 
     char* bmfont_path, 
     char* png_path, 
@@ -293,8 +206,9 @@ void bsmod_packBMFontF(
 {
     va_list args;
     va_start(args, format);
-    bsmod_packBMFontV(package_name, bmfont_path, png_path, format, args);
+    bs_Result _return = bsmod_packBMFontV(package_name, bmfont_path, png_path, format, args);
     va_end(args);
+    return _return;
 }
 
 bs_List* bsmod_packages()
@@ -314,55 +228,53 @@ bsmod_Package* bsmod_ensurePackage(
     return next.bsmod_ensurePackage(name);
 }
 
-void bsmod_iniPackage(
+bs_Result bsmod_iniPackage(
     const char* package_name)
 {
-    next.bsmod_iniPackage(package_name);
+    return next.bsmod_iniPackage(package_name);
 }
 
-void bsmod_packResource(
+bs_Result bsmod_packResource(
     bs_ResourceType type, 
     unsigned char* data, 
     size_t data_size, 
-    const char* package_name, 
     char* value, 
     int value_length)
 {
-    next.bsmod_packResource(type, data, data_size, package_name, value, value_length);
+    return next.bsmod_packResource(type, data, data_size, value, value_length);
 }
 
-void bsmod_packResourceV(
+bs_Result bsmod_packResourceV(
     bs_ResourceType type, 
     unsigned char* data, 
     size_t data_size, 
-    const char* package_name, 
     char* format, 
     va_list args)
 {
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    bsmod_packResource(type, data, data_size, package_name, _formatted, _length);
+    return bsmod_packResource(type, data, data_size, _formatted, _length);
 }
 
-void bsmod_packResourceF(
+bs_Result bsmod_packResourceF(
     bs_ResourceType type, 
     unsigned char* data, 
     size_t data_size, 
-    const char* package_name, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bsmod_packResourceV(type, data, data_size, package_name, format, args);
+    bs_Result _return = bsmod_packResourceV(type, data, data_size, format, args);
     va_end(args);
+    return _return;
 }
 
-void bsmod_savePackage(
+bs_Result bsmod_savePackage(
     const char* name)
 {
-    next.bsmod_savePackage(name);
+    return next.bsmod_savePackage(name);
 }
 
 void bsmod_loadShaderReferences()
@@ -433,7 +345,7 @@ void bsmod_endRasterize()
     next.bsmod_endRasterize();
 }
 
-void bsmod_rasterizeInstance(
+bs_Result bsmod_rasterizeInstance(
     bs_PipelineHash pipeline_hash, 
     int subtype, 
     int instance_id, 
@@ -444,7 +356,7 @@ void bsmod_rasterizeInstance(
     size_t push_constant_size, 
     unsigned char* push_constant)
 {
-    next.bsmod_rasterizeInstance(pipeline_hash, subtype, instance_id, category, name, width, height, push_constant_size, push_constant);
+    return next.bsmod_rasterizeInstance(pipeline_hash, subtype, instance_id, category, name, width, height, push_constant_size, push_constant);
 }
 
 void bsmod_instanceTransform()

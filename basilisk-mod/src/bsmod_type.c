@@ -2,7 +2,7 @@
 #include <bsmod_type.h>
 #include <bsmod_bpak.h>
 #include <bsgfx_scene.h>
-#include <bsmod.h>
+#include <_bsmod_.h>
 #include "../bsgfx_contracts.h"
 #include <bsgfx.h>
 #include <types/primitive/bsgfx_primitive.h>
@@ -50,8 +50,8 @@ void bsmod_deleteSelected(bsgfx_TypeId type_id) {
 	// bsgfx_saveHistory(type_id);
 
 	bsgfx_Type* type = bsgfx_getType(type_id);
-	int count = bsmod.selected_ids.count;
-	int* ids = bsmod.selected_ids.data;
+	int count = _bsmod_.selected_ids.count;
+	int* ids = _bsmod_.selected_ids.data;
 
 	for (int i = 0; i < count - 1; i++) {
 		for (int j = i + 1; j < count; j++) {
@@ -104,7 +104,7 @@ static int bs_compareAccessorZ(const int* a_id, const int* b_id) {
 void bsmod_saveType(bsgfx_TypeId id, const char* comment_format, ...) {
 	bsgfx_Type* type = bsgfx_getType(id);
 
-	// bsmod.history = BS_I64_MAX; // ?
+	// _bsmod_.history = BS_I64_MAX; // ?
 
 	bsgfx_TypeHeader* data;
 	size_t size = sizeof(*data) + type->count * sizeof(int) + type->count * type->unmapped_unit_size + type->flexible_count * type->unmapped_flexible_size;
@@ -284,7 +284,7 @@ void* bsmod_add(bsgfx_TypeId id, void* data) {
  *============================================================================*/
 
 bool bsmod_isSelected(bs_List* list, bsgfx_TypeId type, int id) {
-	if (bsmod.selected_type != type)
+	if (_bsmod_.selected_type != type)
 		return false;
 
 	for (int i = 0; i < list->count; i++) {
@@ -296,16 +296,16 @@ bool bsmod_isSelected(bs_List* list, bsgfx_TypeId type, int id) {
 }
 
 void bsmod_select(bs_List* list, bsgfx_TypeId type, int id) {
-	if (bsmod.selected_type != type) {
+	if (_bsmod_.selected_type != type) {
 		bsmod_deselectAll();
-		bsmod.selected_type = type;
+		_bsmod_.selected_type = type;
 	}
 
 	if (bsmod_isSelected(list, type, id))
 		return;
 
 	if (list == BSMOD_IDS)
-		bs_infoF("Selected %s %d\n", bsgfx_getType(bsmod.selected_type)->singular, id);
+		bs_infoF("Selected %s %d\n", bsgfx_getType(_bsmod_.selected_type)->singular, id);
 
 	// bsgfx_highlightEditorTab("instance");
 
@@ -326,21 +326,21 @@ static void bsmod_clearTiles() {
 }
 
 void bsmod_deselectAll() {
-	if (bsmod.selected_ids.count != 0 || bsmod.selected_tiles.count != 0)
-		bs_infoF("Deselected all %s\n", bsgfx_getType(bsmod.selected_type)->plural);
+	if (_bsmod_.selected_ids.count != 0 || _bsmod_.selected_tiles.count != 0)
+		bs_infoF("Deselected all %s\n", bsgfx_getType(_bsmod_.selected_type)->plural);
 
-	if (bsmod.selected_type == BSGFX_TYPE_TILE)
+	if (_bsmod_.selected_type == BSGFX_TYPE_TILE)
 		bsmod_clearTiles();
 
-	bsmod.selected_tiles.count = 0;
-	bsmod.selected_ids.count = 0;
-	bsmod.selected_type = BSGFX_TYPE_UNDEFINED;
-	bsmod.edit_type = BSMOD_EDIT_UNDEFINED;
+	_bsmod_.selected_tiles.count = 0;
+	_bsmod_.selected_ids.count = 0;
+	_bsmod_.selected_type = BSGFX_TYPE_UNDEFINED;
+	_bsmod_.edit_type = BSMOD_EDIT_UNDEFINED;
 }
 
 void bsmod_deselectRange(bs_List* list, int first, int count) {
 	if (count > 0)
-		bs_infoF("Deselected %s %d-%d\n", bsgfx_getType(bsmod.selected_type)->plural, first, (first + count));
+		bs_infoF("Deselected %s %d-%d\n", bsgfx_getType(_bsmod_.selected_type)->plural, first, (first + count));
 
 	for (int i = first; i + count < list->count; i++) {
 		int* this = bs_fetchUnit(list, i);
@@ -364,7 +364,7 @@ void bsmod_deselectIndex(bs_List* list, int id) {
 		*this = *next;
 	}
 
-	bs_infoF("Deselected %s %d\n", bsgfx_getType(bsmod.selected_type)->singular, id);
+	bs_infoF("Deselected %s %d\n", bsgfx_getType(_bsmod_.selected_type)->singular, id);
 	if (--list->count == 0)
 		bsmod_deselectAll();
 }
@@ -387,7 +387,7 @@ int bsmod_firstSelectedId(bs_List* list) {
 		return -1;
 
 	int* first = list->data;
-	//	if (*first < 0 || (*first >= bsgfx_getType(bsmod.selected_type)->count))
+	//	if (*first < 0 || (*first >= bsgfx_getType(_bsmod_.selected_type)->count))
 	//		return -1;
 
 	return *first;
@@ -395,7 +395,7 @@ int bsmod_firstSelectedId(bs_List* list) {
 
 int bsmod_lastSelectedId(bs_List* list) {
 	int* first = list->data;
-	//	if (first < 0 || (bsmod.selected_ids.count - 1) >= bsgfx_getType(bsmod.selected_type)->count)
+	//	if (first < 0 || (_bsmod_.selected_ids.count - 1) >= bsgfx_getType(_bsmod_.selected_type)->count)
 	//		return -1;
 
 	int* last = bs_fetchUnit(list, list->count - 1);
@@ -519,7 +519,7 @@ void bsmod_copyHoveringDataToBuffer() {
 				bs_iv2(1, 1));
 
 			bs_except(BSX_OUT_OF_BOUNDS);
-			if (bsmod.queue.screenshot)
+			if (_bsmod_.queue.screenshot)
 				bs_copyImageToBufferAsync(image, tile_read_buffer, 0, BS_LAYOUT_GENERAL, pixel_resolution.x * pixel_resolution.y * i * 4, bs_iv2Iv1(0), pixel_resolution);
 			bs_logBasilisk(bs_except(0));
 		}
@@ -527,33 +527,33 @@ void bsmod_copyHoveringDataToBuffer() {
 }
 
 void bsmod_readHoveringInstanceData() {
-	bsmod.hovering.instance_type = -1;
-	bsmod.hovering.subtype = -1;
+	_bsmod_.hovering.instance_type = -1;
+	_bsmod_.hovering.subtype = -1;
 
 	for (int j = 0; j < BSGFX_INSTANCE_TYPE_COUNT; j++) {
-		if (bsmod.hovering.flags & (1 << j)) {
-			bsmod.hovering.instance_type = j;
+		if (_bsmod_.hovering.flags & (1 << j)) {
+			_bsmod_.hovering.instance_type = j;
 			break;
 		}
 	}
 
-	if (bsmod.hovering.instance_type != -1) {
-		bsgfx_InstanceBuffer* instance = bs_bufferMap(poser()->instance_buffers[bsmod.hovering.instance_type]);
-		instance += bsmod.hovering.index;
-		bsmod.hovering.instance_id = instance->header.id;
+	if (_bsmod_.hovering.instance_type != -1) {
+		bsgfx_InstanceBuffer* instance = bs_bufferMap(poser()->instance_buffers[_bsmod_.hovering.instance_type]);
+		instance += _bsmod_.hovering.index;
+		_bsmod_.hovering.instance_id = instance->header.id;
 
 		bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
 		bsgfx_InstanceMetadata* metadata = bs_bufferMap(metadata_buffer);
 
 		for (int j = 0; j < metadata->subtypes_count; j++) {
-			if (metadata->instance_subtypes[j].instance_type != bsmod.hovering.instance_type) continue;
+			if (metadata->instance_subtypes[j].instance_type != _bsmod_.hovering.instance_type) continue;
 
 			struct bsgfx_InstanceSubtypeMetadata* subtype_metadata = metadata->instance_subtypes + j;
 
-			if (bsmod.hovering.index >= metadata->instance_subtypes[j].instance_offset &&
-				bsmod.hovering.index < (metadata->instance_subtypes[j].instance_offset + metadata->instance_subtypes[j].instance_count)) {
+			if (_bsmod_.hovering.index >= metadata->instance_subtypes[j].instance_offset &&
+				_bsmod_.hovering.index < (metadata->instance_subtypes[j].instance_offset + metadata->instance_subtypes[j].instance_count)) {
 
-				bsmod.hovering.subtype = j;
+				_bsmod_.hovering.subtype = j;
 				break;
 			}
 		}
@@ -562,7 +562,7 @@ void bsmod_readHoveringInstanceData() {
 }
 
 void bsmod_readHoveringVertex() {
-	if (bsmod.hovering.instance_type < 0)
+	if (_bsmod_.hovering.instance_type < 0)
 		return;
 
 	if (!bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_LO_RES_CURSOR_READS))
@@ -571,11 +571,11 @@ void bsmod_readHoveringVertex() {
 
 	bs_U32* data = buffer->_->data ? bs_bufferMap(buffer) : bs_mapBuffer(buffer, buffer->num_bytes);
 
-	bsgfx_InstanceBuffer* instance = bs_bufferMap(poser()->instance_buffers[bsmod.hovering.instance_type]);
+	bsgfx_InstanceBuffer* instance = bs_bufferMap(poser()->instance_buffers[_bsmod_.hovering.instance_type]);
 
-	bool is_unselected_primitive = bsmod.hovering.flags & BSGFX_ID_IS_PRIMITIVE && !bsmod_isSelected(BSMOD_IDS, BSGFX_TYPE_PRIMITIVE, instance->header.id);
+	bool is_unselected_primitive = _bsmod_.hovering.flags & BSGFX_ID_IS_PRIMITIVE && !bsmod_isSelected(BSMOD_IDS, BSGFX_TYPE_PRIMITIVE, instance->header.id);
 	if (is_unselected_primitive)
-		bsmod.hovering.closest_primitive = bsmod.hovering.instance_id;
+		_bsmod_.hovering.closest_primitive = _bsmod_.hovering.instance_id;
 
 	bs_RGBA position = *(bs_RGBA*)(data + BSGFX_LO_SUBPASS_0_OUT_POSITION_LOCAL);
 	bs_vec3 normal = BS_V3((position.r / 255.0 - 0.5) * 2.0, (position.g / 255.0 - 0.5) * 2.0, (position.b / 255.0 - 0.5) * 2.0);
@@ -584,13 +584,13 @@ void bsmod_readHoveringVertex() {
 	normal.z = (normal.z == 0.0f) ? 0.0f : (normal.z > 0.0f ? 1.0f : -1.0f);
 
 	if (is_unselected_primitive)
-		bsmod.hovering.closest_vertex = normal;
+		_bsmod_.hovering.closest_vertex = normal;
 }
 
 void bsmod_readHoveringOutputs() {
-	bsmod.hovering.color = BS_RGBA(0, 0, 0, 0);
-	bsmod.hovering.normal = bs_v3V1(0);
-	bsmod.hovering.flags = bsmod.hovering.index = 0;
+	_bsmod_.hovering.color = BS_RGBA(0, 0, 0, 0);
+	_bsmod_.hovering.normal = bs_v3V1(0);
+	_bsmod_.hovering.flags = _bsmod_.hovering.index = 0;
 
 	if (!bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_LO_RES_CURSOR_READS))
 		return;
@@ -599,97 +599,97 @@ void bsmod_readHoveringOutputs() {
 	bs_U32* data = buffer->_->data ? bs_bufferMap(buffer) : bs_mapBuffer(buffer, buffer->num_bytes);
 
 	bs_RGBA* normal_color = data + BSGFX_LO_SUBPASS_0_OUT_NORMAL;
-	bsmod.hovering.normal = BS_V3((float)normal_color->r / 255.0, (float)normal_color->g / 255.0, (float)normal_color->b / 255.0);
-	bsmod.hovering.color = *(bs_RGBA*)(data + BSGFX_LO_SUBPASS_0_OUT_COLOR);
-	bsmod.hovering.index = data[BSGFX_LO_SUBPASS_0_OUT_INDEX];
-	bsmod.hovering.flags = data[BSGFX_LO_SUBPASS_0_OUT_FLAGS];
+	_bsmod_.hovering.normal = BS_V3((float)normal_color->r / 255.0, (float)normal_color->g / 255.0, (float)normal_color->b / 255.0);
+	_bsmod_.hovering.color = *(bs_RGBA*)(data + BSGFX_LO_SUBPASS_0_OUT_COLOR);
+	_bsmod_.hovering.index = data[BSGFX_LO_SUBPASS_0_OUT_INDEX];
+	_bsmod_.hovering.flags = data[BSGFX_LO_SUBPASS_0_OUT_FLAGS];
 }
 
 void bsmod_editSelectedType() {
-	if (bsmod.selected_type == BSGFX_TYPE_UNDEFINED)
+	if (_bsmod_.selected_type == BSGFX_TYPE_UNDEFINED)
 		return;
 
-	bsgfx_Type* type = bsgfx_getType(bsmod.selected_type);
+	bsgfx_Type* type = bsgfx_getType(_bsmod_.selected_type);
 
-	if (bsmod_keyDownOnce(BS_KEY_DELETE)) {
-		bsmod_deleteSelected(bsmod.selected_type);
+	if (bs_keyDownOnce(BS_KEY_DELETE)) {
+		bsmod_deleteSelected(_bsmod_.selected_type);
 	}
 }
 
 void bsmod_selectHoveringTypes() {
-	if (bsmod.hovering.billboard) {
+	if (_bsmod_.hovering.billboard) {
 		return;
 	}
 
 	bool select_tile = false;
-	if (bsmod_leftClickOnce()) {
-		if (bsmod.selected_type == BSGFX_TYPE_PRIMITIVE && bsmod.selected_ids.count && bsmod.hovering.primitive == bsmod_firstSelectedId(BSMOD_IDS)) {
+	if (bs_leftClickOnce()) {
+		if (_bsmod_.selected_type == BSGFX_TYPE_PRIMITIVE && _bsmod_.selected_ids.count && _bsmod_.hovering.primitive == bsmod_firstSelectedId(BSMOD_IDS)) {
 			select_tile = true;
 		}
-		else if (bsmod.selected_type == BSGFX_TYPE_TILE) {
-			if (bsmod_keyDown(BS_KEY_ALT) && !bsmod_keyDown(BS_KEY_LEFT_CONTROL))
+		else if (_bsmod_.selected_type == BSGFX_TYPE_TILE) {
+			if (bs_keyDown(BS_KEY_ALT) && !bs_keyDown(BS_KEY_LEFT_CONTROL))
 				select_tile = true;
-			if (bsmod_keyDown(BS_KEY_LEFT_SHIFT))
+			if (bs_keyDown(BS_KEY_LEFT_SHIFT))
 				select_tile = true;
 		}
 	}
 
-	if (select_tile && !bsmod_keyDown(BS_KEY_LEFT_SHIFT)) {
-		if (bsmod.selected_tile_axis != bsmod.hovering.tile_axis)
+	if (select_tile && !bs_keyDown(BS_KEY_LEFT_SHIFT)) {
+		if (_bsmod_.selected_tile_axis != _bsmod_.hovering.tile_axis)
 			bsmod_deselectAll();
 
-		bsmod.selected_tile_primitive = bsmod.hovering.primitive;
-		bsmod.selected_tile_axis = bsmod.hovering.tile_axis;
+		_bsmod_.selected_tile_primitive = _bsmod_.hovering.primitive;
+		_bsmod_.selected_tile_axis = _bsmod_.hovering.tile_axis;
 
-		if (bsmod_isSelected(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, bsmod.hovering.tile))
-			bsmod_deselect(BSMOD_TILE_IDS, bsmod.hovering.tile);
+		if (bsmod_isSelected(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, _bsmod_.hovering.tile))
+			bsmod_deselect(BSMOD_TILE_IDS, _bsmod_.hovering.tile);
 		else
-			bsmod_select(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, bsmod.hovering.tile);
+			bsmod_select(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, _bsmod_.hovering.tile);
 	}
 
-	bsmod.hovering.tile_axis = bsmod.hovering.primitive = bsmod.hovering.tile = -1;
+	_bsmod_.hovering.tile_axis = _bsmod_.hovering.primitive = _bsmod_.hovering.tile = -1;
 
-	if (bsmod.hovering.flags & BSGFX_ID_IS_PRIMITIVE) {
-		bs_U32 tile = bsgfx_extract24(bsmod.hovering.index);
-		bs_U32 axis = bsgfx_extract8(bsmod.hovering.index);
+	if (_bsmod_.hovering.flags & BSGFX_ID_IS_PRIMITIVE) {
+		bs_U32 tile = bsgfx_extract24(_bsmod_.hovering.index);
+		bs_U32 axis = bsgfx_extract8(_bsmod_.hovering.index);
 
 		for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
 			bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
 			if (tile >= primitive->first_tile && tile < primitive->last_tile) {
-				if (bsmod_leftClickOnce() && !select_tile) {
+				if (bs_leftClickOnce() && !select_tile) {
 					bsmod_deselectAll();
 					bsmod_select(BSMOD_IDS, BSGFX_TYPE_PRIMITIVE, i);
 				}
 
-				bsmod.hovering.primitive = i;
-				bsmod.hovering.tile_axis = axis;
-				bsmod.hovering.tile = tile;
+				_bsmod_.hovering.primitive = i;
+				_bsmod_.hovering.tile_axis = axis;
+				_bsmod_.hovering.tile = tile;
 
 				break;
 			}
 		}
 	}
 
-	if (bsmod.hovering.flags & BSGFX_ID_IS_PREFAB) {
-		//bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, bsmod.hovering.index);
+	if (_bsmod_.hovering.flags & BSGFX_ID_IS_PREFAB) {
+		//bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, _bsmod_.hovering.index);
 
-		if (bsmod_leftClickOnce()) {
-			if (!bsmod_keyDown(BS_KEY_ALT) || bsmod_keyDown(BS_KEY_LEFT_CONTROL))
+		if (bs_leftClickOnce()) {
+			if (!bs_keyDown(BS_KEY_ALT) || bs_keyDown(BS_KEY_LEFT_CONTROL))
 				bsmod_deselectAll();
 
-			bsmod_select(BSMOD_IDS, BSGFX_TYPE_PREFAB, bsmod.hovering.instance_id);
+			bsmod_select(BSMOD_IDS, BSGFX_TYPE_PREFAB, _bsmod_.hovering.instance_id);
 		}
 	}
 
-	if (bsmod_leftClickOnce() && bsmod.selected_type == BSGFX_TYPE_TILE && bsmod_keyDown(BS_KEY_LEFT_SHIFT)) {
-		bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, bsmod.selected_tile_primitive);
+	if (bs_leftClickOnce() && _bsmod_.selected_type == BSGFX_TYPE_TILE && bs_keyDown(BS_KEY_LEFT_SHIFT)) {
+		bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, _bsmod_.selected_tile_primitive);
 
 		int first_tile = bsmod_firstSelectedId(BSMOD_TILE_IDS);
 		int first_tile_axis = bsgfx_tileAxis(primitive, first_tile);
 
-		if (first_tile_axis == bsmod.hovering.tile_axis && bsmod.hovering.tile >= 0 && first_tile >= 0) {
+		if (first_tile_axis == _bsmod_.hovering.tile_axis && _bsmod_.hovering.tile >= 0 && first_tile >= 0) {
 
-			bs_ivec2 start = bsgfx_tileCoordinate(primitive, bsmod.hovering.tile_axis, bsmod.hovering.tile);
+			bs_ivec2 start = bsgfx_tileCoordinate(primitive, _bsmod_.hovering.tile_axis, _bsmod_.hovering.tile);
 			bs_ivec2 end = bsgfx_tileCoordinate(primitive, first_tile_axis, first_tile);
 			if (start.x != BS_I32_MAX && end.x != BS_I32_MAX) {
 				if (start.x > end.x) {
@@ -705,7 +705,7 @@ void bsmod_selectHoveringTypes() {
 
 				for (int x = start.x; x < end.x + 1; x++) {
 					for (int y = start.y; y < end.y + 1; y++) {
-						int index = bsgfx_tileIndex(primitive, bsmod.hovering.tile_axis, x, y);
+						int index = bsgfx_tileIndex(primitive, _bsmod_.hovering.tile_axis, x, y);
 
 						bsmod_select(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, index);
 					}
@@ -717,7 +717,7 @@ void bsmod_selectHoveringTypes() {
 	 /**
 	  For each selected tile, get its primitive and select all tiles on that primitive
 	  */
-	if (bsmod.selected_type == BSGFX_TYPE_TILE && bsmod_keyDown(BS_KEY_LEFT_CONTROL) && bsmod_keyDownOnce(BS_KEY_A)) {
+	if (_bsmod_.selected_type == BSGFX_TYPE_TILE && bs_keyDown(BS_KEY_LEFT_CONTROL) && bs_keyDownOnce(BS_KEY_A)) {
 		static bs_List primitives_to_select = { .unit_size = sizeof(int) , .increment = 256 };
 		bs_seekList(&primitives_to_select, 0);
 
@@ -726,8 +726,8 @@ void bsmod_selectHoveringTypes() {
 		for (int i = 0; i < primitives_count; i++) {
 			bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
 
-			for (int j = 0; j < bsmod.selected_tiles.count; j++) {
-				int tile_id = *(int*)bs_fetchUnit(&bsmod.selected_tiles, j);
+			for (int j = 0; j < _bsmod_.selected_tiles.count; j++) {
+				int tile_id = *(int*)bs_fetchUnit(&_bsmod_.selected_tiles, j);
 
 				if (tile_id >= primitive->first_tile && tile_id <= primitive->last_tile) {
 					bs_pushBack(&primitives_to_select, &i);
@@ -742,7 +742,7 @@ void bsmod_selectHoveringTypes() {
 
 			for (int j = primitive->first_tile; j <= primitive->last_tile; j++) {
 				int axis = bsgfx_tileAxis(primitive, j);
-				if (axis == bsmod.selected_tile_axis)
+				if (axis == _bsmod_.selected_tile_axis)
 					bsmod_select(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, j);
 			}
 
@@ -750,9 +750,9 @@ void bsmod_selectHoveringTypes() {
 		}
 	}
 
-	if (bsmod_leftClickOnce()) {
-		bsmod.ui_blocked = true;
+	if (bs_leftClickOnce()) {
+		_bsmod_.ui_blocked = true;
 	}
 
-	//printf("%d, prim %d, tile %d\n", bsmod.hovering.index, bsmod.hovering.primitive, bsmod.hovering.tile);
+	//printf("%d, prim %d, tile %d\n", _bsmod_.hovering.index, _bsmod_.hovering.primitive, _bsmod_.hovering.tile);
 }

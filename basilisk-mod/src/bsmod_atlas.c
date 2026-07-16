@@ -1,14 +1,33 @@
-#include <bs_types.h>
-#include <bs_mem.h>
-#include <bs_images.h>
-#include <bs_json.h>
-#include <bsmod_bpak.h>
-#include <bsmod_atlas.h>
-#include <stb_rect_pack.h>
-#include <string.h>
-#include <bsmod.h>
 
-void bsmod_packAtlasTexture(bsmod_AtlasPacker* packer, char* name, bs_RGBA* data, int width, int height, int category) {
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+#include <basilisk-mod.h>
+#include <stb_rect_pack/stb_rect_pack.h>
+#include <string.h>
+
+BSMODAPI void _bsmod_packAtlasTexture(bsmod_AtlasPacker* packer, char* name, bs_RGBA* data, int width, int height, int category) {
 	bsmod_TextureInfo info = {
 		.name = strdup(name),
 		.name_length = strlen(name),
@@ -25,7 +44,7 @@ void bsmod_packAtlasTexture(bsmod_AtlasPacker* packer, char* name, bs_RGBA* data
 	bs_pushBack(&packer->rects, &rect);
 }
 
-bsmod_AtlasPacker bsmod_createAtlasPacker() {
+BSMODAPI bsmod_AtlasPacker _bsmod_createAtlasPacker() {
 	return (bsmod_AtlasPacker) {
 		.info = bs_list(sizeof(bsmod_TextureInfo), 64),
 		.rects = bs_list(sizeof(stbrp_rect), 64),

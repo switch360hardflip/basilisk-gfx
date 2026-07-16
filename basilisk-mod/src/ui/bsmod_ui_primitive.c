@@ -27,28 +27,28 @@ bool bsmod_instancePrimitivePreview(bsgfx_Widget* widget, bs_vec2* position, int
    *============================================================================*/
 
 void bsmod_onDragPrimitive(bsmod_DraggingParams params) {
-    if (bsmod.hovering.tile < 0 || bsmod.hovering.primitive < 0)
+    if (_bsmod_.hovering.tile < 0 || _bsmod_.hovering.primitive < 0)
         return;
 
-    bsgfx_Primitive* hovering_primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, bsmod.hovering.primitive);
+    bsgfx_Primitive* hovering_primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, _bsmod_.hovering.primitive);
 
-    bs_ivec2 coords = bsgfx_tileCoordinate(hovering_primitive, bsmod.hovering.tile_axis, bsmod.hovering.tile);
+    bs_ivec2 coords = bsgfx_tileCoordinate(hovering_primitive, _bsmod_.hovering.tile_axis, _bsmod_.hovering.tile);
 
-    bs_vec3 tile_position = bsgfx_tilePosition(hovering_primitive, bsmod.hovering.tile_axis, coords.x, coords.y);
-    bs_vec4 rotation = bsgfx_tileRotation(bsmod.hovering.tile_axis);
-    bs_vec3 euler_rotation = bsgfx_tileEulerRotation(bsmod.hovering.tile_axis);
+    bs_vec3 tile_position = bsgfx_tilePosition(hovering_primitive, _bsmod_.hovering.tile_axis, coords.x, coords.y);
+    bs_vec4 rotation = bsgfx_tileRotation(_bsmod_.hovering.tile_axis);
+    bs_vec3 euler_rotation = bsgfx_tileEulerRotation(_bsmod_.hovering.tile_axis);
     rotation = bs_qMulq(hovering_primitive->rotation, rotation);
     bs_mat4 matrix = bs_transform(tile_position, rotation, bs_v3V1(1.0));
 
-    int subtype = bsgfx_primitiveSubtype(bsmod.dragging_id);
+    int subtype = bsgfx_primitiveSubtype(_bsmod_.dragging_id);
     bsgfx_instancePrimitive(subtype, matrix, 0, 0, $bsmod_light_blue()->id);
 
-    if (bsmod_leftClickUpOnce()) {
+    if (bs_leftClickUpOnce()) {
         bsgfx_RawPrimitive* primitive = bsmod_add(BSGFX_TYPE_PRIMITIVE, &(bsgfx_RawPrimitive) {
             .position = tile_position,
             .rotation = euler_rotation,
             .scale = bs_v3V1(1),
-            .type = bsmod.dragging_id,
+            .type = _bsmod_.dragging_id,
             .guid = bs_guid(),
         });
         bsmod_saveType(BSGFX_TYPE_PRIMITIVE, "Created primitive");

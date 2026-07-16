@@ -5,7 +5,7 @@
 #include <ui/bsmod_ui.h>
 #include <ui/grid/bsmod_ui_grid.h>
 #include <types/primitive/bsgfx_primitive.h>
-#include <bsmod.h>
+#include <_bsmod_.h>
 
 
 
@@ -63,7 +63,7 @@ void bsmod_pushDropdownWidget(bs_List* widgets, bs_vec3 offset) {
 void bsmod_pushTileMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
     const int indent = 24;
 
-    if (bsmod.selected_ids.count <= 0) {
+    if (_bsmod_.selected_ids.count <= 0) {
         bs_pushBack(widgets, &(bsgfx_Widget) {
             .type = BSGFX_WIDGET_STRING,
             .string = {
@@ -81,7 +81,7 @@ void bsmod_pushTileMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
 
     bsmod_pushDividerWidget(widgets, BS_V3(0.0, 0.0, 0.0));
 
-    for (int i = 0; i < bsmod.selected_ids.count; i++) {
+    for (int i = 0; i < _bsmod_.selected_ids.count; i++) {
         bsgfx_Tile* tile = bsgfx_get(BSGFX_TYPE_TILE, i);
 
         bsmod_pushDropdownWidget(widgets, BS_V3(indent, 0, 0));
@@ -116,44 +116,44 @@ bool bsmod_instanceTilePreview(bsgfx_Widget* widget, bs_vec2* position, int id, 
    *============================================================================*/
 
 void bsmod_onDragTile(bsmod_DraggingParams params) {
-    if (bsmod.hovering.tile < 0 || bsmod.hovering.primitive < 0)
+    if (_bsmod_.hovering.tile < 0 || _bsmod_.hovering.primitive < 0)
         return;
 
-    bsgfx_Primitive* hovering_primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, bsmod.hovering.primitive);
+    bsgfx_Primitive* hovering_primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, _bsmod_.hovering.primitive);
 
-    bs_ivec2 coords = bsgfx_tileCoordinate(hovering_primitive, bsmod.hovering.tile_axis, bsmod.hovering.tile);
+    bs_ivec2 coords = bsgfx_tileCoordinate(hovering_primitive, _bsmod_.hovering.tile_axis, _bsmod_.hovering.tile);
 
-    bs_vec3 tile_position = bsgfx_tilePosition(hovering_primitive, bsmod.hovering.tile_axis, coords.x, coords.y);
-    bs_vec4 rotation = bsgfx_tileRotation(bsmod.hovering.tile_axis);
-    bs_vec3 euler_rotation = bsgfx_tileEulerRotation(bsmod.hovering.tile_axis);
+    bs_vec3 tile_position = bsgfx_tilePosition(hovering_primitive, _bsmod_.hovering.tile_axis, coords.x, coords.y);
+    bs_vec4 rotation = bsgfx_tileRotation(_bsmod_.hovering.tile_axis);
+    bs_vec3 euler_rotation = bsgfx_tileEulerRotation(_bsmod_.hovering.tile_axis);
     rotation = bs_qMulq(hovering_primitive->rotation, rotation);
     bs_mat4 matrix = bs_transform(tile_position, rotation, bs_v3V1(1.0));
 
     bs_Image* tile_image = bs_fetch(BSGFX_IMAGES, BSGFX_IMAGE_TILE)->image;
-    assert(bsmod.dragging_id >= 0 && bsmod.dragging_id < tile_image->num_indices);
+    assert(_bsmod_.dragging_id >= 0 && _bsmod_.dragging_id < tile_image->num_indices);
 
-    if (bsmod_leftClickUpOnce()) {
-        if (bsmod_isSelected(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, bsmod.hovering.tile)) {
-            for (int i = 0; i < bsmod.selected_tiles.count; i++) {
-                int id = *(int*)bs_fetchUnit(&bsmod.selected_tiles, i);
+    if (bs_leftClickUpOnce()) {
+        if (bsmod_isSelected(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, _bsmod_.hovering.tile)) {
+            for (int i = 0; i < _bsmod_.selected_tiles.count; i++) {
+                int id = *(int*)bs_fetchUnit(&_bsmod_.selected_tiles, i);
 
-                for (int j = 0; j < bsmod.selected_ids.count; j++) {
-                    int existing_id = *(int*)bs_fetchUnit(&bsmod.selected_ids, j);
+                for (int j = 0; j < _bsmod_.selected_ids.count; j++) {
+                    int existing_id = *(int*)bs_fetchUnit(&_bsmod_.selected_ids, j);
                     bsgfx_Tile* tile = bsgfx_get(BSGFX_TYPE_TILE, existing_id);
                     if (id == tile->index) {
                         bsgfx_RawTile* raw_tile = bsgfx_getRaw(BSGFX_TYPE_TILE, existing_id);
-                        raw_tile->texture_hash = tile_image->indices[bsmod.dragging_id].name_hash;
+                        raw_tile->texture_hash = tile_image->indices[_bsmod_.dragging_id].name_hash;
                         goto next;
                     }
                 }
 
-                coords = bsgfx_tileCoordinate(hovering_primitive, bsmod.hovering.tile_axis, id);
+                coords = bsgfx_tileCoordinate(hovering_primitive, _bsmod_.hovering.tile_axis, id);
 
                 bsmod_add(BSGFX_TYPE_TILE, &(bsgfx_RawTile) {
                     .coords = coords,
-                    .texture_hash = tile_image->indices[bsmod.dragging_id].name_hash,
+                    .texture_hash = tile_image->indices[_bsmod_.dragging_id].name_hash,
                     .primitive = hovering_primitive->guid,
-                    .axis = bsmod.hovering.tile_axis,
+                    .axis = _bsmod_.hovering.tile_axis,
                 });
 
             next:
@@ -164,7 +164,7 @@ void bsmod_onDragTile(bsmod_DraggingParams params) {
             bs_warnF("Tile is not selected\n");
         }
 
-        bsmod_saveType(BSGFX_TYPE_TILE, "Created %d tiles", bsmod.selected_tiles.count);
+        bsmod_saveType(BSGFX_TYPE_TILE, "Created %d tiles", _bsmod_.selected_tiles.count);
         bsmod_deselectAll();
     }
 }

@@ -49,6 +49,8 @@ typedef int(__stdcall* PFN_bsgfx_queues)();
 typedef int(__stdcall* PFN_bsgfx_rayTracers)();
 typedef int(__stdcall* PFN_bsgfx_atlases)();
 typedef int(__stdcall* PFN_bsgfx_fonts)();
+typedef bool(__stdcall* PFN_bsgfx_validateSubtype)(const char* library_name, int subtype);
+typedef bool(__stdcall* PFN_bsgfx_validateInstanceType)(const char* library_name, int instance_type_id);
 typedef const char*(__stdcall* PFN_bsgfx_materialCategoryName)(bsgfx_MaterialCategory category);
 typedef bs_List*(__stdcall* PFN_bsgfx_materials)();
 typedef bsgfx_Material*(__stdcall* PFN_bsgfx_queryMaterialHash)(bs_U64 hash);
@@ -188,6 +190,8 @@ typedef struct {
     PFN_bsgfx_rayTracers bsgfx_rayTracers;
     PFN_bsgfx_atlases bsgfx_atlases;
     PFN_bsgfx_fonts bsgfx_fonts;
+    PFN_bsgfx_validateSubtype bsgfx_validateSubtype;
+    PFN_bsgfx_validateInstanceType bsgfx_validateInstanceType;
     PFN_bsgfx_materialCategoryName bsgfx_materialCategoryName;
     PFN_bsgfx_materials bsgfx_materials;
     PFN_bsgfx_queryMaterialHash bsgfx_queryMaterialHash;
@@ -336,6 +340,8 @@ static inline bsgfx_FunctionTable _bsgfx_getFunctions() {
     functions.bsgfx_rayTracers = (PFN_bsgfx_rayTracers)GetProcAddress(module, "_bsgfx_rayTracers");
     functions.bsgfx_atlases = (PFN_bsgfx_atlases)GetProcAddress(module, "_bsgfx_atlases");
     functions.bsgfx_fonts = (PFN_bsgfx_fonts)GetProcAddress(module, "_bsgfx_fonts");
+    functions.bsgfx_validateSubtype = (PFN_bsgfx_validateSubtype)GetProcAddress(module, "_bsgfx_validateSubtype");
+    functions.bsgfx_validateInstanceType = (PFN_bsgfx_validateInstanceType)GetProcAddress(module, "_bsgfx_validateInstanceType");
     functions.bsgfx_materialCategoryName = (PFN_bsgfx_materialCategoryName)GetProcAddress(module, "_bsgfx_materialCategoryName");
     functions.bsgfx_materials = (PFN_bsgfx_materials)GetProcAddress(module, "_bsgfx_materials");
     functions.bsgfx_queryMaterialHash = (PFN_bsgfx_queryMaterialHash)GetProcAddress(module, "_bsgfx_queryMaterialHash");

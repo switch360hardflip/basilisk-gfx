@@ -3346,7 +3346,7 @@
             <param><type>bs_U16</type><name>code</name></param>
         </function>
         <function name="bs_ttf">
-            <return>void</return>
+            <return>bs_Result</return>
             <param><type>bs_TTF*</type><name>existing</name></param>
             <param><type>const char*</type><name>path</name></param>
             <param><type>bs_U32</type><name>flags</name></param>
@@ -3410,19 +3410,19 @@
             <param><type>bs_ImageLayout</type><name>new_layout</name></param>
         </function>
         <function name="bs_inspectPng">
-            <return>unsigned char*</return>
+            <return>bs_Result</return>
             <param><type>const char*</type><name>path</name></param>
             <param><type>bs_PngData*</type><name>out_png_data</name></param>
         </function>
         <function name="bs_loadPngData">
-            <return>unsigned char*</return>
+            <return>bs_Result</return>
             <param><type>char*</type><name>data</name></param>
             <param><type>size_t</type><name>size</name></param>
             <param><type>int</type><name>channels_count</name></param>
             <param><type>bs_PngData*</type><name>out_png_data</name></param>
         </function>
         <function name="bs_loadPng">
-            <return>unsigned char*</return>
+			<return>bs_Result</return>
             <param><type>const char*</type><name>path</name></param>
             <param><type>int</type><name>channels_count</name></param>
             <param><type>bs_PngData*</type><name>out_png_data</name></param>
@@ -3442,11 +3442,12 @@
             <param><type>bs_PngType</type><name>type</name></param>
         </variadicStringTemplate>
         <variadicStringTemplate name="bs_encodePng">
-            <return>unsigned char*</return>
+            <return>bs_Result</return>
             <param><type>size_t*</type><name>out_size</name></param>
             <param><type>const unsigned char*</type><name>data</name></param>
             <param><type>bs_ivec2</type><name>size</name></param>
             <param><type>bs_PngType</type><name>type</name></param>
+            <param><type>unsigned char**</type><name>out</name></param>
         </variadicStringTemplate>
         <function name="bs_destroyImage">
             <return>void</return>
@@ -4081,7 +4082,7 @@
             <param><type>const char*</type><name>data</name></param>
         </function>
         <variadicStringTemplate name="bs_saveFile" string="path">
-            <return>void</return>
+            <return>bs_Result</return>
             <param><type>char*</type><name>data</name></param>
             <param><type>bs_U32</type><name>data_len</name></param>
         </variadicStringTemplate>
@@ -4468,7 +4469,6 @@
         </function>
         <function name="bs_lockCursorPosition">
             <return>void</return>
-            <param><type>bs_Window*</type><name>window</name></param>
             <param><type>bool</type><name>value</name></param>
         </function>
         <function name="bs_disableUserInputs">

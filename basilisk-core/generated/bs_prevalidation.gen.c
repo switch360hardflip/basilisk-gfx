@@ -1347,10 +1347,10 @@ static void _preval_bs_glyph(bs_TTF* ttf, bs_U16 code) {
     next.bs_glyph(ttf, code);
 }
 
-static void _preval_bs_ttf(bs_TTF* existing, const char* path, bs_U32 flags) {
-    BS_VALIDATE(existing != NULL, ,);
-    BS_VALIDATE(path != NULL, ,);
-    next.bs_ttf(existing, path, flags);
+static bs_Result _preval_bs_ttf(bs_TTF* existing, const char* path, bs_U32 flags) {
+    BS_VALIDATE(existing != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_ttf(existing, path, flags);
 }
 
 static void _preval_bs_rasterizeGlyph(bs_TTF* font, bs_Glyph* glyph, int width, int height, char* out_bmp, float scale) {
@@ -1410,21 +1410,21 @@ static void _preval_bs_transition(bs_Image* image, int index, bs_ImageLayout old
     next.bs_transition(image, index, old_layout, new_layout);
 }
 
-static unsigned char* _preval_bs_inspectPng(const char* path, bs_PngData* out_png_data) {
-    BS_VALIDATE(path != NULL, NULL,);
-    BS_VALIDATE(out_png_data != NULL, NULL,);
+static bs_Result _preval_bs_inspectPng(const char* path, bs_PngData* out_png_data) {
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(out_png_data != NULL, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_inspectPng(path, out_png_data);
 }
 
-static unsigned char* _preval_bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out_png_data) {
-    BS_VALIDATE(data != NULL, NULL,);
-    BS_VALIDATE(out_png_data != NULL, NULL,);
+static bs_Result _preval_bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out_png_data) {
+    BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(out_png_data != NULL, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_loadPngData(data, size, channels_count, out_png_data);
 }
 
-static unsigned char* _preval_bs_loadPng(const char* path, int channels_count, bs_PngData* out_png_data) {
-    BS_VALIDATE(path != NULL, NULL,);
-    BS_VALIDATE(out_png_data != NULL, NULL,);
+static bs_Result _preval_bs_loadPng(const char* path, int channels_count, bs_PngData* out_png_data) {
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(out_png_data != NULL, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_loadPng(path, channels_count, out_png_data);
 }
 
@@ -1440,11 +1440,12 @@ static bs_Result _preval_bs_savePng(char* data, bs_ivec2 resolution, bs_PngType 
     return next.bs_savePng(data, resolution, type, value, value_length);
 }
 
-static unsigned char* _preval_bs_encodePng(size_t* out_size, const unsigned char* data, bs_ivec2 size, bs_PngType type, char* value, int value_length) {
-    BS_VALIDATE(out_size != NULL, NULL,);
-    BS_VALIDATE(data != NULL, NULL,);
-    BS_VALIDATE(value != NULL, NULL,);
-    return next.bs_encodePng(out_size, data, size, type, value, value_length);
+static bs_Result _preval_bs_encodePng(size_t* out_size, const unsigned char* data, bs_ivec2 size, bs_PngType type, unsigned char** out, char* value, int value_length) {
+    BS_VALIDATE(out_size != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_encodePng(out_size, data, size, type, out, value, value_length);
 }
 
 static void _preval_bs_destroyImage(bs_Image* image) {
@@ -2166,10 +2167,10 @@ static void _preval_bs_appendFile(const char* path, const char* data) {
     next.bs_appendFile(path, data);
 }
 
-static void _preval_bs_saveFile(char* data, bs_U32 data_len, char* path, int path_length) {
-    BS_VALIDATE(data != NULL, ,);
-    BS_VALIDATE(path != NULL, ,);
-    next.bs_saveFile(data, data_len, path, path_length);
+static bs_Result _preval_bs_saveFile(char* data, bs_U32 data_len, char* path, int path_length) {
+    BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_saveFile(data, data_len, path, path_length);
 }
 
 static void _preval_bs_convertWin32Path(char* path, int path_length) {
@@ -2569,9 +2570,8 @@ static bs_vec2 _preval_bs_screenCursorPosition() {
     return next.bs_screenCursorPosition();
 }
 
-static void _preval_bs_lockCursorPosition(bs_Window* window, bool value) {
-    BS_VALIDATE(window != NULL, ,);
-    next.bs_lockCursorPosition(window, value);
+static void _preval_bs_lockCursorPosition(bool value) {
+    next.bs_lockCursorPosition(value);
 }
 
 static void _preval_bs_disableUserInputs(bool value) {

@@ -87,6 +87,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     #${CMAKE_SOURCE_DIR}/external/GFSDK_Aftermath_Lib
     ${CMAKE_SOURCE_DIR}/external/glslang
     ${CMAKE_SOURCE_DIR}/external/SPIRV-Cross
+    external/
     include/
     generated/
     src/
@@ -117,39 +118,4 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     spirv-cross-cd optimized spirv-cross-c
     spirv-cross-cored optimized spirv-cross-core
     spirv-cross-glsld optimized spirv-cross-glsl
-)
-
-SET(COPY_BASILISK_MOD_DLL_DEBUG ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-mod/Debug/basilisk-mod.dll" "${CMAKE_SOURCE_DIR}/build/${BS_APP_NAME}/Debug/")
-SET(COPY_BASILISK_MOD_DLL_RELEASE ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-mod/Release/basilisk-mod.dll" "${CMAKE_SOURCE_DIR}/build/${BS_APP_NAME}/Release")
-SET(COPY_BASILISK_MOD_DLL_RELEASE_DEBUG ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-mod/RelWithDebInfo/basilisk-mod.dll" "${CMAKE_SOURCE_DIR}/build/${BS_APP_NAME}/RelWithDebInfo")
-
-SET(COPY_BASILISK_MOD_DLL_DEBUG_TO_TEST ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-mod/Debug/basilisk-mod.dll" "${CMAKE_SOURCE_DIR}/build/basilisk-test-runner/Debug/")
-SET(COPY_BASILISK_MOD_DLL_RELEASE_TO_TEST ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-mod/Release/basilisk-mod.dll" "${CMAKE_SOURCE_DIR}/build/basilisk-test-runner/Release")
-SET(COPY_BASILISK_MOD_DLL_RELEASE_DEBUG_TO_TEST ${CMAKE_COMMAND} -E copy "${CMAKE_SOURCE_DIR}/build/basilisk-mod/RelWithDebInfo/basilisk-mod.dll" "${CMAKE_SOURCE_DIR}/build/basilisk-test-runner/RelWithDebInfo")
-
-add_custom_command(
-    TARGET ${PROJECT_NAME} 
-    POST_BUILD
-    COMMAND "$<$<CONFIG:Debug>:${COPY_BASILISK_MOD_DLL_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk-mod.dll/"
-    COMMAND "$<$<CONFIG:Debug>:${COPY_BASILISK_MOD_DLL_DEBUG_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk-mod.dll/ to test"
-	COMMAND_EXPAND_LISTS
-    CONFIGURATIONS Debug
-)
-
-add_custom_command(
-    TARGET ${PROJECT_NAME} 
-    POST_BUILD
-    COMMAND "$<$<CONFIG:Release>:${COPY_BASILISK_MOD_DLL_RELEASE}>" COMMENT "POST_BUILD: Copying basilisk-mod.dll/"
-    COMMAND "$<$<CONFIG:Release>:${COPY_BASILISK_MOD_DLL_RELEASE_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk-mod.dll/ to test"
-	COMMAND_EXPAND_LISTS
-    CONFIGURATIONS Release
-)
-
-add_custom_command(
-    TARGET ${PROJECT_NAME} 
-    POST_BUILD
-    COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_BASILISK_MOD_DLL_RELEASE_DEBUG}>" COMMENT "POST_BUILD: Copying basilisk-mod.dll/"
-    COMMAND "$<$<CONFIG:RelWithDebInfo>:${COPY_BASILISK_MOD_DLL_RELEASE_DEBUG_TO_TEST}>" COMMENT "POST_BUILD: Copying basilisk-mod.dll/ to test"
-	COMMAND_EXPAND_LISTS
-    CONFIGURATIONS RelWithDebInfo
 )

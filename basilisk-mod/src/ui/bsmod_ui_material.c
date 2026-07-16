@@ -2,7 +2,7 @@
 #include <ui/bsgfx_ui.h>
 #include <bs_types.h>
 #include <types/primitive/bsgfx_primitive.h>
-#include <bsmod.h>
+#include <_bsmod_.h>
 #include <bsmod_type.h>
 #include <bsmod_cache.h>
 #include <bsmod_rasterize.h>
@@ -16,11 +16,11 @@
    *============================================================================*/
 
 void bsmod_onDragMaterial(bsmod_DraggingParams params) {
-    if (bsmod.hovering.flags & BSGFX_ID_IS_PREFAB) {
-        bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, bsmod.hovering.instance_id);
-        bsgfx_RawPrefab* raw_prefab = bsgfx_getRaw(BSGFX_TYPE_PREFAB, bsmod.hovering.instance_id);
-        if (bsmod_leftClickUpOnce()) {
-            raw_prefab->material_hash = bsgfx_materialHash(bsmod.dragging_id);
+    if (_bsmod_.hovering.flags & BSGFX_ID_IS_PREFAB) {
+        bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, _bsmod_.hovering.instance_id);
+        bsgfx_RawPrefab* raw_prefab = bsgfx_getRaw(BSGFX_TYPE_PREFAB, _bsmod_.hovering.instance_id);
+        if (bs_leftClickUpOnce()) {
+            raw_prefab->material_hash = bsgfx_materialHash(_bsmod_.dragging_id);
             bsmod_saveType(BSGFX_TYPE_PREFAB, "Changed prefab material");
         }
     }

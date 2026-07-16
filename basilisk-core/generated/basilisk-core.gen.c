@@ -1780,12 +1780,12 @@ void bs_glyph(
     next.bs_glyph(ttf, code);
 }
 
-void bs_ttf(
+bs_Result bs_ttf(
     bs_TTF* existing, 
     const char* path, 
     bs_U32 flags)
 {
-    next.bs_ttf(existing, path, flags);
+    return next.bs_ttf(existing, path, flags);
 }
 
 void bs_rasterizeGlyph(
@@ -1864,14 +1864,14 @@ void bs_transition(
     next.bs_transition(image, index, old_layout, new_layout);
 }
 
-unsigned char* bs_inspectPng(
+bs_Result bs_inspectPng(
     const char* path, 
     bs_PngData* out_png_data)
 {
     return next.bs_inspectPng(path, out_png_data);
 }
 
-unsigned char* bs_loadPngData(
+bs_Result bs_loadPngData(
     char* data, 
     size_t size, 
     int channels_count, 
@@ -1880,7 +1880,7 @@ unsigned char* bs_loadPngData(
     return next.bs_loadPngData(data, size, channels_count, out_png_data);
 }
 
-unsigned char* bs_loadPng(
+bs_Result bs_loadPng(
     const char* path, 
     int channels_count, 
     bs_PngData* out_png_data)
@@ -1935,42 +1935,45 @@ bs_Result bs_savePngF(
     return _return;
 }
 
-unsigned char* bs_encodePng(
+bs_Result bs_encodePng(
     size_t* out_size, 
     const unsigned char* data, 
     bs_ivec2 size, 
     bs_PngType type, 
+    unsigned char** out, 
     char* value, 
     int value_length)
 {
-    return next.bs_encodePng(out_size, data, size, type, value, value_length);
+    return next.bs_encodePng(out_size, data, size, type, out, value, value_length);
 }
 
-unsigned char* bs_encodePngV(
+bs_Result bs_encodePngV(
     size_t* out_size, 
     const unsigned char* data, 
     bs_ivec2 size, 
     bs_PngType type, 
+    unsigned char** out, 
     char* format, 
     va_list args)
 {
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bs_encodePng(out_size, data, size, type, _formatted, _length);
+    return bs_encodePng(out_size, data, size, type, out, _formatted, _length);
 }
 
-unsigned char* bs_encodePngF(
+bs_Result bs_encodePngF(
     size_t* out_size, 
     const unsigned char* data, 
     bs_ivec2 size, 
     bs_PngType type, 
+    unsigned char** out, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    unsigned char* _return = bs_encodePngV(out_size, data, size, type, format, args);
+    bs_Result _return = bs_encodePngV(out_size, data, size, type, out, format, args);
     va_end(args);
     return _return;
 }
@@ -3311,16 +3314,16 @@ void bs_appendFile(
     next.bs_appendFile(path, data);
 }
 
-void bs_saveFile(
+bs_Result bs_saveFile(
     char* data, 
     bs_U32 data_len, 
     char* path, 
     int path_length)
 {
-    next.bs_saveFile(data, data_len, path, path_length);
+    return next.bs_saveFile(data, data_len, path, path_length);
 }
 
-void bs_saveFileV(
+bs_Result bs_saveFileV(
     char* data, 
     bs_U32 data_len, 
     char* format, 
@@ -3329,10 +3332,10 @@ void bs_saveFileV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    bs_saveFile(data, data_len, _formatted, _length);
+    return bs_saveFile(data, data_len, _formatted, _length);
 }
 
-void bs_saveFileF(
+bs_Result bs_saveFileF(
     char* data, 
     bs_U32 data_len, 
     char* format, 
@@ -3340,8 +3343,9 @@ void bs_saveFileF(
 {
     va_list args;
     va_start(args, format);
-    bs_saveFileV(data, data_len, format, args);
+    bs_Result _return = bs_saveFileV(data, data_len, format, args);
     va_end(args);
+    return _return;
 }
 
 void bs_convertWin32Path(
@@ -4025,10 +4029,9 @@ bs_vec2 bs_screenCursorPosition()
 }
 
 void bs_lockCursorPosition(
-    bs_Window* window, 
     bool value)
 {
-    next.bs_lockCursorPosition(window, value);
+    next.bs_lockCursorPosition(value);
 }
 
 void bs_disableUserInputs(

@@ -1,26 +1,55 @@
-#include <bsmod.h>
-#include <bsmod_bpak.h>
-#include <bsmod_compile.h>
-#include <bs_json.h>
-#include <bs_base64.h>
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+#include <basilisk-mod.h>
 #include <assert.h>
 
 #include <spirv_cross_c.h>
 #include <glslang/Include/glslang_c_interface.h>
 #include <glslang/Public/resource_limits_c.h>
-#include <bs_log.h>
+
+typedef struct bsmod_Reflection bsmod_Reflection;
+struct bsmod_Reflection {
+	spvc_compiler compiler;
+	spvc_reflected_resource* data;
+	size_t num;
+};
 
 static spvc_context bsmod_compiler_context;
 
-void bsmod_onCompileShader(bsmod_TrackParams params) {
-	if (!bs_fileExists(params.path))
+BSMODAPI void _bsmod_onCompileShader(bsmod_TrackParams params) {
+	bs_Result result;
+
+	if (!bs_fileExists(params.path, strlen(params.path)))
 		return;
 
 	char* resource_name = bs_fileName(params.path);
 	static bs_String* variadic;
 	variadic = bs_stringF(variadic, "shaders/%s", resource_name);
 
-	printf("Compiling \"%s\" as \"%s\"\n", params.path, variadic->value);
+	bs_logF("Compiling \"%s\" as \"%s\"\n", params.path, variadic->value);
 
 	bool success = bsmod_compileShader(params.path, variadic->value, params.package);
 	if (success) {
@@ -29,12 +58,12 @@ void bsmod_onCompileShader(bsmod_TrackParams params) {
 		bsmod_updateBindings();
 		if (params.compile_references)
 			bsmod_updateShaderReferences();
-		//bs_loadBindings(bsmod.bsgfx_package, "bindings");
+		//bs_loadBindings(_bsmod_.bsgfx_package, "bindings");
 
 		if (bs_instance()->instance) {
-			bs_except(BSX_NOT_FOUND);
-			int package = bs_loadPackage(params.package);
-			if (bs_except(0))
+			int package;
+			result = bs_loadPackage(params.package, &package);
+			if (result != BS_RESULT_OK)
 				return;
 
 			bs_shader(package, variadic->value, 0, NULL);
@@ -42,7 +71,11 @@ void bsmod_onCompileShader(bsmod_TrackParams params) {
 	}
 
 	if (params.compile_references && (bs_fileExtensionIs(params.path, "glsl") || bs_fileExtensionIs(params.path, "h"))) { // header file, compile all references
-		bs_Json json = bs_loadJson("project/woc/references.json"); // todo
+		bs_Json json;
+		result = bs_loadJson(&json, BS_CONSTANT_STRING("project/woc/references.json")); // TODO: remove woc
+		if (result != BS_RESULT_OK)
+			return;
+
 		bs_JsonValue files = bs_fetchJsonF(&json, BS_JSON_UNDEFINED, "%.*s", strlen(params.path) - 5, params.path);
 
 		if (files.size > 0)
@@ -58,17 +91,6 @@ void bsmod_onCompileShader(bsmod_TrackParams params) {
 			});
 		}
 	}
-}
-
-typedef struct ls_Reflection bsmod_Reflection;
-struct ls_Reflection {
-	spvc_compiler compiler;
-	spvc_reflected_resource* data;
-	size_t num;
-};
-
-static inline void bsmod_throwCompile(const char* title, char* file, char* info, char* debug) {
-	bs_warnF("%s - \"%s\"\n%s\n%s", title, file, info, debug);
 }
 
 static bsmod_Reflection bsmod_reflectionData(bs_U32* spirv, bs_U32 size, spvc_resource_type type) {
@@ -134,13 +156,13 @@ static void bsmod_saveBuffer(bs_Json* json, char* shader_type, const char* name,
 			bs_ensureJsonF(json, bs_jsonValue(descriptor_count), "%s[%d].count", name, i);
 
 			if (add_to_bindings)
-				bs_ensureJsonF(&bsmod.bindings_json, bs_jsonValue(descriptor_count), "%s.count", path->value);
+				bs_ensureJsonF(&_bsmod_.bindings_json, bs_jsonValue(descriptor_count), "%s.count", path->value);
 		}
 		else {
 			bs_ensureJsonF(json, bs_jsonValue(1), "%s[%d].count", name, i);
 
 			if (add_to_bindings)
-				bs_ensureJsonF(&bsmod.bindings_json, bs_jsonValue(1), "%s.count", path->value);
+				bs_ensureJsonF(&_bsmod_.bindings_json, bs_jsonValue(1), "%s.count", path->value);
 		}
 
 		size_t struct_size = 0;
@@ -148,19 +170,19 @@ static void bsmod_saveBuffer(bs_Json* json, char* shader_type, const char* name,
 		bs_ensureJsonF(json, bs_jsonValue(struct_size), "%s[%d].size", name, i);
 
 		if (add_to_bindings) {
-			double size = bs_fetchJsonF(&bsmod.bindings_json, BS_JSON_UNDEFINED, "%s.size", path->value).as_number;
+			double size = bs_fetchJsonF(&_bsmod_.bindings_json, BS_JSON_UNDEFINED, "%s.size", path->value).as_number;
 			if (size != 0.0 && size != struct_size) {
 				bs_warnF("Existing binding (set: %d, point: %d) differs in size (old: %lld, new: %lld)\n", set, point, (size_t)size, (size_t)struct_size);
 				//continue;
 			}
 
-			bs_ensureJsonF(&bsmod.bindings_json, bs_jsonValue(data->name), "%s.name", path->value);
-			bs_ensureJsonF(&bsmod.bindings_json, bs_jsonValue(type_string), "%s.type", path->value);
-			bs_ensureJsonF(&bsmod.bindings_json, bs_jsonValue(struct_size), "%s.size", path->value);
-			bs_ensureJsonF(&bsmod.bindings_json, bs_jsonValue(set), "%s.set", path->value);
-			bs_ensureJsonF(&bsmod.bindings_json, bs_jsonValue(point), "%s.point", path->value);
+			bs_ensureJsonF(&_bsmod_.bindings_json, bs_jsonValue(data->name), "%s.name", path->value);
+			bs_ensureJsonF(&_bsmod_.bindings_json, bs_jsonValue(type_string), "%s.type", path->value);
+			bs_ensureJsonF(&_bsmod_.bindings_json, bs_jsonValue(struct_size), "%s.size", path->value);
+			bs_ensureJsonF(&_bsmod_.bindings_json, bs_jsonValue(set), "%s.set", path->value);
+			bs_ensureJsonF(&_bsmod_.bindings_json, bs_jsonValue(point), "%s.point", path->value);
 
-			bs_JsonValue v = bs_fetchJsonF(&bsmod.bindings_json, BS_JSON_UNDEFINED, "%s.stages", path->value);
+			bs_JsonValue v = bs_fetchJsonF(&_bsmod_.bindings_json, BS_JSON_UNDEFINED, "%s.stages", path->value);
 			bool found = false;
 			for (int j = 0; j < v.size; j++) {
 				char* stage = v.as_array.as_strings[j];
@@ -171,7 +193,7 @@ static void bsmod_saveBuffer(bs_Json* json, char* shader_type, const char* name,
 			}
 
 			if (!found)
-				bs_ensureJsonF(&bsmod.bindings_json, bs_jsonValue(shader_type), "%s.stages[999]", path->value);
+				bs_ensureJsonF(&_bsmod_.bindings_json, bs_jsonValue(shader_type), "%s.stages[999]", path->value);
 		}
 	}
 }
@@ -196,7 +218,11 @@ static void bsmod_saveAttributes(bs_Json* json, bs_U32* spirv, bs_U32 size) {
 static bs_Result bsmod_saveReflection(char* path, char* package, char* name, bs_U32* spirv, bs_U32 size, glslang_stage_t stage) {
 	bs_Result result = BS_RESULT_OK;
 
-	bs_Json json = bs_json("{}", 2);
+	bs_Json json;
+	result = bs_json("{}", 2, &json);
+	if (result != BS_RESULT_OK)
+		return result;
+
 	bs_ensureJsonMutable(&json);
 
 	bs_ShaderType shader_type = 0;
@@ -230,6 +256,9 @@ static bs_Result bsmod_saveReflection(char* path, char* package, char* name, bs_
 	bsmod_saveBuffer(&json, type_name, "accelerationStructures", SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE, spirv, size, true);
 	bsmod_saveBuffer(&json, type_name, "storageImages", SPVC_RESOURCE_TYPE_STORAGE_IMAGE, spirv, size, true);
 
+	bs_warnF("Custom shader format not implemented yet\n");
+	return BS_RESULT_NOT_IMPLEMENTED;
+	/*
 	size_t out_len = 0;
 	char* base64 = NULL;
 	if (result = bs_encodeBase64(spirv, size * sizeof(bs_U32), &out_len, false, &base64)) {
@@ -240,6 +269,7 @@ static bs_Result bsmod_saveReflection(char* path, char* package, char* name, bs_
 		bs_destroyJson(&json);
 		return result;
 	}
+	*/
 
 	/*
 	char* file_name = bs_fileName(path);
@@ -261,26 +291,40 @@ static bs_Result bsmod_saveReflection(char* path, char* package, char* name, bs_
 	}
 	*/
 
-	char* result = bs_saveJson(&json, BS_JSON_PRETTY);
-	bsmod_packResource(BS_RESOURCE_SHADER, result, strlen(result), package, name);
+	char* raw;
+	result = bs_saveJson(&json, BS_JSON_PRETTY, &raw);
+	if (result != BS_RESULT_OK)
+		goto end;
 
+	result = bsmod_packResource(BS_RESOURCE_SHADER, raw, strlen(raw), package, name);
+	bs_free(raw);
+	if (result != BS_RESULT_OK)
+		goto end;
+
+end:
 	bs_destroyJson(&json);
-	bs_free(result);
 
-	return BS_RESULT_OK;
+	return result;
 }
 
 static bs_Json bsmod_shader_references = { 0 };
-void bsmod_loadShaderReferences() {
-	bs_except(BSX_NOT_FOUND);
-	bsmod_shader_references = bs_loadJson("project/woc/references.json");
-	if (bs_except(0))
+BSMODAPI void _bsmod_loadShaderReferences() {
+	bs_Result result = bs_loadJson(&bsmod_shader_references, BS_CONSTANT_STRING("project/woc/references.json")); // TODO: remove woc
+	if (result == BS_RESULT_OK)
 		bsmod_shader_references = bs_emptyJson();
 }
 
-void bsmod_updateShaderReferences() {
-	char* raw = bs_saveJson(&bsmod_shader_references, BS_JSON_PRETTY);
-	bs_saveFile("project/woc/references.json", raw, strlen(raw));
+BSMODAPI void _bsmod_updateShaderReferences() {
+	bs_Result result;
+
+	char* raw;
+	result = bs_saveJson(&bsmod_shader_references, BS_JSON_PRETTY, &raw);
+	if (result != BS_RESULT_OK)
+		return;
+
+	result = bs_saveFile(raw, strlen(raw), BS_CONSTANT_STRING("project/woc/references.json")); //TODO: remove woc
+	if (result != BS_RESULT_OK)
+		return;
 }
 
 static void bsmod_writeReferences(char* path, bs_String* glsl) {
@@ -324,14 +368,14 @@ static void bsmod_writeReferences(char* path, bs_String* glsl) {
 	bs_free(include_path);
 }
 
-bs_Result bsmod_compileShader(char* path, char* name, char* package) {
+BSMODAPI bs_Result _bsmod_compileShader(char* path, char* name, char* package) {
 	bs_Result result = BS_RESULT_OK;
 
-	bs_except(BSX_PERMISSION_DENIED);
-	bs_String* glsl = bs_loadFile(path);
-	bs_except(0);
-	if (!glsl)
-		return BS_RESULT_GENERAL_ERROR;
+	bs_String* glsl; 
+	result = bs_loadFile(&glsl, path, strlen(path));
+	if (result != BS_RESULT_OK)
+		return result;
+
 	char* ext = bs_fileExtension(path);
 	//char* name = bs_fileName(path);
 	
@@ -368,12 +412,12 @@ bs_Result bsmod_compileShader(char* path, char* name, char* package) {
 	glslang_program_t* program = NULL;
 	bs_U32* spirv = NULL;
 	if (!glslang_shader_preprocess(shader, &input)) {
-		bsmod_throwCompile("Failed to preprocess", path, glslang_shader_get_info_log(shader), glslang_shader_get_info_debug_log(shader));
+		bs_warnF("Failed to preprocess \"%s\"\n%s\n%s\n", path, glslang_shader_get_info_log(shader), glslang_shader_get_info_debug_log(shader)); // TODO: bsmod warn
 		goto destroy;
 	}
 
 	if (!glslang_shader_parse(shader, &input)) {
-		bsmod_throwCompile("Failed to parse", path, glslang_shader_get_info_log(shader), glslang_shader_get_info_debug_log(shader));
+		bs_warnF("Failed to parse \"%s\"\n%s\n%s\n", path, glslang_shader_get_info_log(shader), glslang_shader_get_info_debug_log(shader)); // TODO: bsmod warn
 		goto destroy;
 	}
 
@@ -381,10 +425,9 @@ bs_Result bsmod_compileShader(char* path, char* name, char* package) {
 	glslang_program_add_shader(program, shader);
 
 	if (!glslang_program_link(program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT)) {
-		bsmod_throwCompile("Failed to link", path, glslang_shader_get_info_log(shader), glslang_shader_get_info_debug_log(shader));
+		bs_warnF("Failed to link \"%s\"\n%s\n%s\n", path, glslang_shader_get_info_log(shader), glslang_shader_get_info_debug_log(shader)); // TODO: bsmod warn
 		goto destroy;
 	}
-
 
 	glslang_spv_options_t options = {
 		.generate_debug_info = true,
@@ -425,7 +468,9 @@ destroy:
 static void ls_reflectionError(void* param, const char* error) {
 	if (strcmp(error, "Declared struct in block cannot be empty.") == 0)
 		return;
-	bs_throwBasilisk(BSX_GENERAL);
+
+	bs_warnF("Reflection error: %s\n", error); // TODO: bsmod warn
+
 	//ls_throw("%s\n", error);
 }
 
@@ -440,20 +485,22 @@ typedef struct {
 } ls_Binding;
 
 static void ls_readBuffer(bs_Json* root, bs_List* bindings, char* path, const char* name) {
-	bs_JsonValue objects = bs_fetchJson(root, BS_JSON_UNDEFINED, name);
+	bs_JsonValue objects = bs_fetchJson(root, BS_JSON_UNDEFINED, name, strlen(name));
 
-	if (!objects.found) return;
-	char* shader_type_string = bs_fetchJson(root, BS_JSON_STRING, "type").as_string;
+	if (!objects.found) 
+		return;
+
+	char* shader_type_string = bs_fetchJson(root, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string;
 	bs_ShaderType shader_type = bs_deserializeShaderType(shader_type_string);
 
 	for (int i = 0; i < objects.size; i++) {
 		bs_Json object = bs_jsonRoot(root, objects.as_array.as_objects[i]);
 
-		char* name = bs_fetchJson(&object, BS_JSON_STRING, "name").as_string;
-		bs_BindType type = bs_deserializeBindType(bs_fetchJson(&object, BS_JSON_STRING, "type").as_string);
-		int set = bs_fetchJson(&object, BS_JSON_NUMBER, "set").as_number;
-		int point = bs_fetchJson(&object, BS_JSON_NUMBER, "point").as_number;
-		int size = bs_fetchJson(&object, BS_JSON_NUMBER, "size").as_number;
+		char* name = bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string;
+		bs_BindType type = bs_deserializeBindType(bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string);
+		int set = bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("set")).as_number;
+		int point = bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("point")).as_number;
+		int size = bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("size")).as_number;
 
 		if (type == BS_BIND_TYPE_PUSH_CONSTANT) {
 			continue;
@@ -498,7 +545,8 @@ static void ls_readBuffer(bs_Json* root, bs_List* bindings, char* path, const ch
 }
 
 static void bsmod_readShaderBindings(char* path, bs_List* bindings) {
-	bs_Json metadata = bs_loadJson(path);
+	bs_Json metadata;
+	bs_loadJson(&metadata, path, strlen(path));
 
 	ls_readBuffer(&metadata, bindings, path, "$.uniformBuffers");
 	ls_readBuffer(&metadata, bindings, path, "$.storageBuffers");
@@ -513,7 +561,7 @@ static void bsmod_readShaderBindings(char* path, bs_List* bindings) {
 	bs_destroyJson(&metadata);
 }
 
-void bsmod_updateBindings() {
+BSMODAPI void _bsmod_updateBindings() {
 	/*
 	bs_String* bindings_path = bs_stringF(NULL, BSMOD_COMPILE_OUTPUT_PATH "/bindings.json");
 
@@ -556,13 +604,13 @@ void bsmod_updateBindings() {
 	*/
 }
 
-void bsmod_iniCompiler() {
+BSMODAPI void _bsmod_iniCompiler() {
 	spvc_context_create(&bsmod_compiler_context);
 	spvc_context_set_error_callback(bsmod_compiler_context, ls_reflectionError, NULL);
 	glslang_initialize_process();
 }
 
-void bsmod_destroyCompiler() {
+BSMODAPI void _bsmod_destroyCompiler() {
 	glslang_finalize_process();
 	spvc_context_destroy(bsmod_compiler_context);
 }

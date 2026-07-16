@@ -431,7 +431,6 @@ BSAPI bs_Result _bs_image(bs_Object* object, bs_ivec2 dim, int num_indices, bs_F
    * PNG
    *============================================================================*/
 
- // lodepng_error_text(error)
 BSAPI bs_Result _bs_encodePng(size_t* out_size, const unsigned char* data, bs_ivec2 size, bs_PngType type, unsigned char** out) {
     int result = 0;
 
@@ -494,8 +493,9 @@ BSAPI bs_Result _bs_inspectPng(const char* path, int* width, int* height, size_t
     return BS_RESULT_OK;
 }
 
-BSAPI bs_Result _bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out);
-
+ /**
+  Load PNG Data
+  */
 BSAPI bs_Result _val_bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out) {
     BS_VALIDATE(channels_count == 3 || channels_count == 4, BS_RESULT_VALIDATION_ERROR,);
     return _bs_loadPngData(data, size, channels_count, out);
@@ -520,6 +520,9 @@ BSAPI bs_Result _bs_loadPngData(char* data, size_t size, int channels_count, bs_
     return BS_RESULT_OK;
 }
 
+ /**
+  Load PNG
+  */
 BSAPI bs_Result _bs_loadPng(const char* path, int channels_count, bs_PngData* out) {
     unsigned char* image_data = NULL;
     int error = 0;

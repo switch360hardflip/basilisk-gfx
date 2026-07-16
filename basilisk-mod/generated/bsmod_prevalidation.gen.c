@@ -83,8 +83,8 @@ static void _preval_bsmod_onTrack() {
     next.bsmod_onTrack();
 }
 
-static void _preval_bsmod_packBindings() {
-    next.bsmod_packBindings();
+static bs_Result _preval_bsmod_packBindings() {
+    return next.bsmod_packBindings();
 }
 
 static void _preval_bsmod_onCompileShader(bsmod_TrackParams params) {
@@ -115,70 +115,6 @@ static void _preval_bsmod_onPackTextureArray(bsmod_TrackParams params) {
     next.bsmod_onPackTextureArray(params);
 }
 
-static bool _preval_bsmod_keyHeld(bs_U32 code) {
-    return next.bsmod_keyHeld(code);
-}
-
-static bool _preval_bsmod_keyDown(bs_U32 code) {
-    return next.bsmod_keyDown(code);
-}
-
-static bool _preval_bsmod_keyDownOnce(bs_U32 code) {
-    return next.bsmod_keyDownOnce(code);
-}
-
-static bool _preval_bsmod_keyUpOnce(bs_U32 code) {
-    return next.bsmod_keyUpOnce(code);
-}
-
-static bool _preval_bsmod_charDown(unsigned char code) {
-    return next.bsmod_charDown(code);
-}
-
-static bool _preval_bsmod_charDownOnce(unsigned char code) {
-    return next.bsmod_charDownOnce(code);
-}
-
-static bool _preval_bsmod_charUpOnce(unsigned char code) {
-    return next.bsmod_charUpOnce(code);
-}
-
-static bool _preval_bsmod_middleClick() {
-    return next.bsmod_middleClick();
-}
-
-static bool _preval_bsmod_middleClickOnce() {
-    return next.bsmod_middleClickOnce();
-}
-
-static bool _preval_bsmod_middleClickUpOnce() {
-    return next.bsmod_middleClickUpOnce();
-}
-
-static bool _preval_bsmod_leftClick() {
-    return next.bsmod_leftClick();
-}
-
-static bool _preval_bsmod_rightClick() {
-    return next.bsmod_rightClick();
-}
-
-static bool _preval_bsmod_rightClickOnce() {
-    return next.bsmod_rightClickOnce();
-}
-
-static bool _preval_bsmod_leftClickOnce() {
-    return next.bsmod_leftClickOnce();
-}
-
-static bool _preval_bsmod_rightClickUpOnce() {
-    return next.bsmod_rightClickUpOnce();
-}
-
-static bool _preval_bsmod_leftClickUpOnce() {
-    return next.bsmod_leftClickUpOnce();
-}
-
 static void _preval_bsmod_packAtlasTexture(bsmod_AtlasPacker* packer, char* name, bs_RGBA* data, int width, int height, int category) {
     BSMOD_VALIDATE(packer != NULL, ,);
     BSMOD_VALIDATE(name != NULL, ,);
@@ -197,19 +133,19 @@ static bsmod_AtlasPacker _preval_bsmod_createAtlasPacker() {
     return next.bsmod_createAtlasPacker();
 }
 
-static void _preval_bsmod_packImageDirectory(char* directory_name, char* package_name, char* resource_name) {
-    BSMOD_VALIDATE(directory_name != NULL, ,);
-    BSMOD_VALIDATE(package_name != NULL, ,);
-    BSMOD_VALIDATE(resource_name != NULL, ,);
-    next.bsmod_packImageDirectory(directory_name, package_name, resource_name);
+static bs_Result _preval_bsmod_packImageDirectory(char* directory_name, char* package_name, char* resource_name) {
+    BSMOD_VALIDATE(directory_name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(package_name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(resource_name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_packImageDirectory(directory_name, package_name, resource_name);
 }
 
-static void _preval_bsmod_packBMFont(char* package_name, char* bmfont_path, char* png_path, char* value, int value_length) {
-    BSMOD_VALIDATE(package_name != NULL, ,);
-    BSMOD_VALIDATE(bmfont_path != NULL, ,);
-    BSMOD_VALIDATE(png_path != NULL, ,);
-    BSMOD_VALIDATE(value != NULL, ,);
-    next.bsmod_packBMFont(package_name, bmfont_path, png_path, value, value_length);
+static bs_Result _preval_bsmod_packBMFont(char* package_name, char* bmfont_path, char* png_path, char* value, int value_length) {
+    BSMOD_VALIDATE(package_name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(bmfont_path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(png_path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_packBMFont(package_name, bmfont_path, png_path, value, value_length);
 }
 
 static bs_List* _preval_bsmod_packages() {
@@ -226,21 +162,20 @@ static bsmod_Package* _preval_bsmod_ensurePackage(const char* name) {
     return next.bsmod_ensurePackage(name);
 }
 
-static void _preval_bsmod_iniPackage(const char* package_name) {
-    BSMOD_VALIDATE(package_name != NULL, ,);
-    next.bsmod_iniPackage(package_name);
+static bs_Result _preval_bsmod_iniPackage(const char* package_name) {
+    BSMOD_VALIDATE(package_name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_iniPackage(package_name);
 }
 
-static void _preval_bsmod_packResource(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, char* value, int value_length) {
-    BSMOD_VALIDATE(data != NULL, ,);
-    BSMOD_VALIDATE(package_name != NULL, ,);
-    BSMOD_VALIDATE(value != NULL, ,);
-    next.bsmod_packResource(type, data, data_size, package_name, value, value_length);
+static bs_Result _preval_bsmod_packResource(bs_ResourceType type, unsigned char* data, size_t data_size, char* value, int value_length) {
+    BSMOD_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_packResource(type, data, data_size, value, value_length);
 }
 
-static void _preval_bsmod_savePackage(const char* name) {
-    BSMOD_VALIDATE(name != NULL, ,);
-    next.bsmod_savePackage(name);
+static bs_Result _preval_bsmod_savePackage(const char* name) {
+    BSMOD_VALIDATE(name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_savePackage(name);
 }
 
 static void _preval_bsmod_loadShaderReferences() {
@@ -296,10 +231,10 @@ static void _preval_bsmod_endRasterize() {
     next.bsmod_endRasterize();
 }
 
-static void _preval_bsmod_rasterizeInstance(bs_PipelineHash pipeline_hash, int subtype, int instance_id, int category, char* name, int width, int height, size_t push_constant_size, unsigned char* push_constant) {
-    BSMOD_VALIDATE(name != NULL, ,);
-    BSMOD_VALIDATE(push_constant != NULL, ,);
-    next.bsmod_rasterizeInstance(pipeline_hash, subtype, instance_id, category, name, width, height, push_constant_size, push_constant);
+static bs_Result _preval_bsmod_rasterizeInstance(bs_PipelineHash pipeline_hash, int subtype, int instance_id, int category, char* name, int width, int height, size_t push_constant_size, unsigned char* push_constant) {
+    BSMOD_VALIDATE(name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(push_constant != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_rasterizeInstance(pipeline_hash, subtype, instance_id, category, name, width, height, push_constant_size, push_constant);
 }
 
 static void _preval_bsmod_instanceTransform() {
@@ -546,22 +481,6 @@ bsmod_FunctionTable _preval_bsmod_getFunctionTable() {
     functions.bsmod_onPackModels = _preval_bsmod_onPackModels;
     functions.bsmod_onPackBinary = _preval_bsmod_onPackBinary;
     functions.bsmod_onPackTextureArray = _preval_bsmod_onPackTextureArray;
-    functions.bsmod_keyHeld = _preval_bsmod_keyHeld;
-    functions.bsmod_keyDown = _preval_bsmod_keyDown;
-    functions.bsmod_keyDownOnce = _preval_bsmod_keyDownOnce;
-    functions.bsmod_keyUpOnce = _preval_bsmod_keyUpOnce;
-    functions.bsmod_charDown = _preval_bsmod_charDown;
-    functions.bsmod_charDownOnce = _preval_bsmod_charDownOnce;
-    functions.bsmod_charUpOnce = _preval_bsmod_charUpOnce;
-    functions.bsmod_middleClick = _preval_bsmod_middleClick;
-    functions.bsmod_middleClickOnce = _preval_bsmod_middleClickOnce;
-    functions.bsmod_middleClickUpOnce = _preval_bsmod_middleClickUpOnce;
-    functions.bsmod_leftClick = _preval_bsmod_leftClick;
-    functions.bsmod_rightClick = _preval_bsmod_rightClick;
-    functions.bsmod_rightClickOnce = _preval_bsmod_rightClickOnce;
-    functions.bsmod_leftClickOnce = _preval_bsmod_leftClickOnce;
-    functions.bsmod_rightClickUpOnce = _preval_bsmod_rightClickUpOnce;
-    functions.bsmod_leftClickUpOnce = _preval_bsmod_leftClickUpOnce;
     functions.bsmod_packAtlasTexture = _preval_bsmod_packAtlasTexture;
     functions.bsmod_packAtlas = _preval_bsmod_packAtlas;
     functions.bsmod_createAtlasPacker = _preval_bsmod_createAtlasPacker;

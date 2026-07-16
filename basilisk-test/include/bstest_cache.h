@@ -2,7 +2,7 @@
 #define BSTEST_CACHE_H
 
 #include <bsgfx_cache.h>
-#include <bsmod.h>
+#include <_bsmod_.h>
 #include <bstest.h>
 
 #define BSGFX_PACKAGE _bstest_package

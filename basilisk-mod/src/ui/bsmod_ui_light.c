@@ -1,7 +1,7 @@
 #include <ui/bsgfx_ui.h>
 #include <ui/bsmod_ui.h>
 #include <ui/context/bsmod_ui_context.h>
-#include <bsmod.h>
+#include <_bsmod_.h>
 #include <bsmod_type.h>
 #include <types/light/bsgfx_light.h>
 #include <types/tile/bsgfx_tile.h>
@@ -54,13 +54,13 @@ void bsmod_instanceLightBillboards() {
 
         bool hovering = bs_rectangleVsPoint(p, BS_V2(scaled_size, scaled_size), bs_cursorPosition());
         if (hovering) {
-            bsmod.hovering.billboard = true;
+            _bsmod_.hovering.billboard = true;
 
-            if (bsmod_leftClickOnce()) {
-                if (!bsmod_keyDown(BS_KEY_ALT))
+            if (bs_leftClickOnce()) {
+                if (!bs_keyDown(BS_KEY_ALT))
                     bsmod_deselectAll();
 
-                bsmod_select(&bsmod.selected_ids, BSGFX_TYPE_LIGHT, i);
+                bsmod_select(&_bsmod_.selected_ids, BSGFX_TYPE_LIGHT, i);
             }
         }
     }
@@ -73,9 +73,9 @@ void bsmod_instanceLightBillboards() {
    *============================================================================*/
 
 static inline void bsmod_addLight(bsgfx_LightType type) {
-    assert(bsmod.selected_tiles.count == 1);
+    assert(_bsmod_.selected_tiles.count == 1);
 
-    int tile_id = *(int*)bs_fetchUnit(&bsmod.selected_tiles, 0);
+    int tile_id = *(int*)bs_fetchUnit(&_bsmod_.selected_tiles, 0);
     int primitive_id = bsgfx_queryTilePrimitive(tile_id);
     bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, primitive_id);
 
@@ -91,14 +91,14 @@ static inline void bsmod_addLight(bsgfx_LightType type) {
 }
 
 static bool bsmod_onAddPointTick(bsgfx_ButtonParams params) {
-    if (params.hovering && bsmod_leftClickOnce())
+    if (params.hovering && bs_leftClickOnce())
         bs_warnF("Point light is not implemented\n");
 
     return params.hovering;
 }
 
 static bool bsmod_onAddSunTick(bsgfx_ButtonParams params) {
-    if (params.hovering && bsmod_leftClickOnce())
+    if (params.hovering && bs_leftClickOnce())
         bsmod_addLight(BSGFX_LIGHT_TYPE_SUN);
 
     return params.hovering;

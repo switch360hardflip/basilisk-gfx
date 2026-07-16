@@ -1432,6 +1432,26 @@ BSGFXAPI int
 bsgfx_fonts();
 
  /**
+  @param library_name
+  @param subtype
+  @return bool
+  */
+BSGFXAPI bool
+bsgfx_validateSubtype(
+    const char* library_name,
+    int subtype);
+
+ /**
+  @param library_name
+  @param instance_type_id
+  @return bool
+  */
+BSGFXAPI bool
+bsgfx_validateInstanceType(
+    const char* library_name,
+    int instance_type_id);
+
+ /**
   @param category
   @return const char*
   */

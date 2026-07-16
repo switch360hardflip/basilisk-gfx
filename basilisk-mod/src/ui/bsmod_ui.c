@@ -214,8 +214,8 @@ void bsmod_instanceBackgroundMenu(bs_vec3 position, bs_vec2 dimensions) {
         .button_shadow_material_id = $bsmod_grey_112()->id,
     }, NULL);
 
-    if (!bsmod.ui_blocked)
-        bsmod.ui_blocked = hovering;
+    if (!_bsmod_.ui_blocked)
+        _bsmod_.ui_blocked = hovering;
 }
 
 static void bsmod_instanceDraggingIcon() {
@@ -234,7 +234,7 @@ static void bsmod_instanceDraggingIcon() {
         cache->coords,
         0, 0, 0);
 
-    switch (bsmod.dragging_object_id) {
+    switch (_bsmod_.dragging_object_id) {
     case BSMOD_ATLAS_MATERIAL_ICONS: bsmod_onDragMaterial(params); break;
     case BSMOD_ATLAS_PREFAB_ICONS: bsmod_onDragPrefab(params); break;
     case BSMOD_ATLAS_PRIMITIVE_ICONS: bsmod_onDragPrimitive(params); break;
@@ -243,11 +243,11 @@ static void bsmod_instanceDraggingIcon() {
         return;
     }
 
-    if (bsmod_leftClickUpOnce()) {
+    if (bs_leftClickUpOnce()) {
         bs_infoF("Drop\n");
-        bsmod.dragging_id = -1;
-        bsmod.dragging_object_id = 0;
-        bsmod.dragging_subtype = -1;
+        _bsmod_.dragging_id = -1;
+        _bsmod_.dragging_object_id = 0;
+        _bsmod_.dragging_subtype = -1;
     }
 }
 
@@ -277,21 +277,21 @@ void bsmod_renderBillboards() {
 }
 
 static void bsmod_instanceBillboards() {
-    bsmod.hovering.billboard = false;
+    _bsmod_.hovering.billboard = false;
     bsmod_instanceLightBillboards();
 }
 
 void bsmod_instanceUI() {
-    bsmod.ui_blocked = false;
+    _bsmod_.ui_blocked = false;
     static bool right_clicked;
     static bs_vec2 position;
 
-    if (bsmod_rightClickUpOnce()) {
+    if (bs_rightClickUpOnce()) {
         right_clicked = true;
         position = bs_cursorPosition();
     }
 
-    if (bsmod_leftClickUpOnce() || bsmod_middleClickOnce())
+    if (bs_leftClickUpOnce() || bs_middleClickOnce())
         right_clicked = false;
 
     if (right_clicked) {
@@ -303,25 +303,25 @@ void bsmod_instanceUI() {
         if (d < 0.0)
             p.y -= d;
 
-        if (bsmod.selected_type == BSGFX_TYPE_TILE && bsmod.selected_tiles.count == 1)
+        if (_bsmod_.selected_type == BSGFX_TYPE_TILE && _bsmod_.selected_tiles.count == 1)
             bsmod_instanceTileContextMenu(p, s);
     }
 
-    if (bsmod_keyDown(BS_KEY_ALT) && !bsmod_keyDown(BS_KEY_LEFT_CONTROL)) {
-        if (bsmod_keyDownOnce(BS_KEY_1)) {
+    if (bs_keyDown(BS_KEY_ALT) && !bs_keyDown(BS_KEY_LEFT_CONTROL)) {
+        if (bs_keyDownOnce(BS_KEY_1)) {
             bsmod_instance_grid_menu = true;
 
         }
 
         for (int i = BS_KEY_2; i < BS_KEY_9; i++) {
-            if (bsmod_keyDownOnce(i)) {
+            if (bs_keyDownOnce(i)) {
                 bsmod_instance_grid_menu = false;
                 bs_disableUserInputs(false);
             }
         }
     }
 
-    if (bsmod.dragging_subtype >= 0)
+    if (_bsmod_.dragging_subtype >= 0)
         bsmod_instance_grid_menu = false;
 
     if (bsmod_instance_grid_menu) {
@@ -346,7 +346,7 @@ void bsmod_instanceUI() {
         bsmod_instanceSideMenu(center, BS_V2(side_menu_width, dimensions.y));
     }
 
-    if (bsmod.dragging_subtype >= 0) {
+    if (_bsmod_.dragging_subtype >= 0) {
         bsmod_instanceDraggingIcon();
     }
 

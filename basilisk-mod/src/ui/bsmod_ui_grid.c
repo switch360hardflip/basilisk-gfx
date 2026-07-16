@@ -8,7 +8,7 @@
 #include <bs_window.h>
 #include <bsmod_compile.h>
 #include <bsmod_cache.h>
-#include <bsmod.h>
+#include <_bsmod_.h>
 
 #include <ui/bsgfx_ui.h>
 #include <ui/bsmod_ui.h>
@@ -50,7 +50,7 @@ typedef enum {
 
 static bsmod_Directory bsmod_selected_directory;
 static void bsmod_onHoverDirectoryWidget(bsgfx_Widget* widget) {
-    if (bsmod_leftClickOnce()) {
+    if (bs_leftClickOnce()) {
         bsmod_selected_directory = *(bsmod_Directory*)widget->params;
     }
 }
@@ -273,8 +273,8 @@ static void bsmod_instanceDirectoryMenu(bs_vec3 center, bs_vec2 dimensions) {
         .height = BSMOD_TAB_BAR_HEIGHT,
     });
 
-    if (!bsmod.ui_blocked)
-        bsmod.ui_blocked = hovering;
+    if (!_bsmod_.ui_blocked)
+        _bsmod_.ui_blocked = hovering;
 }
 
 static bool bsmod_instanceGridPreview(bsgfx_Widget* widget, bs_vec2* position, int id, bool hovering) {
@@ -318,16 +318,16 @@ static void bsmod_checkHoverGrid(bsgfx_Widget* widget, bsgfx_GridParams* grid) {
     bool hovering = bs_rectangleVsPoint(*grid->position, widget->grid.size, bs_cursorPosition());
 
     if (hovering) {
-        if (bsmod_leftClickOnce()) {
-            bsmod.dragging_id = grid->index;
+        if (bs_leftClickOnce()) {
+            _bsmod_.dragging_id = grid->index;
 
             bsmod_setSideMenuTab(params->tab_id, (bsmod_GridClickParams) {
                 .atlas_id = grid->index,
             });
         }
 
-        if (bsmod_leftClickUpOnce()) {
-            bsmod.dragging_id = -1;
+        if (bs_leftClickUpOnce()) {
+            _bsmod_.dragging_id = -1;
         }
 
         bsgfx_instanceQuad(
@@ -339,9 +339,9 @@ static void bsmod_checkHoverGrid(bsgfx_Widget* widget, bsgfx_GridParams* grid) {
             $BSMOD_ATLAS_UI_grid_hover()->coords,
             0, 0, 0);
     }
-    else if (bsmod.dragging_id == grid->index) {
-        bsmod.dragging_object_id = params->object_id;
-        bsmod.dragging_subtype = params->subtype;
+    else if (_bsmod_.dragging_id == grid->index) {
+        _bsmod_.dragging_object_id = params->object_id;
+        _bsmod_.dragging_subtype = params->subtype;
     }
 }
 
@@ -539,6 +539,6 @@ void bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
         .border_radius = BSMOD_DEFAULT_RADIUS,
     }, NULL, NULL);
 
-    if (!bsmod.ui_blocked)
-        bsmod.ui_blocked = hovering;
+    if (!_bsmod_.ui_blocked)
+        _bsmod_.ui_blocked = hovering;
 }

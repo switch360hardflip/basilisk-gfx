@@ -4,7 +4,7 @@
 #include <bsgfx_cache.h>
 #include <basilisk-mod.h>
 
-#define BSGFX_PACKAGE bsmod.package
+#define BSGFX_PACKAGE _bsmod_.package
 
 
 

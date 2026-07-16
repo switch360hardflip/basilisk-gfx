@@ -1,14 +1,34 @@
-#include <bs_types.h>
-#include <bs_images.h>
-#include <bs_mem.h>
-#include <bs_log.h>
 
-#include <bsmod_bpak.h>
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+#include <basilisk-mod.h>
 
 #include <string.h>
 #include <assert.h>
 
-void bsmod_saveBiff() {
+BSGFXAPI void _bsmod_saveBiff() {
 	bs_BiffHeader header = {
 		.magic = 0x66666962,
 		.version = 1,
@@ -61,7 +81,9 @@ static void bsmod_gatherFileInfo(bs_FileInfo info, bsmod_FileGatherParams* param
 	}
 }
 
-void bsmod_packImageDirectory(char* directory_name, char* package_name, char* resource_name) {
+BSMODAPI bs_Result _bsmod_packImageDirectory(char* directory_name, char* package_name, char* resource_name) {
+	bs_Result result;
+
 	bs_List images = bs_list(sizeof(bsmod_BiffInfo), 32);
 
 	bs_BiffHeader header = {
@@ -76,7 +98,9 @@ void bsmod_packImageDirectory(char* directory_name, char* package_name, char* re
 		.resource_name = resource_name,
 	};
 
-	bs_foreachFile(bsmod_gatherFileInfo, &param, directory_name);
+	result = bs_foreachFile(bsmod_gatherFileInfo, &param, directory_name, strlen(directory_name));
+	if (result != BS_RESULT_OK)
+		return result;
 
 	const size_t total_size_excluding_binary = sizeof(bs_BiffHeader) + sizeof(bs_BiffPointer) * images.count + param.total_name_lengths;
 	const size_t total_size = total_size_excluding_binary + param.total_images_size;
@@ -117,6 +141,10 @@ void bsmod_packImageDirectory(char* directory_name, char* package_name, char* re
 
 	bs_destroyList(&images);
 
-	bsmod_packResource(BS_RESOURCE_IMAGE, biff, total_size, package_name, resource_name);
+	result = bsmod_packResource(BS_RESOURCE_IMAGE, biff, total_size, package_name, resource_name, strlen(resource_name));
 	bs_free(biff);
+	if (result != BS_RESULT_OK)
+		return result;
+
+	return BS_RESULT_OK;
 }

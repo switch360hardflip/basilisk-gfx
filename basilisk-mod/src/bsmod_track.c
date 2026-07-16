@@ -1,17 +1,36 @@
-#include <bsgfx.h>
-#include <bsmod_compile.h>
-#include <bsmod_bmfont.h>
-#include <bsmod_bpak.h>
-#include <bsmod_track.h>
-#include <bsmod_biff.h>
-#include <bsmod_atlas.h>
-#include <bsmod.h>
-#include <bs_json.h>
-#include <bs_window.h>
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+#include <basilisk-mod.h>
 #include <direct.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+
+#define STB_RECT_PACK_IMPLEMENTATION
+#include <stb_rect_pack/stb_rect_pack.h>
 
 static bs_List bsmod_string_pool = { .unit_size = sizeof(bs_StringPoolEntry), .increment = 64 };
 
@@ -27,12 +46,18 @@ struct bsmod_Hook {
 
 // todo make this reloadable
 static bs_List* bsmod_loadHooks() {
+	bs_Result result;
+
 	static bs_List hooks = { .unit_size = sizeof(struct bsmod_Hook), .increment = 16 };
 	if (hooks.capacity)
 		return &hooks;
 
-	bs_Json json = bs_loadJson(BSMOD_HOOKS_PATH);
-	bs_JsonValue value = bs_fetchJson(&json, BS_JSON_ARRAY, "$");
+	bs_Json json;
+	result = bs_loadJson(&json, BS_CONSTANT_STRING(BSMOD_HOOKS_PATH));
+	if (result != BS_RESULT_OK)
+		return NULL;
+
+	bs_JsonValue value = bs_fetchJson(&json, BS_JSON_ARRAY, BS_CONSTANT_STRING("$"));
 
 	//static bs_String* last_modified;
 
@@ -41,24 +66,24 @@ static bs_List* bsmod_loadHooks() {
 
 		//last_modified = bs_stringF(last_modified, "%02d-%02d-%02d %02d:%02d:%02d", m.years, m.months, m.days, m.hours, m.minutes, m.seconds);
 
-		char* prefix = bs_fetchJsonF(&root, BS_JSON_UNDEFINED, "prefix").as_string;
+		char* prefix = bs_fetchJson(&root, BS_JSON_UNDEFINED, BS_CONSTANT_STRING("prefix")).as_string;
 		struct bsmod_Hook dir = {
-			.path = strdup(bs_fetchJson(&root, BS_JSON_STRING, "path").as_string),
-			.function = strdup(bs_fetchJson(&root, BS_JSON_STRING, "function").as_string),
-			.package = strdup(bs_fetchJson(&root, BS_JSON_STRING, "package").as_string),
-			.call_once = bs_fetchJson(&root, BS_JSON_UNDEFINED, "callOnce").as_bool,
+			.path = strdup(bs_fetchJson(&root, BS_JSON_STRING, BS_CONSTANT_STRING("path")).as_string),
+			.function = strdup(bs_fetchJson(&root, BS_JSON_STRING, BS_CONSTANT_STRING("function")).as_string),
+			.package = strdup(bs_fetchJson(&root, BS_JSON_STRING, BS_CONSTANT_STRING("package")).as_string),
+			.call_once = bs_fetchJson(&root, BS_JSON_UNDEFINED, BS_CONSTANT_STRING("callOnce")).as_bool,
 			.prefix = prefix ? strdup(prefix) : "",
 			.entries = bs_list(sizeof(char*), 16),
 		};
 
-		bs_JsonValue entries = bs_fetchJsonF(&root, BS_JSON_UNDEFINED, "entries");
+		bs_JsonValue entries = bs_fetchJson(&root, BS_JSON_UNDEFINED, BS_CONSTANT_STRING("entries"));
 		for (int i = 0; i < entries.size; i++) {
 			char* string = entries.as_array.as_strings[i];
 			string = bs_checkStringPool(&bsmod_string_pool, string);
 			bs_pushBack(&dir.entries, &string);
 		}
 
-		bs_JsonValue last_modified = bs_fetchJsonF(&root, BS_JSON_UNDEFINED, "lastModified");
+		bs_JsonValue last_modified = bs_fetchJson(&root, BS_JSON_UNDEFINED, BS_CONSTANT_STRING("lastModified"));
 		if (last_modified.found && last_modified.type == BS_JSON_STRING) {
 			sscanf(last_modified.as_string, "%u-%u-%u %u:%u:%u",
 				&dir.last_modified.years, &dir.last_modified.months, &dir.last_modified.days,
@@ -74,6 +99,8 @@ static bs_List* bsmod_loadHooks() {
 }
 
 static void bsmod_saveHooks(bs_List* hooks) {
+	bs_Result result;
+
 	bs_Json json = bs_emptyJson();
 	bs_ensureJsonMutable(&json);
 
@@ -90,10 +117,16 @@ static void bsmod_saveHooks(bs_List* hooks) {
 		bs_ensureJsonF(&json, entries, "$[%d].entries", i);
 	}
 
-	char* data = bs_saveJson(&json, BS_JSON_PRETTY);
-	bs_saveFile(BSMOD_HOOKS_PATH, data, strlen(data));
-	bs_free(data);
+	char* data;
+	result = bs_saveJson(&json, BS_JSON_PRETTY, &data);
 	bs_destroyJson(&json);
+	if (result != BS_RESULT_OK)
+		return;
+
+	result = bs_saveFile(data, strlen(data), BS_CONSTANT_STRING(BSMOD_HOOKS_PATH));
+	bs_free(data);
+	if (result != BS_RESULT_OK)
+		return;
 }
 
 
@@ -103,39 +136,53 @@ static void bsmod_saveHooks(bs_List* hooks) {
    * Definition needs BSMODAPI
    *============================================================================*/
 
-void bsmod_packBindings() {
+BSMODAPI bs_Result _bsmod_packBindings() {
+	bs_Result result;
+
 	int descriptors_count = 0;
 	int bindings_count = 0;
 	int bind_sets_count = 0;
 
 	bool processed_bind_sets[BS_MAX_NUM_BIND_SETS] = { 0 };
 
-	bs_foreachJson(&bsmod.bindings_json, e) {
+	bs_foreachJson(&_bsmod_.bindings_json, e) {
 		if (e.value.type != BS_JSON_OBJECT)
 			continue;
 
-		bs_Json root = bs_jsonRoot(&bsmod.bindings_json, e.value.as_object);
+		bs_Json root = bs_jsonRoot(&_bsmod_.bindings_json, e.value.as_object);
 
-		descriptors_count += bs_fetchJson(&root, BS_JSON_UNDEFINED, "count").as_number;
-		int bind_set = bs_fetchJson(&root, BS_JSON_UNDEFINED, "set").as_number;
-		assert(bind_set >= 0 && bind_set < BS_MAX_NUM_BIND_SETS);
+		descriptors_count += bs_fetchJson(&root, BS_JSON_UNDEFINED, BS_CONSTANT_STRING("count")).as_number;
+		int bind_set = bs_fetchJson(&root, BS_JSON_UNDEFINED, BS_CONSTANT_STRING("set")).as_number;
+
+		BSMOD_VALIDATE(bind_set >= 0, BS_RESULT_VALIDATION_ERROR,);
+		BSMOD_VALIDATE(bind_set < BS_MAX_NUM_BIND_SETS, BS_RESULT_VALIDATION_ERROR,);
+
 		if (!processed_bind_sets[bind_set])
 			bind_sets_count++;
+
 		processed_bind_sets[bind_set] = true;
 		bindings_count++;
 	};
 
-	bs_ensureJson(&bsmod.bindings_json, bs_jsonValue(bindings_count), "bindingsCount");
-	bs_ensureJson(&bsmod.bindings_json, bs_jsonValue(bind_sets_count), "bindSetsCount");
-	bs_ensureJson(&bsmod.bindings_json, bs_jsonValue(descriptors_count), "descriptorsCount");
+	bs_ensureJson(&_bsmod_.bindings_json, bs_jsonValue(bindings_count), BS_CONSTANT_STRING("bindingsCount"));
+	bs_ensureJson(&_bsmod_.bindings_json, bs_jsonValue(bind_sets_count), BS_CONSTANT_STRING("bindSetsCount"));
+	bs_ensureJson(&_bsmod_.bindings_json, bs_jsonValue(descriptors_count), BS_CONSTANT_STRING("descriptorsCount"));
 
-	char* raw = bs_saveJson(&bsmod.bindings_json, BS_JSON_PRETTY);
-	bsmod_packResource(BS_RESOURCE_BINARY, raw, strlen(raw), BSGFX_CONTENT_PATH, "bindings");
+	char* raw;
+	result = bs_saveJson(&_bsmod_.bindings_json, BS_JSON_PRETTY, &raw);
+	if (result != BS_RESULT_OK)
+		return result;
+
+	result = bsmod_packResource(BS_RESOURCE_BINARY, raw, strlen(raw), BSGFX_CONTENT_PATH, "bindings");
 	bs_free(raw);
+	if (result != BS_RESULT_OK)
+		return result;
+
+	return BS_RESULT_OK;
 }
 
-void bsmod_onConvertBMFont(bsmod_TrackParams params) {
-	if (!bs_fileExists(params.path))
+BSMODAPI void _bsmod_onConvertBMFont(bsmod_TrackParams params) {
+	if (!bs_fileExists(params.path, strlen(params.path)))
 		return bs_warnF(BS_PRINT_COLOR("Removed %s\n", BS_PRINT_RED), params.path);
 
 	char* ext = bs_fileExtension(params.path);
@@ -166,11 +213,10 @@ void bsmod_onConvertBMFont(bsmod_TrackParams params) {
 	bsmod_packBMFont(params.package, fnt_path, png_path, "%s%.*s", params.prefix, name_length, name);
 }
 
-#define STB_RECT_PACK_IMPLEMENTATION
-#include <stb_rect_pack.h>
+BSMODAPI void _bsmod_onLoadTTF(bsmod_TrackParams params) {
+	bs_Result result;
 
-void bsmod_onLoadTTF(bsmod_TrackParams params) {
-	if (!bs_fileExists(params.path))
+	if (!bs_fileExists(params.path, strlen(params.path)))
 		return bs_warnF(BS_PRINT_COLOR("Removed %s\n", BS_PRINT_RED), params.path);
 
 	printf("Loading ttf \"%s\"\n", params.path);
@@ -182,17 +228,21 @@ void bsmod_onLoadTTF(bsmod_TrackParams params) {
 
 	const char* alphabet = BSGFX_ALPHABET_DEFAULT;
 	int alphabet_length = sizeof(BSGFX_ALPHABET_DEFAULT) - 1;
+
 	bs_TTF ttf = { 0 };
-	bs_ttf(&ttf, params.path, 0);
-	for (int i = 0; i < alphabet_length; i++) {
+	result = bs_ttf(&ttf, params.path, 0);
+	if (!result != BS_RESULT_OK)
+		return;
+
+	for (int i = 0; i < alphabet_length; i++)
 		bs_glyph(&ttf, alphabet[i]);
-	}
+
 	bs_kern(&ttf);
 
    /**
     Rasterize
     */
-	stbrp_rect* rects = _alloca(ttf.glyphs.count * sizeof(stbrp_rect));
+	stbrp_rect* rects = bs_malloc(ttf.glyphs.count * sizeof(stbrp_rect));
 
 	const float scale = 0.05;
 	int atlas_width = 2048;
@@ -252,8 +302,8 @@ void bsmod_onLoadTTF(bsmod_TrackParams params) {
 	bs_Json json = bs_emptyJson();
 	bs_ensureJsonMutable(&json);
 
-	bs_ensureJson(&json, bs_jsonValue(ttf.head.units_per_em), "unitsPerEm");
-	bs_ensureJson(&json, bs_jsonValue(scale), "scale");
+	bs_ensureJson(&json, bs_jsonValue(ttf.head.units_per_em), BS_CONSTANT_STRING("unitsPerEm"));
+	bs_ensureJson(&json, bs_jsonValue(scale), BS_CONSTANT_STRING("scale"));
 
 	for (int i = 0; i < ttf.kerning_pairs.count; i++) {
 		bs_KerningPair* pair = bs_fetchUnit(&ttf.kerning_pairs, i);
@@ -281,11 +331,17 @@ void bsmod_onLoadTTF(bsmod_TrackParams params) {
 		bs_ensureJsonF(&json, bs_jsonValue(glyph->pairs_count), "table.%d.kerningPairCount", code);
 	}
 
-	char* raw = bs_saveJson(&json, 0);
-	bsmod_packResourceF(BS_RESOURCE_BINARY, raw, strlen(raw), params.package, "atlas/%s.json", file_name);
-
-	bs_free(raw);
+	bs_free(rects);
+	char* raw;
+	result = bs_saveJson(&json, 0, &raw);
 	bs_destroyJson(&json);
+	if (result != BS_RESULT_OK)
+		return;
+
+	result = bsmod_packResourceF(BS_RESOURCE_BINARY, raw, strlen(raw), params.package, "atlas/%s.json", file_name);
+	bs_free(raw);
+	if (result != BS_RESULT_OK)
+		return;
 
 	//if (_bsmod_procs.bsgfx_loadFonts && bs_instance()->instance)
 	//	_bsmod_procs.bsgfx_loadFonts();
@@ -304,7 +360,7 @@ static void bsmod_onPackAtlasTexture(bs_FileInfo info, bsmod_AtlasPacker* packer
 	ext[-1] = '.';
 }
 
-void bsmod_onPackAtlas(bsmod_TrackParams params) {
+BSMODAPI void _bsmod_onPackAtlas(bsmod_TrackParams params) {
 	bsmod_AtlasPacker packer = bsmod_createAtlasPacker();
 
 	char* file_name = bs_fileName(params.path);
@@ -312,7 +368,7 @@ void bsmod_onPackAtlas(bsmod_TrackParams params) {
 
 	file_name[-1] = '\0';
 	char* directory_name = bs_fileName(params.path); // hacky
-	bs_foreachFile(bsmod_onPackAtlasTexture, &packer, params.path);
+	bs_foreachFile(bsmod_onPackAtlasTexture, &packer, params.path, strlen(params.path));
 
 	extension[-1] = '\0';
 	bsmod_packAtlas(&packer, 1024, 1024, params.package, directory_name);
@@ -320,17 +376,30 @@ void bsmod_onPackAtlas(bsmod_TrackParams params) {
 	file_name[-1] = '/';
 }
 
-void bsmod_onPackModels(bsmod_TrackParams params) {
+BSMODAPI void _bsmod_onPackModels(bsmod_TrackParams params) {
+	bs_Result result;
+
 	bs_String* glb = NULL;
 
 	char* ext = bs_fileExtension(params.path);
 	char* name = bs_fileName(params.path);
 	if (strcmp(ext, "gltf") == 0) {
 		bs_infoF("Converting \"%s\" to glb\n", params.path);
-		bs_String* gltf = bs_loadFile(params.path);
-		gltf->len--;
-		bs_Json json = bs_json(gltf->value, gltf->len);
-		char* uri = bs_fetchJson(&json, BS_JSON_STRING, "buffers[0].uri").as_string;
+
+		bs_String* gltf;
+		result = bs_loadFile(&gltf, params.path, strlen(params.path));
+		if (result != BS_RESULT_OK)
+			return;
+		gltf->len--; // null terminator TERMINATORRR
+
+		bs_Json json;
+		result = bs_json(&json, gltf->value, gltf->len);
+		if (result != BS_RESULT_OK) {
+			bs_free(gltf);
+			return;
+		}
+
+		char* uri = bs_fetchJson(&json, BS_JSON_STRING, BS_CONSTANT_STRING("buffers[0].uri")).as_string;
 
 		char* file_name = bs_fileName(params.path);
 		char* directory = "";
@@ -340,7 +409,13 @@ void bsmod_onPackModels(bsmod_TrackParams params) {
 			file_name[-1] = '\0';
 		}
 
-		bs_String* bin = bs_loadFileF("%s/%s", directory, uri);
+		bs_String* bin;
+		result = bs_loadFileF(&bin, "%s/%s", directory, uri);
+		if (result != BS_RESULT_OK) {
+			bs_free(gltf);
+			bs_destroyJson(&json);
+			return;
+		}
 
 		if (file_name != params.path)
 			file_name[-1] = '/';
@@ -397,23 +472,33 @@ void bsmod_onPackModels(bsmod_TrackParams params) {
 	}
 	else if (!strcmp(ext, "glb") == 0)
 		return bs_warnF("Unknown model format \"%s\"\n", params.path);
-	else
-		glb = bs_loadFile(params.path);
+	else {
+		result = bs_loadFile(&glb, params.path, strlen(params.path));
+		if (result != BS_RESULT_OK)
+			return;
+	}
 
-	bsmod_packResourceF(BS_RESOURCE_MODEL, glb->value, glb->len, params.package, "models/%.*s", strlen(name) - strlen(ext) - 1, name);
-
+	result = bsmod_packResourceF(BS_RESOURCE_MODEL, glb->value, glb->len, params.package, "models/%.*s", strlen(name) - strlen(ext) - 1, name);
 	bs_free(glb);
+	if (result != BS_RESULT_OK)
+		return;
 }
 
-void bsmod_onPackBinary(bsmod_TrackParams params) {
-	bs_String* data = bs_loadFile(params.path);
+BSMODAPI void _bsmod_onPackBinary(bsmod_TrackParams params) {
+	bs_Result result;
+
+	bs_String* data;
+	result = bs_loadFile(&data, params.path, strlen(params.path));
+	if (result != BS_RESULT_OK)
+		return;
 
 	char* ext = bs_fileExtension(params.path);
 	ext[-1] = '\0';
-	bsmod_packResourceF(BS_RESOURCE_BINARY, data->value, data->len, params.package, "%s%s", params.prefix, bs_fileName(params.path));
+	result = bsmod_packResourceF(BS_RESOURCE_BINARY, data->value, data->len, params.package, "%s%s", params.prefix, bs_fileName(params.path));
 	ext[-1] = '.';
-
 	bs_free(data);
+	if (result != BS_RESULT_OK)
+		return;
 }
 
 void bsmod_onPackTextureArray(bsmod_TrackParams params) {
@@ -431,9 +516,11 @@ void bsmod_onPackTextureArray(bsmod_TrackParams params) {
    *============================================================================*/
 
 static void bsmod_findLastModifiedFile(bs_FileInfo info, struct { bs_DateTime original_date; bs_DateTime date; const bs_List* added_entries; bs_List* changed_entries; bs_List* entries; }*result) {
-	bs_except(BSX_NOT_FOUND);
-	bs_DateTime date_time = bs_fileModifiedDate(info.path);
-	if (bs_except(0))
+	bs_Result result;
+
+	bs_DateTime date_time;
+	result = bs_fileModifiedDate(&date_time, info.path, strlen(info.path));
+	if (result != BS_RESULT_OK)
 		return;
 
 	char* cached = bs_checkStringPool(&bsmod_string_pool, info.path);
@@ -449,7 +536,7 @@ static void bsmod_findLastModifiedFile(bs_FileInfo info, struct { bs_DateTime or
 }
 
 static void bsmod_findLastModifiedDirectory(bs_FileInfo info, struct { bs_DateTime date; const bs_List* added_entries; bs_List* changed_entries; bs_List* entries; }*result) {
-	bs_foreachFile(bsmod_findLastModifiedFile, result, info.path);
+	bs_foreachFile(bsmod_findLastModifiedFile, result, info.path, strlen(info.path));
 }
 
 static void bsmod_trackDirectoryDifferences(const bs_List* changed, const bs_List* a, const bs_List* b, bs_List* out_differences) {
@@ -479,7 +566,7 @@ static bool bsmod_isFile(const char* path) {
 	return true;
 }
 
-void bsmod_onTrack() {
+BSMODAPI void _bsmod_onTrack() {
 	static bs_String* last;
 	bs_String* cwd = bs_workingDirectory();
 	last = bs_string(last, cwd->value, cwd->len);
@@ -502,7 +589,12 @@ void bsmod_onTrack() {
 		if (reload_all)
 			bs_logSectionF("Directory \"%s\"", dir->path);
 		if (bsmod_isFile(dir->path)) {
-			bs_DateTime last_modified = bs_fileModifiedDate(dir->path);
+
+			bs_DateTime last_modified;
+			if (bs_fileModifiedDate(&last_modified, dir->path, strlen(dir->path)) != BS_RESULT_OK) {
+				continue;
+			}
+
 			if (reload_all || bs_isLaterThan(&last_modified, &dir->last_modified)) {
 				dir->last_modified = last_modified;
 
@@ -540,8 +632,8 @@ void bsmod_onTrack() {
 				.entries = &entries,
 			};
 
-			bs_foreachFile(bsmod_findLastModifiedFile, &result, dir->path);
-			bs_foreachDirectory(bsmod_findLastModifiedDirectory, &result, dir->path); // TODO: this blows up the stack
+			bs_foreachFile(bsmod_findLastModifiedFile, &result, dir->path, strlen(dir->path));
+			bs_foreachDirectory(bsmod_findLastModifiedDirectory, &result, dir->path, strlen(dir->path)); // TODO: this blows up the stack
 			bsmod_trackDirectoryDifferences(&changed_entries, result.entries, &dir->entries, &added_entries);
 			bsmod_trackDirectoryDifferences(&changed_entries, &dir->entries, result.entries, &removed_entries);
 

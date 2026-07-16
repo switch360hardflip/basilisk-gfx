@@ -785,13 +785,17 @@ BSAPI void _bs_destroyTtf(bs_TTF* ttf) {
     //free(ttf->atlas);
 }
 
-BSAPI void _bs_ttf(bs_TTF* existing, const char* path, bs_U32 flags) {
+BSAPI bs_Result _bs_ttf(bs_TTF* existing, const char* path, bs_U32 flags) {
+    bs_Result result;
+
     bs_TTF ttf = {
         .glyphs = bs_list(sizeof(bs_Glyph), 64),
         .kerning_pairs = bs_list(sizeof(bs_KerningPair), 64),
     };
 
-    bs_loadFile(&ttf.buffer, path, strlen(path));
+    result = bs_loadFile(&ttf.buffer, path, strlen(path));
+    if (result != BS_RESULT_OK)
+        return result;
 
     ttf.table_count = bs_memU16(ttf.buffer->value, 4);
 
@@ -800,6 +804,8 @@ BSAPI void _bs_ttf(bs_TTF* existing, const char* path, bs_U32 flags) {
     bs_readHheaTable(&ttf);
 
     memcpy(existing, &ttf, sizeof(bs_TTF));
+
+    return BS_RESULT_OK;
 }
 
 

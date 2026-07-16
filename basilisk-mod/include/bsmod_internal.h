@@ -1,8 +1,7 @@
-#ifndef BSMOD_H
-#define BSMOD_H
+#ifndef BSMOD_INTERNAL_H
+#define BSMOD_INTERNAL_H
 
-#include <bs_types.h>
-#include <types/bsgfx_type.h>
+#include <basilisk-mod.h>
 
 #define BSMODAPI _declspec(dllexport)
 
@@ -161,10 +160,10 @@ BSMODAPI extern struct Bsmod {
 	bs_List queue_load;
 } bsmod;
 
-extern bs_Json _bsmod_config;
+extern bs_Json _bsmod_config_;
 
 static inline const char* bsmod_applicationContentPath() {
-	return bs_fetchJson(&_bsmod_config, BS_JSON_STRING, "application.content_path").as_string;
+	return bs_fetchJson(&_bsmod_config_, BS_JSON_STRING, BS_CONSTANT_STRING("application.content_path")).as_string;
 }
 
 typedef void(__stdcall* PFN_void)();
@@ -181,26 +180,6 @@ extern struct bsmod_Procedures {
 	BSMOD_FOREACH_PROC(BSMOD_STRUCT_GEN)
 } _bsmod_procs;
 
-
-bool bsmod_keyHeld(bs_U32 code);
-bool bsmod_keyDown(bs_U32 code);
-bool bsmod_keyDownOnce(bs_U32 code);
-bool bsmod_keyUpOnce(bs_U32 code);
-bool bsmod_charDown(unsigned char code);
-bool bsmod_charDownOnce(unsigned char code);
-bool bsmod_charUpOnce(unsigned char code);
-
-bool bsmod_middleClick();
-bool bsmod_middleClickOnce();
-bool bsmod_middleClickUpOnce();
-bool bsmod_leftClick();
-bool bsmod_rightClick();
-bool bsmod_rightClickOnce();
-bool bsmod_leftClickOnce();
-bool bsmod_rightClickUpOnce();
-bool bsmod_leftClickUpOnce();
-
-
 #define BSMOD_ENUM_GEN(ENUM) ENUM,
 #define BSMOD_STRING_GEN(STRING) #STRING,
 
@@ -216,8 +195,8 @@ bool bsmod_leftClickUpOnce();
         X(BSMOD_IMAGE_COLOR)
 
 enum { BSMOD_IMAGE_IDS(BSMOD_ENUM_GEN) BSMOD_IMAGES_COUNT };
-extern int _bsmod_images;
-#define BSMOD_IMAGES _bsmod_images
+extern int _bsmod_images_;
+#define BSMOD_IMAGES _bsmod_images_
 
 
 
@@ -229,8 +208,8 @@ extern int _bsmod_images;
 	X(BSMOD_SAMPLER_PLACEHOLDER)
 
 enum { BSMOD_SAMPLER_IDS(BSMOD_ENUM_GEN) BSMOD_SAMPLERS_COUNT };
-extern int _bsmod_samplers;
-#define BSMOD_SAMPLERS _bsmod_samplers
+extern int _bsmod_samplers_;
+#define BSMOD_SAMPLERS _bsmod_samplers_
 
 
 
@@ -242,8 +221,8 @@ extern int _bsmod_samplers;
 	X(BSMOD_BUFFER_PLACEHOLDER)
 
 enum { BSMOD_BUFFER_IDS(BSMOD_ENUM_GEN) BSMOD_BUFFERS_COUNT };
-extern int _bsmod_buffers;
-#define BSMOD_BUFFERS _bsmod_buffers
+extern int _bsmod_buffers_;
+#define BSMOD_BUFFERS _bsmod_buffers_
 
 
 
@@ -255,8 +234,8 @@ extern int _bsmod_buffers;
         X(BSMOD_BATCH_TILE)
 
 enum { BSMOD_BATCH_IDS(BSMOD_ENUM_GEN) BSMOD_BATCHES_COUNT };
-extern int _bsmod_batches;
-#define BSMOD_BATCHES _bsmod_batches
+extern int _bsmod_batches_;
+#define BSMOD_BATCHES _bsmod_batches_
 
 
 
@@ -269,8 +248,8 @@ extern int _bsmod_batches;
         X(BSMOD_RENDERER_3D)
 
 enum { BSMOD_RENDERER_IDS(BSMOD_ENUM_GEN) BSMOD_RENDERERS_COUNT };
-extern int _bsmod_renderers;
-#define BSMOD_RENDERERS _bsmod_renderers
+extern int _bsmod_renderers_;
+#define BSMOD_RENDERERS _bsmod_renderers_
 
 
 
@@ -283,8 +262,8 @@ extern int _bsmod_renderers;
         X(BSMOD_QUEUE_GRAPHICS_RASTERIZATION)
 
 enum { BSMOD_QUEUE_IDS(BSMOD_ENUM_GEN) BSMOD_QUEUES_COUNT };
-extern int _bsmod_queues;
-#define BSMOD_QUEUES _bsmod_queues
+extern int _bsmod_queues_;
+#define BSMOD_QUEUES _bsmod_queues_
 
 
 
@@ -296,8 +275,8 @@ extern int _bsmod_queues;
 	X(BSMOD_RAY_TRACER_PLACEHOLDER)
 
 enum { BSMOD_RAY_TRACER_IDS(BSMOD_ENUM_GEN) BSMOD_RAY_TRACERS_COUNT };
-extern int _bsmod_ray_tracers;
-#define BSMOD_RAY_TRACERS _bsmod_ray_tracers
+extern int _bsmod_ray_tracers_;
+#define BSMOD_RAY_TRACERS _bsmod_ray_tracers_
 
 
 
@@ -312,8 +291,8 @@ extern int _bsmod_ray_tracers;
         X(BSMOD_ATLAS_PREFAB_ICONS)
 
 enum { BSMOD_ATLAS_IDS(BSMOD_ENUM_GEN) BSMOD_ATLASES_COUNT };
-extern int _bsmod_atlases;
-#define BSMOD_ATLASES _bsmod_atlases
+extern int _bsmod_atlases_;
+#define BSMOD_ATLASES _bsmod_atlases_
 
 
 
@@ -325,7 +304,7 @@ extern int _bsmod_atlases;
 	X(BSMOD_FONT_PLACEHOLDER)
 
 enum { BSMOD_FONT_IDS(BSMOD_ENUM_GEN) BSMOD_FONTS_COUNT };
-extern int _bsmod_fonts;
-#define BSMOD_FONTS _bsmod_fonts
+extern int _bsmod_fonts_;
+#define BSMOD_FONTS _bsmod_fonts_
 
 #endif

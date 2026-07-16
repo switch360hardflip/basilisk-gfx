@@ -285,7 +285,7 @@ BSGFXAPI void _bsgfx_renderFineShadowVolumes() {
         //.skip_depth_write = true,
     };
     // TODO: screenshot reimplementation
-    //if (bsmod.queue.screenshot)
+    //if (_bsmod_.queue.screenshot)
     //    hash.attachments[0].skip_write = false;
     bs_Pipeline* mesh_pipeline = bs_pipeline(&hash);
 

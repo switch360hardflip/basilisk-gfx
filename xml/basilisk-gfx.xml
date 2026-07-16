@@ -1298,6 +1298,18 @@
 		<function name="bsgfx_atlases"><return>int</return></function>
 		<function name="bsgfx_fonts"><return>int</return></function>
 
+		<function name="bsgfx_validateSubtype">
+			<return>bool</return>
+			<param><type>const char*</type><name>library_name</name></param>
+			<param><type>int</type><name>subtype</name></param>
+		</function>
+		
+		<function name="bsgfx_validateInstanceType">
+			<return>bool</return>
+			<param><type>const char*</type><name>library_name</name></param>
+			<param><type>int</type><name>instance_type_id</name></param>
+		</function>
+		
 		<function name="bsgfx_materialCategoryName">
 			<return>const char*</return>
 			<param><type>bsgfx_MaterialCategory</type><name>category</name></param>

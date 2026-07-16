@@ -86,7 +86,7 @@ enum {                                                               \
 typedef struct bsmod_Procedures bsmod_Procedures;                    \
     extern struct bsmod_Procedures {                                 \
     BSMOD_FOREACH_PROC(BSMOD_STRUCT_GEN)                             \
-    } _bsmod_procs;
+    } _bsmod_procs_;
 
 #define BSMOD_ENUM_GEN(ENUM)                                         \
     ENUM,
@@ -103,7 +103,7 @@ enum { BSMOD_IMAGE_IDS(BSMOD_ENUM_GEN) BSMOD_IMAGES_COUNT };         \
 
 
 #define BSMOD_IMAGES                                                 \
-    __bsmod_images_
+    _bsmod_images_
 
 #define BSMOD_SAMPLER_IDS(X)                                         \
     X(BSMOD_SAMPLER_PLACEHOLDER)
@@ -112,7 +112,7 @@ enum { BSMOD_SAMPLER_IDS(BSMOD_ENUM_GEN) BSMOD_SAMPLERS_COUNT };     \
 
 
 #define BSMOD_SAMPLERS                                               \
-    __bsmod_samplers_
+    _bsmod_samplers_
 
 #define BSMOD_BUFFER_IDS(X)                                          \
     X(BSMOD_BUFFER_PLACEHOLDER)
@@ -121,7 +121,7 @@ enum { BSMOD_BUFFER_IDS(BSMOD_ENUM_GEN) BSMOD_BUFFERS_COUNT };       \
 
 
 #define BSMOD_BUFFERS                                                \
-    __bsmod_buffers_
+    _bsmod_buffers_
 
 #define BSMOD_BATCH_IDS(X)                                           \
     X(BSMOD_BATCH_TILE)
@@ -130,7 +130,7 @@ enum { BSMOD_BATCH_IDS(BSMOD_ENUM_GEN) BSMOD_BATCHES_COUNT };        \
 
 
 #define BSMOD_BATCHES                                                \
-    __bsmod_batches_
+    _bsmod_batches_
 
 #define BSMOD_RENDERER_IDS(X)                                        \
     X(BSMOD_RENDERER)                                                \
@@ -140,7 +140,7 @@ enum { BSMOD_RENDERER_IDS(BSMOD_ENUM_GEN) BSMOD_RENDERERS_COUNT };   \
 
 
 #define BSMOD_RENDERERS                                              \
-    __bsmod_renderers_
+    _bsmod_renderers_
 
 #define BSMOD_QUEUE_IDS(X)                                           \
     X(BSMOD_QUEUE_GRAPHICS)                                          \
@@ -150,7 +150,7 @@ enum { BSMOD_QUEUE_IDS(BSMOD_ENUM_GEN) BSMOD_QUEUES_COUNT };         \
 
 
 #define BSMOD_QUEUES                                                 \
-    _bsmod_queues
+    _bsmod_queues_
 
 #define BSMOD_RAY_TRACER_IDS(X)                                      \
     X(BSMOD_RAY_TRACER_PLACEHOLDER)
@@ -159,7 +159,7 @@ enum { BSMOD_RAY_TRACER_IDS(BSMOD_ENUM_GEN) BSMOD_RAY_TRACERS_COUNT }; \
 
 
 #define BSMOD_RAY_TRACERS                                            \
-    _bsmod_ray_tracers
+    _bsmod_ray_tracers_
 
 #define BSMOD_ATLAS_IDS(X)                                           \
     X(BSMOD_ATLAS_UI)                                                \
@@ -171,7 +171,7 @@ enum { BSMOD_ATLAS_IDS(BSMOD_ENUM_GEN) BSMOD_ATLASES_COUNT };        \
 
 
 #define BSMOD_ATLASES                                                \
-    _bsmod_atlases
+    _bsmod_atlases_
 
 #define BSMOD_FONT_IDS(X)                                            \
     X(BSMOD_FONT_PLACEHOLDER)
@@ -184,75 +184,6 @@ enum { BSMOD_FONT_IDS(BSMOD_ENUM_GEN) BSMOD_FONTS_COUNT };           \
 
 #define BSMOD_BPAK_CHUNK_SIZE                                        \
     100'000'000
-
-BSMODAPI extern int _bsmod_atlases;                                  \
-
-
-#define BSGFX_PACKAGE                                                \
-    bsmod.package
-
-BSGFX_CACHE_FS(fs_bsmod_rasterize)                                   \
-
-
-BSGFX_CACHE_FS(fs_bsmod_material_icon)                               \
-
-
-BSGFX_CACHE_FS(fs_bsmod_billboard)                                   \
-
-
-BSGFX_CACHE_VS(vs_bsmod_mesh_instanced)                              \
-
-
-BSGFX_CACHE_VS(vs_bsmod_billboard)                                   \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_MATERIAL_ICONS, test0) \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, grid_hover)  \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, white)       \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, title_bar_close) \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, scrollbar_button) \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, material)    \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, instance)    \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, increment)   \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, circle)      \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, prohibition) \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, expand)      \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, light)       \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, light_add)   \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, sun)         \
-
-
-BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, sun_add)     \
-
-
-#undef BSGFX_PACKAGE                                                 \
-
 
 #define BSMOD_DEFAULT_RADIUS                                         \
     5.0
@@ -282,10 +213,10 @@ BSGFX_CACHE_ATLAS_QUERY(_bsmod_atlases, BSMOD_ATLAS_UI, sun_add)     \
     "project/bsmod_hooks.json"
 
 #define BSMOD_IDS                                                    \
-    &bsmod.selected_ids
+    &_bsmod_.selected_ids
 
 #define BSMOD_TILE_IDS                                               \
-    &bsmod.selected_tiles
+    &_bsmod_.selected_tiles
 
 typedef void (__stdcall* PFN_void)();
 typedef bool (__stdcall* PFN_bsmod_PushContextMenuButton)(bsgfx_Widget*);
@@ -360,7 +291,7 @@ struct Bsmod {
     int bsgfx_package;
     int selected_tile_primitive;
     int selected_tile_axis;
-    struct hovering {
+    struct {
         bs_RGBA color;
         bs_vec3 normal;
         bs_U32 index;
@@ -376,7 +307,7 @@ struct Bsmod {
         int prefab;
         int tile;
         int tile_axis;
-    };
+    } hovering;
     bs_List selected_ids;
     bs_List selected_tiles;
     int editor_resource_type;
@@ -396,10 +327,10 @@ struct Bsmod {
     bsgfx_TypeId selected_type;
     int axis;
     bs_I64 history;
-    struct settings {
+    struct {
         bool draw_hidden_primitives;
-    };
-    struct queue {
+    } settings;
+    struct {
         int isolated_subtype;
         int isolated_id;
         bool screenshot;
@@ -409,7 +340,7 @@ struct Bsmod {
         bool load_textures;
         bool load_scripts;
         bool skip_mesh_index_write;
-    };
+    } queue;
     bsgfx_Id dragging_object_id;
     int dragging_subtype;
     int dragging_id;
@@ -520,9 +451,9 @@ BSMODAPI void
 bsmod_onTrack();
 
  /**
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_packBindings();
 
  /**
@@ -582,116 +513,6 @@ bsmod_onPackTextureArray(
     bsmod_TrackParams params);
 
  /**
-  @param code
-  @return bool
-  */
-BSMODAPI bool
-bsmod_keyHeld(
-    bs_U32 code);
-
- /**
-  @param code
-  @return bool
-  */
-BSMODAPI bool
-bsmod_keyDown(
-    bs_U32 code);
-
- /**
-  @param code
-  @return bool
-  */
-BSMODAPI bool
-bsmod_keyDownOnce(
-    bs_U32 code);
-
- /**
-  @param code
-  @return bool
-  */
-BSMODAPI bool
-bsmod_keyUpOnce(
-    bs_U32 code);
-
- /**
-  @param code
-  @return bool
-  */
-BSMODAPI bool
-bsmod_charDown(
-    unsigned char code);
-
- /**
-  @param code
-  @return bool
-  */
-BSMODAPI bool
-bsmod_charDownOnce(
-    unsigned char code);
-
- /**
-  @param code
-  @return bool
-  */
-BSMODAPI bool
-bsmod_charUpOnce(
-    unsigned char code);
-
- /**
-  @return bool
-  */
-BSMODAPI bool
-bsmod_middleClick();
-
- /**
-  @return bool
-  */
-BSMODAPI bool
-bsmod_middleClickOnce();
-
- /**
-  @return bool
-  */
-BSMODAPI bool
-bsmod_middleClickUpOnce();
-
- /**
-  @return bool
-  */
-BSMODAPI bool
-bsmod_leftClick();
-
- /**
-  @return bool
-  */
-BSMODAPI bool
-bsmod_rightClick();
-
- /**
-  @return bool
-  */
-BSMODAPI bool
-bsmod_rightClickOnce();
-
- /**
-  @return bool
-  */
-BSMODAPI bool
-bsmod_leftClickOnce();
-
- /**
-  @return bool
-  */
-BSMODAPI bool
-bsmod_rightClickUpOnce();
-
- /**
-  @return bool
-  */
-BSMODAPI bool
-bsmod_leftClickUpOnce();
-
- /**
   @param packer
   @param name
   @param data
@@ -735,9 +556,9 @@ bsmod_createAtlasPacker();
   @param directory_name
   @param package_name
   @param resource_name
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_packImageDirectory(
     char* directory_name,
     char* package_name,
@@ -749,9 +570,9 @@ bsmod_packImageDirectory(
   @param png_path
   @param value
   @param value_length
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_packBMFont(
     char* package_name,
     char* bmfont_path,
@@ -765,9 +586,9 @@ bsmod_packBMFont(
   @param png_path
   @param format
   @param args
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_packBMFontV(
     char* package_name,
     char* bmfont_path,
@@ -781,9 +602,9 @@ bsmod_packBMFontV(
   @param png_path
   @param format
   @param ...
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_packBMFontF(
     char* package_name,
     char* bmfont_path,
@@ -815,9 +636,9 @@ bsmod_ensurePackage(
 
  /**
   @param package_name
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_iniPackage(
     const char* package_name);
 
@@ -825,17 +646,15 @@ bsmod_iniPackage(
   @param type
   @param data
   @param data_size
-  @param package_name
   @param value
   @param value_length
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_packResource(
     bs_ResourceType type,
     unsigned char* data,
     size_t data_size,
-    const char* package_name,
     char* value,
     int value_length);
 
@@ -843,17 +662,15 @@ bsmod_packResource(
   @param type
   @param data
   @param data_size
-  @param package_name
   @param format
   @param args
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_packResourceV(
     bs_ResourceType type,
     unsigned char* data,
     size_t data_size,
-    const char* package_name,
     char* format,
     va_list args);
 
@@ -861,25 +678,23 @@ bsmod_packResourceV(
   @param type
   @param data
   @param data_size
-  @param package_name
   @param format
   @param ...
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_packResourceF(
     bs_ResourceType type,
     unsigned char* data,
     size_t data_size,
-    const char* package_name,
     char* format,
      ...);
 
  /**
   @param name
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_savePackage(
     const char* name);
 
@@ -981,9 +796,9 @@ bsmod_endRasterize();
   @param height
   @param push_constant_size
   @param push_constant
-  @return void
+  @return bs_Result
   */
-BSMODAPI void
+BSMODAPI bs_Result
 bsmod_rasterizeInstance(
     bs_PipelineHash pipeline_hash,
     int subtype,
@@ -1493,6 +1308,8 @@ BSMODAPI extern int _bsmod_renderers_;
 BSMODAPI extern int _bsmod_queues_;
 BSMODAPI extern int _bsmod_ray_tracers_;
 BSMODAPI extern int _bsmod_fonts_;
+BSMODAPI extern int _bsmod_atlases_;
+BSMODAPI extern Bsmod _bsmod_;
 BSMODAPI extern bool _bsmod_instance_grid_menu_;
 BSMODAPI extern bs_String* _bsmod_search_input_;
 BSMODAPI extern bsmod_SideMenuTab _bsmod_side_menu_tabs_[BSMOD_TABS_COUNT];

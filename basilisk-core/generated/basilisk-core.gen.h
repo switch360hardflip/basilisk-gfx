@@ -5786,9 +5786,9 @@ bs_glyph(
   @param existing
   @param path
   @param flags
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_ttf(
     bs_TTF* existing,
     const char* path,
@@ -5913,9 +5913,9 @@ bs_transition(
  /**
   @param path
   @param out_png_data
-  @return unsigned char*
+  @return bs_Result
   */
-BSAPI unsigned char*
+BSAPI bs_Result
 bs_inspectPng(
     const char* path,
     bs_PngData* out_png_data);
@@ -5925,9 +5925,9 @@ bs_inspectPng(
   @param size
   @param channels_count
   @param out_png_data
-  @return unsigned char*
+  @return bs_Result
   */
-BSAPI unsigned char*
+BSAPI bs_Result
 bs_loadPngData(
     char* data,
     size_t size,
@@ -5938,9 +5938,9 @@ bs_loadPngData(
   @param path
   @param channels_count
   @param out_png_data
-  @return unsigned char*
+  @return bs_Result
   */
-BSAPI unsigned char*
+BSAPI bs_Result
 bs_loadPng(
     const char* path,
     int channels_count,
@@ -6015,16 +6015,18 @@ bs_savePngF(
   @param data
   @param size
   @param type
+  @param out
   @param value
   @param value_length
-  @return unsigned char*
+  @return bs_Result
   */
-BSAPI unsigned char*
+BSAPI bs_Result
 bs_encodePng(
     size_t* out_size,
     const unsigned char* data,
     bs_ivec2 size,
     bs_PngType type,
+    unsigned char** out,
     char* value,
     int value_length);
 
@@ -6033,16 +6035,18 @@ bs_encodePng(
   @param data
   @param size
   @param type
+  @param out
   @param format
   @param args
-  @return unsigned char*
+  @return bs_Result
   */
-BSAPI unsigned char*
+BSAPI bs_Result
 bs_encodePngV(
     size_t* out_size,
     const unsigned char* data,
     bs_ivec2 size,
     bs_PngType type,
+    unsigned char** out,
     char* format,
     va_list args);
 
@@ -6051,16 +6055,18 @@ bs_encodePngV(
   @param data
   @param size
   @param type
+  @param out
   @param format
   @param ...
-  @return unsigned char*
+  @return bs_Result
   */
-BSAPI unsigned char*
+BSAPI bs_Result
 bs_encodePngF(
     size_t* out_size,
     const unsigned char* data,
     bs_ivec2 size,
     bs_PngType type,
+    unsigned char** out,
     char* format,
      ...);
 
@@ -7811,9 +7817,9 @@ bs_appendFile(
   @param data_len
   @param path
   @param path_length
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_saveFile(
     char* data,
     bs_U32 data_len,
@@ -7825,9 +7831,9 @@ bs_saveFile(
   @param data_len
   @param format
   @param args
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_saveFileV(
     char* data,
     bs_U32 data_len,
@@ -7839,9 +7845,9 @@ bs_saveFileV(
   @param data_len
   @param format
   @param ...
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_saveFileF(
     char* data,
     bs_U32 data_len,
@@ -8775,13 +8781,11 @@ BSAPI bs_vec2
 bs_screenCursorPosition();
 
  /**
-  @param window
   @param value
   @return void
   */
 BSAPI void
 bs_lockCursorPosition(
-    bs_Window* window,
     bool value);
 
  /**

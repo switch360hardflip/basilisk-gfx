@@ -1,9 +1,29 @@
-#include <bsgfx.h>
-#include <bsmod_compile.h>
-#include <bsmod_bpak.h>
-#include <bsmod.h>
-#include <bs_json.h>
-#include <bs_window.h>
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+#include <basilisk-mod.h>
 #include <direct.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,41 +35,41 @@ typedef struct {
     int width, height;
     int x_offset, y_offset;
     int x_advance;
-} BMChar;
+} bsmod_BMChar;
 
 typedef struct {
     int first;
     int second;
     int amount;
-} BMKerning;
+} bsmod_BMKerning;
 
 typedef struct {
     int size;
 
-    BMChar* chars;
+    bsmod_BMChar* chars;
     int char_count;
 
-    BMKerning* kerning_pairs;
+    bsmod_BMKerning* kerning_pairs;
     int kerning_pairs_count;
 
     int line_height;
     int base;
-} BMFont;
+} bsmod_BMFont;
 
-static void bsmod_parseCharLine(const char* line, BMChar* c) {
+static void bsmod_parseCharLine(const char* line, bsmod_BMChar* c) {
     sscanf(line, "char id=%d x=%d y=%d width=%d height=%d xoffset=%d yoffset=%d xadvance=%d", &c->id, &c->x, &c->y, &c->width, &c->height, &c->x_offset, &c->y_offset, &c->x_advance);
 }
 
-static void bsmod_parseKerningLine(const char* line, BMKerning* k) {
+static void bsmod_parseKerningLine(const char* line, bsmod_BMKerning* k) {
     sscanf(line, "kerning first=%d second=%d amount=%d", &k->first, &k->second, &k->amount);
 }
 
-static BMFont loadBMFont(const char* path) {
-    BMFont font = { 0 };
+static bs_Result bsmod_loadBMFont(const char* path, bsmod_BMFont* out) {
+    bsmod_BMFont font = { 0 };
 
     FILE* f = fopen(path, "r");
     if (!f)
-        return font;
+        return BS_RESULT_FAILED_TO_READ;
 
     char line[512];
     int charIdx = 0;
@@ -64,11 +84,11 @@ static BMFont loadBMFont(const char* path) {
         }
         else if (strncmp(line, "chars count=", 12) == 0) {
             sscanf(line, "chars count=%d", &font.char_count);
-            font.chars = calloc(font.char_count, sizeof(BMChar));
+            font.chars = calloc(font.char_count, sizeof(bsmod_BMChar));
         }
         else if (strncmp(line, "kernings count=", 15) == 0) {
             sscanf(line, "kernings count=%d", &font.kerning_pairs_count);
-            font.kerning_pairs = calloc(font.kerning_pairs_count, sizeof(BMKerning));
+            font.kerning_pairs = calloc(font.kerning_pairs_count, sizeof(bsmod_BMKerning));
         }
         else if (strncmp(line, "char ", 5) == 0)
             bsmod_parseCharLine(line, &font.chars[charIdx++]);
@@ -77,15 +97,26 @@ static BMFont loadBMFont(const char* path) {
     }
 
     fclose(f);
-    return font;
+    *out = font;
+    return BS_RESULT_OK;
 }
 
-void bsmod_packBMFont(char* package_name, char* bmfont_path, char* png_path, char* format, ...) {
+BSMODAPI bs_Result _bsmod_packBMFont(char* package_name, char* bmfont_path, char* png_path, char* resource_name, int resource_name_length) {
+    bs_Result result;
+
     int width = 0, height = 0;
     const int channels_count = 4;
 
-    BMFont font = loadBMFont(bmfont_path);
-    unsigned char* bmp = bs_loadPng(png_path, &width, &height, channels_count);
+    bsmod_BMFont font;
+    result = bsmod_loadBMFont(bmfont_path, &font);
+    if (result != BS_RESULT_OK)
+        return result;
+
+    unsigned char* bmp;
+    bs_PngData png_data;
+    result = bs_loadPng(png_path, channels_count, &png_data);
+    if (result != BS_RESULT_OK)
+        return result;
 
     const size_t bfnt_size = sizeof(bs_BfntHeader) + sizeof(bs_BfntKerningPair) * font.kerning_pairs_count + sizeof(bs_BfntGlyph) * font.char_count;
     const size_t batl_size = sizeof(bs_BatlHeader) + (sizeof(bs_BatlPointer) + sizeof("\n")) * font.char_count;
@@ -118,7 +149,7 @@ void bsmod_packBMFont(char* package_name, char* bmfont_path, char* png_path, cha
 
     for (int i = 0; i < font.char_count; i++) {
         bs_BfntGlyph* glyph = offset;
-        BMChar* g = &font.chars[i];
+        bsmod_BMChar* g = &font.chars[i];
         int code = g->id;
         if (code < 256)
             header.ascii_table[code] = i;
@@ -152,7 +183,7 @@ void bsmod_packBMFont(char* package_name, char* bmfont_path, char* png_path, cha
 
     for (int i = 0; i < font.char_count; i++) {
         bs_BatlPointer* p = offset;
-        BMChar* g = &font.chars[i];
+        bsmod_BMChar* g = &font.chars[i];
 
         *p = (bs_BatlPointer){
             .x = g->x,
@@ -168,12 +199,14 @@ void bsmod_packBMFont(char* package_name, char* bmfont_path, char* png_path, cha
     memcpy(offset, bmp, atlas_size);
     memcpy(bfnt, &header, sizeof(bs_BfntHeader));
 
-    va_list args;
-    va_start(args, format);
-    bsmod_packResourceV(BS_RESOURCE_FONT, bfnt, total_size, package_name, format, args);
-    va_end(args);
+    result = bsmod_packResource(BS_RESOURCE_FONT, bfnt, total_size, package_name, resource_name, resource_name_length);
 
     free(font.kerning_pairs);
     free(font.chars);
     bs_free(bfnt);
+
+    if (result != BS_RESULT_OK)
+        return result;
+
+    return BS_RESULT_OK;
 }

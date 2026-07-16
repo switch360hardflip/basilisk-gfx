@@ -26,8 +26,8 @@ void bsmod_instanceContextMenu(bs_List* widgets, bs_vec3 position, bs_vec2 size)
         .border_radius = BSMOD_DEFAULT_RADIUS,
     }, NULL, NULL);
 
-    if (!bsmod.ui_blocked)
-        bsmod.ui_blocked = hovering;
+    if (!_bsmod_.ui_blocked)
+        _bsmod_.ui_blocked = hovering;
 }
 
 void bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, bs_vec3 icon_offset, bsgfx_AtlasCache* icon, const char* name, int indent, bool(*action)(struct bsgfx_Widget*), bool expandable) {

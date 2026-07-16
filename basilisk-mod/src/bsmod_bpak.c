@@ -1,26 +1,44 @@
-#include <bsmod_bpak.h>
-#include <types/primitive/bsgfx_primitive.h>
-#include <types/prefab/bsgfx_prefab.h>
-#include <types/tile/bsgfx_tile.h>
-#include <types/light/bsgfx_light.h>
-#include <bs_log.h>
-#include <bs_math.h>
+
+ /**
+  MIT License
+  
+  Copyright (c) 2026 switch360hardflip <switch360hardflip@gmail.com>
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  */ 
+
+#include <basilisk-mod.h>
 #include <stdarg.h>>
 #include <string.h>>
 #include <assert.h>>
-#include <bsmod.h>
 
-static bs_List _bsmod_packages = { .unit_size = sizeof(bsmod_Package), .increment = 4 };
+static bs_List _bsmod_packages_ = { .unit_size = sizeof(bsmod_Package), .increment = 4 };
 
-bs_List* bsmod_packages() {
-	return &_bsmod_packages;
+BSMODAPI bs_List* bsmod_packages() {
+	return &_bsmod_packages_;
 }
 
-bsmod_Package* bsmod_queryPackage(const char* name) {
+BSMODAPI bsmod_Package* _bsmod_queryPackage(const char* name) {
 	bs_U64 hash = bs_stringHash(name);
 
-	for (int i = 0; i < _bsmod_packages.count; i++) {
-		bsmod_Package* package = bs_fetchUnit(&_bsmod_packages, i);
+	for (int i = 0; i < _bsmod_packages_.count; i++) {
+		bsmod_Package* package = bs_fetchUnit(&_bsmod_packages_, i);
 
 		if (hash == package->name_hash)
 			return package;
@@ -29,13 +47,13 @@ bsmod_Package* bsmod_queryPackage(const char* name) {
 	return NULL;
 }
 
-bsmod_Package* bsmod_ensurePackage(const char* name) {
+BSMODAPI bsmod_Package* _bsmod_ensurePackage(const char* name) {
 	bsmod_Package* existing = bsmod_queryPackage(name);
 	if (existing)
 		return existing;
 
 	bs_infoF("Created package %s\n", name);
-	return bs_pushBack(&_bsmod_packages, &(bsmod_Package) {
+	return bs_pushBack(&_bsmod_packages_, &(bsmod_Package) {
 		.name = name,
 		.name_hash = bs_stringHash(name),
 		.chunks = bs_list(sizeof(bsmod_Chunk), 16),
@@ -61,34 +79,43 @@ static bsmod_Resource* bsmod_ensureResource(bsmod_Package* package, char* name) 
 	});
 }
 
-void bsmod_iniPackage(const char* package_name) {
-	int previous_count = _bsmod_packages.count;
-	bsmod_Package* package = bsmod_ensurePackage(package_name);
-	if (previous_count == _bsmod_packages.count)
-		return bs_warnF("Package \"%s\" is already initialized\n", package_name);
+BSMODAPI bs_Result _bsmod_iniPackage(const char* package_name) {
+	bs_Result result;
 
-	bs_except(BSX_NOT_FOUND);
-	bs_String* bpak = bs_loadFileF("%s.bpak", package_name);
-	bs_except(0);
-	if (!bpak)
-		return;
+	int previous_count = _bsmod_packages_.count;
+	bsmod_Package* package = bsmod_ensurePackage(package_name);
+	if (previous_count == _bsmod_packages_.count) {
+		bs_warnF("Package \"%s\" is already initialized\n", package_name);
+		return BS_RESULT_OK; // TODO
+	}
+
+	bs_String* bpak;
+	result = bs_loadFileF(&bpak, "%s.bpak", package_name);
+	if (result != BS_RESULT_OK)
+		return result;
 
 	int chunks_count = 0;
 
 	for (int i = 0; i < (bpak->len - 1);) {
 		bs_ResourceHeader* header = bpak->value + i;
 		i += sizeof(header->header);
-		if (i >= bpak->len)
-			return bs_throwBasilisk(BSX_CORRUPTED);
+		if (i >= bpak->len) {
+			bs_warnF("Package \"%s\" has corrupted data\n", package_name); // TODO: bsmod warn
+			return BS_RESULT_CORRUPTED;
+		}
 
 		char* name = bpak->value + i;
 		i += header->header.name_length + 1;
-		if (i >= bpak->len)
-			return bs_throwBasilisk(BSX_CORRUPTED);
+		if (i >= bpak->len) {
+			bs_warnF("Package \"%s\" has corrupted data\n", package_name); // TODO: bsmod warn
+			return BS_RESULT_CORRUPTED;
+		}
 
 		char* end = strchr(name, '\n');
-		if (!end)
-			return bs_throwBasilisk(BSX_CORRUPTED);
+		if (!end) {
+			bs_warnF("Package \"%s\" has corrupted data\n", package_name); // TODO: bsmod warn
+			return BS_RESULT_CORRUPTED;
+		}
 		end[0] = '\0';
 
 		bsmod_Resource* added = bs_pushBack(&package->resources, &(bsmod_Resource) {
@@ -115,6 +142,8 @@ void bsmod_iniPackage(const char* package_name) {
 	}
 
 	bs_free(bpak);
+
+	return BS_RESULT_OK;
 }
 
 static bsmod_Chunk* bsmod_ensureChunk(bsmod_Package* package, int size) {
@@ -136,22 +165,20 @@ static bsmod_Chunk* bsmod_ensureChunk(bsmod_Package* package, int size) {
 	return chunk;
 }
 
-void bsmod_packResource(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, const char* resource_name) {
+BSMODAPI bs_Result _bsmod_packResource(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, char* resource_name, int resource_name_length) {
 	bsmod_Package* package = bsmod_ensurePackage(package_name);
 
 	bsmod_Resource* resource = bsmod_ensureResource(package, resource_name);
 	resource->type = type;
 
-	bs_except(BSX_UNINITIALIZED);
 	bsmod_Chunk* chunk = bs_fetchUnit(&package->chunks, resource->header.chunk);
-	bs_except(0);
 	
 	if (resource->header.size != data_size) {
 		if (resource->header.size > 0) {
 			bs_infoF("Deleting old resource %s " BS_PRINT_COLOR("(-%d bytes)", BS_PRINT_RED) "\n", resource_name, resource->header.size);
 			
 			size_t remaining = chunk->bin.count - resource->header.offset;
-			assert(remaining >= resource->header.size);
+			BSMOD_VALIDATE(remaining >= resource->header.size, BS_RESULT_VALIDATION_ERROR,);
 
 			memmove(
 				chunk->bin.data + resource->header.offset,
@@ -165,7 +192,7 @@ void bsmod_packResource(bs_ResourceType type, unsigned char* data, size_t data_s
 				if (r != resource && r->header.chunk == resource->header.chunk && r->header.offset > resource->header.offset) {
 					bs_infoF("  Adjusted offset for resource \"%s\"\n", r->name);
 					r->header.offset -= resource->header.size;
-					assert(r->header.offset >= 0);
+					BSMOD_VALIDATE(r->header.offset >= 0, BS_RESULT_VALIDATION_ERROR,);
 				}
 			}
 		}
@@ -185,29 +212,20 @@ void bsmod_packResource(bs_ResourceType type, unsigned char* data, size_t data_s
 	chunk->has_changes = true;
 	package->has_changes = true;
 	resource->has_changes = true;
+
+	return BS_RESULT_OK;
 }
 
-void bsmod_packResourceV(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, const char* format, va_list args) {
-	static bs_String* formatted;
-	formatted = bs_stringV(formatted, format, args);
-	bsmod_packResource(type, data, data_size, package_name, formatted->value);
-}
+static bs_Result bsmod_loadResource(bs_ResourceType type, int package_id, char* name) {
+	bs_Result result = BS_RESULT_OK;
 
-void bsmod_packResourceF(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, const char* format, ...) {
-	va_list args;
-	va_start(args, format);
-	bsmod_packResourceV(type, data, data_size, package_name, format, args);
-	va_end(args);
-}
-
-static void bsmod_loadResource(bs_ResourceType type, int package_id, char* name) {
-	if (!bs_instance()->device)
-		return;
 	bs_Scope scope = bs_enterSingle();
 
-	bs_except(BSX_FAILED_TO_QUERY);
-	bs_Resource* resource = bs_queryResource(package_id, name);
-	bs_except(0);
+	bs_Resource* resource; 
+	result = bs_queryResource(package_id, name, &resource);
+	if (result != BS_RESULT_OK)
+		goto end;
+
 	bs_List* sources = bs_objectSources();
 
 	switch (type) {
@@ -243,7 +261,10 @@ static void bsmod_loadResource(bs_ResourceType type, int package_id, char* name)
 		}
 
 		if (existing_image) {
-			bs_Image* image = bs_loadImage(BS_IMAGE(existing_image->head.source_id, existing_image->head.id, BS_OBJECT_FORCE_DESTROY), package_id, name, existing_image->flags)->image;
+			bs_Object* image_object = BS_IMAGE(existing_image->head.source_id, existing_image->head.id, BS_OBJECT_FORCE_DESTROY);
+			result = bs_loadImage(image_object, package_id, existing_image->flags, name, strlen(name));
+			if (result != BS_RESULT_OK)
+				goto end;
 
 			for (int i = 0; i < bs_instance()->bind_sets_count; i++) {
 				bs_BindSet* bind_set = bs_instance()->bind_sets + i;
@@ -273,7 +294,7 @@ static void bsmod_loadResource(bs_ResourceType type, int package_id, char* name)
 							};
 
 							if (descriptor->as_image.image == existing_image)
-								new_descriptors[k].image = image;
+								new_descriptors[k].image = image_object->image;
 						}
 
 						bs_bindImages(binding->set, binding->slot, new_descriptors, binding->descriptors_count);
@@ -308,8 +329,10 @@ static void bsmod_loadResource(bs_ResourceType type, int package_id, char* name)
 		}
 
 		if (existing_atlas) {
-			bs_Atlas* atlas = bs_loadAtlas(BS_ATLAS(existing_atlas->head.source_id, existing_atlas->head.id, BS_OBJECT_FORCE_DESTROY), package_id, name, 0)->atlas;
-			bsmod_bindAtlases();
+			bs_Atlas* atlas_object = BS_ATLAS(existing_atlas->head.source_id, existing_atlas->head.id, BS_OBJECT_FORCE_DESTROY);
+			if (bs_loadAtlas(atlas_object, package_id, 0, name, strlen(name)) == BS_RESULT_OK) {
+				bsmod_bindAtlases();
+			}
 		}
 		else {
 			bs_warnF("Could not reload resource \"%s\", object id could not be found\n", name);
@@ -317,18 +340,19 @@ static void bsmod_loadResource(bs_ResourceType type, int package_id, char* name)
 		
 		break;
 	case BS_RESOURCE_SHADER:
-		bs_except(BSX_FAILED_TO_QUERY);
-		bs_queryResource(package_id, name);
-		if (!bs_except(0))
+		bs_Resource* existing;
+		result = bs_queryResource(package_id, name, &existing);
+		if (result == BS_RESULT_OK)
 			bs_shader(package_id, name, 0, NULL);
 
 		break;
 	case BS_RESOURCE_MODEL:
-		bs_except(BSX_FAILED_TO_QUERY);
-		bs_Resource* existing = bs_queryResource(package_id, name);
-		if (!bs_except(0)) {
-			if (existing->model == bsgfx_prefabModel()) {
-				bs_Resource* resource = bs_model(package_id, name, 0);
+		bs_Resource* existing;
+		result = bs_queryResource(package_id, name, &existing);
+		if (result == BS_RESULT_OK && existing->model == bsgfx_prefabModel()) {
+			result = bs_model(package_id, name, 0, &existing);
+
+			if (result == BS_RESULT_OK) {
 				bs_Batch* batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_MESH_INSTANCED)->batch;
 				bs_unpushBatch(batch);
 				bsgfx_loadPrefabs(bsgfx_getType(BSGFX_TYPE_PREFAB)->package_id, resource->model);
@@ -345,13 +369,26 @@ static void bsmod_loadResource(bs_ResourceType type, int package_id, char* name)
 	//	//bsgfx_loadTextureDimension(package_id, name, 64, BSGFX_IMAGE_64, BSGFX_SET_64, BSGFX_BINDING_64);
 	//	break;
 	}
+
+end:
 	bs_leaveSingle(&scope);
+
+	return result;
 }
 
-void bsmod_savePackage(const char* name) {
+BSMODAPI bs_Result _bsmod_savePackage(const char* name) {
+	BSMOD_VALIDATE(bs_instance()->device != NULL, BS_RESULT_VALIDATION_ERROR,);
+
+	return bsmod_savePackage(name);
+}
+
+BSMODAPI bs_Result _bsmod_savePackage(const char* name) {
+	bs_Result result;
 	bsmod_Package* package = bsmod_ensurePackage(name);
+
 	if (!package->has_changes)
 		return;
+
 	package->has_changes = false;
 
 	/**
@@ -400,13 +437,18 @@ void bsmod_savePackage(const char* name) {
 	/**
 	 Reload resources
 	 */
-	int package_id = bs_loadPackage(name);
+	int package_id;
+	result = bs_loadPackage(name, &package_id);
+	if (result != BS_RESULT_OK)
+		return result;
 
 	for (int i = 0; i < package->resources.count; i++) {
 		bsmod_Resource* resource = bs_fetchUnit(&package->resources, i);
 		if (resource->has_changes) {
-			bsmod_loadResource(resource->type, package_id, resource->name);
+			result = bsmod_loadResource(resource->type, package_id, resource->name);
 			resource->has_changes = false;
 		}
 	}
+
+	return BS_RESULT_OK;
 }

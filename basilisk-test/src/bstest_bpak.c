@@ -4,7 +4,7 @@
 #include <bsgfx.h>
 #include <bsmod_bpak.h>
 #include <bsmod_compile.h>
-#include <bsmod.h>
+#include <_bsmod_.h>
 
 #define BSTEST_SHADER_PATH "project/basilisk-test/shaders/"
 
