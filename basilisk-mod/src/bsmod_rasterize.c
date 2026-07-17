@@ -48,7 +48,7 @@ static void bsmod_renderToImage() {
 
 }
 
-void bsmod_beginRasterize(bs_ivec2 _render_size, bs_ivec2 _output_size) {
+BSMODAPI void _bsmod_beginRasterize(bs_ivec2 _render_size, bs_ivec2 _output_size) {
     render_size = _render_size;
     output_size = _output_size;
 
@@ -251,10 +251,11 @@ BSMODAPI void _bsmod_pollRasterizer() {
         for (int i = 0; i < bsmod_rasterizations.count; i++) {
             bsmod_Rasterization* rasterization = bs_fetchUnit(&bsmod_rasterizations, i);
 
-            char* map = bs_mapBuffer(rasterization->buffer, BS_U32_MAX);
-            // bs_savePngF(map, bs_iv2(rasterization->scaled_image->dim.x, rasterization->scaled_image->dim.y), BS_PNG_RGBA, "test%d.png", i);
-
-            bsmod_packAtlasTexture(&packer, rasterization->name, map, rasterization->scaled_image->dim.x, rasterization->scaled_image->dim.y, rasterization->category);
+            if (bs_mapBuffer(rasterization->buffer, BS_U32_MAX) == BS_RESULT_OK) {
+                unsigned char* map = bs_bufferMap(rasterization->buffer);
+                bsmod_packAtlasTexture(&packer, rasterization->name, map, rasterization->scaled_image->dim.x, rasterization->scaled_image->dim.y, rasterization->category);
+                // bs_savePngF(map, bs_iv2(rasterization->scaled_image->dim.x, rasterization->scaled_image->dim.y), BS_PNG_RGBA, "test%d.png", i);
+            }
         }
 
         bsmod_packAtlas(&packer, 2048, 2048, bsmod_queued_rasterization.package, bsmod_queued_rasterization.name);

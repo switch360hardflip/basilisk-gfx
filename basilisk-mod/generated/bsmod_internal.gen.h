@@ -61,14 +61,14 @@ typedef bs_Result(__stdcall* PFN_bsmod_packAtlas)(bsmod_AtlasPacker* packer, int
 typedef bsmod_AtlasPacker(__stdcall* PFN_bsmod_createAtlasPacker)();
 typedef bs_Result(__stdcall* PFN_bsmod_packImageDirectory)(char* directory_name, char* package_name, char* resource_name);
 typedef bs_Result(__stdcall* PFN_bsmod_packBMFont)(char* package_name, char* bmfont_path, char* png_path, char* value, int value_length);
-typedef bsgfx_Scrollbar(__stdcall* PFN_bsmod_scrollbar)(int* scroll);
-typedef bsgfx_Widget(__stdcall* PFN_bsmod_dividerWidget)(float width, int indent);
-typedef bsgfx_Widget(__stdcall* PFN_bsmod_iconWidget)(bsgfx_AtlasCache* cache, float align_height, bs_vec3 offset, bs_U32 advance_flags);
+typedef (__stdcall* PFN_bsmod_scrollbar)(const int* scroll, bsgfx_Scrollbar* out);
+typedef void(__stdcall* PFN_bsmod_dividerWidget)(float width, int indent, bsgfx_Widget* out);
+typedef void(__stdcall* PFN_bsmod_iconWidget)(const bsgfx_AtlasCache* cache, float align_height, bs_vec3 offset, bs_U32 advance_flags, bsgfx_Widget* out);
 typedef bs_List*(__stdcall* PFN_bsmod_packages)();
 typedef bsmod_Package*(__stdcall* PFN_bsmod_queryPackage)(const char* name);
 typedef bsmod_Package*(__stdcall* PFN_bsmod_ensurePackage)(const char* name);
 typedef bs_Result(__stdcall* PFN_bsmod_iniPackage)(const char* package_name);
-typedef bs_Result(__stdcall* PFN_bsmod_packResource)(bs_ResourceType type, unsigned char* data, size_t data_size, char* value, int value_length);
+typedef bs_Result(__stdcall* PFN_bsmod_packResource)(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, char* resource_name, int resource_name_length);
 typedef bs_Result(__stdcall* PFN_bsmod_savePackage)(const char* name);
 typedef void(__stdcall* PFN_bsmod_loadShaderReferences)();
 typedef void(__stdcall* PFN_bsmod_updateShaderReferences)();

@@ -25,6 +25,15 @@
 
 #include <basilisk-core.h>
 #include <bs_internal.h>
+
+
+
+  /*==============================================================================
+   * Windows Implementation (XAudio2)
+   *============================================================================*/
+
+#ifdef _WIN32
+
 #include <mmreg.h>
 #include <tchar.h>
 #include <windows.h>
@@ -235,3 +244,6 @@ BSAPI bs_Result _bs_iniAudio() {
 
     return BS_RESULT_OK;
 }
+
+#else
+#endif

@@ -242,7 +242,7 @@ static bs_Result bsmod_saveReflection(char* path, char* package, char* name, bs_
 	case GLSLANG_STAGE_MISS: shader_type = BS_MISS_SHADER; break;
 	default:
 		bs_warnF("Skipping %s, shader stage is unsupported\n", path);
-		return;
+		return BS_RESULT_OK;
 	}
 	type_name = bs_serializeShaderType(shader_type);
 
@@ -296,7 +296,7 @@ static bs_Result bsmod_saveReflection(char* path, char* package, char* name, bs_
 	if (result != BS_RESULT_OK)
 		goto end;
 
-	result = bsmod_packResource(BS_RESOURCE_SHADER, raw, strlen(raw), package, name);
+	result = bsmod_packResource(BS_RESOURCE_SHADER, raw, strlen(raw), package, name, strlen(name));
 	bs_free(raw);
 	if (result != BS_RESULT_OK)
 		goto end;

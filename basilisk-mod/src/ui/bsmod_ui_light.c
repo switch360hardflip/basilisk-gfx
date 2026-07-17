@@ -32,7 +32,7 @@
    * Billboards
    *============================================================================*/
 
-void bsmod_instanceLightBillboards() {
+BSMODAPI void _bsmod_instanceLightBillboards() {
     bs_vec2 resolution = BS_IV2_TO_V2(bs_resolution());
     bs_vec2 cursor = bs_cursorPosition();
     const bs_mat4 identity = BS_MAT4_IDENTITY;

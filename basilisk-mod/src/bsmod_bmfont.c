@@ -112,7 +112,6 @@ BSMODAPI bs_Result _bsmod_packBMFont(char* package_name, char* bmfont_path, char
     if (result != BS_RESULT_OK)
         return result;
 
-    unsigned char* bmp;
     bs_PngData png_data;
     result = bs_loadPng(png_path, channels_count, &png_data);
     if (result != BS_RESULT_OK)
@@ -196,7 +195,7 @@ BSMODAPI bs_Result _bsmod_packBMFont(char* package_name, char* bmfont_path, char
     }
 
     assert((total_size - (offset - bfnt)) == atlas_size);
-    memcpy(offset, bmp, atlas_size);
+    memcpy(offset, png_data.data, atlas_size);
     memcpy(bfnt, &header, sizeof(bs_BfntHeader));
 
     result = bsmod_packResource(BS_RESOURCE_FONT, bfnt, total_size, package_name, resource_name, resource_name_length);
@@ -205,8 +204,8 @@ BSMODAPI bs_Result _bsmod_packBMFont(char* package_name, char* bmfont_path, char
     free(font.chars);
     bs_free(bfnt);
 
-    if (result != BS_RESULT_OK)
-        return result;
+   // if (result != BS_RESULT_OK)
+   //     return result;
 
-    return BS_RESULT_OK;
+    return result;
 }

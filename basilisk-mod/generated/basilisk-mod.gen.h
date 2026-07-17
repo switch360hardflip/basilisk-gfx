@@ -36,7 +36,6 @@
 
 #include <basilisk-core.h>
 #include <basilisk-gfx.h>
-#include <bsmod_cache.h>
 
 typedef struct bsmod_TrackParams bsmod_TrackParams;
 typedef struct bsmod_QueueLoad bsmod_QueueLoad;
@@ -75,112 +74,13 @@ enum {                                                               \
     };
 
 #define BSMOD_FOREACH_PROC(X)                                        \
-    X(PFN_void, bsgfx_loadFonts)
+    X(PFN_void, >_loadFonts)
 
 #define BSMOD_STRUCT_GEN(TYPE, FUNC, ...)                            \
     TYPE FUNC;
 
 #define BSMOD_COUNT_GEN(TYPE, FUNC, ...)                             \
     +1
-
-typedef struct bsmod_Procedures bsmod_Procedures;                    \
-    extern struct bsmod_Procedures {                                 \
-    BSMOD_FOREACH_PROC(BSMOD_STRUCT_GEN)                             \
-    } _bsmod_procs_;
-
-#define BSMOD_ENUM_GEN(ENUM)                                         \
-    ENUM,
-
-#define BSMOD_STRING_GEN(STRING)                                     \
-    #STRING,
-
-#define BSMOD_IMAGE_IDS(X)                                           \
-    X(BSMOD_IMAGE_DEPTH)                                             \
-    X(BSMOD_IMAGE_DEPTH_3D)                                          \
-    X(BSMOD_IMAGE_COLOR)
-
-enum { BSMOD_IMAGE_IDS(BSMOD_ENUM_GEN) BSMOD_IMAGES_COUNT };         \
-
-
-#define BSMOD_IMAGES                                                 \
-    _bsmod_images_
-
-#define BSMOD_SAMPLER_IDS(X)                                         \
-    X(BSMOD_SAMPLER_PLACEHOLDER)
-
-enum { BSMOD_SAMPLER_IDS(BSMOD_ENUM_GEN) BSMOD_SAMPLERS_COUNT };     \
-
-
-#define BSMOD_SAMPLERS                                               \
-    _bsmod_samplers_
-
-#define BSMOD_BUFFER_IDS(X)                                          \
-    X(BSMOD_BUFFER_PLACEHOLDER)
-
-enum { BSMOD_BUFFER_IDS(BSMOD_ENUM_GEN) BSMOD_BUFFERS_COUNT };       \
-
-
-#define BSMOD_BUFFERS                                                \
-    _bsmod_buffers_
-
-#define BSMOD_BATCH_IDS(X)                                           \
-    X(BSMOD_BATCH_TILE)
-
-enum { BSMOD_BATCH_IDS(BSMOD_ENUM_GEN) BSMOD_BATCHES_COUNT };        \
-
-
-#define BSMOD_BATCHES                                                \
-    _bsmod_batches_
-
-#define BSMOD_RENDERER_IDS(X)                                        \
-    X(BSMOD_RENDERER)                                                \
-    X(BSMOD_RENDERER_3D)
-
-enum { BSMOD_RENDERER_IDS(BSMOD_ENUM_GEN) BSMOD_RENDERERS_COUNT };   \
-
-
-#define BSMOD_RENDERERS                                              \
-    _bsmod_renderers_
-
-#define BSMOD_QUEUE_IDS(X)                                           \
-    X(BSMOD_QUEUE_GRAPHICS)                                          \
-    X(BSMOD_QUEUE_GRAPHICS_RASTERIZATION)
-
-enum { BSMOD_QUEUE_IDS(BSMOD_ENUM_GEN) BSMOD_QUEUES_COUNT };         \
-
-
-#define BSMOD_QUEUES                                                 \
-    _bsmod_queues_
-
-#define BSMOD_RAY_TRACER_IDS(X)                                      \
-    X(BSMOD_RAY_TRACER_PLACEHOLDER)
-
-enum { BSMOD_RAY_TRACER_IDS(BSMOD_ENUM_GEN) BSMOD_RAY_TRACERS_COUNT }; \
-
-
-#define BSMOD_RAY_TRACERS                                            \
-    _bsmod_ray_tracers_
-
-#define BSMOD_ATLAS_IDS(X)                                           \
-    X(BSMOD_ATLAS_UI)                                                \
-    X(BSMOD_ATLAS_MATERIAL_ICONS)                                    \
-    X(BSMOD_ATLAS_PRIMITIVE_ICONS)                                   \
-    X(BSMOD_ATLAS_PREFAB_ICONS)
-
-enum { BSMOD_ATLAS_IDS(BSMOD_ENUM_GEN) BSMOD_ATLASES_COUNT };        \
-
-
-#define BSMOD_ATLASES                                                \
-    _bsmod_atlases_
-
-#define BSMOD_FONT_IDS(X)                                            \
-    X(BSMOD_FONT_PLACEHOLDER)
-
-enum { BSMOD_FONT_IDS(BSMOD_ENUM_GEN) BSMOD_FONTS_COUNT };           \
-
-
-#define BSMOD_FONTS                                                  \
-    _bsmod_fonts
 
 #define BSMOD_BPAK_CHUNK_SIZE                                        \
     100'000'000
@@ -219,7 +119,7 @@ enum { BSMOD_FONT_IDS(BSMOD_ENUM_GEN) BSMOD_FONTS_COUNT };           \
     &_bsmod_.selected_tiles
 
 typedef void (__stdcall* PFN_void)();
-typedef bool (__stdcall* PFN_bsmod_PushContextMenuButton)(bsgfx_Widget*);
+typedef bool (__stdcall* PFN_bsmod_PushContextMenuButton)(bsgfx_ButtonParams);
 typedef const char* (__stdcall* PFN_bsmod_GridMenu)(bs_List* widgets);
 typedef void (__stdcall* PFN_bsmod_GridMenuCallback)(struct bsgfx_DebugMenuWidget*, int);
 struct bsmod_TrackParams {
@@ -341,14 +241,13 @@ struct Bsmod {
         bool load_scripts;
         bool skip_mesh_index_write;
     } queue;
-    bsgfx_Id dragging_object_id;
+    int dragging_object_id;
     int dragging_subtype;
     int dragging_id;
     bsmod_EditType edit_type;
     bsmod_EditType edit_type_old;
     bs_Json track_json;
     bs_Json bindings_json;
-    HINSTANCE bsgfx;
     bs_String* variadic;
     bs_List queue_load;
 };
@@ -614,35 +513,41 @@ bsmod_packBMFontF(
 
  /**
   @param scroll
-  @return bsgfx_Scrollbar
+  @param out
+  @return 
   */
-BSMODAPI bsgfx_Scrollbar
+BSMODAPI 
 bsmod_scrollbar(
-    int* scroll);
+    const int* scroll,
+    bsgfx_Scrollbar* out);
 
  /**
   @param width
   @param indent
-  @return bsgfx_Widget
+  @param out
+  @return void
   */
-BSMODAPI bsgfx_Widget
+BSMODAPI void
 bsmod_dividerWidget(
     float width,
-    int indent);
+    int indent,
+    bsgfx_Widget* out);
 
  /**
   @param cache
   @param align_height
   @param offset
   @param advance_flags
-  @return bsgfx_Widget
+  @param out
+  @return void
   */
-BSMODAPI bsgfx_Widget
+BSMODAPI void
 bsmod_iconWidget(
-    bsgfx_AtlasCache* cache,
+    const bsgfx_AtlasCache* cache,
     float align_height,
     bs_vec3 offset,
-    bs_U32 advance_flags);
+    bs_U32 advance_flags,
+    bsgfx_Widget* out);
 
  /**
   @return bs_List*
@@ -678,8 +583,9 @@ bsmod_iniPackage(
   @param type
   @param data
   @param data_size
-  @param value
-  @param value_length
+  @param package_name
+  @param resource_name
+  @param resource_name_length
   @return bs_Result
   */
 BSMODAPI bs_Result
@@ -687,13 +593,15 @@ bsmod_packResource(
     bs_ResourceType type,
     unsigned char* data,
     size_t data_size,
-    char* value,
-    int value_length);
+    const char* package_name,
+    char* resource_name,
+    int resource_name_length);
 
  /**
   @param type
   @param data
   @param data_size
+  @param package_name
   @param format
   @param args
   @return bs_Result
@@ -703,6 +611,7 @@ bsmod_packResourceV(
     bs_ResourceType type,
     unsigned char* data,
     size_t data_size,
+    const char* package_name,
     char* format,
     va_list args);
 
@@ -710,6 +619,7 @@ bsmod_packResourceV(
   @param type
   @param data
   @param data_size
+  @param package_name
   @param format
   @param ...
   @return bs_Result
@@ -719,6 +629,7 @@ bsmod_packResourceF(
     bs_ResourceType type,
     unsigned char* data,
     size_t data_size,
+    const char* package_name,
     char* format,
      ...);
 

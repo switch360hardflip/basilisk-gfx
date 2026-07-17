@@ -42,7 +42,6 @@ struct Poser* _poser_ = NULL;
 
 bs_Model* _bsgfx_prefab_model__ = NULL;
 bs_String* _bsgfx_variadic = NULL;
-HINSTANCE _bsgfx_bsmod_dll = NULL;
 int _bsgfx_package_ = -1;
 bs_Model* _bsgfx_prefab_model_ = NULL;
 bsgfx_Callbacks _bsgfx_callbacks_ = { 0 };
@@ -50,12 +49,6 @@ bsgfx_Settings _bsgfx_settings_ = { 0 };
 bsgfx_Scene _bsgfx_current_scene_ = { 0 };
 bs_mat4* _bsgfx_shader_joints_ = NULL;
 bs_U32 _bsgfx_num_shader_joints_ = 0;
-
-bsgfx_Procedures _bsgfx_procs_ = { 0 };
-
-BSGFXAPI HINSTANCE _bsgfx_bsmodDll() {
-    return _bsgfx_bsmod_dll;
-}
 
 bsgfx_Application _bsgfx_app_;
 
@@ -162,8 +155,8 @@ static void bsgfx_tick() {
 //    if (bsgfx_scene != BSGFX_SCENE_MENU)
 //        bsgfx_instanceMinimap();
 
-    if (_bsgfx_procs_.bsmod_onGfxRender)
-        _bsgfx_procs_.bsmod_onGfxRender();
+    //if (_bsgfx_procs_.bsmod_onGfxRender)
+    //    _bsgfx_procs_.bsmod_onGfxRender();
     if (_bsgfx_callbacks_.tick)
         _bsgfx_callbacks_.tick();
 
@@ -269,14 +262,6 @@ BSGFXAPI void _bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc
     bs_parseArgs(sizeof(args) / sizeof(char*), args);
 #endif
     
-    _bsgfx_bsmod_dll = LoadLibrary("basilisk-mod.dll");
-    if (_bsgfx_bsmod_dll) {
-        bs_Procedure procedures[] = {
-            BSGFX_FOREACH_PROC(BS_STRING_GEN_2)
-        };
-        bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), _bsgfx_bsmod_dll, &_bsgfx_procs_);
-    }
-
     bs_window(width, height, name);
 
     /*
@@ -291,6 +276,7 @@ BSGFXAPI void _bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc
         NULL);
     */
 
+    /*
     if (_bsgfx_procs_.bsmod_onIni)
         _bsgfx_procs_.bsmod_onIni();
 
@@ -299,6 +285,7 @@ BSGFXAPI void _bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc
 
     if (_bsgfx_procs_.bsmod_onLateIni)
         _bsgfx_procs_.bsmod_onLateIni();
+    */
 
     bs_loadPackage(BSGFX_CONTENT_PATH, &_bsgfx_package_);
 

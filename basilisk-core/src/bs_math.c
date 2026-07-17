@@ -104,7 +104,7 @@ BSAPI void _bs_qToEul(const bs_vec4* qp, bs_vec3* out) {
     out->z = atan2(siny_cosp, cosy_cosp);
 }
 
-bs_vec4 bs_qAxisAngle(bs_vec3 axis, float radians) {
+BSAPI bs_vec4 _bs_qAxisAngle(bs_vec3 axis, float radians) {
     float half_angle = radians * 0.5f;
 
     bs_vec3 v;
@@ -300,7 +300,7 @@ BSAPI void _bs_rotateAabb(const bs_Aabb* aabb, const bs_mat3* rotation_matrix, b
         new_max = BS_V3_MAX(new_max, p);
     }
 
-    return (bs_Aabb) {
+    *out = (bs_Aabb) {
         .min = new_min,
         .max = new_max,
     };

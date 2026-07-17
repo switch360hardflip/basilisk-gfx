@@ -525,8 +525,8 @@ static void bsgfx_graphicsPipe() {
        // bsgfx_blitMinimap();
     }
 
-    if (_bsgfx_procs_.bsmod_copyHoveringDataToBuffer)
-        _bsgfx_procs_.bsmod_copyHoveringDataToBuffer();
+    //if (_bsgfx_procs_.bsmod_copyHoveringDataToBuffer)
+    //    _bsgfx_procs_.bsmod_copyHoveringDataToBuffer();
     //bsgfx_doCursorReads();
 
 }
@@ -609,11 +609,12 @@ BSGFXAPI void _bsgfx_pipeline() {
 
     bs_stall(graphics_queue);
 
-    bs_Queue* bsmod_queue = NULL;
-    if (_bsgfx_procs_.bsmod_onQueue)
-        bsmod_queue = _bsgfx_procs_.bsmod_onQueue();
+   // bs_Queue* bsmod_queue = NULL;
+   // if (_bsgfx_procs_.bsmod_onQueue)
+   //     bsmod_queue = _bsgfx_procs_.bsmod_onQueue();
 
-    bs_Queue* last_queue = bsmod_queue ? bsmod_queue : graphics_queue;
+  //  bs_Queue* last_queue = bsmod_queue ? bsmod_queue : graphics_queue;
+    bs_Queue* last_queue = graphics_queue;
     bs_present(last_queue, last_queue, NULL);
     bsgfx_resetInstances();
 }

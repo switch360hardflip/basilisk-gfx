@@ -81,7 +81,7 @@ BSMODAPI void _bsmod_onDragPrimitive(bsmod_DraggingParams params) {
         bsgfx_RawPrimitive* primitive = bsmod_add(BSGFX_TYPE_PRIMITIVE, &(bsgfx_RawPrimitive) {
             .position = tile_position,
             .rotation = euler_rotation,
-            .scale = bs_v3V1(1),
+            .scale = { 1, 1, 1 },
             .type = _bsmod_.dragging_id,
             .guid = bs_guid(),
         });
@@ -141,7 +141,7 @@ BSMODAPI void _bsmod_rasterizePrimitiveIcons() {
         for (int i = 0; i < BSGFX_PRIMITIVE_TYPE_COUNT; i++) {
             int subtype = bsgfx_primitiveSubtype(i);
 
-            bs_Aabb aabb = { .min = bs_v3V1(-1.0), .max = bs_v3V1(1.0), };
+            bs_Aabb aabb = { .min = { -1, -1, -1 }, .max = { 1, 1, 1 },};
 
             const float sphere_padding = 12.0;
             bs_mat4 transform;

@@ -131,8 +131,8 @@ BSGFXAPI void _bsgfx_map(bsgfx_TypeId type_id, int id) {
         bsgfx_get(type_id, id)
     );
 
-    if (_bsgfx_procs_.bsmod_onMap) // TODO: maybe put in postval
-        _bsgfx_procs_.bsmod_onMap(type_id, id);
+   // if (_bsgfx_procs_.bsmod_onMap) // TODO: maybe put in postval
+   //     _bsgfx_procs_.bsmod_onMap(type_id, id);
 }
 
 BSGFXAPI void _bsgfx_remap(bsgfx_TypeId type_id) {

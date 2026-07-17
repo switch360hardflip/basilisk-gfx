@@ -50,7 +50,7 @@ BSMODAPI void _bsmod_instanceContextMenu(bs_List* widgets, bs_vec3 position, bs_
         _bsmod_.ui_blocked = hovering;
 }
 
-BSMODAPI void _bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, bs_vec3 icon_offset, bsgfx_AtlasCache* icon, const char* name, int indent, bool(*action)(struct bsgfx_Widget*), bool expandable) {
+BSMODAPI void _bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, bs_vec3 icon_offset, bsgfx_AtlasCache* icon, const char* name, int indent, bool(*action)(bsgfx_ButtonParams), bool expandable) {
     const int padding = BSMOD_CONTEXT_MENU_PADDING;
     const int align_height = BSMOD_CONTEXT_MENU_BUTTON_HEIGHT;
 
@@ -68,17 +68,20 @@ BSMODAPI void _bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, 
     });
     bsgfx_AtlasCache* expand = $BSMOD_ATLAS_UI_expand();
 
-    bsgfx_Widget expand_widget = bsmod_iconWidget(
+    bsgfx_Widget expand_widget, icon_widget;
+    bsmod_iconWidget(
         expand, 
         align_height, 
         BS_V3(menu_size.x - padding * 2 - expand->size.x, 0.0, 0.0), 
-        0
+        0,
+        &expand_widget
     );
-    bsgfx_Widget icon_widget = bsmod_iconWidget(
+    bsmod_iconWidget(
         icon, 
         align_height, 
         BS_V3(icon_offset.x + padding, icon_offset.y, icon_offset.z), 
-        BSGFX_WIDGET_ADVANCE_RIGHT
+        BSGFX_WIDGET_ADVANCE_RIGHT,
+        &icon_widget
     );
 
     if (expandable)
@@ -117,7 +120,9 @@ BSMODAPI void _bsmod_instanceTileContextMenu(bs_vec3 position, bs_vec2 size) {
         .advance_flags = BSGFX_WIDGET_ADVANCE_DOWN | BSGFX_WIDGET_ADVANCE_APPLY_OFFSET_Y,
     });
 
-    bsgfx_Widget divider = bsmod_dividerWidget(size.x, indent_0);
+    bsgfx_Widget divider;
+    bsmod_dividerWidget(size.x, indent_0, &divider);
+
     bs_pushBack(&widgets, &divider);
 
     bsmod_pushContextMenuButton(&widgets, size, BS_V3(0, -1, 0), $BSMOD_ATLAS_UI_light_add(), "Light", indent_1, bsmod_onAddLightTick, true);

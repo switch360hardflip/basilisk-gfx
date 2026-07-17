@@ -148,18 +148,21 @@ static bs_Result _preval_bsmod_packBMFont(char* package_name, char* bmfont_path,
     return next.bsmod_packBMFont(package_name, bmfont_path, png_path, value, value_length);
 }
 
-static bsgfx_Scrollbar _preval_bsmod_scrollbar(int* scroll) {
+static  _preval_bsmod_scrollbar(const int* scroll, bsgfx_Scrollbar* out) {
     BSMOD_VALIDATE(scroll != NULL, 0,);
-    return next.bsmod_scrollbar(scroll);
+    BSMOD_VALIDATE(out != NULL, 0,);
+    return next.bsmod_scrollbar(scroll, out);
 }
 
-static bsgfx_Widget _preval_bsmod_dividerWidget(float width, int indent) {
-    return next.bsmod_dividerWidget(width, indent);
+static void _preval_bsmod_dividerWidget(float width, int indent, bsgfx_Widget* out) {
+    BSMOD_VALIDATE(out != NULL, ,);
+    next.bsmod_dividerWidget(width, indent, out);
 }
 
-static bsgfx_Widget _preval_bsmod_iconWidget(bsgfx_AtlasCache* cache, float align_height, bs_vec3 offset, bs_U32 advance_flags) {
-    BSMOD_VALIDATE(cache != NULL, 0,);
-    return next.bsmod_iconWidget(cache, align_height, offset, advance_flags);
+static void _preval_bsmod_iconWidget(const bsgfx_AtlasCache* cache, float align_height, bs_vec3 offset, bs_U32 advance_flags, bsgfx_Widget* out) {
+    BSMOD_VALIDATE(cache != NULL, ,);
+    BSMOD_VALIDATE(out != NULL, ,);
+    next.bsmod_iconWidget(cache, align_height, offset, advance_flags, out);
 }
 
 static bs_List* _preval_bsmod_packages() {
@@ -181,10 +184,11 @@ static bs_Result _preval_bsmod_iniPackage(const char* package_name) {
     return next.bsmod_iniPackage(package_name);
 }
 
-static bs_Result _preval_bsmod_packResource(bs_ResourceType type, unsigned char* data, size_t data_size, char* value, int value_length) {
+static bs_Result _preval_bsmod_packResource(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, char* resource_name, int resource_name_length) {
     BSMOD_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BSMOD_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bsmod_packResource(type, data, data_size, value, value_length);
+    BSMOD_VALIDATE(package_name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(resource_name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_packResource(type, data, data_size, package_name, resource_name, resource_name_length);
 }
 
 static bs_Result _preval_bsmod_savePackage(const char* name) {

@@ -228,7 +228,7 @@ BSMODAPI bs_Result _bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int he
 		return result;
 	}
 
-	result = bsmod_packResource(BS_RESOURCE_ATLAS, batl, total_size, package_name, resource_name);
+	result = bsmod_packResource(BS_RESOURCE_ATLAS, batl, total_size, package_name, resource_name, strlen(resource_name));
 	bs_free(batl);
 //	if (result != BS_RESULT_OK)
 //		return result;

@@ -116,7 +116,7 @@ static void bsmod_renderCones() {
         bs_vec4 uv;
     } mesh_push_const = {
         .camera = poser()->camera.result,
-        .uv = bs_atlasCoordinates(atlas_object->atlas, bs_queryAtlas(atlas_object->atlas, "white"), 0),
+        .uv = bs_atlasCoordinates(atlas_object->atlas, bs_queryAtlas(atlas_object->atlas, "white")),
     };
 
     hash = (bs_PipelineHash) {
@@ -158,7 +158,7 @@ static void bsmod_renderPreviousPass() {
             .selected_color = BS_V3(1.0, 1.0, 1.0),
             .elapsed = bs_elapsedTime(),
             .light_direction = poser()->sun_direction,
-            .resolution = bs_v2MulV1(BS_IV2_TO_V2(bs_resolution()), 0.5),
+            .resolution = BS_V2_MUL_S(BS_IV2_TO_V2(bs_resolution()), 0.5),
         };
 
         bs_m4Inverse(&poser()->camera.proj, &push_const.inv_proj);
@@ -192,7 +192,7 @@ static void bsmod_renderUIPost() {
             .selected_color = BS_V3(1.0, 1.0, 1.0),
             .elapsed = bs_elapsedTime(),
             .light_direction = poser()->sun_direction,
-            .resolution = bs_v2MulV1(BS_IV2_TO_V2(bs_resolution()), 0.5),
+            .resolution = BS_V2_MUL_S(BS_IV2_TO_V2(bs_resolution()), 0.5),
         };
         bs_m4Inverse(&poser()->camera.proj, &push_const.inv_proj);
 
@@ -282,7 +282,7 @@ static void bsmod_renderPrefabOutlines() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
-    bs_PipelineHash hash = {
+    hash = (bs_PipelineHash) {
        .shaders = {
            $vs_bsgfx_mesh_instanced(),
            $fs_bsgfx_model(),
@@ -675,7 +675,7 @@ static void bsmod_renderPrefabs() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
-    bs_PipelineHash hash = {
+    hash = (bs_PipelineHash) {
         .shaders = {
             $vs_bsgfx_mesh_instanced(),
             $fs_bsgfx_model(),
@@ -693,7 +693,7 @@ static void bsmod_renderPrefabs() {
             bs_vec4 uv;
         } mesh_push_const = {
             .camera = poser()->camera.result,
-            .uv = bs_atlasCoordinates(atlas, bs_queryAtlas(atlas, "white"), 0),
+            .uv = bs_atlasCoordinates(atlas, bs_queryAtlas(atlas, "white")),
         };
 
         bs_pushConstant(pipeline, 0, sizeof(mesh_push_const), &mesh_push_const);

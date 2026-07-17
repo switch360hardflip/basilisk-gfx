@@ -102,6 +102,10 @@ target_link_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/external/SPIRV-Cross/build/Release
 )
 
+if (MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE /wd6255 /wd4047 /wd4090 /wd4024 /wd4133)
+endif()
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
     basilisk-core
     basilisk-gfx
@@ -111,11 +115,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     dwmapi
     #GFSDK_Aftermath_Lib.x64
     GenericCodeGen
-    glslangd optimized glslang
-    glslang-default-resource-limitsd optimized glslang-default-resource-limits
-    MachineIndependentd  optimized MachineIndependent
-    SPIRVd optimized SPIRV
-    spirv-cross-cd optimized spirv-cross-c
-    spirv-cross-cored optimized spirv-cross-core
-    spirv-cross-glsld optimized spirv-cross-glsl
+    glslang optimized glslang
+    glslang-default-resource-limits optimized glslang-default-resource-limits
+    MachineIndependent optimized MachineIndependent
+    SPIRV optimized SPIRV
+    spirv-cross-c optimized spirv-cross-c
+    spirv-cross-core optimized spirv-cross-core
+    spirv-cross-glsl optimized spirv-cross-glsl
 )

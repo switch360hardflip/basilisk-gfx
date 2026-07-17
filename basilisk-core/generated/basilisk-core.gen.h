@@ -2541,6 +2541,7 @@ enum bs_Result {
     BS_RESULT_FAILED_TO_INSPECT,
     BS_RESULT_OUT_OF_BOUNDS,
     BS_RESULT_VALIDATION_ERROR,
+    BS_RESULT_ZERO_ALLOC,
 };
 
 enum bs_IniFlag {
@@ -3996,20 +3997,6 @@ BSAPI void
 bs_qAxisAngle(
     const bs_vec3* axis,
     float radians,
-    bs_vec4* out);
-
- /**
-  @param from
-  @param to
-  @param t
-  @param out
-  @return void
-  */
-BSAPI void
-bs_qSlerp(
-    const bs_vec4* from,
-    const bs_vec4* to,
-    float t,
     bs_vec4* out);
 
  /**

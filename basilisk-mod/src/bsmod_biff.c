@@ -55,15 +55,19 @@ static void bsmod_gatherFileInfo(bs_FileInfo info, bsmod_FileGatherParams* param
 
 	if (strcmp(file_extension, "png") == 0) {
 		int width = 0, height = 0;
-		unsigned char* bmp = bs_loadPng(info.path, &width, &height, param->header->channels_count);
+
+		bs_PngData png_data;
+		bs_loadPng(info.path, param->header->channels_count, &png_data);
 
 		if (param->header->width == 0) { // dimensions = first texture dimensions
 			param->header->width = width;
 			param->header->height = height;
 		}
 		else if (width != param->header->width || height != param->header->height) {
-			return bs_warnF("Image \"%s\" (w = %d, h = %d) could not be added to image array \"%s\" (w = %d, h = %d) due to mismatching dimensions\n",
+			bs_warnF("Image \"%s\" (w = %d, h = %d) could not be added to image array \"%s\" (w = %d, h = %d) due to mismatching dimensions\n",
 				info.path, width, height, param->resource_name, param->header->width, param->header->height);
+
+			return;
 		}
 
 		file_extension[-1] = '\0';
@@ -71,7 +75,7 @@ static void bsmod_gatherFileInfo(bs_FileInfo info, bsmod_FileGatherParams* param
 		bsmod_BiffInfo* result = bs_pushBack(param->output, &(bsmod_BiffInfo) {
 			.name = strdup(name),
 			.name_length = strlen(name),
-			.bmp = bmp,
+			.bmp = png_data.data,
 			.size = width * height * param->header->channels_count,
 		});
 		file_extension[-1] = '.';

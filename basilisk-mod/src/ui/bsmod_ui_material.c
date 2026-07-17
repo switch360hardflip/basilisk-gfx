@@ -37,7 +37,7 @@ BSMODAPI void _bsmod_onDragMaterial(bsmod_DraggingParams params) {
         bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, _bsmod_.hovering.instance_id);
         bsgfx_RawPrefab* raw_prefab = bsgfx_getRaw(BSGFX_TYPE_PREFAB, _bsmod_.hovering.instance_id);
         if (bs_leftClickUpOnce()) {
-            raw_prefab->material_hash = bsgfx_materialHash(_bsmod_.dragging_id);
+            raw_prefab->material_hash = bsgfx_fetchMaterial(_bsmod_.dragging_id)->hash;
             bsmod_saveType(BSGFX_TYPE_PREFAB, BS_CONSTANT_STRING("Changed prefab material"));
         }
     }
@@ -207,14 +207,20 @@ BSMODAPI void _bsmod_rasterizeMaterialIcons() {
         int sphere_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_PRIMITIVE_SPHERE];
 
         bs_List* materials = bsgfx_materials();
-        bs_mat4x3 transform = bs_m4x3(bs_transform(BS_V3(render_size.x / 2, render_size.y / 2, 0.0), BS_QUAT_IDENTITY, bs_v3V1(render_size.x / 2.0 - 4.0)));
+
+        bs_mat4 transform = BS_MAT4_IDENTITY;
+        float s = render_size.x / 2.0 - 4.0;
+        bs_m4Translate(&transform,  &BS_V3(render_size.x / 2, render_size.y / 2, 0.0), &transform);
+        bs_m4Scale(&transform, &BS_V3(s, s, s), &transform);
+
+        bs_mat4x3 matrix = bs_m4x3(&transform);
 
         for (int i = 0; i < materials->count; i++) {
             bsgfx_Material* material = bs_fetchUnit(materials, i);
             push_const.color = material->contract->color;
             push_const.material_texture_size = material->contract->image_binding;
             push_const.material_texture_id = material->contract->image;
-            push_const.model = transform;
+            push_const.model = matrix;
 
             int instance = bsgfx_instancePrimitive(sphere_subtype, BS_MAT4_IDENTITY, 0, 0, 0);
             bsmod_rasterizeInstance(hash, sphere_subtype, instance, material->category, material->name, render_size.x, render_size.y, sizeof(push_const), &push_const);

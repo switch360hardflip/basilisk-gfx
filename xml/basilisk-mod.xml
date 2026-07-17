@@ -10,11 +10,11 @@
 		<trampoline>
 			<include>basilisk-mod.h</include>
 			<include>bsmod_internal.gen.h</include>
+			<include>stdio.h</include>
 		</trampoline>
 		<trampolineHeader>
 			<include>basilisk-core.h</include>
 			<include>basilisk-gfx.h</include>
-			<include>bsmod_cache.h</include>
 		</trampolineHeader>
 		<internalHeader>
 			<include>basilisk-mod.h</include>
@@ -84,90 +84,10 @@
 			<line>};</line>
 		</macro>
 
-		<macro><name>#define BSMOD_FOREACH_PROC(X)</name><line>X(PFN_void, bsgfx_loadFonts)</line></macro>
+		<macro><name>#define BSMOD_FOREACH_PROC(X)</name><line>X(PFN_void, >_loadFonts)</line></macro>
 
 		<macro><name>#define BSMOD_STRUCT_GEN(TYPE, FUNC, ...)</name><line>TYPE FUNC;</line></macro>
 		<macro><name>#define BSMOD_COUNT_GEN(TYPE, FUNC, ...)</name><line>+1</line></macro>
-
-		<macro>
-			<name>typedef struct bsmod_Procedures bsmod_Procedures;</name>
-			<line>extern struct bsmod_Procedures {</line>
-			<line>BSMOD_FOREACH_PROC(BSMOD_STRUCT_GEN)</line>
-			<line>} _bsmod_procs_;</line>
-		</macro>
-
-		<macro><name>#define BSMOD_ENUM_GEN(ENUM)</name><line>ENUM,</line></macro>
-		<macro><name>#define BSMOD_STRING_GEN(STRING)</name><line>#STRING,</line></macro>
-
-		<macro>
-			<name>#define BSMOD_IMAGE_IDS(X)</name>
-			<line>X(BSMOD_IMAGE_DEPTH)</line>
-			<line>X(BSMOD_IMAGE_DEPTH_3D)</line>
-			<line>X(BSMOD_IMAGE_COLOR)</line>
-		</macro>
-		<macro><name>enum { BSMOD_IMAGE_IDS(BSMOD_ENUM_GEN) BSMOD_IMAGES_COUNT };</name></macro>
-		<macro><name>#define BSMOD_IMAGES</name><line>_bsmod_images_</line></macro>
-
-		<macro>
-			<name>#define BSMOD_SAMPLER_IDS(X)</name>
-			<line>X(BSMOD_SAMPLER_PLACEHOLDER)</line>
-		</macro>
-		<macro><name>enum { BSMOD_SAMPLER_IDS(BSMOD_ENUM_GEN) BSMOD_SAMPLERS_COUNT };</name></macro>
-		<macro><name>#define BSMOD_SAMPLERS</name><line>_bsmod_samplers_</line></macro>
-
-		<macro>
-			<name>#define BSMOD_BUFFER_IDS(X)</name>
-			<line>X(BSMOD_BUFFER_PLACEHOLDER)</line>
-		</macro>
-		<macro><name>enum { BSMOD_BUFFER_IDS(BSMOD_ENUM_GEN) BSMOD_BUFFERS_COUNT };</name></macro>
-		<macro><name>#define BSMOD_BUFFERS</name><line>_bsmod_buffers_</line></macro>
-
-		<macro>
-			<name>#define BSMOD_BATCH_IDS(X)</name>
-			<line>X(BSMOD_BATCH_TILE)</line>
-		</macro>
-		<macro><name>enum { BSMOD_BATCH_IDS(BSMOD_ENUM_GEN) BSMOD_BATCHES_COUNT };</name></macro>
-		<macro><name>#define BSMOD_BATCHES</name><line>_bsmod_batches_</line></macro>
-
-		<macro>
-			<name>#define BSMOD_RENDERER_IDS(X)</name>
-			<line>X(BSMOD_RENDERER)</line>
-			<line>X(BSMOD_RENDERER_3D)</line>
-		</macro>
-		<macro><name>enum { BSMOD_RENDERER_IDS(BSMOD_ENUM_GEN) BSMOD_RENDERERS_COUNT };</name></macro>
-		<macro><name>#define BSMOD_RENDERERS</name><line>_bsmod_renderers_</line></macro>
-
-		<macro>
-			<name>#define BSMOD_QUEUE_IDS(X)</name>
-			<line>X(BSMOD_QUEUE_GRAPHICS)</line>
-			<line>X(BSMOD_QUEUE_GRAPHICS_RASTERIZATION)</line>
-		</macro>
-		<macro><name>enum { BSMOD_QUEUE_IDS(BSMOD_ENUM_GEN) BSMOD_QUEUES_COUNT };</name></macro>
-		<macro><name>#define BSMOD_QUEUES</name><line>_bsmod_queues_</line></macro>
-
-		<macro>
-			<name>#define BSMOD_RAY_TRACER_IDS(X)</name>
-			<line>X(BSMOD_RAY_TRACER_PLACEHOLDER)</line>
-		</macro>
-		<macro><name>enum { BSMOD_RAY_TRACER_IDS(BSMOD_ENUM_GEN) BSMOD_RAY_TRACERS_COUNT };</name></macro>
-		<macro><name>#define BSMOD_RAY_TRACERS</name><line>_bsmod_ray_tracers_</line></macro>
-
-		<macro>
-			<name>#define BSMOD_ATLAS_IDS(X)</name>
-			<line>X(BSMOD_ATLAS_UI)</line>
-			<line>X(BSMOD_ATLAS_MATERIAL_ICONS)</line>
-			<line>X(BSMOD_ATLAS_PRIMITIVE_ICONS)</line>
-			<line>X(BSMOD_ATLAS_PREFAB_ICONS)</line>
-		</macro>
-		<macro><name>enum { BSMOD_ATLAS_IDS(BSMOD_ENUM_GEN) BSMOD_ATLASES_COUNT };</name></macro>
-		<macro><name>#define BSMOD_ATLASES</name><line>_bsmod_atlases_</line></macro>
-
-		<macro>
-			<name>#define BSMOD_FONT_IDS(X)</name>
-			<line>X(BSMOD_FONT_PLACEHOLDER)</line>
-		</macro>
-		<macro><name>enum { BSMOD_FONT_IDS(BSMOD_ENUM_GEN) BSMOD_FONTS_COUNT };</name></macro>
-		<macro><name>#define BSMOD_FONTS</name><line>_bsmod_fonts</line></macro>
 
 		<macro><name>#define BSMOD_BPAK_CHUNK_SIZE</name><line>100'000'000</line></macro>
 
@@ -312,14 +232,13 @@
 				<field><type>bool</type><name>skip_mesh_index_write</name></field>
 			</structure>
 
-			<field><type>bsgfx_Id</type><name>dragging_object_id</name></field>
+			<field><type>int</type><name>dragging_object_id</name></field>
 			<field><type>int</type><name>dragging_subtype</name></field>
 			<field><type>int</type><name>dragging_id</name></field>
 			<field><type>bsmod_EditType</type><name>edit_type</name></field>
 			<field><type>bsmod_EditType</type><name>edit_type_old</name></field>
 			<field><type>bs_Json</type><name>track_json</name></field>
 			<field><type>bs_Json</type><name>bindings_json</name></field>
-			<field><type>HINSTANCE</type><name>bsgfx</name></field>
 			<field><type>bs_String*</type><name>variadic</name></field>
 			<field><type>bs_List</type><name>queue_load</name></field>
 		</structure>
@@ -449,22 +368,24 @@
 		</variadicStringTemplate>
 
 		<function name="bsmod_scrollbar">
-			<return>bsgfx_Scrollbar</return>
-			<param><type>int*</type><name>scroll</name></param>
+			<param><type>const int*</type><name>scroll</name></param>
+			<param><type>bsgfx_Scrollbar*</type><name>out</name></param>
 		</function>
 		
 		<function name="bsmod_dividerWidget">
-			<return>bsgfx_Widget</return>
+			<return>void</return>
 			<param><type>float</type><name>width</name></param>
 			<param><type>int</type><name>indent</name></param>
+			<param><type>bsgfx_Widget*</type><name>out</name></param>
 		</function>
 		
 		<function name="bsmod_iconWidget">
-			<return>bsgfx_Widget</return>
-			<param><type>bsgfx_AtlasCache*</type><name>cache</name></param>
+			<return>void</return>
+			<param><type>const bsgfx_AtlasCache*</type><name>cache</name></param>
 			<param><type>float</type><name>align_height</name></param>
 			<param><type>bs_vec3</type><name>offset</name></param>
 			<param><type>bs_U32</type><name>advance_flags</name></param>
+			<param><type>bsgfx_Widget*</type><name>out</name></param>
 		</function>
 		
 		<function name="bsmod_packages">
@@ -482,11 +403,12 @@
 			<return>bs_Result</return>
 			<param><type>const char*</type><name>package_name</name></param>
 		</function>
-		<variadicStringTemplate name="bsmod_packResource">
+		<variadicStringTemplate name="bsmod_packResource" string="resource_name">
 			<return>bs_Result</return>
 			<param><type>bs_ResourceType</type><name>type</name></param>
 			<param><type>unsigned char*</type><name>data</name></param>
 			<param><type>size_t</type><name>data_size</name></param>
+			<param><type>const char*</type><name>package_name</name></param>
 		</variadicStringTemplate>
 		<function name="bsmod_savePackage">
 			<return>bs_Result</return>

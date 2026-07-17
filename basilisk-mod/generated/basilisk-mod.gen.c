@@ -32,6 +32,7 @@
         
 #include <basilisk-mod.h>
 #include <bsmod_internal.gen.h>
+#include <stdio.h>
 
 bsmod_FunctionTable next = { 0 };
 
@@ -211,26 +212,29 @@ bs_Result bsmod_packBMFontF(
     return _return;
 }
 
-bsgfx_Scrollbar bsmod_scrollbar(
-    int* scroll)
+ bsmod_scrollbar(
+    const int* scroll, 
+    bsgfx_Scrollbar* out)
 {
-    return next.bsmod_scrollbar(scroll);
+    return next.bsmod_scrollbar(scroll, out);
 }
 
-bsgfx_Widget bsmod_dividerWidget(
+void bsmod_dividerWidget(
     float width, 
-    int indent)
+    int indent, 
+    bsgfx_Widget* out)
 {
-    return next.bsmod_dividerWidget(width, indent);
+    next.bsmod_dividerWidget(width, indent, out);
 }
 
-bsgfx_Widget bsmod_iconWidget(
-    bsgfx_AtlasCache* cache, 
+void bsmod_iconWidget(
+    const bsgfx_AtlasCache* cache, 
     float align_height, 
     bs_vec3 offset, 
-    bs_U32 advance_flags)
+    bs_U32 advance_flags, 
+    bsgfx_Widget* out)
 {
-    return next.bsmod_iconWidget(cache, align_height, offset, advance_flags);
+    next.bsmod_iconWidget(cache, align_height, offset, advance_flags, out);
 }
 
 bs_List* bsmod_packages()
@@ -260,35 +264,38 @@ bs_Result bsmod_packResource(
     bs_ResourceType type, 
     unsigned char* data, 
     size_t data_size, 
-    char* value, 
-    int value_length)
+    const char* package_name, 
+    char* resource_name, 
+    int resource_name_length)
 {
-    return next.bsmod_packResource(type, data, data_size, value, value_length);
+    return next.bsmod_packResource(type, data, data_size, package_name, resource_name, resource_name_length);
 }
 
 bs_Result bsmod_packResourceV(
     bs_ResourceType type, 
     unsigned char* data, 
     size_t data_size, 
+    const char* package_name, 
     char* format, 
     va_list args)
 {
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bsmod_packResource(type, data, data_size, _formatted, _length);
+    return bsmod_packResource(type, data, data_size, package_name, _formatted, _length);
 }
 
 bs_Result bsmod_packResourceF(
     bs_ResourceType type, 
     unsigned char* data, 
     size_t data_size, 
+    const char* package_name, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bsmod_packResourceV(type, data, data_size, format, args);
+    bs_Result _return = bsmod_packResourceV(type, data, data_size, package_name, format, args);
     va_end(args);
     return _return;
 }

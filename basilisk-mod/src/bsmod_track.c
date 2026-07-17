@@ -173,7 +173,7 @@ BSMODAPI bs_Result _bsmod_packBindings() {
 	if (result != BS_RESULT_OK)
 		return result;
 
-	result = bsmod_packResource(BS_RESOURCE_BINARY, raw, strlen(raw), BSGFX_CONTENT_PATH, "bindings");
+	result = bsmod_packResource(BS_RESOURCE_BINARY, raw, strlen(raw), BSGFX_CONTENT_PATH, BS_CONSTANT_STRING("bindings"));
 	bs_free(raw);
 	if (result != BS_RESULT_OK)
 		return result;
@@ -182,8 +182,10 @@ BSMODAPI bs_Result _bsmod_packBindings() {
 }
 
 BSMODAPI void _bsmod_onConvertBMFont(bsmod_TrackParams params) {
-	if (!bs_fileExists(params.path, strlen(params.path)))
-		return bs_warnF(BS_PRINT_COLOR("Removed %s\n", BS_PRINT_RED), params.path);
+	if (!bs_fileExists(params.path, strlen(params.path))) {
+		bs_warnF(BS_PRINT_COLOR("Removed %s\n", BS_PRINT_RED), params.path);
+		return;
+	}
 
 	char* ext = bs_fileExtension(params.path);
 	char* png_path = NULL;
@@ -210,14 +212,16 @@ BSMODAPI void _bsmod_onConvertBMFont(bsmod_TrackParams params) {
 	char* name = bs_fileName(params.path);
 	int name_length = strlen(name);
 	ext[-1] = '.';
-	bsmod_packBMFont(params.package, fnt_path, png_path, "%s%.*s", params.prefix, name_length, name);
+	bsmod_packBMFontF(params.package, fnt_path, png_path, "%s%.*s", params.prefix, name_length, name);
 }
 
 BSMODAPI void _bsmod_onLoadTTF(bsmod_TrackParams params) {
 	bs_Result result;
 
-	if (!bs_fileExists(params.path, strlen(params.path)))
-		return bs_warnF(BS_PRINT_COLOR("Removed %s\n", BS_PRINT_RED), params.path);
+	if (!bs_fileExists(params.path, strlen(params.path))) {
+		bs_warnF(BS_PRINT_COLOR("Removed %s\n", BS_PRINT_RED), params.path);
+		return;
+	}
 
 	printf("Loading ttf \"%s\"\n", params.path);
 
@@ -353,11 +357,14 @@ static void bsmod_onPackAtlasTexture(bs_FileInfo info, bsmod_AtlasPacker* packer
 
 	int width = 0, height = 0;
 	size_t size = 0;
-	unsigned char* bmp = bs_loadPng(info.path, &width, &height, 4);
 
-	ext[-1] = '\0';
-	bsmod_packAtlasTexture(packer, name, bmp, width, height, 0);
-	ext[-1] = '.';
+	bs_PngData png_data;
+	if (bs_loadPng(info.path, 4, &png_data) == BS_RESULT_OK) {
+		ext[-1] = '\0';
+		bsmod_packAtlasTexture(packer, name, png_data.data, width, height, 0);
+		ext[-1] = '.';
+	}
+
 }
 
 BSMODAPI void _bsmod_onPackAtlas(bsmod_TrackParams params) {
@@ -470,8 +477,10 @@ BSMODAPI void _bsmod_onPackModels(bsmod_TrackParams params) {
 		bs_free(bin);
 		bs_destroyJson(&json);
 	}
-	else if (!strcmp(ext, "glb") == 0)
-		return bs_warnF("Unknown model format \"%s\"\n", params.path);
+	else if (!strcmp(ext, "glb") == 0) {
+		bs_warnF("Unknown model format \"%s\"\n", params.path);
+		return;
+	}
 	else {
 		result = bs_loadFile(&glb, params.path, strlen(params.path));
 		if (result != BS_RESULT_OK)
@@ -501,7 +510,7 @@ BSMODAPI void _bsmod_onPackBinary(bsmod_TrackParams params) {
 		return;
 }
 
-void bsmod_onPackTextureArray(bsmod_TrackParams params) {
+BSMODAPI void _bsmod_onPackTextureArray(bsmod_TrackParams params) {
 	char* file_name = bs_fileName(params.path);
 
 	file_name[-1] = '\0';
@@ -515,7 +524,7 @@ void bsmod_onPackTextureArray(bsmod_TrackParams params) {
    * Tracker
    *============================================================================*/
 
-static void bsmod_findLastModifiedFile(bs_FileInfo info, struct { bs_DateTime original_date; bs_DateTime date; const bs_List* added_entries; bs_List* changed_entries; bs_List* entries; }*result) {
+static void bsmod_findLastModifiedFile(bs_FileInfo info, struct { bs_DateTime original_date; bs_DateTime date; const bs_List* added_entries; bs_List* changed_entries; bs_List* entries; }*out) {
 	bs_Result result;
 
 	bs_DateTime date_time;
@@ -524,14 +533,14 @@ static void bsmod_findLastModifiedFile(bs_FileInfo info, struct { bs_DateTime or
 		return;
 
 	char* cached = bs_checkStringPool(&bsmod_string_pool, info.path);
-	bs_pushBack(result->entries, &cached);
+	bs_pushBack(out->entries, &cached);
 
-	if (bs_isLaterThan(&date_time, &result->original_date)) {
-		if (bs_isLaterThan(&date_time, &result->date)) {
-			result->date = date_time;
+	if (bs_isLaterThan(&date_time, &out->original_date)) {
+		if (bs_isLaterThan(&date_time, &out->date)) {
+			out->date = date_time;
 		}
 
-		bs_pushBack(result->changed_entries, &cached);
+		bs_pushBack(out->changed_entries, &cached);
 	}
 }
 
@@ -645,7 +654,7 @@ BSMODAPI void _bsmod_onTrack() {
 			if (reload_all) {
 				PFN_void function = GetProcAddress(bsgfx_bsmodDll(), dir->function); // todo not pfn void
 				if (function) {
-					int count = dir->call_once ? bs_iclamp(result.entries->count, 0, 1) : result.entries->count;
+					int count = dir->call_once ? bs_clamp(result.entries->count, 0, 1) : result.entries->count;
 
 					for (int j = 0; j < count; j++) {
 						char* path = *(char**)bs_fetchUnit(result.entries, j);
@@ -663,7 +672,7 @@ BSMODAPI void _bsmod_onTrack() {
 
 				PFN_void function = GetProcAddress(bsgfx_bsmodDll(), dir->function); // todo not pfn void
 				if (function) {
-					int count = dir->call_once ? bs_iclamp(result.changed_entries->count, 0, 1) : result.changed_entries->count;
+					int count = dir->call_once ? bs_clamp(result.changed_entries->count, 0, 1) : result.changed_entries->count;
 
 					for (int j = 0; j < count; j++) {
 						char* path = *(char**)bs_fetchUnit(result.changed_entries, j);
@@ -687,8 +696,8 @@ BSMODAPI void _bsmod_onTrack() {
 
 					int added_count = added_entries.count, removed_count = removed_entries.count;
 					if (dir->call_once) {
-						added_count = bs_iclamp(added_count, 0, 1);
-						removed_count = added_count > 0 ? 0 : bs_iclamp(removed_count, 0, 1);
+						added_count = bs_clamp(added_count, 0, 1);
+						removed_count = added_count > 0 ? 0 : bs_clamp(removed_count, 0, 1);
 					}
 
 					for (int j = 0; j < added_count; j++) {

@@ -4,7 +4,7 @@ BSGFXAPI void _val_bsgfx_worldToScreen(const bs_vec3* position, const bs_mat4* c
 	bs_vec4 clip;
 	bs_m4MulV4(&camera, &BS_V4(position->x, position->y, position->z, 1.0), &clip);
 
-	BSGFX_VALIDATE(clip.w != 0.0, BS_V2(0.0, 0.0),);
+	BSGFX_VALIDATE(clip.w != 0.0,,);
 
 	bsgfx_worldToScreen(position, camera, resolution, out);
 }

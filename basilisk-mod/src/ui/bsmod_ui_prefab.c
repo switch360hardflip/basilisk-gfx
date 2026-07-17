@@ -106,7 +106,7 @@ BSMODAPI void _bsmod_onDragPrefab(bsmod_DraggingParams params) {
         bsgfx_RawPrefab* prefab = bsmod_add(BSGFX_TYPE_PREFAB, &(bsgfx_RawPrefab) {
             .position = tile_position,
             .rotation = euler_rotation,
-            .scale = bs_v3V1(1),
+            .scale = { 1, 1, 1 },
             .name_hash = prefab_mesh->name_hash,
         });
         bsmod_saveType(BSGFX_TYPE_PREFAB, BS_CONSTANT_STRING("Created prefab"));

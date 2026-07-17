@@ -455,13 +455,6 @@ static void _preval_bs_qAxisAngle(const bs_vec3* axis, float radians, bs_vec4* o
     next.bs_qAxisAngle(axis, radians, out);
 }
 
-static void _preval_bs_qSlerp(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out) {
-    BS_VALIDATE(from != NULL, ,);
-    BS_VALIDATE(to != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_qSlerp(from, to, t, out);
-}
-
 static void _preval_bs_qNormalize(const bs_vec4* q, bs_vec4* out) {
     BS_VALIDATE(q != NULL, ,);
     BS_VALIDATE(out != NULL, ,);
@@ -2928,7 +2921,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_qToM4 = _preval_bs_qToM4;
     functions.bs_qMulQ = _preval_bs_qMulQ;
     functions.bs_qAxisAngle = _preval_bs_qAxisAngle;
-    functions.bs_qSlerp = _preval_bs_qSlerp;
     functions.bs_qNormalize = _preval_bs_qNormalize;
     functions.bs_qSlerp = _preval_bs_qSlerp;
     functions.bs_qRotateV3 = _preval_bs_qRotateV3;

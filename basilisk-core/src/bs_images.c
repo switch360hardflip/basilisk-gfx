@@ -498,7 +498,7 @@ BSAPI bs_Result _bs_inspectPng(const char* path, int* width, int* height, size_t
   */
 BSAPI bs_Result _val_bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out) {
     BS_VALIDATE(channels_count == 3 || channels_count == 4, BS_RESULT_VALIDATION_ERROR,);
-    return _bs_loadPngData(data, size, channels_count, out);
+    return bs_loadPngData(data, size, channels_count, out);
 }
 
 BSAPI bs_Result _bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out) {

@@ -50,10 +50,6 @@
 
 		<typedef><type>void</type><name>(__stdcall* PFN_void)()</name></typedef>
 		<typedef><type>bs_Queue*</type><name>(__stdcall* PFN_bsmod_onQueue)()</name></typedef>
-		<typedef><type>bool</type><name>(__stdcall* PFN_bsmod_isSelected)(enum bsgfx_TypeId type, int id)</name></typedef>
-		<typedef><type>bool</type><name>(__stdcall* PFN_bs_hoveringGrid)()</name></typedef>
-		<typedef><type>void</type><name>(__stdcall* PFN_bsmod_onMap)(enum bsgfx_TypeId type_id, int id)</name></typedef>
-		<typedef><type>void</type><name>(__stdcall* PFN_bsmod_onCreateSubtypes)(bs_Range range)</name></typedef>
 
 		<typedef><type>bs_U32</type><name>bsgfx_PrimitiveFlags</name></typedef>
 		<typedef><type>bs_U32</type><name>bsgfx_SpawnerFlags</name></typedef>

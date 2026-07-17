@@ -111,7 +111,6 @@ static inline bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_qToM4 = (PFN_bs_qToM4)GetProcAddress(module, "_val_bs_qToM4");
     functions.bs_qMulQ = (PFN_bs_qMulQ)GetProcAddress(module, "_val_bs_qMulQ");
     functions.bs_qAxisAngle = (PFN_bs_qAxisAngle)GetProcAddress(module, "_val_bs_qAxisAngle");
-    functions.bs_qSlerp = (PFN_bs_qSlerp)GetProcAddress(module, "_val_bs_qSlerp");
     functions.bs_qNormalize = (PFN_bs_qNormalize)GetProcAddress(module, "_val_bs_qNormalize");
     functions.bs_qSlerp = (PFN_bs_qSlerp)GetProcAddress(module, "_val_bs_qSlerp");
     functions.bs_qRotateV3 = (PFN_bs_qRotateV3)GetProcAddress(module, "_val_bs_qRotateV3");

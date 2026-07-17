@@ -105,6 +105,7 @@
 			<line><name>BS_RESULT_FAILED_TO_INSPECT</name></line>
 			<line><name>BS_RESULT_OUT_OF_BOUNDS</name></line>
 			<line><name>BS_RESULT_VALIDATION_ERROR</name></line>
+			<line><name>BS_RESULT_ZERO_ALLOC</name></line>
 		</enum>
 		<enum name="bs_IniFlag">
 			<line><name>BS_INI_AUDIO_BIT</name><value>1 &lt;&lt; 0</value></line>
@@ -2592,16 +2593,7 @@
             <param><type>bs_vec4*</type><name>out</name></param>
             <body>    glm_quatv(axis->a, radians, out->a);</body>
         </function>
-		
-        <function name="bs_qSlerp">
-            <return>void</return>
-            <param><type>const bs_vec4*</type><name>from</name></param>
-            <param><type>const bs_vec4*</type><name>to</name></param>
-            <param><type>float</type><name>t</name></param>
-            <param><type>bs_vec4*</type><name>out</name></param>
-            <body>    glm_quat_slerp(from->a, to->a, t, out->a);</body>
-        </function>
-		
+
         <function name="bs_qNormalize">
             <return>void</return>
             <param><type>const bs_vec4*</type><name>q</name></param>

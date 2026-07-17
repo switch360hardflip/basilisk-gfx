@@ -548,15 +548,6 @@ void bs_qAxisAngle(
     glm_quatv(axis->a, radians, out->a);
 }
 
-void bs_qSlerp(
-    const bs_vec4* from, 
-    const bs_vec4* to, 
-    float t, 
-    bs_vec4* out)
-{
-    glm_quat_slerp(from->a, to->a, t, out->a);
-}
-
 void bs_qNormalize(
     const bs_vec4* q, 
     bs_vec4* out)

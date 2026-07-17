@@ -34,11 +34,11 @@
 #define BSMOD_DIRECTORY_BACKGROUND_PADDING 32
 #define BSMOD_DIRECTORY_BACKGROUND_DIMENSIONS ((bs_vec2) { 256, 512 })
 
-bool bsmod_instance_grid_menu = false;
-bs_String* bsmod_search_input = NULL;
+bool _bsmod_instance_grid_menu_ = false;
+bs_String* _bsmod_search_input_ = NULL;
 
 static void bsmod_onCloseGridMenu() {
-    bsmod_instance_grid_menu = false;
+    _bsmod_instance_grid_menu_ = false;
 }
 
 typedef enum {
@@ -159,7 +159,7 @@ static void bsmod_instanceDirectoryMenu(bs_vec3 center, bs_vec2 dimensions) {
         .input = {
             .type = BSGFX_INPUT_STRING,
             .dimensions = { BSMOD_DIRECTORY_BACKGROUND_DIMENSIONS.x, search_height },
-            .as_string = &bsmod_search_input,
+            .as_string = &_bsmod_search_input_,
             .placeholder_text = "Search...",
             .placeholder_text_material_id = $bsmod_grey_120()->id,
             .outline_material_id = $bsmod_grey_61()->id,
@@ -286,11 +286,14 @@ static void bsmod_instanceDirectoryMenu(bs_vec3 center, bs_vec2 dimensions) {
         _bsmod_.ui_blocked = hovering;
 }
 
-static bool bsmod_instanceGridPreview(bsgfx_Widget* widget, bs_vec2* position, int id, bool hovering) {
+static bool bsmod_instanceGridPreview(bsgfx_Widget* widget, bsgfx_GridParams grid) {
+    bs_vec2 cursor = bs_cursorPosition();
+    bool hovering = bs_rectangleVsPoint(grid.position, &widget->grid.size, &cursor);
+
     switch (bsmod_selected_directory) {
-    case BSMOD_DIRECTORY_PRIMITIVES: bsmod_instancePrimitivePreview(widget, position, id, hovering); break;
-    case BSMOD_DIRECTORY_PREFABS: bsmod_instancePrefabPreview(widget, position, id, hovering); break;
-    case BSMOD_DIRECTORY_TILES: bsmod_instanceTilePreview(widget, position, id, hovering); break;
+    case BSMOD_DIRECTORY_PRIMITIVES: bsmod_instancePrimitivePreview(widget, grid.position, grid.index, hovering); break;
+    case BSMOD_DIRECTORY_PREFABS: bsmod_instancePrefabPreview(widget, grid.position, grid.index, hovering); break;
+    case BSMOD_DIRECTORY_TILES: bsmod_instanceTilePreview(widget, grid.position, grid.index, hovering); break;
     default:
         return false;
     }
@@ -299,7 +302,7 @@ static bool bsmod_instanceGridPreview(bsgfx_Widget* widget, bs_vec2* position, i
         bsgfx_instanceQuad(
             bsgfx_subtypes()[BSGFX_SUBTYPE_UI],
             bsgfx_matrix(
-                BS_V3(position->x, position->y, 50.0),
+                BS_V3(grid.position->x, grid.position->y, 50.0),
                 BS_V3(widget->grid.size.x, widget->grid.size.y, 0.0)
             ),
             $BSMOD_ATLAS_UI_grid_hover()->coords,
@@ -398,7 +401,7 @@ static bool bsmod_instanceAtlasPreview(bsgfx_Widget* widget, bsgfx_GridParams gr
             BS_V3(grid.position->x, grid.position->y, 60.0),
             BS_V3(widget->grid.size.x, widget->grid.size.y, 0.0)
         ),
-        bs_atlasCoordinates(atlas, grid.index, 0),
+        bs_atlasCoordinates(atlas, grid.index),
         0, 0, 0);
 
     bsmod_checkHoverGrid(widget, &grid);
@@ -446,7 +449,6 @@ BSMODAPI void _bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
     bsgfx_Widget widget = {
         .type = BSGFX_WIDGET_GRID,
         .grid = {
-            .scrollbar = bsmod_scrollbar(&scroll),
             .always_active = true,
             .total_size = size,
             .count = BSGFX_PRIMITIVE_TYPE_COUNT,
@@ -454,6 +456,7 @@ BSMODAPI void _bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
         },
         .params = &params,
     };
+    bsmod_scrollbar(&scroll, &widget.grid.scrollbar);
 
     widget.grid.count = 0;
     widget.grid.action = NULL;

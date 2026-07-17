@@ -24,13 +24,13 @@
   */ 
 
 #include <basilisk-mod.h>
-#include <stdarg.h>>
-#include <string.h>>
-#include <assert.h>>
+#include <stdarg.h>
+#include <string.h>
+#include <assert.h>
 
 static bs_List _bsmod_packages_ = { .unit_size = sizeof(bsmod_Package), .increment = 4 };
 
-BSMODAPI bs_List* bsmod_packages() {
+BSMODAPI bs_List* _bsmod_packages() {
 	return &_bsmod_packages_;
 }
 
@@ -127,7 +127,9 @@ BSMODAPI bs_Result _bsmod_iniPackage(const char* package_name) {
 	}
 
 	for (int i = 0; i < chunks_count; i++) {
-		bs_String* chunk_bin = bs_loadFileF("%s_%03d.bpak", package_name, (i + 1));
+		bs_String* chunk_bin; 
+		if (bs_loadFileF(&chunk_bin, "%s_%03d.bpak", package_name, (i + 1)) != BS_RESULT_OK)
+			continue;
 
 		bsmod_Chunk* chunk = bs_pushBack(&package->chunks, &(bsmod_Chunk) {
 			.bin = bs_list(sizeof(unsigned char), 10000),
@@ -216,7 +218,7 @@ BSMODAPI bs_Result _bsmod_packResource(bs_ResourceType type, unsigned char* data
 	return BS_RESULT_OK;
 }
 
-static bs_Result bsmod_loadResource(bs_ResourceType type, int package_id, char* name) {
+static bs_Result bsmod_loadResource(int type, int package_id, char* name) {
 	bs_Result result = BS_RESULT_OK;
 
 	bs_Scope scope = bs_enterSingle();
@@ -289,7 +291,7 @@ static bs_Result bsmod_loadResource(bs_ResourceType type, int package_id, char* 
 
 							new_descriptors[k] = (bs_ImageDescriptor){
 								.image = descriptor->as_image.image,
-								.layout = descriptor->as_image.vk_image_layout,
+								.layout = (bs_ImageLayout)descriptor->as_image.vk_image_layout,
 								.sampler = descriptor->as_image.sampler,
 							};
 
@@ -340,17 +342,17 @@ static bs_Result bsmod_loadResource(bs_ResourceType type, int package_id, char* 
 		
 		break;
 	case BS_RESOURCE_SHADER:
-		bs_Resource* existing;
-		result = bs_queryResource(package_id, name, &existing);
+		bs_Resource* existing_shader;
+		result = bs_queryResource(package_id, name, &existing_shader);
 		if (result == BS_RESULT_OK)
 			bs_shader(package_id, name, 0, NULL);
 
 		break;
 	case BS_RESOURCE_MODEL:
-		bs_Resource* existing;
-		result = bs_queryResource(package_id, name, &existing);
-		if (result == BS_RESULT_OK && existing->model == bsgfx_prefabModel()) {
-			result = bs_model(package_id, name, 0, &existing);
+		bs_Resource* existing_model;
+		result = bs_queryResource(package_id, name, &existing_model);
+		if (result == BS_RESULT_OK && existing_model->model == bsgfx_prefabModel()) {
+			result = bs_model(package_id, name, 0, &existing_model);
 
 			if (result == BS_RESULT_OK) {
 				bs_Batch* batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_MESH_INSTANCED)->batch;
@@ -376,7 +378,7 @@ end:
 	return result;
 }
 
-BSMODAPI bs_Result _bsmod_savePackage(const char* name) {
+BSMODAPI bs_Result _val_bsmod_savePackage(const char* name) {
 	BSMOD_VALIDATE(bs_instance()->device != NULL, BS_RESULT_VALIDATION_ERROR,);
 
 	return bsmod_savePackage(name);
@@ -387,7 +389,7 @@ BSMODAPI bs_Result _bsmod_savePackage(const char* name) {
 	bsmod_Package* package = bsmod_ensurePackage(name);
 
 	if (!package->has_changes)
-		return;
+		return BS_RESULT_OK;
 
 	package->has_changes = false;
 

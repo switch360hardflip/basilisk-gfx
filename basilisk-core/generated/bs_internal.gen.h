@@ -104,7 +104,6 @@ typedef void(__stdcall* PFN_bs_qToM3)(const bs_vec4* q, bs_mat3* out);
 typedef void(__stdcall* PFN_bs_qToM4)(const bs_vec4* q, bs_mat4* out);
 typedef void(__stdcall* PFN_bs_qMulQ)(const bs_vec4* p, const bs_vec4* q, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_qAxisAngle)(const bs_vec3* axis, float radians, bs_vec4* out);
-typedef void(__stdcall* PFN_bs_qSlerp)(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_qNormalize)(const bs_vec4* q, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_qSlerp)(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out);
 typedef void(__stdcall* PFN_bs_qRotateV3)(const bs_vec4* q, const bs_vec3* v, bs_vec3* out);
@@ -622,7 +621,6 @@ typedef struct {
     PFN_bs_qToM4 bs_qToM4;
     PFN_bs_qMulQ bs_qMulQ;
     PFN_bs_qAxisAngle bs_qAxisAngle;
-    PFN_bs_qSlerp bs_qSlerp;
     PFN_bs_qNormalize bs_qNormalize;
     PFN_bs_qSlerp bs_qSlerp;
     PFN_bs_qRotateV3 bs_qRotateV3;
@@ -1149,7 +1147,6 @@ static inline bs_FunctionTable _bs_getFunctions() {
     functions.bs_qToM4 = (PFN_bs_qToM4)GetProcAddress(module, "_bs_qToM4");
     functions.bs_qMulQ = (PFN_bs_qMulQ)GetProcAddress(module, "_bs_qMulQ");
     functions.bs_qAxisAngle = (PFN_bs_qAxisAngle)GetProcAddress(module, "_bs_qAxisAngle");
-    functions.bs_qSlerp = (PFN_bs_qSlerp)GetProcAddress(module, "_bs_qSlerp");
     functions.bs_qNormalize = (PFN_bs_qNormalize)GetProcAddress(module, "_bs_qNormalize");
     functions.bs_qSlerp = (PFN_bs_qSlerp)GetProcAddress(module, "_bs_qSlerp");
     functions.bs_qRotateV3 = (PFN_bs_qRotateV3)GetProcAddress(module, "_bs_qRotateV3");

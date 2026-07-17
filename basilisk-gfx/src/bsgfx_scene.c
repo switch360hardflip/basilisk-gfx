@@ -324,8 +324,8 @@ static void bsgfx_loadResources() {
         _bsgfx_subtypes_[BSGFX_SUBTYPE_64_HI] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_256_HI] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
 
-        if (_bsgfx_procs_.bsmod_onCreateQuadSubtypes)
-            _bsgfx_procs_.bsmod_onCreateQuadSubtypes(range);
+       // if (_bsgfx_procs_.bsmod_onCreateQuadSubtypes)
+       //     _bsgfx_procs_.bsmod_onCreateQuadSubtypes(range);
 
         bs_pushBatch(quad_instance_batch->batch, BS_U32_MAX, BS_U32_MAX);
     }
@@ -506,8 +506,8 @@ BSGFXAPI void _bsgfx_loadScene(const char* name) {
 
 	bs_load(bsgfx_loadResources);
 
-    if (_bsgfx_procs_.bsmod_onLoad)
-        bs_runSingle(_bsgfx_procs_.bsmod_onLoad);
+   // if (_bsgfx_procs_.bsmod_onLoad)
+   //     bs_runSingle(_bsgfx_procs_.bsmod_onLoad);
 
     //bs_runSingle(bsgfx_computePrefabShadows);
 

@@ -30,8 +30,8 @@
 
 #include <basilisk-mod.h>
 
-BSMODAPI bsgfx_Scrollbar _bsmod_scrollbar(int* scroll) {
-    return (bsgfx_Scrollbar) {
+BSMODAPI void _bsmod_scrollbar(const int* scroll, bsgfx_Scrollbar* out) {
+    *out = (bsgfx_Scrollbar) {
         .value = scroll,
         .substeps_count = 4,
         .padding = 8,
@@ -48,8 +48,8 @@ BSMODAPI bsgfx_Scrollbar _bsmod_scrollbar(int* scroll) {
     };
 }
 
-BSMODAPI bsgfx_Widget _bsmod_dividerWidget(float width, int indent) {
-    return (bsgfx_Widget) {
+BSMODAPI void _bsmod_dividerWidget(float width, int indent, bsgfx_Widget* out) {
+    *out = (bsgfx_Widget) {
        // .name = "",
         .type = BSGFX_WIDGET_ICON,
         .offset.x = indent,
@@ -62,8 +62,8 @@ BSMODAPI bsgfx_Widget _bsmod_dividerWidget(float width, int indent) {
     };
 }
 
-BSMODAPI bsgfx_Widget _bsmod_iconWidget(bsgfx_AtlasCache* cache, float align_height, bs_vec3 offset, bs_U32 advance_flags) {
-    return (bsgfx_Widget) {
+BSMODAPI void _bsmod_iconWidget(const bsgfx_AtlasCache* cache, float align_height, bs_vec3 offset, bs_U32 advance_flags, bsgfx_Widget* out) {
+    *out = (bsgfx_Widget) {
         .type = BSGFX_WIDGET_ICON,
         .icon = {
             .atlas = bs_fetch(BSMOD_ATLASES, BSMOD_ATLAS_UI)->atlas,
@@ -152,7 +152,7 @@ BSMODAPI void _bsmod_pushInputWidget(
 BSMODAPI void _val_bsmod_pushVecNWidget(bs_List* widgets, const char* name, bs_vec3 offset, float width, float* v, int n) {
     BSMOD_VALIDATE(n <= 4,,);
 
-    return bsmod_pushVecNWidget(widgets, name, offset, width, v, n);
+    bsmod_pushVecNWidget(widgets, name, offset, width, v, n);
 }
 
 BSMODAPI void _bsmod_pushVecNWidget(bs_List* widgets, const char* name, bs_vec3 offset, float width, float* v, int n) {

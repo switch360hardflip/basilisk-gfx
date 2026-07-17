@@ -95,9 +95,9 @@ BSMODAPI void _bsmod_deleteSelected(bsgfx_TypeId type_id) {
 	bsmod_deselectAll();
 
 	if (count == 1)
-		bsmod_saveType(type_id, "Deleted %s", type->singular);
+		bsmod_saveTypeF(type_id, "Deleted %s", type->singular);
 	else
-		bsmod_saveType(type_id, "Deleted %d %s", count, type->plural);
+		bsmod_saveTypeF(type_id, "Deleted %d %s", count, type->plural);
 }
 
 /*
@@ -127,7 +127,7 @@ BSMODAPI bs_Result _bsmod_saveType(bsgfx_TypeId id, char* comment, int comment_l
 	size_t size = sizeof(*data) + type->count * sizeof(int) + type->count * type->unmapped_unit_size + type->flexible_count * type->unmapped_flexible_size;
 
 	if (size == 0) // TODO: bsmod warn
-		return;
+		return BS_RESULT_ZERO_ALLOC;
 
 	data = bs_malloc(size);
 	memset(data, 0, sizeof(*data));
@@ -439,7 +439,7 @@ static void bsmod_convertTileVersion1(bsgfx_TypeHeader* old_tiles, bsgfx_TypeHea
 
 		*new_tile = (bsgfx_RawTile){
 			.axis = 0,
-			.coords = bs_iv2V2(old_tile->coords),
+			.coords = { old_tile->coords.x, old_tile->coords.y },
 			.flags = old_tile->flags,
 			.primitive = old_tile->primitive,
 			.texture_hash = old_tile->texture_hash,
@@ -485,8 +485,10 @@ static bs_Result bsmod_convertTileVersion(int package_id, bsgfx_Scene* scene) {
 		bs_warnF("Tile version %d converter\n", old_tiles->version); // TODO: BSMOD warn
 	}
 
-	result = bsmod_packResource(BSGFX_RESOURCE_TILE, new_tiles, size, bs_fileName(package->path), s->value);
+	result = bsmod_packResource(BSGFX_RESOURCE_TILE, new_tiles, size, bs_fileName(package->path), s->value, s->len);
 	bs_free(new_tiles);
+
+	return BS_RESULT_OK;
 }
 
 /***/

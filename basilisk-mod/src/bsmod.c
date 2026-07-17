@@ -25,9 +25,10 @@
 
 #include <basilisk-mod.h>
 #include <bsmod_cache.h>
+#include <bsmod_internal.h>
 #include <stdio.h>
 
-struct Bsmod _bsmod_ = {
+Bsmod _bsmod_ = {
     .bsgfx_package = -1,
     .package = -1,
     .history = BS_I64_MAX,
@@ -43,7 +44,7 @@ struct Bsmod _bsmod_ = {
     .selected_tiles = {.unit_size = sizeof(int), .increment = 32 },
 };
 
-bs_Json _bsmod_config__ = { 0 };
+bs_Json _bsmod_config_ = { 0 };
 
 int _bsmod_images_ = -1, _bsmod_samplers_ = -1, _bsmod_buffers_ = -1,
     _bsmod_batches_ = -1, _bsmod_renderers_ = -1, _bsmod_ray_tracers_ = -1,
@@ -51,8 +52,7 @@ int _bsmod_images_ = -1, _bsmod_samplers_ = -1, _bsmod_buffers_ = -1,
 
 volatile long _bsmod_has_performed_tracked_changes_ = 1;
 
-bsmod_Procedures _bsmod_procs = { 0 };
-int _bsmod_subtypes[BSMOD_SUBTYPE_COUNT] = { 0 };
+int _bsmod_subtypes_[BSMOD_SUBTYPE_COUNT] = { 0 };
 
 static void bsmod_instanceAxisFace(
     bsgfx_Primitive* primitive,
@@ -174,7 +174,7 @@ BSMODAPI void _bsmod_onTick() {
         bs_m4Rotate(&transform, &primitive->rotation, &transform);
         bs_m4Scale(&transform, &primitive->scale, &transform);
 
-        bs_Aabb aabb = { .min = bs_v3V1(-1), .max = bs_v3V1(1) };
+        bs_Aabb aabb = { .min = { -1, -1, -1 }, .max = { 1, 1, 1 } };
         //bsgfx_instanceObb(&aabb, BS_WHITE, &transform); //TODO:
 
         bsmod_instanceAxisFace(primitive, _bsmod_.selected_tile_axis, BS_RGBA(130, 245, 245, 255), &BS_MAT4_IDENTITY);
@@ -192,7 +192,7 @@ BSMODAPI void _bsmod_onTick() {
             bs_m4Rotate(&transform, &primitive->rotation, &transform);
             bs_m4Scale(&transform, &primitive->scale, &transform);
 
-            bs_Aabb aabb = { .min = bs_v3V1(-1), .max = bs_v3V1(1) };
+            bs_Aabb aabb = { .min = { -1, -1, -1 }, .max = { 1, 1, 1 } };
             // bsgfx_obbInstance(&aabb, BS_WHITE, &transform); // TODO:
         }
     } break;
@@ -358,7 +358,7 @@ static DWORD WINAPI bsmod_tickAsync(void* param) {
     }
 }
 
-BSMODAPI void _bsmod_onLoadVariables() {
+static void bsmod_onLoadVariables() {
     if (_bsmod_config_.doc)
         bs_destroyJson(&_bsmod_config_);
 
@@ -405,14 +405,6 @@ BSMODAPI void _bsmod_onIni() {
     // bsmod_iniLisk();
     bsmod_iniCompiler();
 
-    _bsmod_.bsgfx = LoadLibrary("basilisk-gfx.dll");
-    if (_bsmod_.bsgfx) {
-        bs_Procedure procedures[] = {
-            BSMOD_FOREACH_PROC(BS_STRING_GEN_2)
-        };
-        bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), _bsmod_.bsgfx, &_bsmod_procs);
-    }
-
     bs_configureSource(BS_OBJECT_IMAGE, BSMOD_IMAGES_COUNT, (const char* []) { BSMOD_IMAGE_IDS(BS_STRING_GEN) });
     bs_configureSource(BS_OBJECT_SAMPLER, BSMOD_SAMPLERS_COUNT, (const char* []) { BSMOD_SAMPLER_IDS(BS_STRING_GEN) });
     bs_configureSource(BS_OBJECT_BUFFER, BSMOD_BUFFERS_COUNT, (const char* []) { BSMOD_BUFFER_IDS(BS_STRING_GEN) });
@@ -439,10 +431,10 @@ BSMODAPI void _bsmod_onLateIni() { // ugly, called after first track
 
 BSMODAPI void _bsmod_onCreateQuadSubtypes(bs_Range range) {
     bs_Batch* batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_QUAD_INSTANCED)->batch;
-    _bsmod_subtypes[BSMOD_SUBTYPE_MATERIAL_ICON] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, batch, 0, range);
-    _bsmod_subtypes[BSMOD_SUBTYPE_PRIMITIVE_ICON] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, batch, 0, range);
-    _bsmod_subtypes[BSMOD_SUBTYPE_PREFAB_ICON] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, batch, 0, range);
-    _bsmod_subtypes[BSMOD_SUBTYPE_BILLBOARD] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, batch, 0, range);
+    _bsmod_subtypes_[BSMOD_SUBTYPE_MATERIAL_ICON] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, batch, 0, range);
+    _bsmod_subtypes_[BSMOD_SUBTYPE_PRIMITIVE_ICON] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, batch, 0, range);
+    _bsmod_subtypes_[BSMOD_SUBTYPE_PREFAB_ICON] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, batch, 0, range);
+    _bsmod_subtypes_[BSMOD_SUBTYPE_BILLBOARD] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, batch, 0, range);
 }
 
 BSMODAPI void _bsmod_bindAtlases() {
@@ -491,21 +483,23 @@ BSMODAPI void _bsmod_onLoad() {
 
     bs_Sampler* nearest_sampler = bs_fetch(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)->sampler;
 
-    bs_Object* font = bs_loadFont(BS_FONT(BSGFX_FONTS, BSGFX_FONT_ARIAL_16, 0), _bsmod_.package, "fonts/consolas_16", BSGFX_ALPHABET_DEFAULT, 32.0, 0);
-    if (font)
-        bs_bindFont(font->font, bs_fetch(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)->sampler, BSGFX_SET_FONTS, BSGFX_BINDING_FONT_ARIAL);
+    bs_Object* font_object = BS_FONT(BSGFX_FONTS, BSGFX_FONT_ARIAL_16, 0);
+    result = bs_loadFont(font_object, _bsmod_.package, "fonts/consolas_16", BSGFX_ALPHABET_DEFAULT, 32.0, 0);
+    if (result == BS_RESULT_OK)
+        bs_bindFont(font_object->font, bs_fetch(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)->sampler, BSGFX_SET_FONTS, BSGFX_BINDING_FONT_ARIAL);
 
     bs_Object* quad_instanced_batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_QUAD_INSTANCED);
     bs_Range range = {
 		.num = 6, // single quad
 	};
-	_bsmod_subtypes[BSMOD_SUBTYPE_FONT_CONSOLAS] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instanced_batch->batch, 0, range);
+	_bsmod_subtypes_[BSMOD_SUBTYPE_FONT_CONSOLAS] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instanced_batch->batch, 0, range);
 
-    bs_Object* batch = bs_batch(BS_BATCH(BSMOD_BATCHES, BSMOD_BATCH_TILE, 0), sizeof(int), $vs_bsgfx_tile_static(), BS_BATCH_KEEP_DATA);
-    if (batch && !bs_batchIsPushed(batch->batch)) {
+    bs_Object* tile_batch_object = BS_BATCH(BSMOD_BATCHES, BSMOD_BATCH_TILE, 0);
+    result = bs_batch(tile_batch_object, sizeof(int), $vs_bsgfx_tile_static(), BS_BATCH_KEEP_DATA);
+    if (result == BS_RESULT_OK && !bs_batchIsPushed(tile_batch_object->batch)) {
         bs_Range range;
-        bsgfx_pushTile(batch->batch, bs_quad(BS_V3(0, 0, 0), BS_V2(1, 1)), BS_V3(0, 0, 0), 0, 0, &range);
-        bs_pushBatch(batch->batch, BS_U32_MAX, BS_U32_MAX);
+        bsgfx_pushTile(tile_batch_object->batch, bs_quad(BS_V3(0, 0, 0), BS_V2(1, 1)), BS_V3(0, 0, 0), 0, 0, &range);
+        bs_pushBatch(tile_batch_object->batch, BS_U32_MAX, BS_U32_MAX);
     }
 
     //_bsmod_subtypes[BSMOD_SUBTYPE_SPHERE_HIGH_QUALITY] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, BSGFX_BATCH_MESH_INSTANCED, BSGFX_SUBTYPE_HAS_SHADOWS, sphere_high_quality_range);
@@ -513,9 +507,11 @@ BSMODAPI void _bsmod_onLoad() {
     bs_queue(BS_QUEUE(BSMOD_QUEUES, BSMOD_QUEUE_GRAPHICS, BS_OBJECT_HAS_SWAPS_BIT), BS_QUEUE_GRAPHICS_BIT);
     bs_queue(BS_QUEUE(BSMOD_QUEUES, BSMOD_QUEUE_GRAPHICS_RASTERIZATION, 0), BS_QUEUE_GRAPHICS_BIT | BS_QUEUE_DONT_SIGNAL);
 
-    bs_Object* renderer = bs_renderer(BS_RENDERER(BSMOD_RENDERERS, BSMOD_RENDERER, BS_OBJECT_HAS_SWAPS_BIT), 0);
+    bs_Object* renderer_object = BS_RENDERER(BSMOD_RENDERERS, BSMOD_RENDERER, BS_OBJECT_HAS_SWAPS_BIT);
+    result = bs_renderer(renderer_object, 0);
+
     bs_ivec2 resolution = bs_resolution();
-    if (renderer) {
+    if (result == BS_RESULT_OK) {
         bs_Object* depth = BS_IMAGE(BSMOD_IMAGES, BSMOD_IMAGE_DEPTH, 0);
         bs_Object* color = BS_IMAGE(BSMOD_IMAGES, BSMOD_IMAGE_COLOR, 0);
 
@@ -523,7 +519,7 @@ BSMODAPI void _bsmod_onLoad() {
         result = bs_image(color, resolution, 0, BS_FORMAT_R8G8B8A8_UNORM, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT);
 
         // bs_U32 subpass, bs_Image* image, bs_ImageLayout old_layout, bs_ImageLayout new_layout, bs_OutputFlags flags
-        bs_output(renderer->renderer, (bs_Output) {
+        bs_output(renderer_object->renderer, (bs_Output) {
             .subpass = 0, 
             .image = bs_scope()->window->swapchain_image->image,
             .load_op = BS_LOAD_OP_CLEAR,
@@ -537,7 +533,7 @@ BSMODAPI void _bsmod_onLoad() {
         };
 
         for (int i = 0; i < sizeof(subpass_0_outputs) / sizeof(*subpass_0_outputs); i++) {
-            bs_output(renderer->renderer, (bs_Output) {
+            bs_output(renderer_object->renderer, (bs_Output) {
                 .subpass = 0,
                 .image = subpass_0_outputs[i],
                 .load_op = BS_LOAD_OP_CLEAR,
@@ -547,18 +543,19 @@ BSMODAPI void _bsmod_onLoad() {
             });
         }
 
-        bs_dependency(renderer->renderer, -1, 0, BS_DEPENDENCY_BY_REGION_BIT,
+        bs_dependency(renderer_object->renderer, -1, 0, BS_DEPENDENCY_BY_REGION_BIT,
             BS_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
             BS_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | BS_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
             BS_ACCESS_MEMORY_READ_BIT,
             BS_ACCESS_COLOR_ATTACHMENT_READ_BIT | BS_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | BS_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
 
-        bs_renderPass(renderer->renderer);
-        bs_framebuffer(renderer->renderer, resolution);
+        bs_renderPass(renderer_object->renderer);
+        bs_framebuffer(renderer_object->renderer, resolution);
     }
 
-    bs_Object* renderer_3d = bs_renderer(BS_RENDERER(_bsmod_renderers_, BSMOD_RENDERER_3D, BS_OBJECT_HAS_SWAPS_BIT), 0);
-    if (renderer_3d) {
+    bs_Object* renderer_3d = BS_RENDERER(_bsmod_renderers_, BSMOD_RENDERER_3D, BS_OBJECT_HAS_SWAPS_BIT);
+    result = bs_renderer(renderer_3d, 0);
+    if (result == BS_RESULT_OK) {
         bs_Object* depth = BS_IMAGE(BSMOD_IMAGES, BSMOD_IMAGE_DEPTH_3D, 0);
         bs_image(depth, resolution, 0, BS_FORMAT_D32_SFLOAT_S8_UINT, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_DST_BIT);
        // bs_Image* color = bs_image(BS_IMAGE(BSMOD_IMAGE_COLOR, 0), resolution, 0, BS_FORMAT_R8G8B8A8_UNORM, BS_IMAGE_ATTACHMENT_BIT | BS_IMAGE_USAGE_TRANSFER_SRC_BIT)->image;

@@ -49,11 +49,11 @@ bsmod_SideMenuTab _bsmod_side_menu_tabs[BSMOD_TABS_COUNT] = {
     [BSMOD_TAB_SETTINGS] = {.name = "Settings", .cache = $BSMOD_ATLAS_UI_instance, },
 };
 
-BSMODAPI void _bsmod_setSideMenuTab(int id, bsmod_GridClickParams params) {
+BSMODAPI void _val_bsmod_setSideMenuTab(int id, bsmod_GridClickParams params) {
     BSMOD_VALIDATE(id >= 0,,);
     BSMOD_VALIDATE(id < BSMOD_TABS_COUNT,,);
 
-    return bsmod_setSideMenuTab(id, params);
+    bsmod_setSideMenuTab(id, params);
 }
 
 BSMODAPI void _bsmod_setSideMenuTab(int id, bsmod_GridClickParams params) {
