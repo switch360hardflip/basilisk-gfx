@@ -45,9 +45,9 @@
  /** Log section */
 BSAPI char* _bs_logSection(char* message, int message_len) {
     int len = _bs_io_.log->len;
-    _bs_io_.log = bs_appendString(_bs_io_.log, BS_SECTION_HEADER_START, sizeof(BS_SECTION_HEADER_START) - 1);
-    _bs_io_.log = bs_appendString(_bs_io_.log, message, message_len);
-    _bs_io_.log = bs_appendString(_bs_io_.log, BS_SECTION_HEADER_END, sizeof(BS_SECTION_HEADER_END) - 1);
+    _bs_io_.log = _bs_appendString(_bs_io_.log, BS_SECTION_HEADER_START, sizeof(BS_SECTION_HEADER_START) - 1);
+    _bs_io_.log = _bs_appendString(_bs_io_.log, message, message_len);
+    _bs_io_.log = _bs_appendString(_bs_io_.log, BS_SECTION_HEADER_END, sizeof(BS_SECTION_HEADER_END) - 1);
     return _bs_io_.log->value + len;
 }
 
@@ -59,7 +59,7 @@ BSAPI char* _postval_bs_logSection(char* message, int message_len, char* _return
  /** Log end of section */
 BSAPI char* _bs_logEndOfSection() {
     int len = _bs_io_.log->len;
-    _bs_io_.log = bs_appendString(_bs_io_.log, BS_SECTION_END, sizeof(BS_SECTION_END) - 1);
+    _bs_io_.log = _bs_appendString(_bs_io_.log, BS_SECTION_END, sizeof(BS_SECTION_END) - 1);
     return _bs_io_.log->value + len;
 }
 
@@ -68,26 +68,15 @@ BSAPI char* _postval_bs_logEndOfSection(char* _return) {
     return _return;
 }
 
- /** Log */
-BSAPI char* _bs_logV(const char* format, va_list args) {
-    int len = _bs_io_.log->len;
-    _bs_io_.log = bs_appendStringV(_bs_io_.log, format, args);
-    return _bs_io_.log->value + len;
-}
-
-BSAPI char* _postval_bs_logV(const char* format, va_list args, char* _return) {
-    printf("%s", _return);
-    return _return;
-}
 
  /** Log with timestamp */
 BSAPI char* _bs_logWithTimestamp(const char* type, int type_len, char* message, int message_len) {
-    bs_DateTime dt = bs_dateTime();
+    bs_DateTime dt = _bs_dateTime();
 
     int len = _bs_io_.log->len;
-    _bs_io_.log = bs_appendStringF(_bs_io_.log, "[%02d-%02d-%02d %02d:%02d:%02d %04d] ", dt.years, dt.months, dt.days, dt.hours, dt.minutes, dt.seconds, dt.milliseconds);
-    _bs_io_.log = bs_appendString(_bs_io_.log, type, type_len);
-    _bs_io_.log = bs_appendString(_bs_io_.log, message, message_len);
+    _bs_io_.log = _bs_appendStringF(_bs_io_.log, "[%02d-%02d-%02d %02d:%02d:%02d %04d] ", dt.years, dt.months, dt.days, dt.hours, dt.minutes, dt.seconds, dt.milliseconds);
+    _bs_io_.log = _bs_appendString(_bs_io_.log, type, type_len);
+    _bs_io_.log = _bs_appendString(_bs_io_.log, message, message_len);
 
     return _bs_io_.log->value + len;
 }
@@ -99,14 +88,14 @@ BSAPI char* _postval_bs_logWithTimestamp(const char* type, int type_len, const c
 
  /** Warning log */
 BSAPI char* _bs_warn(char* message, int message_len) {
-    return bs_logWithTimestamp(BS_WARN_HEADER, sizeof(BS_WARN_HEADER) - 1, message, message_len);
+    return _bs_logWithTimestamp(BS_WARN_HEADER, sizeof(BS_WARN_HEADER) - 1, message, message_len);
 }
 
  /** Critical error log */
 BSAPI void _bs_critical(char* message, int message_len) {
-    char* result = bs_logWithTimestamp(BS_ERROR_HEADER, sizeof(BS_ERROR_HEADER) - 1, message, message_len);
+    char* result = _bs_logWithTimestamp(BS_ERROR_HEADER, sizeof(BS_ERROR_HEADER) - 1, message, message_len);
 
-    bs_saveFile(result, strlen(result), BS_CONSTANT_STRING("basilisk.log"));
+    _bs_saveFile(result, strlen(result), BS_CONSTANT_STRING("basilisk.log"));
 
     /*
     if (_bs_args_.send_bugs)
@@ -119,19 +108,19 @@ BSAPI void _bs_critical(char* message, int message_len) {
         );
 
         if (report_bug == IDYES) {
-            bs_except(BS_U64_MAX);
-            bs_Json json = bs_emptyJson();
-            bs_ensureJson(&json, bs_jsonValue(_bs_io_.log->value), "$.Log");
-            char* result = bs_saveJson(&json, 0);
+            _bs_except(BS_U64_MAX);
+            bs_Json json = _bs_emptyJson();
+            _bs_ensureJson(&json, _bs_jsonValue(_bs_io_.log->value), "$.Log");
+            char* result = _bs_saveJson(&json, 0);
 
-            bs_Json response = bs_post("http://basilisk-gfx.com/reportbug", 5000, &json);
-            char* raw = bs_saveJson(&response, BS_JSON_PRETTY);
+            bs_Json response = _bs_post("http://basilisk-gfx.com/reportbug", 5000, &json);
+            char* raw = _bs_saveJson(&response, BS_JSON_PRETTY);
 
             printf("Bug report response:\n%s\n", raw);
 
-            bs_destroyJson(&response);
-            bs_free(raw);
-            bs_except(0);
+            _bs_destroyJson(&response);
+            _bs_free(raw);
+            _bs_except(0);
         }
     }
 

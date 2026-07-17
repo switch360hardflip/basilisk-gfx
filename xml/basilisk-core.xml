@@ -25,6 +25,10 @@
 			<include>string.h</include>
 			<include>stdbool.h</include>
 		</trampolineHeader>
+		<internal>
+			<include>bs_internal.gen.h</include>
+			<include>stdio.h</include>
+		</internal>
 		<internalHeader>
 			<include>basilisk-core.gen.h</include>
 			<include>wtypes.h</include>
@@ -89,6 +93,7 @@
 	<enums>
 		<enum name="bs_Result">
 			<line><name>BS_RESULT_OK</name></line>
+			<line><name>BS_RESULT_WAITING</name></line>
 			<line><name>BS_RESULT_GENERAL_ERROR</name></line>
 			<line><name>BS_RESULT_INTEGER_OVERFLOW</name></line>
 			<line><name>BS_RESULT_INVALID_BASE64_PADDING</name></line>
@@ -103,6 +108,7 @@
 			<line><name>BS_RESULT_FAILED_TO_ENCODE</name></line>
 			<line><name>BS_RESULT_FAILED_TO_READ</name></line>
 			<line><name>BS_RESULT_FAILED_TO_INSPECT</name></line>
+			<line><name>BS_RESULT_FAILED_TO_PARSE</name></line>
 			<line><name>BS_RESULT_OUT_OF_BOUNDS</name></line>
 			<line><name>BS_RESULT_VALIDATION_ERROR</name></line>
 			<line><name>BS_RESULT_ZERO_ALLOC</name></line>
@@ -2680,7 +2686,7 @@
         </function>
 
         <function name="bs_v2CubicBezier">
-            <return>float</return>
+            <return>void</return>
             <param><type>const bs_vec2*</type><name>p0</name></param>
             <param><type>const bs_vec2*</type><name>p1</name></param>
             <param><type>const bs_vec2*</type><name>p2</name></param>
@@ -2690,7 +2696,7 @@
         </function>
 
         <function name="bs_v2QuadBezier">
-            <return>float</return>
+            <return>void</return>
             <param><type>const bs_vec2*</type><name>p0</name></param>
             <param><type>const bs_vec2*</type><name>p1</name></param>
             <param><type>const bs_vec2*</type><name>p2</name></param>
@@ -2699,7 +2705,7 @@
         </function>
 
         <function name="bs_v3CubicBezier">
-            <return>float</return>
+            <return>void</return>
             <param><type>const bs_vec3*</type><name>p0</name></param>
             <param><type>const bs_vec3*</type><name>p1</name></param>
             <param><type>const bs_vec3*</type><name>p2</name></param>
@@ -2709,7 +2715,7 @@
         </function>
 
         <function name="bs_v3QuadBezier">
-            <return>float</return>
+            <return>void</return>
             <param><type>const bs_vec3*</type><name>p0</name></param>
             <param><type>const bs_vec3*</type><name>p1</name></param>
             <param><type>const bs_vec3*</type><name>p2</name></param>
@@ -2938,41 +2944,41 @@
             <return>bs_Image*</return>
         </function>
         <function name="bs_clearStencil">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_U32</type><name>index</name></param>
             <param><type>bs_ivec2</type><name>resolution</name></param>
             <param><type>bs_U32</type><name>value</name></param>
         </function>
         <function name="bs_clearDepth">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_U32</type><name>index</name></param>
             <param><type>bs_ivec2</type><name>dim</name></param>
             <param><type>float</type><name>value</name></param>
         </function>
         <function name="bs_clearDepthStencil">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_U32</type><name>index</name></param>
             <param><type>bs_ivec2</type><name>dim</name></param>
             <param><type>float</type><name>depth_value</name></param>
             <param><type>bs_U32</type><name>stencil_value</name></param>
         </function>
         <function name="bs_clearColor">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_U32</type><name>index</name></param>
             <param><type>bs_ivec2</type><name>dim</name></param>
             <param><type>bs_RGBA</type><name>color</name></param>
         </function>
         <function name="bs_stencilReference">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_FaceType</type><name>face</name></param>
             <param><type>bs_U32</type><name>reference</name></param>
         </function>
         <function name="bs_cull">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_CullFlags</type><name>flags</name></param>
         </function>
         <function name="bs_setLineWidth">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>float</type><name>width</name></param>
         </function>
         <function name="bs_batchSize">
@@ -2989,7 +2995,7 @@
             <param><type>bs_U32</type><name>num_instances</name></param>
         </function>
         <function name="bs_barrier">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_U32</type><name>dependency_flags</name></param>
             <param><type>bs_U32</type><name>src</name></param>
             <param><type>bs_U32</type><name>dst</name></param>
@@ -2997,7 +3003,7 @@
             <param><type>bs_U32</type><name>dst_access</name></param>
         </function>
         <function name="bs_rayTrace">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_RayTracer*</type><name>ray_tracer</name></param>
             <param><type>bs_Pipeline*</type><name>pipeline</name></param>
             <param><type>bs_U32</type><name>width</name></param>
@@ -3012,12 +3018,12 @@
             <param><type>int</type><name>shaders_count</name></param>
         </function>
         <function name="bs_accelerateAabb">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_RayTracer*</type><name>ray_tracer</name></param>
             <param><type>bs_Aabb</type><name>aabb</name></param>
         </function>
         <function name="bs_accelerateBatch">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_RayTracer*</type><name>ray_tracer</name></param>
             <param><type>bs_Batch*</type><name>batch</name></param>
         </function>
@@ -3026,11 +3032,11 @@
             <param><type>bs_RayTracer*</type><name>ray_tracer</name></param>
         </function>
         <function name="bs_destroyRayTracer">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_RayTracer*</type><name>ray_tracer</name></param>
         </function>
         <function name="bs_dispatchAsync">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Pipeline*</type><name>pipeline</name></param>
             <param><type>bs_U32</type><name>x</name></param>
             <param><type>bs_U32</type><name>y</name></param>
@@ -3041,7 +3047,7 @@
             <param><type>bs_Buffer*</type><name>buffer</name></param>
         </function>
         <variadicStringTemplate name="bs_nameBuffer">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Buffer*</type><name>buffer</name></param>
         </variadicStringTemplate>
         <function name="bs_buffer">
@@ -3066,7 +3072,7 @@
             <param><type>bs_U32</type><name>num_bytes</name></param>
         </function>
         <function name="bs_unmapBuffer">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Buffer*</type><name>buffer</name></param>
         </function>
         <function name="bs_stageNull">
@@ -3111,7 +3117,7 @@
             <param><type>bs_Shader*</type><name>vertex_shader</name></param>
             <param><type>bs_BatchBits</type><name>flags</name></param>
         </function>
-        <variadicStringTemplate name="bs_queryAttribute">
+        <variadicStringTemplate name="bs_queryAttribute" string="name">
             <return>bs_Attribute*</return>
             <param><type>bs_Batch*</type><name>batch</name></param>
         </variadicStringTemplate>
@@ -3124,7 +3130,7 @@
             <param><type>bs_Batch*</type><name>batch</name></param>
         </function>
         <function name="bs_minimizeBatch">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Batch*</type><name>batch</name></param>
         </function>
         <function name="bs_pushBatch">
@@ -3134,11 +3140,11 @@
             <param><type>bs_U32</type><name>num_vertex_bytes</name></param>
         </function>
         <function name="bs_unpushBatch">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Batch*</type><name>batch</name></param>
         </function>
         <function name="bs_destroyBatch">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Batch*</type><name>batch</name></param>
         </function>
         <function name="bs_recreateBatch">
@@ -3146,7 +3152,7 @@
             <param><type>bs_Batch*</type><name>batch</name></param>
         </function>
         <function name="bs_ensureBatchSize">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Batch*</type><name>batch</name></param>
             <param><type>bs_U32</type><name>num_indices</name></param>
             <param><type>bs_U32</type><name>num_vertices</name></param>
@@ -3274,7 +3280,7 @@
             <param><type>bs_AccessMask</type><name>dst_access</name></param>
         </function>
         <function name="bs_renderPass">
-            <return>void</return>
+            <return>bs_Result</return>
             <param><type>bs_Renderer*</type><name>renderer</name></param>
         </function>
         <function name="bs_framebuffer">
@@ -3317,13 +3323,13 @@
             <param><type>bs_QueueBits</type><name>flags</name></param>
         </function>
         <function name="bs_present">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Queue*</type><name>queue</name></param>
             <param><type>bs_Queue*</type><name>wait_queues</name><size></size></param>
             <param><type>int</type><name>wait_queues_count</name></param>
         </function>
         <function name="bs_acquire">
-            <return>bs_Result</return>
+            <return>void</return>
         </function>
         <function name="bs_queueSwap">
             <return>int</return>
@@ -3338,7 +3344,7 @@
             <return>void</return>
         </function>
         <function name="bs_enqueue">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Queue*</type><name>queue</name></param>
             <param><type>bs_Callback</type><name>function</name></param>
         </function>
@@ -3370,7 +3376,7 @@
             <param><type>bs_Queue*</type><name>queue</name></param>
         </function>
         <function name="bs_poll">
-            <return>bool</return>
+            <return>bs_Result</return>
             <param><type>bs_Queue*</type><name>queue</name></param>
         </function>
         <function name="bs_enterSingle">
@@ -3523,7 +3529,7 @@
             <param><type>int*</type><name>out</name></param>
         </function>
         <function name="bs_copyImageToBufferAsync">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Image*</type><name>image</name></param>
             <param><type>bs_Buffer*</type><name>buffer</name></param>
             <param><assert>image_index &gt;= 0</assert><type>int</type><name>image_index</name></param>
@@ -3533,14 +3539,14 @@
             <param><type>bs_ivec2</type><name>resolution</name></param>
         </function>
         <function name="bs_copyBufferToImage">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Buffer*</type><name>buffer</name></param>
             <param><type>bs_Image*</type><name>image</name></param>
             <param><assert>index &gt;= 0</assert><type>int</type><name>index</name></param>
             <param><type>bs_ImageLayout</type><name>layout</name></param>
         </function>
         <function name="bs_blit">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_BlitOperation</type><name>operation</name></param>
         </function>
         <variadicStringTemplate name="bs_loadImage">
@@ -3562,12 +3568,12 @@
             <param><type>bs_Format</type><name>format</name></param>
         </function>
         <function name="bs_nameImage">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Image*</type><name>image</name></param>
             <param><type>const char*</type><name>name</name></param>
         </function>
         <function name="bs_destroySampler">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Sampler*</type><name>sampler</name></param>
         </function>
         <function name="bs_sampler">
@@ -3611,7 +3617,7 @@
             <param><type>const char*</type><name>name</name></param>
         </function>
         <function name="bs_destroyAtlas">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>bs_Atlas*</type><name>atlas</name></param>
         </function>
         <function name="bs_loadAtlasMemory">
@@ -3662,7 +3668,7 @@
             <param><type>bs_Queue*</type><name>queue</name></param>
         </function>
         <variadicStringTemplate name="bsi_nameHandle">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><assert>handle != 0</assert><type>bs_U64</type><name>handle</name></param>
             <param><type>bs_U32</type><name>type</name></param>
         </variadicStringTemplate>
@@ -3878,12 +3884,12 @@
             <param><type>bs_String*</type><name>old</name></param>
         </variadicStringTemplate>
         <function name="bs_toUpper">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>char*</type><name>string</name></param>
             <param><assert>len &gt;= 0</assert><type>int</type><name>len</name></param>
         </function>
         <function name="bs_toLower">
-            <return>bs_Result</return>
+            <return>void</return>
             <param><type>char*</type><name>string</name></param>
             <param><assert>len &gt;= 0</assert><type>int</type><name>len</name></param>
         </function>
@@ -3920,7 +3926,7 @@
             <return>bs_String*</return>
         </function>
         <variadicStringTemplate name="bs_setWorkingDirectory" string="path">
-            <return>void</return>
+            <return>bs_Result</return>
         </variadicStringTemplate>
         <function name="bs_executablePath">
             <return>bs_String*</return>
@@ -4375,9 +4381,10 @@
             <param><type>bs_Shader*</type><name>shader</name></param>
         </function>
         <function name="bs_computePipeline">
-            <return>bs_Pipeline*</return>
+            <return>bs_Result</return>
             <param><type>bs_Shader*</type><name>compute_shader</name></param>
             <param><type>bs_PipelineFlags</type><name>flags</name></param>
+            <param><type>bs_Pipeline**</type><name>out</name></param>
         </function>
         <function name="bs_destroyComputePipeline">
             <return>void</return>
@@ -4424,7 +4431,6 @@
             <param><type>bs_U32</type><name>bind_point_slot</name></param>
             <param><type>bs_Descriptor*</type><name>descriptors</name></param>
             <param><type>int</type><name>descriptors_count</name></param>
-            <param><type>bs_Binding**</type><name>out</name></param>
         </function>
         <function name="bs_bindImage">
             <return>bs_Result</return>
@@ -4598,7 +4604,8 @@
             <param><type>int</type><name>y</name></param>
         </function>
         <function name="bs_window">
-            <return>void</return>
+            <return>bs_Result</return>
+            <param><type>bs_Object*</type><name>object</name></param>
             <param><type>bs_U32</type><name>width</name></param>
             <param><type>bs_U32</type><name>height</name></param>
             <param><type>const char*</type><name>title</name></param>

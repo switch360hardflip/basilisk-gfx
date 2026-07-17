@@ -22,7 +22,7 @@
         <xsl:apply-templates select="registry/includes/validationHeader/include"/>
         <xsl:text>&#xA;</xsl:text>
 		
-        <xsl:call-template name="add-function-table-getter">
+        <xsl:call-template name="addFunctionTableGetter">
             <xsl:with-param name="prefix" select="'_val_'"/>
         </xsl:call-template>
 

@@ -34,7 +34,11 @@
 #include <bsmod_internal.gen.h>
 #include <stdio.h>
 
-bsmod_FunctionTable next = { 0 };
+static bsmod_FunctionTable next = { 0 };
+
+void _bsmod_setFunctions(const struct _bsmod_FunctionTable* table) {
+    memcpy(&next, table, sizeof(next));
+}
 
 void bsmod_copyHoveringDataToBuffer()
 {

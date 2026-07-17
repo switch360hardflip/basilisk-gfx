@@ -221,31 +221,31 @@
 
 
 
-static inline bs_U8 bs_memU8(void* data, bs_U32 offset) {
+static inline bs_U8 _bs_memU8(void* data, bs_U32 offset) {
     return *((bs_U8*)data + offset);
 }
 
-static inline bs_U16 bs_memU16(void* data, bs_U32 offset) {
+static inline bs_U16 _bs_memU16(void* data, bs_U32 offset) {
     const bs_U8* base = (bs_U8*)data + offset;
     return (bs_U16)(base[0] << 8 | base[1]);
 }
 
-static inline bs_U32 bs_memU32(void* data, bs_U32 offset) {
+static inline bs_U32 _bs_memU32(void* data, bs_U32 offset) {
     const bs_U8* base = (bs_U8*)data + offset;
     return (bs_U32)(base[0] << 24 | base[1] << 16 | base[2] << 8 | base[3]);
 }
 
-static inline int bs_memcmpU32(const void* a, const void* b) {
+static inline int _bs_memcmpU32(const void* a, const void* b) {
     return memcmp(a, b, sizeof(bs_U32));
 }
 
-static bs_Result bs_findTable(bs_TTF* ttf, const char tag[4], char** out) {
+static bs_Result _bs_findTable(bs_TTF* ttf, const char tag[4], char** out) {
     const char* table = NULL;
     for (int i = 0; i < ttf->buffer->len - 4; i++) {
         const char* ptr = ttf->buffer->value + i;
 
         if (memcmp(ptr, tag, 4) == 0) {
-            bs_U32 offset = bs_memU32(ptr, 8);
+            bs_U32 offset = _bs_memU32(ptr, 8);
             *out = ttf->buffer->value + offset;
             return BS_RESULT_OK;
         }
@@ -258,43 +258,43 @@ static bs_Result bs_findTable(bs_TTF* ttf, const char tag[4], char** out) {
   'head' Table 
   https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6head.html
   */
-static void bs_readHeadTable(bs_TTF* ttf) {
-    bs_findTable(ttf, "head", &ttf->head.buf);
-    bs_U32 version = bs_memU32(ttf->head.buf, HEAD_VERSION);
-    ttf->head.units_per_em = bs_memU16(ttf->head.buf, HEAD_UNITS_PER_EM);
-    ttf->head.index_to_loc_format = bs_memU16(ttf->head.buf, HEAD_INDEX_TO_LOC_FORMAT);
+static void _bs_readHeadTable(bs_TTF* ttf) {
+    _bs_findTable(ttf, "head", &ttf->head.buf);
+    bs_U32 version = _bs_memU32(ttf->head.buf, HEAD_VERSION);
+    ttf->head.units_per_em = _bs_memU16(ttf->head.buf, HEAD_UNITS_PER_EM);
+    ttf->head.index_to_loc_format = _bs_memU16(ttf->head.buf, HEAD_INDEX_TO_LOC_FORMAT);
 }
 
  /** 
   'maxp' Table 
   https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6maxp.html
   */
-static void bs_readMaxpTable(bs_TTF* ttf) {
-    bs_findTable(ttf, "maxp", &ttf->maxp.buf);
-    ttf->maxp.num_glyphs = bs_memU16(ttf->maxp.buf, MAXP_NUM_GLYPHS);
+static void _bs_readMaxpTable(bs_TTF* ttf) {
+    _bs_findTable(ttf, "maxp", &ttf->maxp.buf);
+    ttf->maxp.num_glyphs = _bs_memU16(ttf->maxp.buf, MAXP_NUM_GLYPHS);
 }
 
  /** 
   'hhea' Table 
   https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6hhea.html
   */
-static void bs_readHheaTable(bs_TTF* ttf) {
-    bs_findTable(ttf, "hhea", &ttf->hhea.buf);
-    ttf->hhea.num_of_long_hor_metrics = bs_memU16(ttf->hhea.buf, HHEA_NUM_OF_LONG_HOR_METRICS);
+static void _bs_readHheaTable(bs_TTF* ttf) {
+    _bs_findTable(ttf, "hhea", &ttf->hhea.buf);
+    ttf->hhea.num_of_long_hor_metrics = _bs_memU16(ttf->hhea.buf, HHEA_NUM_OF_LONG_HOR_METRICS);
 }
 
  /** 
   'kern' Table 
   https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6kern.html 
   */
-static inline int bs_findPair(uint8_t* base, int count, uint16_t left) {
+static inline int _bs_findPair(uint8_t* base, int count, uint16_t left) {
     int lo = 0;
     int hi = count;
 
     while (lo < hi) {
         int mid = (lo + hi) / 2;
 
-        bs_U16 mid_left = bs_memU16(base + mid * 6, 0);
+        bs_U16 mid_left = _bs_memU16(base + mid * 6, 0);
 
         if (mid_left < left)
             lo = mid + 1;
@@ -305,23 +305,23 @@ static inline int bs_findPair(uint8_t* base, int count, uint16_t left) {
     return lo;
 }
 
-static inline int bs_kernFormat0(bs_TTF* ttf, char* kern, int offset) {
-    bs_U16 pairs_count = bs_memU16(kern, KERN_FORMAT0_PAIRS_COUNT + offset);
+static inline int _bs_kernFormat0(bs_TTF* ttf, char* kern, int offset) {
+    bs_U16 pairs_count = _bs_memU16(kern, KERN_FORMAT0_PAIRS_COUNT + offset);
 
     bs_U8* base = kern + KERN_FORMAT0_PAIR_START + offset;
 
     for (int i = 0; i < pairs_count; i++) {
         bs_U8* p = base + i * sizeof(bs_U16) * 3;
 
-        bs_U16 left = bs_memU16(p, KERN_FORMAT0_PAIR_LEFT);
-        bs_U16 right = bs_memU16(p, KERN_FORMAT0_PAIR_RIGHT);
-        bs_U16 value = bs_memU16(p, KERN_FORMAT0_PAIR_VALUE);
+        bs_U16 left = _bs_memU16(p, KERN_FORMAT0_PAIR_LEFT);
+        bs_U16 right = _bs_memU16(p, KERN_FORMAT0_PAIR_RIGHT);
+        bs_U16 value = _bs_memU16(p, KERN_FORMAT0_PAIR_VALUE);
 
         bs_Glyph* left_glyph = NULL;
         int right_glyph_index = -1;
 
         for (int j = 0; j < ttf->glyphs.count; j++) {
-            bs_Glyph* glyph = bs_fetchUnit(&ttf->glyphs, j);
+            bs_Glyph* glyph = _bs_fetchUnit(&ttf->glyphs, j);
 
             if (glyph->index == left)
                 left_glyph = glyph;
@@ -336,7 +336,7 @@ static inline int bs_kernFormat0(bs_TTF* ttf, char* kern, int offset) {
         if (!left_glyph || right_glyph_index == -1)
             continue;
 
-        bs_pushBack(&ttf->kerning_pairs, &(bs_KerningPair){
+        _bs_pushBack(&ttf->kerning_pairs, &(bs_KerningPair){
             .right_index = right_glyph_index,
             .right = right,
             .value = value,
@@ -350,11 +350,11 @@ static inline int bs_kernFormat0(bs_TTF* ttf, char* kern, int offset) {
 
 BSAPI void _bs_readKernTable(bs_TTF* ttf) {
     char* buf;
-    bs_findTable(ttf, "kern", &buf);
+    _bs_findTable(ttf, "kern", &buf);
     
     // TODO: these can be bs_U32 on OS X only fonts but idk how 2 check
-    bs_U16 version = bs_memU16(buf, KERN_VERSION);
-    bs_U16 subtables_count = bs_memU16(buf, KERN_NUMBER_OF_TABLES);
+    bs_U16 version = _bs_memU16(buf, KERN_VERSION);
+    bs_U16 subtables_count = _bs_memU16(buf, KERN_NUMBER_OF_TABLES);
 
     int header_size =
         sizeof(bs_U32) +
@@ -363,9 +363,9 @@ BSAPI void _bs_readKernTable(bs_TTF* ttf) {
         header_size += sizeof(bs_U16);
 
     for (int i = 0, offset = 0; i < subtables_count; i++) {
-        bs_U32 length = bs_memU32(buf, KERN_LENGTH + offset);
-        bs_U16 coverage = bs_memU16(buf, KERN_COVERAGE + offset);
-        // bs_U16 tuple_index = bs_memU16(buf, KERN_TUPLE_INDEX + offset); // AAT
+        bs_U32 length = _bs_memU32(buf, KERN_LENGTH + offset);
+        bs_U16 coverage = _bs_memU16(buf, KERN_COVERAGE + offset);
+        // bs_U16 tuple_index = _bs_memU16(buf, KERN_TUPLE_INDEX + offset); // AAT
 
         int vertical = (coverage & KERN_COVERAGE_VERTICAL) != 0;
         int cross_stream = (coverage & KERN_COVERAGE_CROSS_STREAM) != 0;
@@ -374,13 +374,13 @@ BSAPI void _bs_readKernTable(bs_TTF* ttf) {
         bs_U16 format = (coverage & 0xFF00) >> 8;
 
         switch (format) {
-        case 0: offset += bs_kernFormat0(ttf, buf, offset + header_size); break;
+        case 0: offset += _bs_kernFormat0(ttf, buf, offset + header_size); break;
         case 1:
         case 2:
         case 3:
-            bs_warnF("KERN format %d is not supported\n", format);
+            _bs_warnF("KERN format %d is not supported\n", format);
         default:
-            bs_warnF("KERN format %d is not between 0..4\n", format);
+            _bs_warnF("KERN format %d is not between 0..4\n", format);
         }
     }
 }
@@ -389,11 +389,11 @@ BSAPI void _bs_readKernTable(bs_TTF* ttf) {
   'hmtx' Table
   https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6hmtx.html
   */
-static void bs_readHmtxTable(bs_TTF* ttf, bs_Glyph* glyph) {
-    bs_findTable(ttf, "hmtx", &ttf->hmtx.buf);
+static void _bs_readHmtxTable(bs_TTF* ttf, bs_Glyph* glyph) {
+    _bs_findTable(ttf, "hmtx", &ttf->hmtx.buf);
 
     bs_U32 offset = glyph->index * sizeof(bs_LongHorMetric);
-    glyph->long_hor_metric.advance_width = bs_memU16(ttf->hmtx.buf, offset);
+    glyph->long_hor_metric.advance_width = _bs_memU16(ttf->hmtx.buf, offset);
     glyph->long_hor_metric.left_side_bearing = (bs_I16)bs_memU16(ttf->hmtx.buf, offset + 2);
 }
 
@@ -402,14 +402,14 @@ static void bs_readHmtxTable(bs_TTF* ttf, bs_Glyph* glyph) {
   'loca' Table
   https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6loca.html
   */
-static bs_U32 bs_readLocaTable(bs_TTF* ttf, int id) {
-    bs_findTable(ttf, "loca", &ttf->loca.buf);
+static bs_U32 _bs_readLocaTable(bs_TTF* ttf, int id) {
+    _bs_findTable(ttf, "loca", &ttf->loca.buf);
 
     bs_U32 offset = 0;
     if (ttf->head.index_to_loc_format == 0)
-        offset = bs_memU16(ttf->loca.buf, id * sizeof(bs_U16)) * 2;
+        offset = _bs_memU16(ttf->loca.buf, id * sizeof(bs_U16)) * 2;
     else
-        offset = bs_memU32(ttf->loca.buf, id * sizeof(bs_U32));
+        offset = _bs_memU32(ttf->loca.buf, id * sizeof(bs_U32));
 
     return offset;
 }
@@ -418,7 +418,7 @@ static bs_U32 bs_readLocaTable(bs_TTF* ttf, int id) {
   'glyf' Table
   https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6glyf.html
   */
-static int bs_glyfCoords(bs_Glyf* glyf, bool y, bs_U8* flags, bs_GlyfPt* pts, int offset, int num_points) {
+static int _bs_glyfCoords(bs_Glyf* glyf, bool y, bs_U8* flags, bs_GlyfPt* pts, int offset, int num_points) {
     bs_U16 coord_prev = 0;
     for (int i = 0; i < num_points; i++) {
         bs_U8 flag = flags[i];
@@ -426,7 +426,7 @@ static int bs_glyfCoords(bs_Glyf* glyf, bool y, bs_U8* flags, bs_GlyfPt* pts, in
 
 	    // If coord is 8-bit
 	    if (BS_FLAGSET(flag, GLYF_X_SHORT + y)) {
-	        coord = bs_memU8(glyf->buf, offset);
+	        coord = _bs_memU8(glyf->buf, offset);
 	        offset += 1;
 
             if (!BS_FLAGSET(flag, GLYF_X_SAME + y)) {
@@ -438,7 +438,7 @@ static int bs_glyfCoords(bs_Glyf* glyf, bool y, bs_U8* flags, bs_GlyfPt* pts, in
 	        if (BS_FLAGSET(flag, GLYF_X_SAME + y)) {
 		        coord = coord_prev;
 	        } else {
-		        coord = bs_memU16(glyf->buf, offset);
+		        coord = _bs_memU16(glyf->buf, offset);
 		        coord += coord_prev;
 		        offset += 2;
 	        }
@@ -454,41 +454,41 @@ static int bs_glyfCoords(bs_Glyf* glyf, bool y, bs_U8* flags, bs_GlyfPt* pts, in
     return offset;
 }
 
-static void bs_readGlyfTable(bs_TTF* ttf, bs_Glyph* glyph) {
+static void _bs_readGlyfTable(bs_TTF* ttf, bs_Glyph* glyph) {
     if (bs_findTable(ttf, "glyf", ttf->glyf.buf) != BS_RESULT_OK) {
         return;
     }
 
     // get location of glyph in ttf buffer
-    bs_U32 loc = bs_readLocaTable(ttf, glyph->index);
+    bs_U32 loc = _bs_readLocaTable(ttf, glyph->index);
     ttf->glyf.buf += loc;
 
     // get bounding boxes
-    glyph->x_min = bs_memU16(ttf->glyf.buf, GLYF_XMIN);
-    glyph->y_min = bs_memU16(ttf->glyf.buf, GLYF_YMIN);
-    glyph->x_max = bs_memU16(ttf->glyf.buf, GLYF_XMAX);
-    glyph->y_max = bs_memU16(ttf->glyf.buf, GLYF_YMAX);
+    glyph->x_min = _bs_memU16(ttf->glyf.buf, GLYF_XMIN);
+    glyph->y_min = _bs_memU16(ttf->glyf.buf, GLYF_YMIN);
+    glyph->x_max = _bs_memU16(ttf->glyf.buf, GLYF_XMAX);
+    glyph->y_max = _bs_memU16(ttf->glyf.buf, GLYF_YMAX);
 
     // parse contours
-    int num_contours = bs_memU16(ttf->glyf.buf, GLYF_NUMBER_OF_CONTOURS);
+    int num_contours = _bs_memU16(ttf->glyf.buf, GLYF_NUMBER_OF_CONTOURS);
     int* end_pts = _alloca(num_contours * sizeof(int));
     for (int i = 0; i < num_contours; i++) {
-        end_pts[i] = bs_memU16(ttf->glyf.buf, GLYF_END_PTS_OF_CONTOURS + i * 2);
+        end_pts[i] = _bs_memU16(ttf->glyf.buf, GLYF_END_PTS_OF_CONTOURS + i * 2);
     }
 
     // num points is equal to end of last contour
     int num_points = end_pts[num_contours - 1] + 1;
 
     int instruction_offset = GLYF_INSTRUCTION_LENGTH(num_contours);
-    int num_instructions = bs_memU16(ttf->glyf.buf, instruction_offset);
+    int num_instructions = _bs_memU16(ttf->glyf.buf, instruction_offset);
 
     int flag_offset = GLYF_FLAGS(instruction_offset, num_instructions);
     int flag_offset_original = flag_offset;
 
     int coord_offset = GLYF_XCOORDS(flag_offset, num_points);
 
-    glyph->coords = bs_malloc(num_points * sizeof(bs_GlyfPt));
-    glyph->contours = bs_malloc(num_contours * sizeof(uint16_t));
+    glyph->coords = _bs_malloc(num_points * sizeof(bs_GlyfPt));
+    glyph->contours = _bs_malloc(num_contours * sizeof(uint16_t));
     glyph->num_contours = num_contours;
     glyph->num_points = num_points;
 
@@ -500,11 +500,11 @@ static void bs_readGlyfTable(bs_TTF* ttf, bs_Glyph* glyph) {
 
     // Parse flags
     for (int i = 0; i < num_points; i++) {
-        flags[i] = bs_memU8(ttf->glyf.buf, flag_offset++);
+        flags[i] = _bs_memU8(ttf->glyf.buf, flag_offset++);
 
         // Add repeated flags
         if (BS_FLAGSET(flags[i], GLYF_REPEAT)) {
-            int num_repeats = bs_memU8(ttf->glyf.buf, flag_offset++);
+            int num_repeats = _bs_memU8(ttf->glyf.buf, flag_offset++);
             int flag_repeated = flags[i];
 
             num_repeats_total += num_repeats - 1;
@@ -523,22 +523,22 @@ static void bs_readGlyfTable(bs_TTF* ttf, bs_Glyph* glyph) {
     }
 
     // Get X and Y coords
-    coord_offset = bs_glyfCoords(&ttf->glyf, 0, flags, glyph->coords, coord_offset, num_points);
-    coord_offset = bs_glyfCoords(&ttf->glyf, 1, flags, glyph->coords, coord_offset, num_points);
+    coord_offset = _bs_glyfCoords(&ttf->glyf, 0, flags, glyph->coords, coord_offset, num_points);
+    coord_offset = _bs_glyfCoords(&ttf->glyf, 1, flags, glyph->coords, coord_offset, num_points);
 }
 
  /**
   'cmap' Table
   https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6cmap.html
   */
-static bs_Result bs_cmapFormat4(bs_TTF* ttf, bs_Glyph* glyph, char* subtable) {
-    bs_U16 seg_count_x2 = bs_memU16(subtable, CMAP_FORMAT4_NUM_SEGMENTS_X2);
+static bs_Result _bs_cmapFormat4(bs_TTF* ttf, bs_Glyph* glyph, char* subtable) {
+    bs_U16 seg_count_x2 = _bs_memU16(subtable, CMAP_FORMAT4_NUM_SEGMENTS_X2);
     bs_U16 seg_count = seg_count_x2 / 2;
 
     int index = -1;
 
     for (int j = 0; j < seg_count; j++) {
-        bs_U16 end_code = bs_memU16(subtable, CMAP_FORMAT4_END_CODE + j * sizeof(bs_U16));
+        bs_U16 end_code = _bs_memU16(subtable, CMAP_FORMAT4_END_CODE + j * sizeof(bs_U16));
 
         if (end_code >= glyph->code) {
             index = j;
@@ -547,15 +547,15 @@ static bs_Result bs_cmapFormat4(bs_TTF* ttf, bs_Glyph* glyph, char* subtable) {
     }
 
     if (index == -1) {
-        bs_warnF("Couldn't find format4 glyph index for glyph %d in font \"%s\"\n", glyph->code, ttf->name);
+        _bs_warnF("Couldn't find format4 glyph index for glyph %d in font \"%s\"\n", glyph->code, ttf->name);
         return BS_RESULT_FAILED_TO_QUERY;
     }
 
     bs_U16* id_range_offset_address = (bs_U16*)(subtable + CMAP_FORMAT4_ID_RANGE_OFFSET(seg_count) + index * sizeof(bs_U16));
-    bs_U16 id_range_offset = bs_memU16(subtable, CMAP_FORMAT4_ID_RANGE_OFFSET(seg_count) + index * sizeof(bs_U16));
-    bs_U16 start_code = bs_memU16(subtable, CMAP_FORMAT4_START_CODE(seg_count) + index * sizeof(bs_U16));
-    bs_I16 id_delta = bs_memU16(subtable, CMAP_FORMAT4_ID_DELTA(seg_count) + index * sizeof(bs_U16));
-    bs_U16 end_code = bs_memU16(subtable, CMAP_FORMAT4_END_CODE + index * sizeof(bs_U16));
+    bs_U16 id_range_offset = _bs_memU16(subtable, CMAP_FORMAT4_ID_RANGE_OFFSET(seg_count) + index * sizeof(bs_U16));
+    bs_U16 start_code = _bs_memU16(subtable, CMAP_FORMAT4_START_CODE(seg_count) + index * sizeof(bs_U16));
+    bs_I16 id_delta = _bs_memU16(subtable, CMAP_FORMAT4_ID_DELTA(seg_count) + index * sizeof(bs_U16));
+    bs_U16 end_code = _bs_memU16(subtable, CMAP_FORMAT4_END_CODE + index * sizeof(bs_U16));
 
     int glyph_index;
 
@@ -568,7 +568,7 @@ static bs_Result bs_cmapFormat4(bs_TTF* ttf, bs_Glyph* glyph, char* subtable) {
             id_range_offset +
             2 * (glyph->code - start_code);
 
-        glyph_index = bs_memU16(addr, 0);
+        glyph_index = _bs_memU16(addr, 0);
 
         if (glyph_index != 0)
             glyph_index = (glyph_index + id_delta) & 0xFFFF;
@@ -579,41 +579,41 @@ static bs_Result bs_cmapFormat4(bs_TTF* ttf, bs_Glyph* glyph, char* subtable) {
     return BS_RESULT_OK;
 }
 
-static bool bs_readCmapTable(bs_TTF* ttf, bs_Glyph* glyph) {
+static bool _bs_readCmapTable(bs_TTF* ttf, bs_Glyph* glyph) {
     char* cmap; 
-    bs_findTable(ttf, "cmap", &cmap);
+    _bs_findTable(ttf, "cmap", &cmap);
 
-    bs_U16 subtables_count = bs_memU16(cmap, CMAP_NUMBER_SUBTABLES);
+    bs_U16 subtables_count = _bs_memU16(cmap, CMAP_NUMBER_SUBTABLES);
 
     int subtable_offset = -1;
     for (int i = 0; i < subtables_count; i++) {
-        bs_U32 platform_id          = bs_memU16(cmap, CMAP_PLATFORM_ID + CMAP_TABLE_SIZE * i);
-        bs_U32 platform_specific_id = bs_memU16(cmap, CMAP_PLATFORM_SPECIFIC_ID + CMAP_TABLE_SIZE * i);
-        subtable_offset             = bs_memU32(cmap, CMAP_OFFSET + CMAP_TABLE_SIZE * i);
+        bs_U32 platform_id          = _bs_memU16(cmap, CMAP_PLATFORM_ID + CMAP_TABLE_SIZE * i);
+        bs_U32 platform_specific_id = _bs_memU16(cmap, CMAP_PLATFORM_SPECIFIC_ID + CMAP_TABLE_SIZE * i);
+        subtable_offset             = _bs_memU32(cmap, CMAP_OFFSET + CMAP_TABLE_SIZE * i);
 
         if (platform_id == 0) 
             break;
     }
 
     if (subtable_offset == -1) {
-        bs_warnF("Font \"%s\" has an unsupported encoding type, only Unicode is supported\n", ttf->name);
+        _bs_warnF("Font \"%s\" has an unsupported encoding type, only Unicode is supported\n", ttf->name);
         return false;
     }
 
     char* subtable = cmap + subtable_offset;
-    bs_U16 format = bs_memU16(subtable, CMAP_SUBTABLE_FORMAT);
+    bs_U16 format = _bs_memU16(subtable, CMAP_SUBTABLE_FORMAT);
 
     switch (format) {
-    case 4: bs_cmapFormat4(ttf, glyph, subtable); break;
+    case 4: _bs_cmapFormat4(ttf, glyph, subtable); break;
     default: 
-        bs_warnF("TTF format %d has not been implemented yet\n", format);
+        _bs_warnF("TTF format %d has not been implemented yet\n", format);
         return false;
     }
 
     return true;
 }
 
-static int bs_cmpFloats(const void *a, const void *b) {
+static int _bs_cmpFloats(const void *a, const void *b) {
     float f_a = *(float *)a;
     float f_b = *(float *)b;
 
@@ -625,7 +625,7 @@ static int bs_cmpFloats(const void *a, const void *b) {
     return 0;
 }
 
-static int bs_glyphWindingOrder(bs_Glyph* glyph, bs_vec2 point, bs_vec2* pts, int num_pts) {
+static int _bs_glyphWindingOrder(bs_Glyph* glyph, bs_vec2 point, bs_vec2* pts, int num_pts) {
     int winding = 0;
 
     for (int i = 0; i < num_pts; ++i) {
@@ -647,7 +647,7 @@ static int bs_glyphWindingOrder(bs_Glyph* glyph, bs_vec2 point, bs_vec2* pts, in
     return winding;
 }
 
-static void bs_calculateContourCurves(bs_Glyph* glyph, int contour, bs_vec2* out, bs_U32* out_num_pts) {
+static void _bs_calculateContourCurves(bs_Glyph* glyph, int contour, bs_vec2* out, bs_U32* out_num_pts) {
 #define BS_TTF_DETAIL 4
 
     uint16_t first = (contour == 0) ? 0 : glyph->contours[contour - 1] + 1;
@@ -680,10 +680,10 @@ static void bs_calculateContourCurves(bs_Glyph* glyph, int contour, bs_vec2* out
             next_off_v = BS_V2(next_off.x, next_off.y);
 
             bs_vec2 mid;
-            bs_v2Mid(&curr_off_v, &next_off_v, &mid);
+            _bs_v2Mid(&curr_off_v, &next_off_v, &mid);
 
             bs_vec2 elems[BS_TTF_DETAIL + 1];
-            bs_v2QuadBezier(&curr_v, &curr_off_v, &mid, elems, BS_TTF_DETAIL);
+            _bs_v2QuadBezier(&curr_v, &curr_off_v, &mid, elems, BS_TTF_DETAIL);
 
             elems[BS_TTF_DETAIL] = mid;
             for (int i = 0; i < BS_TTF_DETAIL; i++) {
@@ -725,7 +725,7 @@ BSAPI void _bs_rasterizeGlyph(bs_TTF* font, bs_Glyph* glyph, int width, int heig
     for (int i = 0; i < glyph->num_contours; i++) {
         bs_U32 num_pts = 0;
         bs_vec2* pts = out + out_num_pts;
-        bs_calculateContourCurves(glyph, i, pts, &num_pts);
+        _bs_calculateContourCurves(glyph, i, pts, &num_pts);
         out_num_pts += num_pts;
 
         for (int j = 0; j < num_pts; j++) {
@@ -752,7 +752,7 @@ BSAPI void _bs_rasterizeGlyph(bs_TTF* font, bs_Glyph* glyph, int width, int heig
                 }
             }
 
-            qsort(intersections, num_intersections, sizeof(float), bs_cmpFloats);
+            qsort(intersections, num_intersections, sizeof(float), _bs_cmpFloats);
 
             for (int j = 0; j < num_intersections - 1; j += 2) {
                 int start = ceil(intersections[j]);
@@ -760,7 +760,7 @@ BSAPI void _bs_rasterizeGlyph(bs_TTF* font, bs_Glyph* glyph, int width, int heig
 
                 for (int x = start; x <= end; x++) {
                     if (x >= 0 && x < glyph->width) {
-                        int z = bs_glyphWindingOrder(glyph, BS_V2(x, y), pts, num_pts);
+                        int z = _bs_glyphWindingOrder(glyph, BS_V2(x, y), pts, num_pts);
 
                         out_bmp[y * glyph->width + x] = z == -1 ? 255 : 0;
                     }
@@ -771,13 +771,13 @@ BSAPI void _bs_rasterizeGlyph(bs_TTF* font, bs_Glyph* glyph, int width, int heig
 }
 
 BSAPI void _bs_glyph(bs_TTF* ttf, bs_U16 code) {
-    //int index = bs_glyphIndex(ttf, code);
+    //int index = _bs_glyphIndex(ttf, code);
 
-    bs_Glyph* glyph = bs_pushBack(&ttf->glyphs, &(bs_Glyph) {.code = code});
+    bs_Glyph* glyph = _bs_pushBack(&ttf->glyphs, &(bs_Glyph) {.code = code});
 
-    bs_readCmapTable(ttf, glyph);
-    bs_readGlyfTable(ttf, glyph);
-    bs_readHmtxTable(ttf, glyph);
+    _bs_readCmapTable(ttf, glyph);
+    _bs_readGlyfTable(ttf, glyph);
+    _bs_readHmtxTable(ttf, glyph);
 }
 
 BSAPI void _bs_destroyTtf(bs_TTF* ttf) {
@@ -789,19 +789,19 @@ BSAPI bs_Result _bs_ttf(bs_TTF* existing, const char* path, bs_U32 flags) {
     bs_Result result;
 
     bs_TTF ttf = {
-        .glyphs = bs_list(sizeof(bs_Glyph), 64),
-        .kerning_pairs = bs_list(sizeof(bs_KerningPair), 64),
+        .glyphs = _bs_list(sizeof(bs_Glyph), 64),
+        .kerning_pairs = _bs_list(sizeof(bs_KerningPair), 64),
     };
 
-    result = bs_loadFile(&ttf.buffer, path, strlen(path));
+    result = _bs_loadFile(&ttf.buffer, path, strlen(path));
     if (result != BS_RESULT_OK)
         return result;
 
-    ttf.table_count = bs_memU16(ttf.buffer->value, 4);
+    ttf.table_count = _bs_memU16(ttf.buffer->value, 4);
 
-    bs_readHeadTable(&ttf);
-    bs_readMaxpTable(&ttf);
-    bs_readHheaTable(&ttf);
+    _bs_readHeadTable(&ttf);
+    _bs_readMaxpTable(&ttf);
+    _bs_readHheaTable(&ttf);
 
     memcpy(existing, &ttf, sizeof(bs_TTF));
 
@@ -825,7 +825,7 @@ BSAPI bs_vec2 _bs_textDimensions(bs_Font* font, char* name, int length) {
             index = 0;
         float spacing = font->glyphs[index].advance_width * layout_scale;
         width += spacing;
-        // width += name[i] == ' ' ? font->spacing * layout_scale : bs_atlasSize(font->atlas, c).x;
+        // width += name[i] == ' ' ? font->spacing * layout_scale : _bs_atlasSize(font->atlas, c).x;
     }
 
     return BS_V2(width, font->height);
@@ -833,7 +833,7 @@ BSAPI bs_vec2 _bs_textDimensions(bs_Font* font, char* name, int length) {
 
 BSAPI void _bs_destroyFont(bs_Font* font) {
     if (font->atlas)
-        bs_destroyAtlas(font->atlas);
+        _bs_destroyAtlas(font->atlas);
     //	if (font->fragment_shader)
     //		bs_destroyShader(font->fragment_shader);
 
@@ -846,7 +846,7 @@ BSAPI void _bs_destroyFont(bs_Font* font) {
 }
 
 BSAPI void _bs_bindFont(bs_Font* font, bs_Sampler* sampler, int bind_set, int bind_point) {
-    bs_bindImages(bind_set, bind_point, &(bs_ImageDescriptor) {
+    _bs_bindImages(bind_set, bind_point, &(bs_ImageDescriptor) {
         .image = font->atlas->image,
         .layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         .sampler = sampler,
@@ -862,27 +862,27 @@ BSAPI bs_Result _bs_loadFont(bs_Object* object, int package_id, const char* reso
         return BS_RESULT_OK;
     }
 
-    bs_destroyFont(font);
+    _bs_destroyFont(font);
 
     bs_Resource* resource;
-    result = bs_loadResource(package_id, 0, &resource, resource_name, strlen(resource_name));
+    result = _bs_loadResource(package_id, 0, &resource, resource_name, strlen(resource_name));
     if (result != BS_RESULT_OK) {
         return result;
     }
 
     bs_BfntHeader* header = resource->data->value;
     if (header->magic != 0x746E6662) {
-        bs_warnF("Font \"%s\" is corrupted\n", resource_name);
+        _bs_warnF("Font \"%s\" is corrupted\n", resource_name);
         return BS_RESULT_CORRUPTED;
     }
 
     if (header->version != 1) {
-        bs_warnF("Font version %d is not supported\n", header->version);
+        _bs_warnF("Font version %d is not supported\n", header->version);
         return BS_RESULT_NOT_SUPPORTED;
     }
 
     bs_Object* atlas_object = BS_ATLAS(-1, 0, 0);
-    bs_loadAtlasMemory(atlas_object, package_id, resource->name, resource->data->value + header->batl_offset, 0);
+    _bs_loadAtlasMemory(atlas_object, package_id, resource->name, resource->data->value + header->batl_offset, 0);
 
     font->spacing = spacing;
     font->alphabet = alphabet;
@@ -890,7 +890,7 @@ BSAPI bs_Result _bs_loadFont(bs_Object* object, int package_id, const char* reso
     font->size = header->size;
     font->units_per_em = header->units_per_em;
     font->height = header->line_height;
-    font->glyphs = bs_malloc(font->atlas->count * sizeof(*font->glyphs));
+    font->glyphs = _bs_malloc(font->atlas->count * sizeof(*font->glyphs));
     font->pairs_count = header->kerning_pairs_count;
 
     if (font->units_per_em == 0)
@@ -899,7 +899,7 @@ BSAPI bs_Result _bs_loadFont(bs_Object* object, int package_id, const char* reso
     unsigned char* offset = resource->data->value + sizeof(bs_BfntHeader);
 
     if (font->pairs_count > 0) {
-        font->pairs = bs_malloc(font->pairs_count * sizeof(*font->pairs));
+        font->pairs = _bs_malloc(font->pairs_count * sizeof(*font->pairs));
 
         for (int i = 0; i < font->pairs_count; i++) {
             bs_BfntKerningPair* pair = offset;

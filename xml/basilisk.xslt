@@ -3,6 +3,8 @@
 <xsl:stylesheet version="1.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
+	<xsl:include href="helpers.xsl"/>
+
 	<xsl:template match="@*|node()">
 		<xsl:copy>
 			<xsl:apply-templates select="@*|node()"/>
@@ -11,7 +13,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
     <xsl:template match="batchFunctionTemplate">
         <function name="bs_batch{@name}">
-            <return>bs_Range</return>
+            <return>void</return>
             <param><type>bs_Batch*</type><name>batch</name></param>
             <param><type>bs_U32*</type><name>offset</name></param>
             <xsl:copy-of select="param"/>
@@ -175,7 +177,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
             </body>
         </function>
-    </xsl:template>
+	</xsl:template>
     
     <xsl:template match="matrixTemplate">
         <xsl:choose>

@@ -47,10 +47,10 @@
    * Swapchain
    *============================================================================*/
 
-static bs_Result bs_querySwapchainFormat(bs_Window* window, VkFormat candidates[], int candidates_count) {
+static bs_Result _bs_querySwapchainFormat(bs_Window* window, VkFormat candidates[], int candidates_count) {
     bs_U32 num_formats = 0;
     vkGetPhysicalDeviceSurfaceFormatsKHR(_bs_instance_->physical_device, window->surface, &num_formats, NULL);
-    VkSurfaceFormatKHR* formats = bs_malloc(num_formats * sizeof(VkSurfaceFormatKHR));
+    VkSurfaceFormatKHR* formats = _bs_malloc(num_formats * sizeof(VkSurfaceFormatKHR));
     vkGetPhysicalDeviceSurfaceFormatsKHR(_bs_instance_->physical_device, window->surface, &num_formats, formats);
 
     for (int i = 0; i < candidates_count; i++) {
@@ -60,26 +60,26 @@ static bs_Result bs_querySwapchainFormat(bs_Window* window, VkFormat candidates[
             if (candidate == formats[j].format) {
                 VkSurfaceFormatKHR result = formats[j];
                 memcpy(&window->surface_format, &result, sizeof(window->surface_format));
-                bs_free(formats);
+                _bs_free(formats);
                 return BS_RESULT_OK;
             }
         }
     }
 
-    bs_free(formats);
+    _bs_free(formats);
     for (int i = 0; i < num_formats; i++)
-        bs_infoF("%d\n", formats[i].format);
+        _bs_infoF("%d\n", formats[i].format);
 
-    bs_warn(BS_CONSTANT_STRING("Failed to query swapchain surface format, available formats\n"));
+    _bs_warn(BS_CONSTANT_STRING("Failed to query swapchain surface format, available formats\n"));
 
     return BS_RESULT_FAILED_TO_QUERY;
 }
 
-static bs_Result bs_querySwapchainMode(bs_Window* window, VkPresentModeKHR candidates[], int candidates_count) {
+static bs_Result _bs_querySwapchainMode(bs_Window* window, VkPresentModeKHR candidates[], int candidates_count) {
     bs_U32 num_modes = 0;
     VkPresentModeKHR result = 0;
     vkGetPhysicalDeviceSurfacePresentModesKHR(_bs_instance_->physical_device, window->surface, &num_modes, NULL);
-    VkPresentModeKHR* modes = bs_malloc(num_modes * sizeof(VkPresentModeKHR));
+    VkPresentModeKHR* modes = _bs_malloc(num_modes * sizeof(VkPresentModeKHR));
     vkGetPhysicalDeviceSurfacePresentModesKHR(_bs_instance_->physical_device, window->surface, &num_modes, modes);
 
     for (int i = 0; i < candidates_count; i++) {
@@ -88,28 +88,28 @@ static bs_Result bs_querySwapchainMode(bs_Window* window, VkPresentModeKHR candi
         for (int j = 0; j < num_modes; j++) {
             VkPresentModeKHR mode = modes[j];
             if (candidate == mode) {
-                bs_free(modes);
+                _bs_free(modes);
                 window->present_mode = mode;
                 return BS_RESULT_OK;
             }
         }
     }
 
-    bs_warn(BS_CONSTANT_STRING("Failed to query swapchain present mode, available modes: ("));
+    _bs_warn(BS_CONSTANT_STRING("Failed to query swapchain present mode, available modes: ("));
     for (int i = 0; i < num_modes; i++) {
         VkPresentModeKHR mode = modes[i];
-        bs_logF("%d");
+        _bs_logF("%d");
         if (i != (num_modes - 1))
-            bs_log(BS_CONSTANT_STRING(","));
+            _bs_log(BS_CONSTANT_STRING(","));
     }
-    bs_log(BS_CONSTANT_STRING(")\n"));
+    _bs_log(BS_CONSTANT_STRING(")\n"));
 
-    bs_free(modes);
+    _bs_free(modes);
 
     return BS_RESULT_FAILED_TO_QUERY;
 }
 
-static void bs_swapchain(bs_Window* window) {
+static void _bs_swapchain(bs_Window* window) {
     VkResult result;
 
     const VkPresentModeKHR modes[] = {
@@ -152,7 +152,7 @@ static void bs_swapchain(bs_Window* window) {
     const int frames_in_flight_target = 2;
     const int frames_in_flight_max = 3;
 
-    window->frames_in_flight = bs_clamp(frames_in_flight_target, capabilities.minImageCount, frames_in_flight_max);
+    window->frames_in_flight = _bs_clamp(frames_in_flight_target, capabilities.minImageCount, frames_in_flight_max);
 
     VkSwapchainCreateInfoKHR swapchain_ci = {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -175,7 +175,7 @@ static void bs_swapchain(bs_Window* window) {
 
     result = vkCreateSwapchainKHR(_bs_instance_->device, &swapchain_ci, NULL, &window->swapchain);
     if (result != VK_SUCCESS) {
-        bs_warnF("Failed to create swapchain for window \"%s\"\n", window->title);
+        _bs_warnF("Failed to create swapchain for window \"%s\"\n", window->title);
         return;
     }
 
@@ -184,7 +184,7 @@ static void bs_swapchain(bs_Window* window) {
      */
     VkImage images[3];
     vkGetSwapchainImagesKHR(_bs_instance_->device, window->swapchain, &window->frames_in_flight, images);
-    bs_infoF("Swapchain\n  Format: %d\n  Mode: %d\n  Images: %d\n", swapchain_ci.imageFormat, swapchain_ci.presentMode, window->frames_in_flight);
+    _bs_infoF("Swapchain\n  Format: %d\n  Mode: %d\n  Images: %d\n", swapchain_ci.imageFormat, swapchain_ci.presentMode, window->frames_in_flight);
 
     if (window->swapchain_image == NULL)
         window->swapchain_image = BS_OBJECT(bs_Image, -1, 0, window->frames_in_flight, BS_OBJECT_HAS_SWAPS_BIT);
@@ -209,7 +209,7 @@ static void bs_swapchain(bs_Window* window) {
 
         result = vkCreateImageView(_bs_instance_->device, &image_view_ci, NULL, &window->swapchain_image->image->_[i].vk_image_view);
         if (result != VK_SUCCESS) {
-            bs_warnF("Failed to create swapchain image view for window \"%s\"\n", window->title);
+            _bs_warnF("Failed to create swapchain image view for window \"%s\"\n", window->title);
         }
     }
 
@@ -223,7 +223,7 @@ static void bs_swapchain(bs_Window* window) {
     for (int i = 0; i < window->frames_in_flight; i++) {
         result = vkCreateSemaphore(_bs_instance_->device, &semaphore_ci, NULL, &window->_[i].semaphore);
         if (result != VK_SUCCESS) {
-            bs_warnF("Failed to create swapchain semaphore for window \"%s\"\n", window->title);
+            _bs_warnF("Failed to create swapchain semaphore for window \"%s\"\n", window->title);
         }
     }
 }
@@ -241,7 +241,7 @@ BSAPI bs_Result _bs_timeZoneBias(int* out) {
 	DWORD time_zone_id = 0;
 	if ((time_zone_id = GetTimeZoneInformation(&info)) == TIME_ZONE_ID_INVALID) {
 		bs_warnF("GetTimeZoneInformation failed (GetLastError() = %d)\n", GetLastError());
-		return bs_convertWin32Error(GetLastError());
+		return _bs_convertWin32Error(GetLastError());
 	}
 
 	*out = info.Bias / 60;
@@ -301,7 +301,7 @@ BSAPI bs_DateTime _bs_dateTime() {
 }
 
 BSAPI bool _bs_isLaterThan(const bs_DateTime* a, const bs_DateTime* b) {
-	return bs_totalSeconds(a) - bs_totalSeconds(b) > 0;
+	return _bs_totalSeconds(a) - _bs_totalSeconds(b) > 0;
 }
 
 BSAPI void _bs_setCursor(bs_CursorIcon icon) {
@@ -352,7 +352,7 @@ BSAPI void _bs_pause() {
 BSAPI void _val_bs_advance() {
     bs_Window* window = _bs_scope_.window;
     BS_VALIDATE(window->paused == true,,);
-    bs_advance(window);
+    _bs_advance(window);
 }
 
 BSAPI void _bs_advance() {
@@ -385,7 +385,7 @@ BSAPI bs_vec2 _bs_cursorPosition() {
     bs_vec2 dim = { window->swapchain_image->image->dim.x, window->swapchain_image->image->dim.y };
     bs_vec2 pos;
 
-    bs_v2Div(&window->cursor, &dim, &pos);
+    _bs_v2Div(&window->cursor, &dim, &pos);
 	return BS_V2(pos.x, 1.0 - pos.y);
 }
 
@@ -421,7 +421,7 @@ BSAPI bs_ivec2 _bs_windowPosition() {
     };
 
 #elif defined(__APPLE__)
-    bs_warnF("bs_windowPosition has not been implemented for macOS yet\n");
+    _bs_warnF("bs_windowPosition has not been implemented for macOS yet\n");
     return (bs_ivec2) { 0, 0 };
 #else
     return (bs_ivec2) { 0, 0 };
@@ -544,7 +544,7 @@ BSAPI void _bs_setTargetFramerate(int fps) {
 }
 
 BSAPI void _bs_tickWindow(bs_Window* window, bs_Callback tick, bs_Callback fixed_tick) {
-   //  bs_checkTimer(&window->timer);
+   //  _bs_checkTimer(&window->timer);
     double frame_start = window->timer.seconds;
 
     _bs_io_.scroll = 0;
@@ -595,9 +595,9 @@ BSAPI void _bs_tickWindow(bs_Window* window, bs_Callback tick, bs_Callback fixed
         }
     }
 
-    if (bs_leftClickOnce() || bs_rightClickOnce() || bs_middleClickOnce())
+    if (bs_leftClickOnce() || _bs_rightClickOnce() || _bs_middleClickOnce())
         SetCapture(window->hwnd);
-    if (bs_leftClickUpOnce() || bs_rightClickUpOnce() || bs_middleClickUpOnce())
+    if (bs_leftClickUpOnce() || _bs_rightClickUpOnce() || _bs_middleClickUpOnce())
         ReleaseCapture();
 
     POINT p;
@@ -607,14 +607,14 @@ BSAPI void _bs_tickWindow(bs_Window* window, bs_Callback tick, bs_Callback fixed
             window->cursor = BS_V2(p.x, p.y);
     }
 
-    bs_checkTimer(&window->timer);
+    _bs_checkTimer(&window->timer);
     window->time = window->timer.seconds;
     window->active = window->hwnd == GetForegroundWindow();
 
 #endif
 
     if (BS_GET_BIT(_bs_io_.keys, BS_KEY_ALT) && BS_GET_BIT(_bs_io_.keys, BS_KEY_F4))
-        bs_exit();
+        _bs_exit();
 
     if (fixed_tick) {
         window->in_fixed = true;
@@ -644,11 +644,11 @@ BSAPI void _bs_tickWindow(bs_Window* window, bs_Callback tick, bs_Callback fixed
 
     /*
     if (window->active && !_bs_io_.disable_inputs && window->lock_cursor_position) {
-        bs_ivec2 window_pos = bs_windowPosition(window);
+        bs_ivec2 window_pos = _bs_windowPosition(window);
 
-        float center_x = (int)(window_pos.x + bs_resolution(window).x * 0.5f);
-        float center_y = (int)(window_pos.y - bs_resolution(window).y * 0.5f);
-        bs_setCursorPosition(center_x, center_y);
+        float center_x = (int)(window_pos.x + _bs_resolution(window).x * 0.5f);
+        float center_y = (int)(window_pos.y - _bs_resolution(window).y * 0.5f);
+        _bs_setCursorPosition(center_x, center_y);
     }
     */
 
@@ -661,11 +661,11 @@ BSAPI void _bs_tickWindow(bs_Window* window, bs_Callback tick, bs_Callback fixed
     memcpy(_bs_io_.keys_old, _bs_io_.keys, sizeof(_bs_io_.keys_old));
     memcpy(_bs_io_.chars_old, _bs_io_.chars, sizeof(_bs_io_.chars_old));
 
-    bs_checkTimer(&window->timer);
+    _bs_checkTimer(&window->timer);
 
     while ((window->timer.seconds - frame_start) < window->target_frame_time) {
         Sleep(0);
-        bs_checkTimer(&window->timer);
+        _bs_checkTimer(&window->timer);
     }
 }
 
@@ -677,7 +677,7 @@ BSAPI void _bs_tick(bs_Callback tick, bs_Callback fixed_tick) {
     }
 }
 
-LRESULT CALLBACK bs_windowProcedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param) {
+LRESULT CALLBACK _bs_windowProcedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param) {
     switch (msg) {
     case WM_CLOSE:
         DestroyWindow(hwnd);
@@ -700,26 +700,26 @@ LRESULT CALLBACK bs_windowProcedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM 
 }
 
 BSAPI void _bs_moveWindow(bs_Window* window, int x, int y) {
-	bs_ivec2 resolution = bs_resolution(window);
+	bs_ivec2 resolution = _bs_resolution(window);
 	SetWindowPos(window->hwnd, HWND_TOP, x, y, 0, 0, SWP_NOSIZE);
 }
 
-BSAPI bs_Result _bs_window(bs_Object* object, bs_U32 width, bs_U32 height, const char* title, ...) {
+BSAPI bs_Result _bs_window(bs_Object* object, bs_U32 width, bs_U32 height, const char* title) {
     bs_Window* window = object->window;
 
     window->title = title;
     window->fixed_time = 0.025;
     window->dimensions = (bs_ivec2) { width, height };
 
-    bs_Timer timer = bs_timer();
-    bs_setTargetFramerate(60);
+    bs_Timer timer = _bs_timer();
+    _bs_setTargetFramerate(60);
 
     const char class_name[] = "class";
     HINSTANCE hinstance = GetModuleHandle(0);
     WNDCLASSEX wc = {
         .cbSize = sizeof(WNDCLASSEX),
         .style = CS_OWNDC,
-        .lpfnWndProc = bs_windowProcedure,
+        .lpfnWndProc = _bs_windowProcedure,
         .cbClsExtra = 0,
         .cbWndExtra = 0,
         .hInstance = hinstance,
@@ -733,7 +733,7 @@ BSAPI bs_Result _bs_window(bs_Object* object, bs_U32 width, bs_U32 height, const
 
     if (!RegisterClassEx(&wc)) {
         BS_WARN_WIN32_PATH("RegisterClassEx", title);
-        return bs_convertWin32Error(GetLastError());
+        return _bs_convertWin32Error(GetLastError());
     }
 
     window->hwnd = CreateWindowEx(
@@ -748,7 +748,7 @@ BSAPI bs_Result _bs_window(bs_Object* object, bs_U32 width, bs_U32 height, const
 
     if (!window->hwnd) {
         BS_WARN_WIN32_PATH("CreateWindowEx", title);
-        return bs_convertWin32Error(GetLastError());
+        return _bs_convertWin32Error(GetLastError());
     }
 
     PIXELFORMATDESCRIPTOR pixel_format_descriptor = {
@@ -776,7 +776,7 @@ BSAPI bs_Result _bs_window(bs_Object* object, bs_U32 width, bs_U32 height, const
 //
 //	 COLORREF DARK_COLOR = 0x00000000;
 //	 BOOL SET_CAPTION_COLOR = SUCCEEDED(DwmSetWindowAttribute(
-//		 bs_wnd.hwnd, DWMWA_CAPTION_COLOR,
+//		 _bs_wnd.hwnd, DWMWA_CAPTION_COLOR,
 //		 &DARK_COLOR, sizeof(DARK_COLOR)));
 	 //SetWindowLong(bs_wnd.hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW);
 
@@ -785,7 +785,7 @@ BSAPI bs_Result _bs_window(bs_Object* object, bs_U32 width, bs_U32 height, const
 	// DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
 	//
 	// DwmSetWindowAttribute(
-	//	 bs_wnd.hwnd,
+	//	 _bs_wnd.hwnd,
 	//	 DWMWA_WINDOW_CORNER_PREFERENCE,
 	//	 &preference,
 	//	 sizeof(preference)
@@ -794,7 +794,7 @@ BSAPI bs_Result _bs_window(bs_Object* object, bs_U32 width, bs_U32 height, const
      ShowWindow(window->hwnd, SW_SHOW);
      UpdateWindow(window->hwnd);
 
-	 bs_setCursor(BS_CURSOR_DEFAULT);
+	 _bs_setCursor(BS_CURSOR_DEFAULT);
 
      return BS_RESULT_OK;
  }

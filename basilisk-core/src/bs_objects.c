@@ -69,19 +69,19 @@ BSAPI bs_List* _bs_objectSources() {
 }
 
 BSAPI void _bs_destroyResource(bs_Resource* resource) {
-    bs_free(resource->data);
-    bs_free(resource);
+    _bs_free(resource->data);
+    _bs_free(resource);
 }
 
 #define BS_FAILED_TO_QUERY(format, ...) \
-    bs_warnF("Failed to query:\n" format __VA_OPT__("\n",) __VA_ARGS__)
+    _bs_warnF("Failed to query:\n" format __VA_OPT__("\n",) __VA_ARGS__)
 
 BSAPI bs_Result _bs_queryResource(int package_id, const char* name, bs_Resource** out) {
-    bs_Package* package = bs_fetchUnit(_bs_packages(), package_id);
-    bs_U64 hash = bs_stringHash(name);
+    bs_Package* package = _bs_fetchUnit(_bs_packages(), package_id);
+    bs_U64 hash = _bs_stringHash(name);
 
     for (int i = 0; i < package->resource_headers.count; i++) {
-        bs_ResourceHeader* resource = bs_fetchUnit(&package->resource_headers, i);
+        bs_ResourceHeader* resource = _bs_fetchUnit(&package->resource_headers, i);
         if (resource->header.name_hash == hash) {
             *out = resource->resource;
             return BS_RESULT_OK;
@@ -95,10 +95,10 @@ BSAPI bs_Result _bs_queryResource(int package_id, const char* name, bs_Resource*
 }
 
 BSAPI bs_Result _bs_queryPackage(const char* name, int* out) {
-    bs_U64 hash = bs_stringHash(name);
+    bs_U64 hash = _bs_stringHash(name);
 
     for (int i = 0; i < _bs_packages()->count; i++) {
-        bs_Package* package = bs_fetchUnit(_bs_packages(), i);
+        bs_Package* package = _bs_fetchUnit(_bs_packages(), i);
         if (package->path_hash == hash) {
             *out = i;
             return i;
@@ -111,13 +111,13 @@ BSAPI bs_Result _bs_queryPackage(const char* name, int* out) {
 }
 
  BSAPI bs_Result _bs_loadResource(int package_id, bs_U32 flags, bs_Resource** out, char* resource_name, int resource_name_length) {
-    bs_Package* package = bs_fetchUnit(_bs_packages(), package_id);
+    bs_Package* package = _bs_fetchUnit(_bs_packages(), package_id);
 
-    bs_U64 hash = bs_stringHash(resource_name);
+    bs_U64 hash = _bs_stringHash(resource_name);
 
     bs_ResourceHeader* existing = NULL;
     for (int i = 0; i < package->resource_headers.count; i++) {
-        bs_ResourceHeader* resource = bs_fetchUnit(&package->resource_headers, i);
+        bs_ResourceHeader* resource = _bs_fetchUnit(&package->resource_headers, i);
         if (resource->header.name_hash == hash) {
             existing = resource;
             break;
@@ -125,18 +125,18 @@ BSAPI bs_Result _bs_queryPackage(const char* name, int* out) {
     }
 
     if (!existing) {
-        bs_warnF("Failed to query resource \"%s\" in package \"%s\"\n", resource_name, package->path);
+        _bs_warnF("Failed to query resource \"%s\" in package \"%s\"\n", resource_name, package->path);
         return BS_RESULT_FAILED_TO_QUERY;
     }
 
     if (!existing->resource) {
-        existing->resource = bs_calloc(1, sizeof(bs_Resource)); // TODO: don't allocate each resource individually
+        existing->resource = _bs_calloc(1, sizeof(bs_Resource)); // TODO: don't allocate each resource individually
         existing->resource->hash = hash;
         existing->resource->name = resource_name;
     }
     //else
-    //    bs_free(existing->resource->data);
-    bs_Result result = bs_loadFileChunkF(
+    //    _bs_free(existing->resource->data);
+    bs_Result result = _bs_loadFileChunkF(
         package->path,
         existing->header.offset, 
         existing->header.size, 
@@ -146,7 +146,7 @@ BSAPI bs_Result _bs_queryPackage(const char* name, int* out) {
     );
 
     if (result == BS_RESULT_OK) {
-        bs_infoF("Loaded resource \"%s\"\n", resource_name);
+        _bs_infoF("Loaded resource \"%s\"\n", resource_name);
         *out = existing->resource;
     }
 
@@ -157,33 +157,33 @@ BSAPI bs_Result _bs_loadPackage(const char* path, int* out) {
     bs_Result result;
 
     char* path_dup = strdup(path);
-    bs_U64 hash = bs_stringHash(path_dup);
+    bs_U64 hash = _bs_stringHash(path_dup);
 
     bs_Package* existing = NULL, * old = NULL;
     int id = -1;
     for (int i = 0; i < _bs_packages()->count; i++) {
-        bs_Package* package = bs_fetchUnit(_bs_packages(), i);
+        bs_Package* package = _bs_fetchUnit(_bs_packages(), i);
         if (package->path_hash == hash) {
             old = package;
             id = i;
-            bs_free(old->raw);
+            _bs_free(old->raw);
             old->raw = NULL;
             break;
         }
     }
 
     bs_String* raw;
-    result = bs_loadFileF(&raw, "%s.bpak", path_dup);
+    result = _bs_loadFileF(&raw, "%s.bpak", path_dup);
     if (!raw)
         return result;
 
     existing = old;
 
-    bs_List new_resources = bs_list(sizeof(bs_ResourceHeader), 32);
-    bs_infoF("Loading package \"%s\"\n", path_dup);
+    bs_List new_resources = _bs_list(sizeof(bs_ResourceHeader), 32);
+    _bs_infoF("Loading package \"%s\"\n", path_dup);
     if (!existing) {
         id = _bs_packages()->count;
-        existing = bs_pushBack(_bs_packages(), &(bs_Package) {
+        existing = _bs_pushBack(_bs_packages(), &(bs_Package) {
             .path_hash = hash,
             .path = path_dup,
         });
@@ -210,14 +210,14 @@ BSAPI bs_Result _bs_loadPackage(const char* path, int* out) {
         }
         end[0] = '\0';
 
-        bs_ResourceHeader* added = bs_pushBack(&new_resources, &(bs_ResourceHeader) {
+        bs_ResourceHeader* added = _bs_pushBack(&new_resources, &(bs_ResourceHeader) {
             .header = header->header,
             .name = strdup(name),
         });
 
         if (old) {
             for (int j = 0; j < old->resource_headers.count; j++) {
-                bs_ResourceHeader* existing_header = bs_fetchUnit(&old->resource_headers, j);
+                bs_ResourceHeader* existing_header = _bs_fetchUnit(&old->resource_headers, j);
                 if (existing_header->header.name_hash == header->header.name_hash) {
                     added->resource = existing_header->resource;
                     break;
@@ -241,7 +241,7 @@ BSAPI bs_Result _bs_loadPackage(const char* path, int* out) {
    *============================================================================*/
 
 #define BS_VALIDATE_SOURCE(source_id, _return) \
-    BS_VALIDATE(source_id < bs_objectSources()->count, _return,)
+    BS_VALIDATE(source_id < _bs_objectSources()->count, _return,)
 
 #define BS_VALIDATE_ID(id, _return) \
     BS_VALIDATE(id < ((bs_ObjectSource*)bs_fetchUnit(bs_objectSources(), source_id))->ids_count, _return,)
@@ -249,34 +249,34 @@ BSAPI bs_Result _bs_loadPackage(const char* path, int* out) {
 BSAPI int _bs_configureSource(bs_ObjectType type, int count, const char** names) {
     bs_ObjectSource source = {
         .type = type,
-        .ids = bs_calloc(count, sizeof(struct bs_ObjectId)),
+        .ids = _bs_calloc(count, sizeof(struct bs_ObjectId)),
         .ids_count = count,
     };
 
     for (int i = 0; i < source.ids_count; i++) {
         source.ids[i].name = names[i];
-        source.ids[i].name_hash = bs_stringHash(source.ids[i].name);
+        source.ids[i].name_hash = _bs_stringHash(source.ids[i].name);
     }
 
-    bs_List* object_sources = bs_objectSources();
-    bs_pushBack(object_sources, &source);
+    bs_List* object_sources = _bs_objectSources();
+    _bs_pushBack(object_sources, &source);
 
     return object_sources->count - 1;
 }
 
  /**
-  bs_exists
+  _bs_exists
   */
 BSAPI bool _val_bs_exists(bs_U32 source_id, bs_U32 id) {
     BS_VALIDATE_SOURCE(source_id, false);
     BS_VALIDATE_ID(id, false);
 
-    return bs_exists(source_id, id);
+    return _bs_exists(source_id, id);
 }
 
 BSAPI bool _bs_exists(bs_U32 source_id, bs_U32 id) {
-    bs_List* object_sources = bs_objectSources();
-    bs_ObjectSource* source = bs_fetchUnit(object_sources, source_id);
+    bs_List* object_sources = _bs_objectSources();
+    bs_ObjectSource* source = _bs_fetchUnit(object_sources, source_id);
 
     bs_Object* object = source->ids[id].object;
 
@@ -288,13 +288,13 @@ BSAPI bool _bs_exists(bs_U32 source_id, bs_U32 id) {
 }
 
  /**
-  bs_fetch
+  _bs_fetch
   */
 BSAPI bs_Object* _val_bs_fetch(bs_U32 source_id, bs_U32 id) {
     BS_VALIDATE_SOURCE(source_id, NULL);
     BS_VALIDATE_ID(id, NULL);
 
-    return bs_fetch(source_id, id);
+    return _bs_fetch(source_id, id);
 }
 
 BSAPI bs_Object* _postval_bs_fetch(bs_U32 source_id, bs_U32 id, bs_Object* object) {
@@ -306,8 +306,8 @@ BSAPI bs_Object* _postval_bs_fetch(bs_U32 source_id, bs_U32 id, bs_Object* objec
 }
 
 BSAPI bs_Object* _bs_fetch(bs_U32 source_id, bs_U32 id) {
-    bs_List* object_sources = bs_objectSources();
-    bs_ObjectSource* source = bs_fetchUnit(object_sources, source_id);
+    bs_List* object_sources = _bs_objectSources();
+    bs_ObjectSource* source = _bs_fetchUnit(object_sources, source_id);
     bs_Object* object = source->ids[id].object;
 
     return object;
@@ -319,14 +319,14 @@ BSAPI bool _bs_shouldLoadId(bs_U32 source_id, bs_U32 id) {
     return true;
 
    // assert(source_id < _bs_object_sources.count);
-   // bs_ObjectSource* source = bs_fetchUnit(&_bs_object_sources, source_id);
+   // bs_ObjectSource* source = _bs_fetchUnit(&_bs_object_sources, source_id);
    // assert(id < source->ids_count);
    // bs_Object* object = source->ids[id].object;
 
    // return object->flags & BS_OBJECT_SHOULD_LOAD;
 }
 
-static inline const char* bs_objectTypeName(bs_ObjectType type) {
+static inline const char* _bs_objectTypeName(bs_ObjectType type) {
     switch (type) {
     case BS_OBJECT_IMAGE: return "image";
     case BS_OBJECT_SAMPLER: return "sampler";
@@ -338,40 +338,40 @@ static inline const char* bs_objectTypeName(bs_ObjectType type) {
     }
 }
 
-static inline void bs_logObjectCreated(bs_U32 source_id, bs_U32 id) {
-    bs_List* object_sources = bs_objectSources();
-    bs_ObjectSource* source = bs_fetchUnit(object_sources, source_id);
+static inline void _bs_logObjectCreated(bs_U32 source_id, bs_U32 id) {
+    bs_List* object_sources = _bs_objectSources();
+    bs_ObjectSource* source = _bs_fetchUnit(object_sources, source_id);
     bs_Object* object = source->ids[id].object;
-    const char* object_type_name = bs_objectTypeName(source->type);
+    const char* object_type_name = _bs_objectTypeName(source->type);
 
     if (_bs_args_.color_log)
-        bs_infoF(BS_PRINT_GREEN "+" BS_PRINT_RESET " (%d) %s " BS_PRINT_CYAN "%s\n" BS_PRINT_RESET, id, object_type_name, source->ids[id].name);
+        _bs_infoF(BS_PRINT_GREEN "+" BS_PRINT_RESET " (%d) %s " BS_PRINT_CYAN "%s\n" BS_PRINT_RESET, id, object_type_name, source->ids[id].name);
     else
-        bs_infoF("+ (%d) %s %s\n", id, object_type_name, source->ids[id].name);
+        _bs_infoF("+ (%d) %s %s\n", id, object_type_name, source->ids[id].name);
 }
 
-static inline void bs_logObjectUpdated(bs_U32 source_id, bs_U32 id) {
-    bs_List* object_sources = bs_objectSources();
-    bs_ObjectSource* source = bs_fetchUnit(object_sources, source_id);
+static inline void _bs_logObjectUpdated(bs_U32 source_id, bs_U32 id) {
+    bs_List* object_sources = _bs_objectSources();
+    bs_ObjectSource* source = _bs_fetchUnit(object_sources, source_id);
     bs_Object* object = source->ids[id].object;
-    const char* object_type_name = bs_objectTypeName(source->type);
+    const char* object_type_name = _bs_objectTypeName(source->type);
 
     if (_bs_args_.color_log)
-        bs_infoF(BS_PRINT_YELLOW "/" BS_PRINT_RESET  " (%d) %s " BS_PRINT_CYAN "%s\n" BS_PRINT_RESET, id, object_type_name, source->ids[id].name);
+        _bs_infoF(BS_PRINT_YELLOW "/" BS_PRINT_RESET  " (%d) %s " BS_PRINT_CYAN "%s\n" BS_PRINT_RESET, id, object_type_name, source->ids[id].name);
     else
-        bs_infoF("/ (%d) %s %s\n", id, object_type_name, source->ids[id].name);
+        _bs_infoF("/ (%d) %s %s\n", id, object_type_name, source->ids[id].name);
 }
 
-static inline void bs_logObjectUnchanged(bs_U32 source_id, bs_U32 id) {
+static inline void _bs_logObjectUnchanged(bs_U32 source_id, bs_U32 id) {
   //  if (_bs_args_.color_log)
-  //      bs_infoF(BS_PRINT_GRAY "~" BS_PRINT_RESET  " (%d) %s " "%s\n" BS_PRINT_RESET, id, bs_objectName(type), bs_idName(id));
+  //      _bs_infoF(BS_PRINT_GRAY "~" BS_PRINT_RESET  " (%d) %s " "%s\n" BS_PRINT_RESET, id, _bs_objectName(type), _bs_idName(id));
   //  else
-  //      bs_infoF("~ (%d) %s %s\n", id, bs_objectName(type), bs_idName(id));
+  //      _bs_infoF("~ (%d) %s %s\n", id, _bs_objectName(type), _bs_idName(id));
 }
 
-static inline bs_ObjectSource* bs_fetchObjectSource(bs_U32 source_id) {
-    bs_List* object_sources = bs_objectSources();
-    bs_ObjectSource* source = bs_fetchUnit(object_sources, source_id);
+static inline bs_ObjectSource* _bs_fetchObjectSource(bs_U32 source_id) {
+    bs_List* object_sources = _bs_objectSources();
+    bs_ObjectSource* source = _bs_fetchUnit(object_sources, source_id);
     return source;
 }
 
@@ -379,15 +379,15 @@ BSAPI const char* _val_bs_idName(bs_U32 source_id, bs_U32 id) {
     BS_VALIDATE_SOURCE(source_id, NULL);
     BS_VALIDATE_ID(id, NULL);
 
-    return bs_idName(source_id, id);
+    return _bs_idName(source_id, id);
 }
 
 BSAPI const char* _bs_idName(bs_U32 source_id, bs_U32 id) {
-    bs_ObjectSource* source = bs_fetchObjectSource(source_id);
+    bs_ObjectSource* source = _bs_fetchObjectSource(source_id);
     return source->ids[id].name;
 }
 
-static bs_Object* bs_allocateObject(size_t size, size_t flexible_size, int flexible_count, bs_U32 flags) {
+static bs_Object* _bs_allocateObject(size_t size, size_t flexible_size, int flexible_count, bs_U32 flags) {
     static int heaps_count;
     static struct {
         char* block;
@@ -399,9 +399,9 @@ static bs_Object* bs_allocateObject(size_t size, size_t flexible_size, int flexi
 
     const int heap_size = 65536;
     if (!heaps || (heaps[heaps_count - 1].size + new_size) > heap_size) {
-        heaps = bs_realloc(heaps, sizeof(*heaps) * ++heaps_count);
+        heaps = _bs_realloc(heaps, sizeof(*heaps) * ++heaps_count);
         heaps[heaps_count - 1].size = 0;
-        heaps[heaps_count - 1].block = bs_malloc(heap_size);
+        heaps[heaps_count - 1].block = _bs_malloc(heap_size);
     }
 
     unsigned char* result = (int*)(heaps[heaps_count - 1].block + heaps[heaps_count - 1].size);
@@ -419,8 +419,8 @@ static bs_Object* bs_allocateObject(size_t size, size_t flexible_size, int flexi
     return result;
 }
 
-static bs_Object* bs_update(bs_U32 source_id, bs_U32 id, int size, int swap_size) {
-    bs_Object* object = bs_fetch(source_id, id);
+static bs_Object* _bs_update(bs_U32 source_id, bs_U32 id, int size, int swap_size) {
+    bs_Object* object = _bs_fetch(source_id, id);
     memset(object->head, 0, size + swap_size);
     //memcpy(object->head, data, size);
     object->head->id = id;
@@ -428,7 +428,7 @@ static bs_Object* bs_update(bs_U32 source_id, bs_U32 id, int size, int swap_size
     object->flags |= BS_OBJECT_ALREADY_EXISTS | BS_OBJECT_WAS_ALTERED;
     object->flags &= ~BS_OBJECT_WAS_CREATED;
 
-    bs_logObjectUpdated(source_id, id);
+    _bs_logObjectUpdated(source_id, id);
 
     return object;
 }
@@ -437,15 +437,15 @@ BSAPI bs_Object* _val_bs_object(bs_U32 source_id, bs_U32 id, size_t size, size_t
     BS_VALIDATE_SOURCE(source_id, NULL);
     BS_VALIDATE_ID(id, NULL);
 
-    return bs_object(source_id, id, size, flexible_array_size, flexible_count, flags);
+    return _bs_object(source_id, id, size, flexible_array_size, flexible_count, flags);
 }
 
 BSAPI bs_Object* _bs_object(bs_U32 source_id, bs_U32 id, size_t size, size_t flexible_array_size, int flexible_count, bs_U32 flags) {
     if (source_id == BS_U32_MAX) {
-        return bs_allocateObject(size, flexible_array_size, flexible_count, flags);
+        return _bs_allocateObject(size, flexible_array_size, flexible_count, flags);
     }
 
-    bs_ObjectSource* source = bs_fetchObjectSource(source_id);
+    bs_ObjectSource* source = _bs_fetchObjectSource(source_id);
 
     bs_Object* result = source->ids[id].object;
 
@@ -455,20 +455,20 @@ BSAPI bs_Object* _bs_object(bs_U32 source_id, bs_U32 id, size_t size, size_t fle
     if (result && result->head) {
         result->flags = flags | BS_OBJECT_ALREADY_EXISTS;
         if (flags & BS_OBJECT_FORCE_DESTROY)
-            bs_logObjectUpdated(source_id, id);
+            _bs_logObjectUpdated(source_id, id);
 
         return result;
     }
 
     if (!bs_exists(source_id, id)) {
-        result = source->ids[id].object = bs_allocateObject(size, flexible_array_size, flexible_count, flags);
+        result = source->ids[id].object = _bs_allocateObject(size, flexible_array_size, flexible_count, flags);
         result->head->id = id;
         result->head->source_id = source_id;
 
-        bs_logObjectCreated(source_id, id);
+        _bs_logObjectCreated(source_id, id);
 
         return result;
     }
     else
-        return bs_update(source_id, id, size, flexible_array_size);
+        return _bs_update(source_id, id, size, flexible_array_size);
 }

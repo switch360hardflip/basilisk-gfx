@@ -119,7 +119,7 @@ enum {                                                               \
     &_bsmod_.selected_tiles
 
 typedef void (__stdcall* PFN_void)();
-typedef bool (__stdcall* PFN_bsmod_PushContextMenuButton)(bsgfx_ButtonParams);
+typedef bool (__stdcall* PFN_bsmod_PushContextMenuButton)(bsgfx_Widget*);
 typedef const char* (__stdcall* PFN_bsmod_GridMenu)(bs_List* widgets);
 typedef void (__stdcall* PFN_bsmod_GridMenuCallback)(struct bsgfx_DebugMenuWidget*, int);
 struct bsmod_TrackParams {

@@ -42,7 +42,11 @@
 #include <math.h>
 #include <stdio.h>
 
-bs_FunctionTable next = { 0 };
+static bs_FunctionTable next = { 0 };
+
+void _bs_setFunctions(const struct _bs_FunctionTable* table) {
+    memcpy(&next, table, sizeof(next));
+}
 
 void bs_v2Add(
     const bs_vec2* a, 
@@ -635,7 +639,7 @@ void bs_look(
     glm_look(eye->a, direction->a, up->a, out->a);
 }
 
-float bs_v2CubicBezier(
+void bs_v2CubicBezier(
     const bs_vec2* p0, 
     const bs_vec2* p1, 
     const bs_vec2* p2, 
@@ -643,20 +647,20 @@ float bs_v2CubicBezier(
     bs_vec2* out, 
     int out_length)
 {
-    return next.bs_v2CubicBezier(p0, p1, p2, p3, out, out_length);
+    next.bs_v2CubicBezier(p0, p1, p2, p3, out, out_length);
 }
 
-float bs_v2QuadBezier(
+void bs_v2QuadBezier(
     const bs_vec2* p0, 
     const bs_vec2* p1, 
     const bs_vec2* p2, 
     bs_vec2* out, 
     int out_length)
 {
-    return next.bs_v2QuadBezier(p0, p1, p2, out, out_length);
+    next.bs_v2QuadBezier(p0, p1, p2, out, out_length);
 }
 
-float bs_v3CubicBezier(
+void bs_v3CubicBezier(
     const bs_vec3* p0, 
     const bs_vec3* p1, 
     const bs_vec3* p2, 
@@ -664,17 +668,17 @@ float bs_v3CubicBezier(
     bs_vec3* out, 
     int out_length)
 {
-    return next.bs_v3CubicBezier(p0, p1, p2, p3, out, out_length);
+    next.bs_v3CubicBezier(p0, p1, p2, p3, out, out_length);
 }
 
-float bs_v3QuadBezier(
+void bs_v3QuadBezier(
     const bs_vec3* p0, 
     const bs_vec3* p1, 
     const bs_vec3* p2, 
     bs_vec3* out, 
     int out_length)
 {
-    return next.bs_v3QuadBezier(p0, p1, p2, out, out_length);
+    next.bs_v3QuadBezier(p0, p1, p2, out, out_length);
 }
 
 void bs_rotateAabb(
@@ -959,56 +963,56 @@ bs_Image* bs_swapchainImage()
     return next.bs_swapchainImage();
 }
 
-bs_Result bs_clearStencil(
+void bs_clearStencil(
     bs_U32 index, 
     bs_ivec2 resolution, 
     bs_U32 value)
 {
-    return next.bs_clearStencil(index, resolution, value);
+    next.bs_clearStencil(index, resolution, value);
 }
 
-bs_Result bs_clearDepth(
+void bs_clearDepth(
     bs_U32 index, 
     bs_ivec2 dim, 
     float value)
 {
-    return next.bs_clearDepth(index, dim, value);
+    next.bs_clearDepth(index, dim, value);
 }
 
-bs_Result bs_clearDepthStencil(
+void bs_clearDepthStencil(
     bs_U32 index, 
     bs_ivec2 dim, 
     float depth_value, 
     bs_U32 stencil_value)
 {
-    return next.bs_clearDepthStencil(index, dim, depth_value, stencil_value);
+    next.bs_clearDepthStencil(index, dim, depth_value, stencil_value);
 }
 
-bs_Result bs_clearColor(
+void bs_clearColor(
     bs_U32 index, 
     bs_ivec2 dim, 
     bs_RGBA color)
 {
-    return next.bs_clearColor(index, dim, color);
+    next.bs_clearColor(index, dim, color);
 }
 
-bs_Result bs_stencilReference(
+void bs_stencilReference(
     bs_FaceType face, 
     bs_U32 reference)
 {
-    return next.bs_stencilReference(face, reference);
+    next.bs_stencilReference(face, reference);
 }
 
-bs_Result bs_cull(
+void bs_cull(
     bs_CullFlags flags)
 {
-    return next.bs_cull(flags);
+    next.bs_cull(flags);
 }
 
-bs_Result bs_setLineWidth(
+void bs_setLineWidth(
     float width)
 {
-    return next.bs_setLineWidth(width);
+    next.bs_setLineWidth(width);
 }
 
 int bs_batchSize(
@@ -1028,24 +1032,24 @@ void bs_render(
     next.bs_render(batch, pipeline, vertex_offset, vertex_count, first_instance, num_instances);
 }
 
-bs_Result bs_barrier(
+void bs_barrier(
     bs_U32 dependency_flags, 
     bs_U32 src, 
     bs_U32 dst, 
     bs_U32 src_access, 
     bs_U32 dst_access)
 {
-    return next.bs_barrier(dependency_flags, src, dst, src_access, dst_access);
+    next.bs_barrier(dependency_flags, src, dst, src_access, dst_access);
 }
 
-bs_Result bs_rayTrace(
+void bs_rayTrace(
     bs_RayTracer* ray_tracer, 
     bs_Pipeline* pipeline, 
     bs_U32 width, 
     bs_U32 height, 
     bs_U32 depth)
 {
-    return next.bs_rayTrace(ray_tracer, pipeline, width, height, depth);
+    next.bs_rayTrace(ray_tracer, pipeline, width, height, depth);
 }
 
 bs_Result bs_rayTracer(
@@ -1057,18 +1061,18 @@ bs_Result bs_rayTracer(
     return next.bs_rayTracer(object, flags, shaders, shaders_count);
 }
 
-bs_Result bs_accelerateAabb(
+void bs_accelerateAabb(
     bs_RayTracer* ray_tracer, 
     bs_Aabb aabb)
 {
-    return next.bs_accelerateAabb(ray_tracer, aabb);
+    next.bs_accelerateAabb(ray_tracer, aabb);
 }
 
-bs_Result bs_accelerateBatch(
+void bs_accelerateBatch(
     bs_RayTracer* ray_tracer, 
     bs_Batch* batch)
 {
-    return next.bs_accelerateBatch(ray_tracer, batch);
+    next.bs_accelerateBatch(ray_tracer, batch);
 }
 
 bs_Result bs_build(
@@ -1077,19 +1081,19 @@ bs_Result bs_build(
     return next.bs_build(ray_tracer);
 }
 
-bs_Result bs_destroyRayTracer(
+void bs_destroyRayTracer(
     bs_RayTracer* ray_tracer)
 {
-    return next.bs_destroyRayTracer(ray_tracer);
+    next.bs_destroyRayTracer(ray_tracer);
 }
 
-bs_Result bs_dispatchAsync(
+void bs_dispatchAsync(
     bs_Pipeline* pipeline, 
     bs_U32 x, 
     bs_U32 y, 
     bs_U32 z)
 {
-    return next.bs_dispatchAsync(pipeline, x, y, z);
+    next.bs_dispatchAsync(pipeline, x, y, z);
 }
 
 int bs_bufferSwaps(
@@ -1098,15 +1102,15 @@ int bs_bufferSwaps(
     return next.bs_bufferSwaps(buffer);
 }
 
-bs_Result bs_nameBuffer(
+void bs_nameBuffer(
     bs_Buffer* buffer, 
     char* value, 
     int value_length)
 {
-    return next.bs_nameBuffer(buffer, value, value_length);
+    next.bs_nameBuffer(buffer, value, value_length);
 }
 
-bs_Result bs_nameBufferV(
+void bs_nameBufferV(
     bs_Buffer* buffer, 
     char* format, 
     va_list args)
@@ -1114,19 +1118,18 @@ bs_Result bs_nameBufferV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bs_nameBuffer(buffer, _formatted, _length);
+    bs_nameBuffer(buffer, _formatted, _length);
 }
 
-bs_Result bs_nameBufferF(
+void bs_nameBufferF(
     bs_Buffer* buffer, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_nameBufferV(buffer, format, args);
+    bs_nameBufferV(buffer, format, args);
     va_end(args);
-    return _return;
 }
 
 bs_Result bs_buffer(
@@ -1158,10 +1161,10 @@ bs_Result bs_mapBuffer(
     return next.bs_mapBuffer(buffer, num_bytes);
 }
 
-bs_Result bs_unmapBuffer(
+void bs_unmapBuffer(
     bs_Buffer* buffer)
 {
-    return next.bs_unmapBuffer(buffer);
+    next.bs_unmapBuffer(buffer);
 }
 
 void bs_stageNull(
@@ -1222,10 +1225,10 @@ bs_Result bs_batch(
 
 bs_Attribute* bs_queryAttribute(
     bs_Batch* batch, 
-    char* value, 
-    int value_length)
+    char* name, 
+    int name_length)
 {
-    return next.bs_queryAttribute(batch, value, value_length);
+    return next.bs_queryAttribute(batch, name, name_length);
 }
 
 bs_Attribute* bs_queryAttributeV(
@@ -1263,10 +1266,10 @@ bool bs_batchIsIndexed(
     return next.bs_batchIsIndexed(batch);
 }
 
-bs_Result bs_minimizeBatch(
+void bs_minimizeBatch(
     bs_Batch* batch)
 {
-    return next.bs_minimizeBatch(batch);
+    next.bs_minimizeBatch(batch);
 }
 
 bs_Result bs_pushBatch(
@@ -1277,16 +1280,16 @@ bs_Result bs_pushBatch(
     return next.bs_pushBatch(batch, num_index_bytes, num_vertex_bytes);
 }
 
-bs_Result bs_unpushBatch(
+void bs_unpushBatch(
     bs_Batch* batch)
 {
-    return next.bs_unpushBatch(batch);
+    next.bs_unpushBatch(batch);
 }
 
-bs_Result bs_destroyBatch(
+void bs_destroyBatch(
     bs_Batch* batch)
 {
-    return next.bs_destroyBatch(batch);
+    next.bs_destroyBatch(batch);
 }
 
 bs_Result bs_recreateBatch(
@@ -1295,12 +1298,12 @@ bs_Result bs_recreateBatch(
     return next.bs_recreateBatch(batch);
 }
 
-bs_Result bs_ensureBatchSize(
+void bs_ensureBatchSize(
     bs_Batch* batch, 
     bs_U32 num_indices, 
     bs_U32 num_vertices)
 {
-    return next.bs_ensureBatchSize(batch, num_indices, num_vertices);
+    next.bs_ensureBatchSize(batch, num_indices, num_vertices);
 }
 
 void bs_batchVertex(
@@ -1332,12 +1335,12 @@ void bs_pushIndices(
     next.bs_pushIndices(batch, indices, indices_count);
 }
 
-bs_Range bs_batchCube(
+void bs_batchCube(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_RGBA color)
 {
-    return next.bs_batchCube(batch, offset, color);
+    next.bs_batchCube(batch, offset, color);
 }
 
 bs_Range bs_pushCube(
@@ -1347,7 +1350,7 @@ bs_Range bs_pushCube(
     return next.bs_pushCube(batch, color);
 }
 
-bs_Range bs_batchCone(
+void bs_batchCone(
     bs_Batch* batch, 
     bs_U32* offset, 
     int segments, 
@@ -1355,7 +1358,7 @@ bs_Range bs_batchCone(
     float radius, 
     bs_RGBA color)
 {
-    return next.bs_batchCone(batch, offset, segments, height, radius, color);
+    next.bs_batchCone(batch, offset, segments, height, radius, color);
 }
 
 bs_Range bs_pushCone(
@@ -1368,7 +1371,7 @@ bs_Range bs_pushCone(
     return next.bs_pushCone(batch, segments, height, radius, color);
 }
 
-bs_Range bs_batchRectangle(
+void bs_batchRectangle(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_vec3 position, 
@@ -1377,7 +1380,7 @@ bs_Range bs_batchRectangle(
     bs_vec2 texture_coords, 
     bs_RGBA color)
 {
-    return next.bs_batchRectangle(batch, offset, position, dimensions, texture_offset, texture_coords, color);
+    next.bs_batchRectangle(batch, offset, position, dimensions, texture_offset, texture_coords, color);
 }
 
 bs_Range bs_pushRectangle(
@@ -1391,13 +1394,13 @@ bs_Range bs_pushRectangle(
     return next.bs_pushRectangle(batch, position, dimensions, texture_offset, texture_coords, color);
 }
 
-bs_Range bs_batchQuad(
+void bs_batchQuad(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_Quad quad, 
     bs_RGBA color)
 {
-    return next.bs_batchQuad(batch, offset, quad, color);
+    next.bs_batchQuad(batch, offset, quad, color);
 }
 
 bs_Range bs_pushQuad(
@@ -1408,7 +1411,7 @@ bs_Range bs_pushQuad(
     return next.bs_pushQuad(batch, quad, color);
 }
 
-bs_Range bs_batchTriangle(
+void bs_batchTriangle(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_vec3 a, 
@@ -1416,7 +1419,7 @@ bs_Range bs_batchTriangle(
     bs_vec3 c, 
     bs_RGBA color)
 {
-    return next.bs_batchTriangle(batch, offset, a, b, c, color);
+    next.bs_batchTriangle(batch, offset, a, b, c, color);
 }
 
 bs_Range bs_pushTriangle(
@@ -1429,14 +1432,14 @@ bs_Range bs_pushTriangle(
     return next.bs_pushTriangle(batch, a, b, c, color);
 }
 
-bs_Range bs_batchLine(
+void bs_batchLine(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_vec3 start, 
     bs_vec3 end, 
     bs_RGBA color)
 {
-    return next.bs_batchLine(batch, offset, start, end, color);
+    next.bs_batchLine(batch, offset, start, end, color);
 }
 
 bs_Range bs_pushLine(
@@ -1448,13 +1451,13 @@ bs_Range bs_pushLine(
     return next.bs_pushLine(batch, start, end, color);
 }
 
-bs_Range bs_batchRay(
+void bs_batchRay(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_Ray* ray, 
     bs_RGBA color)
 {
-    return next.bs_batchRay(batch, offset, ray, color);
+    next.bs_batchRay(batch, offset, ray, color);
 }
 
 bs_Range bs_pushRay(
@@ -1465,13 +1468,13 @@ bs_Range bs_pushRay(
     return next.bs_pushRay(batch, ray, color);
 }
 
-bs_Range bs_batchPoint(
+void bs_batchPoint(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_vec3 position, 
     bs_RGBA color)
 {
-    return next.bs_batchPoint(batch, offset, position, color);
+    next.bs_batchPoint(batch, offset, position, color);
 }
 
 bs_Range bs_pushPoint(
@@ -1482,13 +1485,13 @@ bs_Range bs_pushPoint(
     return next.bs_pushPoint(batch, position, color);
 }
 
-bs_Range bs_batchAabb(
+void bs_batchAabb(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_Aabb* aabb, 
     bs_RGBA color)
 {
-    return next.bs_batchAabb(batch, offset, aabb, color);
+    next.bs_batchAabb(batch, offset, aabb, color);
 }
 
 bs_Range bs_pushAabb(
@@ -1499,7 +1502,7 @@ bs_Range bs_pushAabb(
     return next.bs_pushAabb(batch, aabb, color);
 }
 
-bs_Range bs_batchSphere(
+void bs_batchSphere(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_vec3 position, 
@@ -1508,7 +1511,7 @@ bs_Range bs_batchSphere(
     bs_U32 longs, 
     bs_RGBA color)
 {
-    return next.bs_batchSphere(batch, offset, position, radius, lats, longs, color);
+    next.bs_batchSphere(batch, offset, position, radius, lats, longs, color);
 }
 
 bs_Range bs_pushSphere(
@@ -1522,7 +1525,7 @@ bs_Range bs_pushSphere(
     return next.bs_pushSphere(batch, position, radius, lats, longs, color);
 }
 
-bs_Range bs_batchPyramid(
+void bs_batchPyramid(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_vec3 pos, 
@@ -1530,7 +1533,7 @@ bs_Range bs_batchPyramid(
     float height, 
     bs_RGBA color)
 {
-    return next.bs_batchPyramid(batch, offset, pos, width, height, color);
+    next.bs_batchPyramid(batch, offset, pos, width, height, color);
 }
 
 bs_Range bs_pushPyramid(
@@ -1543,7 +1546,7 @@ bs_Range bs_pushPyramid(
     return next.bs_pushPyramid(batch, pos, width, height, color);
 }
 
-bs_Range bs_batchBipyramid(
+void bs_batchBipyramid(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_vec3 pos, 
@@ -1551,7 +1554,7 @@ bs_Range bs_batchBipyramid(
     float height, 
     bs_RGBA color)
 {
-    return next.bs_batchBipyramid(batch, offset, pos, width, height, color);
+    next.bs_batchBipyramid(batch, offset, pos, width, height, color);
 }
 
 bs_Range bs_pushBipyramid(
@@ -1564,12 +1567,12 @@ bs_Range bs_pushBipyramid(
     return next.bs_pushBipyramid(batch, pos, width, height, color);
 }
 
-bs_Range bs_batchPrimitive(
+void bs_batchPrimitive(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_Primitive* primitive)
 {
-    return next.bs_batchPrimitive(batch, offset, primitive);
+    next.bs_batchPrimitive(batch, offset, primitive);
 }
 
 bs_Range bs_pushPrimitive(
@@ -1579,12 +1582,12 @@ bs_Range bs_pushPrimitive(
     return next.bs_pushPrimitive(batch, primitive);
 }
 
-bs_Range bs_batchMesh(
+void bs_batchMesh(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_Mesh* mesh)
 {
-    return next.bs_batchMesh(batch, offset, mesh);
+    next.bs_batchMesh(batch, offset, mesh);
 }
 
 bs_Range bs_pushMesh(
@@ -1594,12 +1597,12 @@ bs_Range bs_pushMesh(
     return next.bs_pushMesh(batch, mesh);
 }
 
-bs_Range bs_batchModel(
+void bs_batchModel(
     bs_Batch* batch, 
     bs_U32* offset, 
     bs_Model* model)
 {
-    return next.bs_batchModel(batch, offset, model);
+    next.bs_batchModel(batch, offset, model);
 }
 
 bs_Range bs_pushModel(
@@ -1649,10 +1652,10 @@ void bs_dependency(
     next.bs_dependency(renderer, src_subpass, dst_subpass, flags, src_stage, dst_stage, src_access, dst_access);
 }
 
-void bs_renderPass(
+bs_Result bs_renderPass(
     bs_Renderer* renderer)
 {
-    next.bs_renderPass(renderer);
+    return next.bs_renderPass(renderer);
 }
 
 bs_Result bs_framebuffer(
@@ -1712,17 +1715,17 @@ bs_I32 bs_queueFamily(
     return next.bs_queueFamily(flags);
 }
 
-bs_Result bs_present(
+void bs_present(
     bs_Queue* queue, 
     bs_Queue* wait_queues[], 
     int wait_queues_count)
 {
-    return next.bs_present(queue, wait_queues, wait_queues_count);
+    next.bs_present(queue, wait_queues, wait_queues_count);
 }
 
-bs_Result bs_acquire()
+void bs_acquire()
 {
-    return next.bs_acquire();
+    next.bs_acquire();
 }
 
 int bs_queueSwap(
@@ -1743,11 +1746,11 @@ void bs_awaitAcquisition()
     next.bs_awaitAcquisition();
 }
 
-bs_Result bs_enqueue(
+void bs_enqueue(
     bs_Queue* queue, 
     bs_Callback function)
 {
-    return next.bs_enqueue(queue, function);
+    next.bs_enqueue(queue, function);
 }
 
 int bs_imageIndex()
@@ -1791,7 +1794,7 @@ bs_Result bs_stall(
     return next.bs_stall(queue);
 }
 
-bool bs_poll(
+bs_Result bs_poll(
     bs_Queue* queue)
 {
     return next.bs_poll(queue);
@@ -2060,7 +2063,7 @@ bs_Result bs_queryImageIndex(
     return next.bs_queryImageIndex(image, name, out);
 }
 
-bs_Result bs_copyImageToBufferAsync(
+void bs_copyImageToBufferAsync(
     bs_Image* image, 
     bs_Buffer* buffer, 
     int image_index, 
@@ -2069,22 +2072,22 @@ bs_Result bs_copyImageToBufferAsync(
     bs_ivec2 offset, 
     bs_ivec2 resolution)
 {
-    return next.bs_copyImageToBufferAsync(image, buffer, image_index, layout, buffer_offset, offset, resolution);
+    next.bs_copyImageToBufferAsync(image, buffer, image_index, layout, buffer_offset, offset, resolution);
 }
 
-bs_Result bs_copyBufferToImage(
+void bs_copyBufferToImage(
     bs_Buffer* buffer, 
     bs_Image* image, 
     int index, 
     bs_ImageLayout layout)
 {
-    return next.bs_copyBufferToImage(buffer, image, index, layout);
+    next.bs_copyBufferToImage(buffer, image, index, layout);
 }
 
-bs_Result bs_blit(
+void bs_blit(
     bs_BlitOperation operation)
 {
-    return next.bs_blit(operation);
+    next.bs_blit(operation);
 }
 
 bs_Result bs_loadImage(
@@ -2142,17 +2145,17 @@ bool bs_hasAlpha(
     return next.bs_hasAlpha(format);
 }
 
-bs_Result bs_nameImage(
+void bs_nameImage(
     bs_Image* image, 
     const char* name)
 {
-    return next.bs_nameImage(image, name);
+    next.bs_nameImage(image, name);
 }
 
-bs_Result bs_destroySampler(
+void bs_destroySampler(
     bs_Sampler* sampler)
 {
-    return next.bs_destroySampler(sampler);
+    next.bs_destroySampler(sampler);
 }
 
 bs_Result bs_sampler(
@@ -2240,10 +2243,10 @@ int bs_queryAtlas(
     return next.bs_queryAtlas(atlas, name);
 }
 
-bs_Result bs_destroyAtlas(
+void bs_destroyAtlas(
     bs_Atlas* atlas)
 {
-    return next.bs_destroyAtlas(atlas);
+    next.bs_destroyAtlas(atlas);
 }
 
 bs_Result bs_loadAtlasMemory(
@@ -2315,16 +2318,16 @@ bs_Result bs_pushQueue(
     return next.bs_pushQueue(queue);
 }
 
-bs_Result bsi_nameHandle(
+void bsi_nameHandle(
     bs_U64 handle, 
     bs_U32 type, 
     char* value, 
     int value_length)
 {
-    return next.bsi_nameHandle(handle, type, value, value_length);
+    next.bsi_nameHandle(handle, type, value, value_length);
 }
 
-bs_Result bsi_nameHandleV(
+void bsi_nameHandleV(
     bs_U64 handle, 
     bs_U32 type, 
     char* format, 
@@ -2333,10 +2336,10 @@ bs_Result bsi_nameHandleV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bsi_nameHandle(handle, type, _formatted, _length);
+    bsi_nameHandle(handle, type, _formatted, _length);
 }
 
-bs_Result bsi_nameHandleF(
+void bsi_nameHandleF(
     bs_U64 handle, 
     bs_U32 type, 
     char* format, 
@@ -2344,9 +2347,8 @@ bs_Result bsi_nameHandleF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bsi_nameHandleV(handle, type, format, args);
+    bsi_nameHandleV(handle, type, format, args);
     va_end(args);
-    return _return;
 }
 
 bs_JsonEnumeration bs_beginEnumeration(
@@ -2958,18 +2960,18 @@ bs_String* bs_stringF(
     return _return;
 }
 
-bs_Result bs_toUpper(
+void bs_toUpper(
     char* string, 
     int len)
 {
-    return next.bs_toUpper(string, len);
+    next.bs_toUpper(string, len);
 }
 
-bs_Result bs_toLower(
+void bs_toLower(
     char* string, 
     int len)
 {
-    return next.bs_toLower(string, len);
+    next.bs_toLower(string, len);
 }
 
 bs_U64 bs_hash(
@@ -3018,31 +3020,32 @@ bs_String* bs_workingDirectory()
     return next.bs_workingDirectory();
 }
 
-void bs_setWorkingDirectory(
+bs_Result bs_setWorkingDirectory(
     char* path, 
     int path_length)
 {
-    next.bs_setWorkingDirectory(path, path_length);
+    return next.bs_setWorkingDirectory(path, path_length);
 }
 
-void bs_setWorkingDirectoryV(
+bs_Result bs_setWorkingDirectoryV(
     char* format, 
     va_list args)
 {
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    bs_setWorkingDirectory(_formatted, _length);
+    return bs_setWorkingDirectory(_formatted, _length);
 }
 
-void bs_setWorkingDirectoryF(
+bs_Result bs_setWorkingDirectoryF(
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_setWorkingDirectoryV(format, args);
+    bs_Result _return = bs_setWorkingDirectoryV(format, args);
     va_end(args);
+    return _return;
 }
 
 bs_String* bs_executablePath()
@@ -3876,11 +3879,12 @@ void bs_destroyShader(
     next.bs_destroyShader(shader);
 }
 
-bs_Pipeline* bs_computePipeline(
+bs_Result bs_computePipeline(
     bs_Shader* compute_shader, 
-    bs_PipelineFlags flags)
+    bs_PipelineFlags flags, 
+    bs_Pipeline** out)
 {
-    return next.bs_computePipeline(compute_shader, flags);
+    return next.bs_computePipeline(compute_shader, flags, out);
 }
 
 void bs_destroyComputePipeline(
@@ -3942,10 +3946,9 @@ bs_Result bs_binding(
     bs_U32 bind_set_slot, 
     bs_U32 bind_point_slot, 
     bs_Descriptor* descriptors, 
-    int descriptors_count, 
-    bs_Binding** out)
+    int descriptors_count)
 {
-    return next.bs_binding(bind_set_slot, bind_point_slot, descriptors, descriptors_count, out);
+    return next.bs_binding(bind_set_slot, bind_point_slot, descriptors, descriptors_count);
 }
 
 bs_Result bs_bindImage(
@@ -4203,12 +4206,13 @@ void bs_moveWindow(
     next.bs_moveWindow(x, y);
 }
 
-void bs_window(
+bs_Result bs_window(
+    bs_Object* object, 
     bs_U32 width, 
     bs_U32 height, 
     const char* title)
 {
-    next.bs_window(width, height, title);
+    return next.bs_window(object, width, height, title);
 }
 
 void bs_tick(

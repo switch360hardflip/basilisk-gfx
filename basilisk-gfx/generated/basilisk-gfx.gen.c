@@ -36,7 +36,11 @@
 #include <math.h>
 #include <stdio.h>
 
-bsgfx_FunctionTable next = { 0 };
+static bsgfx_FunctionTable next = { 0 };
+
+void _bsgfx_setFunctions(const struct _bsgfx_FunctionTable* table) {
+    memcpy(&next, table, sizeof(next));
+}
 
 bsgfx_Scene* bsgfx_currentScene()
 {

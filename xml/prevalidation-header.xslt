@@ -22,10 +22,9 @@
         <xsl:apply-templates select="registry/includes/prevalidationHeader/include"/>
         <xsl:text>&#xA;</xsl:text>
 
-        <xsl:value-of select="registry/functionPrefix"/>
-        <xsl:text>FunctionTable _preval_</xsl:text>
-        <xsl:value-of select="registry/functionPrefix"/>
-        <xsl:text>getFunctions();&#xA;&#xA;</xsl:text>
+		<xsl:call-template name="addFunctionTableGetter">
+			<xsl:with-param name="prefix" select="'_preval_'"/>
+		</xsl:call-template>
 
         <xsl:text>#endif&#xA;</xsl:text>
     </xsl:template>

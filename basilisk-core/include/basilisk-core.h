@@ -44,11 +44,11 @@
 #define BS_IV3_TO_V3(v) (bs_vec4) { v.x, v.y, v.z }
 #define BS_IV4_TO_V4(v) (bs_vec4) { v.x, v.y, v.z, v.w }
 
-#define BS_V2_TO_DEGREES(v) BS_V2(bs_degrees(v.x), bs_degrees(v.y))
-#define BS_V3_TO_DEGREES(v) BS_V3(bs_degrees(v.x), bs_degrees(v.y), bs_degrees(v.z))
+#define BS_V2_TO_DEGREES(v) BS_V2(bs_degrees(v.x), _bs_degrees(v.y))
+#define BS_V3_TO_DEGREES(v) BS_V3(bs_degrees(v.x), _bs_degrees(v.y), _bs_degrees(v.z))
 
-#define BS_V2_TO_RADIANS(v) BS_V2(bs_radians(v.x), bs_radians(v.y))
-#define BS_V3_TO_RADIANS(v) BS_V3(bs_radians(v.x), bs_radians(v.y), bs_radians(v.z))
+#define BS_V2_TO_RADIANS(v) BS_V2(bs_radians(v.x), _bs_radians(v.y))
+#define BS_V3_TO_RADIANS(v) BS_V3(bs_radians(v.x), _bs_radians(v.y), _bs_radians(v.z))
 
 #define BS_V2_ADD(a, b) (bs_vec2) { a.x + b.x, a.y + b.y }
 #define BS_V3_ADD(a, b) (bs_vec3) { a.x + b.x, a.y + b.y, a.z + b.z }

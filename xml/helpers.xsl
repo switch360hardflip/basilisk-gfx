@@ -2,20 +2,6 @@
 <xsl:stylesheet version="1.0"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
-    <xsl:template name="add-function-table">
-        <xsl:param name="prefix"/>
-        <xsl:text>static </xsl:text>
-        <xsl:value-of select="registry/functionPrefix"/>
-        <xsl:text>FunctionTable next = { 0 };&#xA;&#xA;</xsl:text>
-        <xsl:text>void </xsl:text>
-        <xsl:value-of select="$prefix"/>
-        <xsl:value-of select="registry/functionPrefix"/>
-        <xsl:text>setFunctions(</xsl:text>
-        <xsl:value-of select="registry/functionPrefix"/>
-        <xsl:text>FunctionTable functions) {&#xA;    next = functions;&#xA;</xsl:text>
-        <xsl:text>}&#xA;&#xA;</xsl:text>
-    </xsl:template>
-
     <xsl:template match="ifdef|ifndef|elifdef">
         <xsl:text>#</xsl:text>
         <xsl:value-of select="name()"/>
@@ -36,7 +22,24 @@
         <xsl:text>#endif&#xA;&#xA;</xsl:text>
     </xsl:template>
 
-    <xsl:template name="add-function-table-getter">
+	<xsl:template name="addFunctionTableSetter">
+		<xsl:param name="prefix"/>
+		<xsl:text>static </xsl:text>
+		<xsl:value-of select="registry/functionPrefix"/>
+		<xsl:text>FunctionTable next = { 0 };&#xA;&#xA;</xsl:text>
+
+		<xsl:text>void </xsl:text>
+		<xsl:value-of select="$prefix"/>
+		<xsl:value-of select="registry/functionPrefix"/>
+		<xsl:text>setFunctions(const struct </xsl:text>
+		<xsl:value-of select="$prefix"/>
+		<xsl:value-of select="registry/functionPrefix"/>
+		<xsl:text>FunctionTable* table) {&#xA;    </xsl:text>
+		<xsl:text>memcpy(&amp;next, table, sizeof(next));&#xA;</xsl:text>
+		<xsl:text>}&#xA;&#xA;</xsl:text>
+	</xsl:template>
+
+	<xsl:template name="addFunctionTableGetter">
         <xsl:param name="prefix"/>
 
         <xsl:text>static inline </xsl:text>
@@ -107,4 +110,57 @@
 </xsl:text>
     </xsl:template>
 
+	<xsl:template name="createFunctionBody">
+		<xsl:param name="prefix"/>
+
+		<xsl:value-of select="return"/>
+		<xsl:text> </xsl:text>
+		<xsl:value-of select="$prefix"/>
+		<xsl:value-of select="@name"/>
+		<xsl:text>(</xsl:text>
+
+		<xsl:for-each select="param">
+			<xsl:text>&#xA;    </xsl:text>
+			<xsl:if test="type">
+				<xsl:value-of select="type"/>
+				<xsl:text> </xsl:text>
+			</xsl:if>
+
+			<xsl:value-of select="name"/>
+			<xsl:for-each select="size">
+				<xsl:text>[</xsl:text>
+				<xsl:value-of select="."/>
+				<xsl:text>]</xsl:text>
+			</xsl:for-each>
+			<xsl:if test="position() != last()">
+				<xsl:text>, </xsl:text>
+			</xsl:if>
+		</xsl:for-each>
+		<xsl:text>)&#xA;{&#xA;</xsl:text>
+
+		<!-- Body -->
+		<xsl:value-of select="body"/>
+
+		<xsl:if test="not(body)">
+			<xsl:text>    </xsl:text>
+			<xsl:if test="not(return = 'void')">
+				<xsl:text>return </xsl:text>
+			</xsl:if>
+
+			<xsl:text>next.</xsl:text>
+			<xsl:value-of select="@name"/>
+			<xsl:text>(</xsl:text>
+
+			<xsl:for-each select="param">
+				<xsl:value-of select="name"/>
+				<xsl:if test="position() != last()">
+					<xsl:text>, </xsl:text>
+				</xsl:if>
+			</xsl:for-each>
+			<xsl:text>);</xsl:text>
+		</xsl:if>
+
+		<xsl:text>&#xA;}&#xA;&#xA;</xsl:text>
+	</xsl:template>
+	
 </xsl:stylesheet>

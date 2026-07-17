@@ -52,7 +52,7 @@ BSAPI bs_Json _bs_jsonRoot(bs_Json* json, bs_JsonObject obj) {
 
  /**
   TODO:
-  if bs_jsonRoot(root, ...) is called before this, "root" will become a dangling pointer
+  if _bs_jsonRoot(root, ...) is called before this, "root" will become a dangling pointer
   */
 BSAPI void _bs_ensureJsonMutable(bs_Json* root) {
 	if (!root->is_mutable) {
@@ -109,7 +109,7 @@ BSAPI bs_Json _bs_emptyJsonArray() {
 	};
 }
 
-BSAPI bs_Json _bs_json(char* raw, int len) {
+BSAPI bs_Result _bs_json(char* raw, int len, bs_Json* out_json) {
 	yyjson_doc* doc = yyjson_read(raw, len, 0);
 
 	bs_Json json = {
@@ -118,24 +118,26 @@ BSAPI bs_Json _bs_json(char* raw, int len) {
 	};
 
 	if (!json.doc) {
-		bs_warnF("Failed to parse JSON\n");
-		return (bs_Json){0};
+		_bs_warn(BS_CONSTANT_STRING("Failed to parse JSON\n"));
+		return BS_RESULT_FAILED_TO_PARSE;
 	}
 
-	return json;
+	*out_json = json;
+
+	return BS_RESULT_OK;
 }
 
 BSAPI bs_Result _bs_loadJson(char* path, int path_length, bs_Json* out) {
 	bs_String* raw;
 	bs_Result result;
 
-	result = bs_loadFile(&raw, path, path_length);
+	result = _bs_loadFile(&raw, path, path_length);
 	if (result != BS_RESULT_OK) {
 		return result;
 	}
 	
 	bs_Json json;
-	result = bs_json(raw->value, raw->len - 1, &json);
+	result = _bs_json(raw->value, raw->len - 1, &json);
 	if (result != BS_RESULT_OK) {
 		return result;
 	}
@@ -145,7 +147,7 @@ BSAPI bs_Result _bs_loadJson(char* path, int path_length, bs_Json* out) {
 	return BS_RESULT_OK;
 }
 
-static bs_JsonValue bs_createJsonArray(bool is_mutable, yyjson_val* root, int start, int end, bool is_32bit) {
+static bs_JsonValue _bs_createJsonArray(bool is_mutable, yyjson_val* root, int start, int end, bool is_32bit) {
 	size_t idx, max;
 
 	yyjson_type root_type = is_mutable ? yyjson_mut_get_type(root) : yyjson_get_type(root);
@@ -157,7 +159,7 @@ static bs_JsonValue bs_createJsonArray(bool is_mutable, yyjson_val* root, int st
 
 	yyjson_type type = is_mutable ? yyjson_mut_get_type(first) : yyjson_get_type(first);
 	assert((end - start) > 0);
-	union bs_JsonValueUnion* values = bs_malloc((end - start) * (is_32bit ? sizeof(float) : sizeof(union bs_JsonValueUnion)));
+	union bs_JsonValueUnion* values = _bs_malloc((end - start) * (is_32bit ? sizeof(float) : sizeof(union bs_JsonValueUnion)));
 	union {
 		float as_float;
 	}* values_32 = values;
@@ -269,7 +271,7 @@ static bs_JsonValue bs_createJsonArray(bool is_mutable, yyjson_val* root, int st
 	};
 }
 
-static void bs_deleteJsonArrayRange(yyjson_mut_val* root, int start, int end) {
+static void _bs_deleteJsonArrayRange(yyjson_mut_val* root, int start, int end) {
 	yyjson_type root_type = yyjson_mut_get_type(root);
 	assert(root_type == YYJSON_TYPE_ARR);
 	assert((end - start) > 0);
@@ -280,11 +282,11 @@ static void bs_deleteJsonArrayRange(yyjson_mut_val* root, int start, int end) {
 	}
 }
 
-static inline void bs_warnUnexpectedJsonType(bs_JsonType expect, const char* actual) {
-	bs_warnF("Expected JSON type %s, got %s type\n", bs_serializeJsonType(expect), actual);
+static inline void _bs_warnUnexpectedJsonType(bs_JsonType expect, const char* actual) {
+	bs_warnF("Expected JSON type %s, got %s type\n", _bs_serializeJsonType(expect), actual);
 }
 
-static bs_JsonValue bs_createJsonValue(bool is_mutable, yyjson_val* root, char* name, bs_JsonType expect) {
+static bs_JsonValue _bs_createJsonValue(bool is_mutable, yyjson_val* root, char* name, bs_JsonType expect) {
 	yyjson_type type = is_mutable ? yyjson_mut_get_type(root) : yyjson_get_type(root);
 
 	if (type == YYJSON_TYPE_ARR) {
@@ -294,7 +296,7 @@ static bs_JsonValue bs_createJsonValue(bool is_mutable, yyjson_val* root, char* 
 		}
 
 		int size = is_mutable ? yyjson_mut_arr_size(root) : yyjson_arr_size(root);
-		return bs_createJsonArray(is_mutable, root, 0, size, false);
+		return _bs_createJsonArray(is_mutable, root, 0, size, false);
 	}
 	else if (type == YYJSON_TYPE_STR || type == YYJSON_TYPE_NULL) {
 		if (!(expect & (BS_JSON_STRING | BS_JSON_DONT_CARE | BS_JSON_UNDEFINED))) {
@@ -362,10 +364,10 @@ BSAPI bs_JsonValue _bs_parseJsonValue(char* raw) {
 	yyjson_doc* doc = yyjson_read(raw, strlen(raw), 0);
 	yyjson_val* root = yyjson_doc_get_root(doc);
 
-	return bs_createJsonValue(false, root, NULL, BS_JSON_UNDEFINED);
+	return _bs_createJsonValue(false, root, NULL, BS_JSON_UNDEFINED);
 }
 
-static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path, int len, bool delete) {
+static bs_JsonValue _bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path, int len, bool delete) {
 	char* old = path;
 	path = strdup(path);
 	
@@ -377,7 +379,7 @@ static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path,
 	char* token = NULL;
 	char* last = strrchr(path, '.');
 	last = last ? (last + 1) : path;
-	while ((token = bs_strsep(&path, "."))) {
+	while ((token = _bs_strsep(&path, "."))) {
 		char* array_start = strchr(token, '[');
 		if (array_start) {
 			char* array_end = strchr(array_start, ']');
@@ -408,13 +410,13 @@ static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path,
 			if (selection) {
 				assert(token == last);
 				if (array_start[0] == ':') { // [:n] - Selects the first n elements of the array
-					double end = bs_toDouble(selection + 1);
+					double end = _bs_toDouble(selection + 1);
 					if (delete) {
 						yyjson_mut_arr_remove_range(object, 0, end);
 						return (bs_JsonValue) { 0 };
 					}
 					else
-						return bs_createJsonArray(is_mutable, object, 0, end, is_32bit);
+						return _bs_createJsonArray(is_mutable, object, 0, end, is_32bit);
 				}
 				else if (selection[1] == '\0') {
 					if (array_start[0] == '-') { // [-n:] - Selects the last n elements of the array.
@@ -427,11 +429,11 @@ static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path,
 							return (bs_JsonValue) { 0 };
 						}
 						else
-							return bs_createJsonArray(is_mutable, object, size - start, size, is_32bit);
+							return _bs_createJsonArray(is_mutable, object, size - start, size, is_32bit);
 					}
 					else { // [n:] - Selects array elements from the start index.
 						selection[0] = '\0';
-						double start = bs_toDouble(array_start);
+						double start = _bs_toDouble(array_start);
 						int size = is_mutable ? yyjson_mut_arr_size(object) : yyjson_arr_size(object);
 
 						if (delete) {
@@ -439,20 +441,20 @@ static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path,
 							return (bs_JsonValue) { 0 };
 						}
 						else
-							return bs_createJsonArray(is_mutable, object, start, size, is_32bit);
+							return _bs_createJsonArray(is_mutable, object, start, size, is_32bit);
 					}
 				}
 				else { // [1:5] - Selects array elements from the start index and up to, but not including, end index.
 					selection[0] = '\0';
-					double start = bs_toDouble(array_start);
-					double end = bs_toDouble(selection + 1) - 1;
+					double start = _bs_toDouble(array_start);
+					double end = _bs_toDouble(selection + 1) - 1;
 
 					if (delete) {
 						yyjson_mut_arr_remove_range(object, start, start - end);
 						return (bs_JsonValue) { 0 };
 					}
 					else
-						return bs_createJsonArray(is_mutable, object, start, end, is_32bit);
+						return _bs_createJsonArray(is_mutable, object, start, end, is_32bit);
 				}
 			}
 			else {
@@ -461,13 +463,13 @@ static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path,
 					return (bs_JsonValue) { 0 };
 					assert(token == last);
 					char* array_token = NULL;
-					while ((array_token = bs_strsep(&token, ","))) {
-						double index = bs_toDouble(array_token);
+					while ((array_token = _bs_strsep(&token, ","))) {
+						double index = _bs_toDouble(array_token);
 						double y = index;
 					}
 				}
 				else { // [n] - Selects the n-th element from an array.
-					double index = bs_toDouble(array_start);
+					double index = _bs_toDouble(array_start);
 
 					if (delete && token == last) {
 						yyjson_mut_arr_remove(object, index);
@@ -502,13 +504,13 @@ static bs_JsonValue bs_fetchJsonN(bs_Json* root, bs_JsonType expect, char* path,
 	free(path);
 
 	if (!delete)
-		return bs_createJsonValue(is_mutable, object, last, expect);
+		return _bs_createJsonValue(is_mutable, object, last, expect);
 	return (bs_JsonValue) { 0 };
 
 }
 
 BSAPI bs_JsonValue _bs_fetchJson(bs_Json* root, bs_JsonType expect, char* path, int path_length) {
-	return bs_fetchJsonN(root, expect, path, path_length, false);
+	return _bs_fetchJsonN(root, expect, path, path_length, false);
 }
 
 BSAPI void _val_bs_deleteJson(bs_Json* root, char* path, int path_length) {
@@ -522,14 +524,14 @@ BSAPI void _bs_deleteJson(bs_Json* root, char* path, int path_length) {
 	bs_fetchJsonN(root, 0, path, path_length, true);
 }
 
-static inline void bs_warnFailedToUpdate(char* type, char* token, char* path) {
+static inline void _bs_warnFailedToUpdate(char* type, char* token, char* path) {
 	bs_warnF("Failed to update JSON %s \"%s\" in path \"%s\"\n", type, token, path);
 }
 
 BSAPI bs_Result _val_bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path, int path_length) {
 	BS_VALIDATE(root->is_mutable == true, false,);
 
-	return bs_ensureJson(root, value, path, path_length);
+	return _bs_ensureJson(root, value, path, path_length);
 }
 
 BSAPI bs_Result _bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path, int path_length) {
@@ -542,7 +544,7 @@ BSAPI bs_Result _bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path, in
 	char* token = NULL;
 	char* last = strrchr(path, '.');
 	last = last ? (last + 1) : path;
-	while ((token = bs_strsep(&path, "."))) {
+	while ((token = _bs_strsep(&path, "."))) {
 		yyjson_mut_val* old = object;
 
 		char* array_start = strchr(token, '[');
@@ -556,7 +558,7 @@ BSAPI bs_Result _bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path, in
 
 			assert(array_end[1] == '\0'); // todo error
 			array_end[0] = array_start[0] = '\0';
-			int index = bs_toDouble(array_start + 1);
+			int index = _bs_toDouble(array_start + 1);
 
 			if (strncmp(token, "$", 1) == 0) {
 				object = old = root->as_object;
@@ -599,7 +601,7 @@ BSAPI bs_Result _bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path, in
 				else if (value.type & BS_JSON_BOOL)								val = yyjson_mut_bool(root->doc, value.as_bool);
 				else if (value.type & BS_JSON_OBJECT)							val = value.as_object;
 				else {
-					bs_warnF("Invalid JSON type \"%d\" (%d)\n", bs_serializeJsonType(value.type), value.type);
+					bs_warnF("Invalid JSON type \"%d\" (%d)\n", _bs_serializeJsonType(value.type), value.type);
 					result = BS_RESULT_INVALID_TYPE;
 					goto end;
 				}
@@ -744,14 +746,14 @@ BSAPI void _bs_destroyJson(bs_Json* json) {
 		yyjson_doc_free(json->doc);
 }
 
-static void bs_enumerateMutableJson(bs_Json* json, bs_JsonEnumeration* e) {
+static void _bs_enumerateMutableJson(bs_Json* json, bs_JsonEnumeration* e) {
 	yyjson_mut_val* key = yyjson_mut_obj_iter_next(&e->iter);
 
 	yyjson_mut_val* value = yyjson_mut_obj_iter_get_val(key);
 	const char* key_str = yyjson_mut_get_str(key);
 
 	e->key = key_str;
-	e->value = bs_createJsonValue(json->is_mutable, value, key_str, BS_JSON_UNDEFINED);
+	e->value = _bs_createJsonValue(json->is_mutable, value, key_str, BS_JSON_UNDEFINED);
 }
 
 BSAPI void _bs_enumerateJson(bs_Json* json, bs_JsonEnumeration* e) {
@@ -766,7 +768,7 @@ BSAPI void _bs_enumerateJson(bs_Json* json, bs_JsonEnumeration* e) {
 	const char* key_str = yyjson_get_str(key);
 
 	e->key = key_str;
-	e->value = bs_createJsonValue(json->is_mutable, value, key_str, BS_JSON_UNDEFINED);
+	e->value = _bs_createJsonValue(json->is_mutable, value, key_str, BS_JSON_UNDEFINED);
 }
 
 BSAPI bs_JsonEnumeration _bs_beginEnumeration(bs_Json* json) {
@@ -809,7 +811,7 @@ BSAPI bs_JsonValue _bs_jsonValueFromStringPointer(char* x) { return (bs_JsonValu
 BSAPI bs_JsonValue _bs_jsonValueFromDateTime(bs_DateTime x) {
 	return (bs_JsonValue) {
 		.type = BS_JSON_STRING,
-		.as_string = bs_charStringF("%02d-%02d-%02d %02d:%02d:%02d", x.years, x.months, x.days, x.hours, x.minutes, x.seconds),
+		.as_string = _bs_charStringF("%02d-%02d-%02d %02d:%02d:%02d", x.years, x.months, x.days, x.hours, x.minutes, x.seconds),
 		.found = true,
 	};
 }

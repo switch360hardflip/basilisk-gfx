@@ -245,7 +245,7 @@ BSMODAPI void _bsmod_queueRasterize(const char* package, const char* name, bs_Ca
 BSMODAPI void _bsmod_pollRasterizer() {
     bs_Queue* post_queue = bs_fetch(_bsmod_queues_, BSMOD_QUEUE_GRAPHICS_RASTERIZATION)->queue;
 
-    if (bs_poll(post_queue)) {
+    if (bs_poll(post_queue) != BS_RESULT_WAITING) { // idk if it should check BS_RESULT_OK or not
         bsmod_AtlasPacker packer = bsmod_createAtlasPacker();
 
         for (int i = 0; i < bsmod_rasterizations.count; i++) {

@@ -34,6 +34,8 @@
 
 #include <basilisk-core.h>
 #include <bs_internal.h>
+#include <bs_prevalidation.gen.h>
+#include <bs_validation.gen.h>
 
 const char* validation_layers[] = {
     "VK_LAYER_KHRONOS_validation"
@@ -68,7 +70,7 @@ BSAPI void _bsi_nameHandle(bs_U64 handle, bs_U32 type, char* name, int name_leng
     pfn_vkSetDebugUtilsObjectNameEXT(_bs_instance_->device, &name_i);
 }
 
-static const char* bs_vulkanObjectName(VkObjectType type) {
+static const char* _bs_vulkanObjectName(VkObjectType type) {
     switch (type) {
     case VK_OBJECT_TYPE_INSTANCE: return "VK_OBJECT_TYPE_INSTANCE";
     case VK_OBJECT_TYPE_PHYSICAL_DEVICE: return "VK_OBJECT_TYPE_PHYSICAL_DEVICE";
@@ -100,7 +102,7 @@ static const char* bs_vulkanObjectName(VkObjectType type) {
     return "unknown";
 }
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL bs_debugCallback(
+static VKAPI_ATTR VkBool32 VKAPI_CALL _bs_debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     VkDebugUtilsMessageTypeFlagsEXT type,
     const VkDebugUtilsMessengerCallbackDataEXT* data,
@@ -109,32 +111,32 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL bs_debugCallback(
     static bs_String* message;
 
     if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-        message = bs_stringF(message, "Message name: %s\n", data->pMessageIdName ? data->pMessageIdName : "N/A\n");
-        message = bs_appendStringF(message, "Message: %s\n", data->pMessage);
+        message = _bs_stringF(message, "Message name: %s\n", data->pMessageIdName ? data->pMessageIdName : "N/A\n");
+        message = _bs_appendStringF(message, "Message: %s\n", data->pMessage);
 
         if (data->objectCount > 0) {
             for (uint32_t i = 0; i < data->objectCount; i++) {
                 const VkDebugUtilsObjectNameInfoEXT* obj = &data->pObjects[i];
-                message = bs_appendStringF(message, "Object %d:\n", i);
-                message = bs_appendStringF(message, "  Handle: 0x%llx\n", (unsigned long long)obj->objectHandle);
-                message = bs_appendStringF(message, "  Type:   %s\n", bs_vulkanObjectName(obj->objectType));
+                message = _bs_appendStringF(message, "Object %d:\n", i);
+                message = _bs_appendStringF(message, "  Handle: 0x%llx\n", (unsigned long long)obj->objectHandle);
+                message = _bs_appendStringF(message, "  Type:   %s\n", _bs_vulkanObjectName(obj->objectType));
                 if (obj->pObjectName)
-                    message = bs_appendStringF(message, "  Name:   %s\n", obj->pObjectName);
+                    message = _bs_appendStringF(message, "  Name:   %s\n", obj->pObjectName);
             }
         }
 
-        bs_warn(message->value, message->len);
+        _bs_warn(message->value, message->len);
     }
     else {
-        bs_warnF("%s\n", data->pMessage);
+        _bs_warnF("%s\n", data->pMessage);
     }
 
-    // bs_free(message);
+    // _bs_free(message);
 
     return VK_FALSE;
 }
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL bs_reportCallback(
+static VKAPI_ATTR VkBool32 VKAPI_CALL _bs_reportCallback(
     VkDebugReportFlagsEXT flags,
     VkDebugReportObjectTypeEXT type,
     uint64_t object,
@@ -144,15 +146,15 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL bs_reportCallback(
     const char* message,
     void* param) {
 
- //   bs_infoF("%s\n", message);
+ //   _bs_infoF("%s\n", message);
     return VK_FALSE;
 }
 
-static bool bs_checkValidationLayerSupport() {
+static bool _bs_checkValidationLayerSupport() {
     bs_U32 num_layers;
     vkEnumerateInstanceLayerProperties(&num_layers, NULL);
 
-    VkLayerProperties* layers = bs_malloc(num_layers * sizeof(VkLayerProperties));
+    VkLayerProperties* layers = _bs_malloc(num_layers * sizeof(VkLayerProperties));
     vkEnumerateInstanceLayerProperties(&num_layers, layers);
 
     bool found_all = true;
@@ -168,16 +170,16 @@ static bool bs_checkValidationLayerSupport() {
 	    }
 
         if (!found) {
-            bs_warnF("Vulkan validation layer %s is not supported\n", validation_layers[i]);
+            _bs_warnF("Vulkan validation layer %s is not supported\n", validation_layers[i]);
             found_all = false;
         }
     }
 
-    bs_free(layers);
+    _bs_free(layers);
     return found_all;
 }
 
-static inline bool bs_addInstanceExtension(const char** extensions, bs_U32* extensions_count, const char* name, VkExtensionProperties* available_extensions, bs_U32 available_extensions_count) {
+static inline bool _bs_addInstanceExtension(const char** extensions, bs_U32* extensions_count, const char* name, VkExtensionProperties* available_extensions, bs_U32 available_extensions_count) {
     for (bs_U32 i = 0; i < available_extensions_count; i++) {
         if (strcmp(name, available_extensions[i].extensionName) == 0) {
             extensions[(*extensions_count)++] = available_extensions[i].extensionName;
@@ -188,11 +190,11 @@ static inline bool bs_addInstanceExtension(const char** extensions, bs_U32* exte
     return false;
 }
 
-static void bs_prepareInstance() {
+static void _bs_prepareInstance() {
     VkResult result;
 
     if (_bs_args_.use_validation_layers)
-        _bs_args_.use_validation_layers = bs_checkValidationLayerSupport();
+        _bs_args_.use_validation_layers = _bs_checkValidationLayerSupport();
 
     const char* extensions[16];
     bs_U32 extensions_count = 0;
@@ -203,7 +205,7 @@ static void bs_prepareInstance() {
     vkEnumerateInstanceExtensionProperties(NULL, &available_extensions_count, available_extensions);
 
 #define BS_ADD_INSTANCE_EXTENSION(name) \
-    bs_addInstanceExtension(extensions, &extensions_count, name, available_extensions, available_extensions_count)
+    _bs_addInstanceExtension(extensions, &extensions_count, name, available_extensions, available_extensions_count)
 
 #ifdef _WIN32
     if (BS_ADD_INSTANCE_EXTENSION(VK_KHR_WIN32_SURFACE_EXTENSION_NAME))
@@ -215,11 +217,11 @@ static void bs_prepareInstance() {
         _bs_instance_->extensions.surface_type = BS_SURFACE_TYPE_X11;
 #endif
     else if (BS_ADD_INSTANCE_EXTENSION(VK_EXT_HEADLESS_SURFACE_EXTENSION_NAME)) {
-        bs_warnF("Only off-screen rendering is available\n");
+        _bs_warnF("Only off-screen rendering is available\n");
         _bs_instance_->extensions.surface_type = BS_SURFACE_TYPE_HEADLESS;
     }
     else {
-        bs_warnF("No instance surface extension found\n");
+        _bs_warnF("No instance surface extension found\n");
     }
     BS_ADD_INSTANCE_EXTENSION(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     BS_ADD_INSTANCE_EXTENSION(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
@@ -260,7 +262,7 @@ static void bs_prepareInstance() {
 
     result = vkCreateInstance(&ci, NULL, &_bs_instance_->instance);
     if (result != VK_SUCCESS) {
-        bs_criticalF("Failed to create instance (Vulkan result %d)\n", result);
+        _bs_criticalF("Failed to create instance (Vulkan result %d)\n", result);
         return;
     }
 
@@ -271,7 +273,7 @@ static void bs_prepareInstance() {
         .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
         .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
         .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-        .pfnUserCallback = bs_debugCallback,
+        .pfnUserCallback = _bs_debugCallback,
     };
 
     PFN_vkCreateDebugUtilsMessengerEXT create_messenger = 
@@ -286,7 +288,7 @@ static void bs_prepareInstance() {
     VkDebugReportCallbackCreateInfoEXT report_ci = {
         .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
         .flags = VK_DEBUG_REPORT_ERROR_BIT_EXT,
-        .pfnCallback = bs_reportCallback,
+        .pfnCallback = _bs_reportCallback,
     };
 
     VkDebugReportCallbackEXT reporter = { 0 };
@@ -294,7 +296,7 @@ static void bs_prepareInstance() {
         create_reporter(_bs_instance_->instance, &report_ci, NULL, &reporter);
 }
 
-static void bs_createSurface(bs_Window* window) {
+static void _bs_createSurface(bs_Window* window) {
     VkResult result = VK_SUCCESS;
 
     if (_bs_instance_->extensions.surface_type == BS_SURFACE_TYPE_WIN32) {
@@ -314,15 +316,15 @@ static void bs_createSurface(bs_Window* window) {
         result = vkCreateHeadlessSurfaceEXT(_bs_instance_->instance, &ci, NULL, &window->surface);
     }
     else {
-        bs_warnF("Surface type %d is not supported\n", _bs_instance_->extensions.surface_type);
+        _bs_warnF("Surface type %d is not supported\n", _bs_instance_->extensions.surface_type);
     }
 
     if (result != VK_SUCCESS) {
-        bs_warnF("Failed to create surface for window \"%s\" (Vulkan result = %d)\n", window->title, result);
+        _bs_warnF("Failed to create surface for window \"%s\" (Vulkan result = %d)\n", window->title, result);
     }
 }
 
-static inline void bs_logPhysicalDeviceInfo(int i, VkPhysicalDevice device) {
+static inline void _bs_logPhysicalDeviceInfo(int i, VkPhysicalDevice device) {
     VkPhysicalDeviceProperties properties;
     vkGetPhysicalDeviceProperties(device, &properties);
 
@@ -337,7 +339,7 @@ static inline void bs_logPhysicalDeviceInfo(int i, VkPhysicalDevice device) {
     default: type = "\n"; break;
     }
 
-    bs_infoF(
+    _bs_infoF(
         "Physical device %d:\n"     \
         "  API: %d.%d.%d\n"         \
         "  Driver: %d.%d.%d\n"      \
@@ -349,38 +351,38 @@ static inline void bs_logPhysicalDeviceInfo(int i, VkPhysicalDevice device) {
 
 }
 
-static void bs_preparePhysicalDevice() {
+static void _bs_preparePhysicalDevice() {
     bs_U32 num_devices = 0;
     vkEnumeratePhysicalDevices(_bs_instance_->instance, &num_devices, NULL);
     if (num_devices == 0) {
-        bs_critical(BS_CONSTANT_STRING("No GPU with Vulkan support was found\n"));
+        _bs_critical(BS_CONSTANT_STRING("No GPU with Vulkan support was found\n"));
         return;
     }
 
-    VkPhysicalDevice* devices = bs_calloc(num_devices, sizeof(VkPhysicalDevice));
+    VkPhysicalDevice* devices = _bs_calloc(num_devices, sizeof(VkPhysicalDevice));
     vkEnumeratePhysicalDevices(_bs_instance_->instance, &num_devices, devices);
 
     int chosen = 0;
     for(int i = 0; i < num_devices; i++) {
         chosen = i;
-        bs_logPhysicalDeviceInfo(i, devices[i]);
+        _bs_logPhysicalDeviceInfo(i, devices[i]);
         _bs_instance_->physical_device = devices[i];
         if (bs_queueFamily(BS_QUEUE_GRAPHICS_BIT) != -1)
             break;
         _bs_instance_->physical_device = VK_NULL_HANDLE;
     }
 
-    bs_free(devices);
+    _bs_free(devices);
 
     if (_bs_instance_->physical_device == VK_NULL_HANDLE) {
-        bs_warn(BS_CONSTANT_STRING("No GPU with graphics support was found\n"));
+        _bs_warn(BS_CONSTANT_STRING("No GPU with graphics support was found\n"));
         _bs_instance_->physical_device = devices[chosen = 0];
     }
 
-    bs_infoF("Physical device %d was picked\n", chosen);
+    _bs_infoF("Physical device %d was picked\n", chosen);
 }
 
-static void bs_prepareLogicalDevice() {
+static void _bs_prepareLogicalDevice() {
     VkResult vk_result;
 
     // todo shouldnt this all be in the physical device creation
@@ -410,11 +412,11 @@ static void bs_prepareLogicalDevice() {
             VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_SHADER_ERROR_REPORTING_BIT_NV,
     };
 
-    if (!features->depthClamp) bs_warnF("Depth clamp is not supported");
-    if (!features->fillModeNonSolid) bs_warnF("Fill mode non solid is not supported");
-    if (!features->independentBlend) bs_warnF("Independent blend is not supported");
-    if (!features->shaderInt64) bs_warnF("64 bit integers are not supported");
-    if (!features->robustBufferAccess) bs_warnF("Robust buffer access is not supported");
+    if (!features->depthClamp) _bs_warnF("Depth clamp is not supported");
+    if (!features->fillModeNonSolid) _bs_warnF("Fill mode non solid is not supported");
+    if (!features->independentBlend) _bs_warnF("Independent blend is not supported");
+    if (!features->shaderInt64) _bs_warnF("64 bit integers are not supported");
+    if (!features->robustBufferAccess) _bs_warnF("Robust buffer access is not supported");
     _bs_features_.independent_blend = features->independentBlend;
 
     const char* extensions[] = {
@@ -443,7 +445,7 @@ static void bs_prepareLogicalDevice() {
         BS_WARN_VULKAN_ERROR("vkEnumerateDeviceExtensionProperties", vk_result, "");
     }
 
-    VkExtensionProperties* props = bs_calloc(total_extensions_count, sizeof(VkExtensionProperties));
+    VkExtensionProperties* props = _bs_calloc(total_extensions_count, sizeof(VkExtensionProperties));
     vk_result = vkEnumerateDeviceExtensionProperties(_bs_instance_->physical_device, NULL, &total_extensions_count, props);
     if (vk_result != VK_SUCCESS) {
         BS_WARN_VULKAN_ERROR("vkEnumerateDeviceExtensionProperties", vk_result, "");
@@ -466,11 +468,11 @@ static void bs_prepareLogicalDevice() {
             if (_bs_features_.ray_tracing && i >= 1 && i <= 8) // todo something about this
                 _bs_features_.ray_tracing = false;
 
-            bs_warnF("Extension \"%s\" is not supported\n", extensions[i]);
+            _bs_warnF("Extension \"%s\" is not supported\n", extensions[i]);
         }
     }
 
-    bs_free(props);
+    _bs_free(props);
 
    /**
     Properties
@@ -500,7 +502,7 @@ static void bs_prepareLogicalDevice() {
     float queue_priority = 1.0;
     VkDeviceQueueCreateInfo queue_ci = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = bs_queueFamily(BS_QUEUE_GRAPHICS_BIT),
+        .queueFamilyIndex = _bs_queueFamily(BS_QUEUE_GRAPHICS_BIT),
         .queueCount = 1,
         .pQueuePriorities = &queue_priority,
     };
@@ -526,11 +528,11 @@ static void bs_prepareLogicalDevice() {
     //bs_nameHandlef((bs_U64)bs_instance->_.compute_queue, VK_OBJECT_TYPE_QUEUE, "compute queue");
 }
 
-static void bs_prepareCommands() {
+static void _bs_prepareCommands() {
     VkCommandPoolCreateInfo pool_ci = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
         .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-        .queueFamilyIndex = bs_queueFamily(BS_QUEUE_GRAPHICS_BIT),
+        .queueFamilyIndex = _bs_queueFamily(BS_QUEUE_GRAPHICS_BIT),
     };
 
     VkResult result = vkCreateCommandPool(_bs_instance_->device, &pool_ci, NULL, &_bs_instance_->command_pool);
@@ -562,7 +564,7 @@ BSAPI void _bs_queryProcedures(bs_Procedure* procedures, int count, HMODULE dll_
         if (data)
             memcpy(destination, &data, procedures[i].size);
         else if (procedures[i].is_required) {
-            bs_warnF("Failed to query procedure \"%s\"\n", procedures[i].func);
+            _bs_warnF("Failed to query procedure \"%s\"\n", procedures[i].func);
         }
 
         destination += procedures[i].size;
@@ -571,30 +573,30 @@ BSAPI void _bs_queryProcedures(bs_Procedure* procedures, int count, HMODULE dll_
 
 void _bs_findExecutablePaths();
 BSAPI void _bs_ini() {
-    _bs_instance_ = bs_calloc(1, sizeof(bs_Instance));
+    _bs_instance_ = _bs_calloc(1, sizeof(bs_Instance));
 
-    bs_configureAttribute("bs_Position", BS_FORMAT_R32_SFLOAT);
-    bs_configureAttribute("bs_Texture", BS_FORMAT_R32_SFLOAT);
-    bs_configureAttribute("bs_Color", BS_FORMAT_R8_UNORM);
-    bs_configureAttribute("bs_Normal", BS_FORMAT_R32_SFLOAT);
-    bs_configureAttribute("bs_Bone", BS_FORMAT_R32_SINT);
-    bs_configureAttribute("bs_Weight", BS_FORMAT_R32_SFLOAT);
+    _bs_configureAttribute("bs_Position", BS_FORMAT_R32_SFLOAT);
+    _bs_configureAttribute("bs_Texture", BS_FORMAT_R32_SFLOAT);
+    _bs_configureAttribute("bs_Color", BS_FORMAT_R8_UNORM);
+    _bs_configureAttribute("bs_Normal", BS_FORMAT_R32_SFLOAT);
+    _bs_configureAttribute("bs_Bone", BS_FORMAT_R32_SINT);
+    _bs_configureAttribute("bs_Weight", BS_FORMAT_R32_SFLOAT);
 
    // _bs_wnd.fixed_time = 0.025;
     _bs_findExecutablePaths();
-    bs_prepareInstance();
+    _bs_prepareInstance();
     //bs_prepareSurface();
-    bs_preparePhysicalDevice();
-    bs_prepareLogicalDevice();
+    _bs_preparePhysicalDevice();
+    _bs_prepareLogicalDevice();
 
     bs_Procedure procedures[] = { BS_FOREACH_PROC(BS_STRING_GEN_2) };
-    bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), 0, &_bs_procs_);
+    _bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), 0, &_bs_procs_);
 
     //bs_prepareSwapchain();
-    bs_prepareCommands();
+    _bs_prepareCommands();
 }
 
-static int bs_compareInt(const int* a, const int* b) {
+static int _bs_compareInt(const int* a, const int* b) {
     if (*a == *b) return 0;
     else if (*a < *b) return -1;
     else return 1;
@@ -606,7 +608,7 @@ BSAPI void _bs_load(
     if (!_bs_instance_->single_times_queue) {
         bs_Object* object = BS_QUEUE(-1, 0, 0);
         if (bs_queue(object, BS_QUEUE_TRANSFER_BIT | BS_QUEUE_COMPUTE_BIT | BS_QUEUE_SINGLE_TIMES_BIT) != BS_RESULT_OK) {
-            bs_critical(BS_CONSTANT_STRING("Failed to create single times queue\n"));
+            _bs_critical(BS_CONSTANT_STRING("Failed to create single times queue\n"));
             return;
         }
 
@@ -618,4 +620,17 @@ BSAPI void _bs_load(
         load_resources();
 
     _bs_scope_.queue = NULL;
+}
+
+void _bs_setFunctions(const struct _bs_FunctionTable* table);
+void _preval_bs_setFunctions(const struct _preval_bs_FunctionTable* table);
+
+BSAPI void _bs_setupTrampoline() { // TODO: postval
+    bs_FunctionTable definitions = _bs_getFunctions();
+    bs_FunctionTable preval_definitions = _preval_bs_getFunctions();
+    bs_FunctionTable val_definitions = _val_bs_getFunctions();
+
+    _bs_setFunctions(&preval_definitions);
+    _preval_bs_setFunctions(&val_definitions);
+    _preval_bs_setFunctions(&val_definitions);
 }

@@ -13,9 +13,10 @@
         <xsl:apply-templates select="registry/includes/prevalidation/include"/>
         <xsl:text>&#xA;</xsl:text>
 
-        <xsl:call-template name="add-function-table">
-            <xsl:with-param name="prefix" select="'_preval_'"/>
-        </xsl:call-template>
+		<xsl:call-template name="addFunctionTableSetter">
+			<xsl:with-param name="prefix" select="'_preval_'"/>
+		</xsl:call-template>
+		
         <xsl:apply-templates select="registry/functions/function" mode="validation"/>
 
         <xsl:value-of select="registry/functionPrefix"/>
@@ -44,7 +45,8 @@
 
     <xsl:template match="function" mode="validation">
         <xsl:if test="not(@type = 'generated')">
-            <xsl:text>static </xsl:text>
+			<xsl:value-of select="/registry/prefix"/>
+			<xsl:text> </xsl:text>
             <xsl:value-of select="return"/>
             <xsl:text> _preval_</xsl:text>
             <xsl:value-of select="@name"/>

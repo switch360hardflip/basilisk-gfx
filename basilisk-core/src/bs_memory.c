@@ -68,12 +68,12 @@ BSAPI void _bs_system(char* command) {
 
     FILE* fp = BS_POPEN(command, "r");
     if (!fp) {
-        bs_warnF("Failed to run script");
+        _bs_warnF("Failed to run script");
         return;
     }
 
     while (fgets(output, sizeof(output), fp)) {
-        bs_infoF("%s", output);
+        _bs_infoF("%s", output);
     }
 
     BS_PCLOSE(fp);
@@ -120,7 +120,7 @@ BSAPI size_t _bs_strnlen(const char* src, size_t n) {
 }
 
 BSAPI char* _bs_strndup(const char* s, size_t n) {
-    size_t len = bs_strnlen(s, n);
+    size_t len = _bs_strnlen(s, n);
     char* p = malloc(len + 1);
     if (p) {
         memcpy(p, s, len);
@@ -150,7 +150,7 @@ BSAPI void* _bs_free(void* p) {
 
 /**
  if BSX_FAILED_TO_ALLOCATE occurs and we don't have cmd_log=true it'll try to allocate again which might fail
- bs_infoF uses the C lib's realloc so it won't be an infinite loop or anything
+ _bs_infoF uses the C lib's realloc so it won't be an infinite loop or anything
  dunno if i care thoughh :|
 
  ... wait so what was the problem again? am i retarded?
@@ -161,14 +161,14 @@ BSAPI void* _bs_free(void* p) {
   */
 BSAPI void* _val_bs_malloc(bs_U64 size) {
     BS_VALIDATE(size != 0, NULL,);
-    return bs_malloc(size);
+    return _bs_malloc(size);
 }
 
 BSAPI void* _bs_malloc(bs_U64 size) {
     void* p = malloc(size);
 
     if (!p) {
-        bs_criticalF("malloc(%lld) returned NULL\n", size);
+        _bs_criticalF("malloc(%lld) returned NULL\n", size);
         return NULL;
     }
 
@@ -182,14 +182,14 @@ BSAPI void* _val_bs_calloc(bs_U64 num_units, bs_U64 unit_size) {
     BS_VALIDATE(num_units > 0, NULL,);
     BS_VALIDATE(unit_size > 0, NULL,);
 
-    return bs_calloc(num_units, unit_size);
+    return _bs_calloc(num_units, unit_size);
 }
 
 BSAPI void* _bs_calloc(bs_U64 num_units, bs_U64 unit_size) {
     void* p = calloc(num_units, unit_size);
 
     if (!p) {
-        bs_criticalF("calloc(%lld, %lld) returned NULL\n", num_units, unit_size);
+        _bs_criticalF("calloc(%lld, %lld) returned NULL\n", num_units, unit_size);
         return NULL;
     }
 
@@ -201,14 +201,14 @@ BSAPI void* _bs_calloc(bs_U64 num_units, bs_U64 unit_size) {
  */
 BSAPI void* _val_bs_realloc(void* p, bs_U64 size) {
     BS_VALIDATE(size != 0, NULL, );
-    return bs_realloc(p, size);
+    return _bs_realloc(p, size);
 }
 
 BSAPI void* _bs_realloc(void* p, bs_U64 size) {
     p = realloc(p, size);
 
     if (!p) {
-        bs_warnF("realloc(%lld) returned NULL\n", size);
+        _bs_warnF("realloc(%lld) returned NULL\n", size);
         return NULL;
     }
 
@@ -237,15 +237,15 @@ BSAPI int _bs_formatStringLength(const char* format, va_list args) {
 }
 
 BSAPI const char* _bs_checkStringPool(bs_List* pool, char* string) {
-    bs_U64 hash = bs_stringHash(string);
+    bs_U64 hash = _bs_stringHash(string);
 
     for (int i = 0; i < pool->count; i++) {
-        bs_StringPoolEntry* entry = bs_fetchUnit(pool, i);
+        bs_StringPoolEntry* entry = _bs_fetchUnit(pool, i);
         if (hash == entry->hash)
             return entry->string;
     }
 
-    bs_StringPoolEntry* entry = bs_pushBack(pool, NULL);
+    bs_StringPoolEntry* entry = _bs_pushBack(pool, NULL);
     entry->hash = hash;
     entry->string = strdup(string);
 
@@ -257,14 +257,14 @@ BSAPI bs_String* _bs_stringAlloc(bs_String* old, int len) {
 
     if (old) {
         if (old->capacity < len)
-            data = bs_realloc(old, sizeof(bs_String) + len + 1);
+            data = _bs_realloc(old, sizeof(bs_String) + len + 1);
         else {
             len = old->capacity;
             data = old;
         }
     }
     else 
-        data = bs_malloc(sizeof(bs_String) + len + 1);
+        data = _bs_malloc(sizeof(bs_String) + len + 1);
 
     memset(data, 0, sizeof(bs_String));
     data->capacity = len;
@@ -275,7 +275,7 @@ BSAPI bs_String* _bs_stringAlloc(bs_String* old, int len) {
 BSAPI bs_String* _bs_string(bs_String* old, char* str, int len) {
     if (len < 0)
         len = strlen(str);
-    bs_String* data = bs_stringAlloc(old, len);
+    bs_String* data = _bs_stringAlloc(old, len);
     if (str)
         memcpy(data->value, str, len);
     data->value[len] = '\0';
@@ -284,7 +284,7 @@ BSAPI bs_String* _bs_string(bs_String* old, char* str, int len) {
 }
 
 BSAPI bs_String* _bs_emptyString(bs_String* old) {
-    return bs_string(old, "", 0);
+    return _bs_string(old, "", 0);
 }
 
 BSAPI void _bs_shortenString(bs_String* string, int len) {
@@ -294,10 +294,10 @@ BSAPI void _bs_shortenString(bs_String* string, int len) {
 
 BSAPI bs_String* _bs_appendString(bs_String* string, char* append, int len) {
     if (!string)
-        string = bs_stringAlloc(NULL, len + BS_STRING_OVERHEAD);
+        string = _bs_stringAlloc(NULL, len + BS_STRING_OVERHEAD);
     else if ((string->capacity - string->len) < len + 1) {
         string->capacity = string->len + len + BS_STRING_OVERHEAD;
-        string = bs_realloc(string, sizeof(bs_String) + string->capacity + 1);
+        string = _bs_realloc(string, sizeof(bs_String) + string->capacity + 1);
     }
     strncat(string->value, append, len);
     string->len += len;
@@ -307,10 +307,10 @@ BSAPI bs_String* _bs_appendString(bs_String* string, char* append, int len) {
 
 BSAPI bs_String* _bs_appendChar(bs_String* string, char c) {
     if (!string)
-        string = bs_stringAlloc(NULL, BS_STRING_OVERHEAD);
+        string = _bs_stringAlloc(NULL, BS_STRING_OVERHEAD);
     else if ((string->capacity - string->len) < 1) {
         string->capacity += BS_STRING_OVERHEAD;
-        string = bs_realloc(string, sizeof(bs_String) + string->capacity + 1);
+        string = _bs_realloc(string, sizeof(bs_String) + string->capacity + 1);
     }
 
     string->value[string->len++] = c;
@@ -338,7 +338,7 @@ BSAPI void _val_bs_removeCharRange(bs_String* string, int start, int count) {
     BS_VALIDATE(count >= 0,,);
     BS_VALIDATE(start < string->len,,);
 
-    bs_removeCharRange(string, start, count);
+    _bs_removeCharRange(string, start, count);
 }
 
 BSAPI void _bs_removeCharRange(bs_String* string, int start, int count) {
@@ -360,16 +360,16 @@ BSAPI bs_String* _val_bs_insertChar(bs_String* string, int index, char c) {
     BS_VALIDATE(index >= 0, NULL,,);
     BS_VALIDATE(index <= string->len, NULL,,);
 
-    return bs_insertChar(string, index, c);
+    return _bs_insertChar(string, index, c);
 }
 
 BSAPI bs_String* _bs_insertChar(bs_String* string, int index, char c) {
     if (!string)
-        string = bs_stringAlloc(NULL, BS_STRING_OVERHEAD);
+        string = _bs_stringAlloc(NULL, BS_STRING_OVERHEAD);
 
     if ((string->capacity - string->len) < 1) {
         string->capacity += BS_STRING_OVERHEAD;
-        string = bs_realloc(string, sizeof(bs_String) + string->capacity + 1);
+        string = _bs_realloc(string, sizeof(bs_String) + string->capacity + 1);
     }
 
     memmove(
@@ -386,8 +386,8 @@ BSAPI bs_String* _bs_insertChar(bs_String* string, int index, char c) {
 
 BSAPI bs_String* _bs_appendPath(bs_String* string, char* path, int path_len) {
     if (path_len == 0 || string->value[string->len - 1] != '/')
-        string = bs_appendChar(string, '/');
-    return bs_appendString(string, path, path_len);
+        string = _bs_appendChar(string, '/');
+    return _bs_appendString(string, path, path_len);
 }
 
 BSAPI void _bs_replaceCharOccurrences(char* string, int string_len, char a, char b) {
@@ -402,7 +402,7 @@ BSAPI void _bs_replaceCharOccurrences(char* string, int string_len, char a, char
   */
 BSAPI void _val_bs_toLower(char* string, int len) {
     BS_VALIDATE(len >= 0,,);
-    bs_toLower(string, len);
+    _bs_toLower(string, len);
 }
 
 BSAPI void _bs_toLower(char* string, int len) {
@@ -415,7 +415,7 @@ BSAPI void _bs_toLower(char* string, int len) {
   */
 BSAPI void _val_bs_toUpper(char* string, int len) {
     BS_VALIDATE(len >= 0,,);
-    bs_toUpper(string, len);
+    _bs_toUpper(string, len);
 }
 
 BSAPI void _bs_toUpper(char* string, int len) {
@@ -465,7 +465,7 @@ BSAPI bool _bs_endsWith(const char* string, const char* suffix) {
 
 BSAPI char _val_bs_lastChar(char* string, int len) {
     BS_VALIDATE(len > 0, '\0',,);
-    return bs_lastChar(string, len);
+    return _bs_lastChar(string, len);
 }
 
 BSAPI char _bs_lastChar(char* string, int len) {
@@ -484,7 +484,7 @@ BSAPI bs_Result _bs_widen(char* src, wchar_t* dst, bs_U32 dst_size) {
     int result = MultiByteToWideChar(CP_UTF8, 0, src, -1, dst, dst_size);
     if (result == 0) {
         BS_WARN_WIN32_PATH("MultiByteToWideChar", src);
-        return bs_convertWin32Error(GetLastError());
+        return _bs_convertWin32Error(GetLastError());
     }
 
     return BS_RESULT_OK;
@@ -494,7 +494,7 @@ BSAPI bs_Result _bs_unwiden(wchar_t* src, char* dst, bs_U32 dst_size) {
     int result = WideCharToMultiByte(CP_UTF8, 0, src, -1, dst, dst_size, NULL, NULL);
     if (result == 0) {
         BS_WARN_WIN32_PATH("WideCharToMultiByte", src);
-        return bs_convertWin32Error(GetLastError());
+        return _bs_convertWin32Error(GetLastError());
     }
 
     return BS_RESULT_OK;
@@ -509,7 +509,7 @@ BSAPI bs_Result _bs_unwiden(wchar_t* src, char* dst, bs_U32 dst_size) {
 
 BSAPI bool _bs_listContains(bs_List* list, void* data) {
     for (int i = 0; i < list->count; i++) {
-        void* compare = bs_fetchUnit(list, i);
+        void* compare = _bs_fetchUnit(list, i);
 
         if (memcmp(compare, data, list->unit_size) == 0)
             return true;
@@ -522,27 +522,27 @@ BSAPI void* _val_bs_fetchUnit(bs_List* list, bs_U32 offset) {
     BS_VALIDATE(list->data != NULL, NULL,);
     BS_VALIDATE(offset < list->count, NULL, );
 
-    return bs_fetchUnit(list, offset);
+    return _bs_fetchUnit(list, offset);
 }
 
-BSAPI void* _val_bs_seekList(bs_List* list, bs_U32 offset) {
+BSAPI void _val_bs_seekList(bs_List* list, bs_U32 offset) {
     BS_VALIDATE(list->data != NULL, NULL, );
     BS_VALIDATE(offset < list->capacity, NULL, );
 
-    return bs_fetchUnit(list, offset);
+    return _bs_seekList(list, offset);
 }
 
-BSAPI void* _bs_seekList(bs_List* list, bs_U32 offset) {
-    return _bs_fetchUnit(list, offset);
+BSAPI void _bs_seekList(bs_List* list, bs_U32 offset) {
+    list->count = 0;
 }
 
 BSAPI void* _val_bs_fetchLast(bs_List* list) {
     BS_VALIDATE(list->count > 0, NULL, );
-    return bs_fetchLast(list);
+    return _bs_fetchLast(list);
 }
 
 BSAPI void* _bs_fetchLast(bs_List* list) {
-    return bs_fetchUnit(list, list->count - 1);
+    return _bs_fetchUnit(list, list->count - 1);
 }
 
 BSAPI void _bs_ensureSize(bs_List* list, bs_U32 num_units) {
@@ -551,7 +551,7 @@ BSAPI void _bs_ensureSize(bs_List* list, bs_U32 num_units) {
 
     bs_U32 prev_capacity = list->capacity;
     list->capacity += BS_MAX(num_units, list->increment);
-    list->data = bs_realloc(list->data, list->capacity * list->unit_size);
+    list->data = _bs_realloc(list->data, list->capacity * list->unit_size);
 
     bs_U32 size = (list->capacity - prev_capacity) * list->unit_size;
 
@@ -568,7 +568,7 @@ BSAPI void* _bs_pushBackUnsafe(bs_List* list, char* data) {
 }
 
 BSAPI void* _bs_pushBack(bs_List* list, char* data) {
-    bs_ensureSize(list, 1);
+    _bs_ensureSize(list, 1);
 
     char* dest = _bs_fetchUnit(list, list->count);
     if (data)
@@ -582,15 +582,15 @@ BSAPI void* _bs_pushBack(bs_List* list, char* data) {
 BSAPI void* _val_bs_pushBackList(bs_List* source, bs_List* destination) {
     BS_VALIDATE(source->unit_size == destination->unit_size, NULL,);
 
-    return bs_pushBackList(source, destination);
+    return _bs_pushBackList(source, destination);
 }
 
 BSAPI void* _bs_pushBackList(bs_List* source, bs_List* destination) {
-    bs_ensureSize(destination, source->count);
+    _bs_ensureSize(destination, source->count);
 
     bs_U8* dest = _bs_fetchUnit(destination, destination->count);
     for (int i = 0; i < source->count; i++) {
-        void* data = bs_fetchUnit(source, i);
+        void* data = _bs_fetchUnit(source, i);
         memcpy(dest + i * destination->unit_size, data, destination->unit_size);
     }
 
@@ -601,7 +601,7 @@ BSAPI void* _bs_pushBackList(bs_List* source, bs_List* destination) {
 BSAPI void _val_bs_erase(bs_List* list, int index, bs_U32 count) {
     BS_VALIDATE((index + count - 1) < list->count,, );
 
-    bs_erase(list, index, count);
+    _bs_erase(list, index, count);
 }
 
 BSAPI void _bs_erase(bs_List* list, int index, bs_U32 count) {
@@ -616,7 +616,7 @@ BSAPI void _bs_erase(bs_List* list, int index, bs_U32 count) {
 }
 
 BSAPI void _bs_destroyList(bs_List* list) {
-    bs_free(list->data);
+    _bs_free(list->data);
     list->capacity = 0;
     list->data = NULL;
 }
@@ -624,7 +624,7 @@ BSAPI void _bs_destroyList(bs_List* list) {
 BSAPI void _bs_minimizeList(bs_List* list) {
     bs_U64 smallest = (list->count * list->unit_size);
     if (smallest < list->capacity) {
-        list->data = bs_realloc(list->data, smallest);
+        list->data = _bs_realloc(list->data, smallest);
         list->capacity = smallest;
     }
 }
@@ -646,16 +646,16 @@ BSAPI bs_List _bs_list(int unit_size, int increment) {
      Iterate documents
      */
 #ifdef _WIN32
-static inline bs_Result bs_iterateDocuments(int is_file, int(*x)(bs_FileInfo, void*), void* param, const char* directory) {
-    char path[MAX_PATH];
+static inline bs_Result _bs_iterateDocuments(int is_file, int(*x)(bs_FileInfo, void*), void* param, const char* directory, int directory_length) {
+    char path[MAX_PATH]; // TODO: is this fine
     path[0] = '\0';
-    int directory_len = strlen(directory);
-    strncat(path, directory, directory_len);
-    if (directory[directory_len - 1] == '/') {
+
+    strncat(path, directory, directory_length);
+    if (directory[directory_length - 1] == '/') {
         strncat(path, "*", 1);
     }
     else {
-        directory_len++;
+        directory_length++;
         strncat(path, "/*", 2);
     }
 
@@ -663,7 +663,7 @@ static inline bs_Result bs_iterateDocuments(int is_file, int(*x)(bs_FileInfo, vo
     HANDLE handle = FindFirstFile(path, &file_data);
     if (handle == INVALID_HANDLE_VALUE) {
         BS_WARN_WIN32_PATH("FindFirstFile", directory);
-        return bs_convertWin32Error(GetLastError());
+        return _bs_convertWin32Error(GetLastError());
     }
 
     do {
@@ -672,7 +672,7 @@ static inline bs_Result bs_iterateDocuments(int is_file, int(*x)(bs_FileInfo, vo
             (file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) 
         {
             if (file_data.cFileName[0] == '.') continue;
-            strcpy(path + directory_len, file_data.cFileName);
+            strcpy(path + directory_length, file_data.cFileName);
 
             x((bs_FileInfo) {
                 .path = path,
@@ -686,36 +686,36 @@ static inline bs_Result bs_iterateDocuments(int is_file, int(*x)(bs_FileInfo, vo
     return BS_RESULT_OK;
 }
 
-BSAPI bs_Result _bs_foreachFile(void(*x)(bs_FileInfo, void*), void* param, const char* directory) {
-    return bs_iterateDocuments(true, x, param, directory);
+BSAPI bs_Result _bs_foreachFile(void(*x)(bs_FileInfo, void*), void* param, const char* directory, int directory_length) {
+    return _bs_iterateDocuments(true, x, param, directory, directory_length);
 }
 
-BSAPI bs_Result _bs_foreachDirectory(void(*x)(bs_FileInfo, void*), void* param, const char* directory) {
-    return bs_iterateDocuments(false, x, param, directory);
+BSAPI bs_Result _bs_foreachDirectory(void(*x)(bs_FileInfo, void*), void* param, const char* directory, int directory_length) {
+    return _bs_iterateDocuments(false, x, param, directory, directory_length);
 }
 
    /**
     Document counting
     */
 
-static inline void bs_increment(bs_FileInfo info, void* i) { (*(int*)i)++; }
+static inline void _bs_increment(bs_FileInfo info, void* i) { (*(int*)i)++; }
 BSAPI int _bs_numFiles(char* directory, int directory_length) {
     int i = 0;
-    bs_foreachFile(bs_increment, (void*)&i, directory, directory_length);
+    _bs_foreachFile(_bs_increment, (void*)&i, directory, directory_length);
     return i;
 }
 
 BSAPI int _bs_numDirectories(char* directory, int directory_length) {
     int i = 0;
-    bs_foreachDirectory(bs_increment, (void*)&i, directory, directory_length);
+    _bs_foreachDirectory(_bs_increment, (void*)&i, directory, directory_length);
     return i;
 }
 
 #else
-BSAPI bs_Result _bs_foreachFile(int(*x)(bs_FileInfo, void*), const char* directory) { bs_warnF("_bs_foreachFile not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
-BSAPI bs_Result _bs_foreachDirectory(int(*x)(bs_FileInfo, void*), const char* directory) { bs_warnF("_bs_foreachDirectory not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
-BSAPI bs_Result _bs_foreachFileF(int(*x)(bs_FileInfo, void*), const char* format, ...) { bs_warnF("_bs_foreachFileF not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
-BSAPI bs_Result _bs_foreachDirectoryF(int(*x)(bs_FileInfo, void*), const char* format, ...) { bs_warnF("_bs_foreachDirectoryF not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
+BSAPI bs_Result _bs_foreachFile(int(*x)(bs_FileInfo, void*), const char* directory) { _bs_warnF("_bs_foreachFile not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
+BSAPI bs_Result _bs_foreachDirectory(int(*x)(bs_FileInfo, void*), const char* directory) { _bs_warnF("_bs_foreachDirectory not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
+BSAPI bs_Result _bs_foreachFileF(int(*x)(bs_FileInfo, void*), const char* format, ...) { _bs_warnF("_bs_foreachFileF not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
+BSAPI bs_Result _bs_foreachDirectoryF(int(*x)(bs_FileInfo, void*), const char* format, ...) { _bs_warnF("_bs_foreachDirectoryF not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
 #endif
 
    /**
@@ -733,19 +733,19 @@ BSAPI char* _bs_fileName(const char* path) {
 BSAPI char* _bs_fileExtension(const char* path) {
     char* dot = strrchr(path, '.');
     if (!dot || dot == path || dot[1] == '/' || dot[1] == '\\') {
-        bs_warnF("%s: Path \"%s\" does not have a file extension\n", __func__, path);
+        _bs_warnF("%s: Path \"%s\" does not have a file extension\n", __func__, path);
         return NULL;
     }
     return dot + 1;
 }
 
 BSAPI bool _bs_fileExtensionIs(const char* path, char* extension) {
-    char* actual = bs_fileExtension(path);
+    char* actual = _bs_fileExtension(path);
     return strcmp(actual, extension) == 0;
 }
 
 #ifdef _WIN32
-static inline bs_DateTime bs_fromSystemTime(SYSTEMTIME system_time) {
+static inline bs_DateTime _bs_fromSystemTime(SYSTEMTIME system_time) {
     return (bs_DateTime) {
         .years          = system_time.wYear,
         .months         = system_time.wMonth,
@@ -757,7 +757,7 @@ static inline bs_DateTime bs_fromSystemTime(SYSTEMTIME system_time) {
     };
 }
 
-static inline SYSTEMTIME bs_toSystemTime(bs_DateTime* date_time) {
+static inline SYSTEMTIME _bs_toSystemTime(bs_DateTime* date_time) {
     return (SYSTEMTIME) {
         .wYear          = date_time->years,
         .wMonth         = date_time->months,
@@ -770,7 +770,7 @@ static inline SYSTEMTIME bs_toSystemTime(bs_DateTime* date_time) {
 }
 #endif
 
-static inline bs_DateTime bs_fromUnixTime(time_t unix_time) {
+static inline bs_DateTime _bs_fromUnixTime(time_t unix_time) {
     struct tm tm;
 
 #ifdef _WIN32
@@ -791,7 +791,7 @@ static inline bs_DateTime bs_fromUnixTime(time_t unix_time) {
     };
 }
 
-static inline time_t bs_toUnixTime(const bs_DateTime *date_time) {
+static inline time_t _bs_toUnixTime(const bs_DateTime *date_time) {
     struct tm tm = {
         .tm_year        = (int)date_time->years - 1900,
         .tm_mon         = (int)date_time->months - 1,
@@ -816,12 +816,12 @@ BSAPI bs_Result _bs_fileModifiedDate(bs_DateTime* out, char* path, int path_leng
 
     if (file == INVALID_HANDLE_VALUE) {
         BS_WARN_WIN32_PATH("CreateFile", path);
-        return bs_convertWin32Error(GetLastError());
+        return _bs_convertWin32Error(GetLastError());
     }
 
     if (!GetFileTime(file, NULL, NULL, &modified)) {
         BS_WARN_WIN32_PATH("GetFileTime", path);
-        return bs_convertWin32Error(GetLastError());
+        return _bs_convertWin32Error(GetLastError());
     }
 
     CloseHandle(file);
@@ -829,7 +829,7 @@ BSAPI bs_Result _bs_fileModifiedDate(bs_DateTime* out, char* path, int path_leng
     SYSTEMTIME system_time = { 0 };
     FileTimeToSystemTime(&modified, &system_time);
 
-    *out = bs_fromSystemTime(system_time);
+    *out = _bs_fromSystemTime(system_time);
 
     return BS_RESULT_OK;
 #else
@@ -837,10 +837,10 @@ BSAPI bs_Result _bs_fileModifiedDate(bs_DateTime* out, char* path, int path_leng
 
     if (stat(path, &st) != 0) {
         BS_WARN_ERRNO_PATH("stat", path);
-        return bs_convertErrno(errno);
+        return _bs_convertErrno(errno);
     }
 
-    *out = bs_fromUnixTime(st.st_mtime);
+    *out = _bs_fromUnixTime(st.st_mtime);
 
     return BS_RESULT_OK;
 #endif
@@ -860,22 +860,22 @@ BSAPI bs_Result _bs_setFileModifiedDate(bs_DateTime* date, char* path, int path_
 
     if (file == INVALID_HANDLE_VALUE) {
         BS_WARN_WIN32_PATH("CreateFile", path);
-        return bs_convertWin32Error(GetLastError());
+        return _bs_convertWin32Error(GetLastError());
     }
 
-    SYSTEMTIME system_time = bs_toSystemTime(date);
+    SYSTEMTIME system_time = _bs_toSystemTime(date);
     FILETIME file_time;
 
     if (!SystemTimeToFileTime(&system_time, &file_time)) {
         BS_WARN_WIN32_PATH("SystemTimeToFileTime", path);
         CloseHandle(file);
-        return bs_convertWin32Error(GetLastError());
+        return _bs_convertWin32Error(GetLastError());
     }
 
     if (!SetFileTime(file, NULL, NULL, &file_time)) {
         BS_WARN_WIN32_PATH("SetFileTime", path);
         CloseHandle(file);
-        return bs_convertWin32Error(GetLastError());
+        return _bs_convertWin32Error(GetLastError());
     }
 
     CloseHandle(file);
@@ -885,19 +885,19 @@ BSAPI bs_Result _bs_setFileModifiedDate(bs_DateTime* date, char* path, int path_
 
     if (stat(path, &st) != 0) {
         BS_WARN_ERRNO_PATH("stat", path);
-        return bs_convertErrno();
+        return _bs_convertErrno();
     }
 
     struct timespec times[2];
 
     times[0] = st.st_atim;
 
-    times[1].tv_sec = bs_toUnixTime(date);
+    times[1].tv_sec = _bs_toUnixTime(date);
     times[1].tv_nsec = 0;
 
     if (utimensat(AT_FDCWD, path, times, 0) != 0) {
         BS_WARN_ERRNO_PATH("utimensat", path);
-        return bs_convertErrno();
+        return _bs_convertErrno();
     }
 
     return BS_RESULT_OK;
@@ -923,12 +923,12 @@ BSAPI bs_Result _bs_setWorkingDirectory(char* path, int path_length) {
 #ifdef _WIN32
     if (!SetCurrentDirectory(path)) {
         BS_WARN_WIN32_PATH("SetCurrentDirectory", path);
-        return bs_convertWin32Error(GetLastError());
+        return _bs_convertWin32Error(GetLastError());
     }
 #else
     if (chdir(path) != 0) {
         BS_WARN_ERRNO_PATH("chdir", path);
-        return bs_convertErrno(errno);
+        return _bs_convertErrno(errno);
     }
 #endif
 
@@ -941,12 +941,12 @@ BSAPI bs_Result _bs_setWorkingDirectory(char* path, int path_length) {
     */
 
  /** TODO: More checks needed in here */
-static bs_String* bs_loadFileFromHandle(FILE* file) {
+static bs_String* _bs_loadFileFromHandle(FILE* file) {
     fseek(file, 0, SEEK_END);
     long len = ftell(file) + 1;
     fseek(file, 0, SEEK_SET);
 
-    bs_String* string = bs_stringAlloc(NULL, len);
+    bs_String* string = _bs_stringAlloc(NULL, len);
     string->len = len;
 
     fread(string->value, 1, len, file);
@@ -960,33 +960,33 @@ BSAPI bs_Result _bs_loadFile(const char* path, bs_String** out) {
     FILE* file = fopen(path, "rb");
     if (!file) {
         BS_WARN_ERRNO_PATH("fopen", path);
-        return bs_convertErrno();
+        return _bs_convertErrno();
     }
 
-    *out = bs_loadFileFromHandle(file);
+    *out = _bs_loadFileFromHandle(file);
     return BS_RESULT_OK;
 }
 
-BSAPI bs_Result _bs_loadFileChunk(long offset, size_t size, const char* path, bs_String** out) {
+BSAPI bs_Result _bs_loadFileChunk(long offset, size_t size, bs_String** out, char* path, int path_length) {
     FILE* file = fopen(path, "rb");
 
     if (!file) {
         BS_WARN_ERRNO_PATH("fopen", path);
-        return bs_convertErrno();
+        return _bs_convertErrno();
     }
     
     if (fseek(file, offset, SEEK_SET) != 0) {
         fclose(file);
-        return bs_convertErrno();
+        return _bs_convertErrno();
     }
 
-    bs_String* buffer = bs_stringAlloc(NULL, size);
+    bs_String* buffer = _bs_stringAlloc(NULL, size);
 
     size_t bytes_read = fread(buffer->value, 1, size, file);
     buffer->len = bytes_read;
 
     if (bytes_read != size) {
-        bs_warnF("Read %lld/%lld bytes from \"%s\" at offset %lld\n", bytes_read, size, path, offset);
+        _bs_warnF("Read %lld/%lld bytes from \"%s\" at offset %lld\n", bytes_read, size, path, offset);
         return BS_RESULT_FAILED_TO_READ;
     }
 
@@ -1004,32 +1004,32 @@ BSAPI bs_Result _bs_deleteFile(char* path, int path_length) {
 #ifdef _WIN32
     if (!DeleteFileA(path)) {
         BS_WARN_WIN32_PATH("DeleteFileA", path);
-        return bs_convertWin32Error(GetLastError());
+        return _bs_convertWin32Error(GetLastError());
     }
 #else
     if (unlink(path) != 0) {
         BS_WARN_ERRNO_PATH("unlink", path);
-        return bs_convertErrno(errno);
+        return _bs_convertErrno(errno);
     }
 #endif
 
-    bs_infoF("Deleted file %s\n", path);
+    _bs_infoF("Deleted file %s\n", path);
     return BS_RESULT_OK;
 }
 
-static void bs_doDeleteFile(bs_FileInfo file_info, int* path_length) {
-    bs_deleteFile(file_info.path, *path_length);
+static void _bs_doDeleteFile(bs_FileInfo file_info, int* path_length) {
+    _bs_deleteFile(file_info.path, *path_length);
 }
 
 BSAPI bs_Result _bs_deleteDirectoryContents(char* path, int path_length) {
 #ifdef _WIN32
-    return bs_foreachFile(bs_doDeleteFile, &path_length, path, path_length);
+    return _bs_foreachFile(_bs_doDeleteFile, &path_length, path, path_length);
 #else
 #endif
 }
 
 BSAPI bs_Result _bs_deleteDirectory(char* path, int path_length) {
-    bs_Result result = bs_deleteDirectoryContents(path, path_length);
+    bs_Result result = _bs_deleteDirectoryContents(path, path_length);
     if (result != BS_RESULT_OK) {
         return result;
     }
@@ -1037,12 +1037,12 @@ BSAPI bs_Result _bs_deleteDirectory(char* path, int path_length) {
 #ifdef _WIN32
     if (!RemoveDirectoryA(path)) {
         BS_WARN_WIN32_PATH("RemoveDirectoryA", path);
-        return bs_convertWin32Error(GetLastError());
+        return _bs_convertWin32Error(GetLastError());
     }
 #else
     if (rmdir(path) != 0) {
         BS_WARN_ERRNO_PATH("rmdir", path);
-        return bs_convertErrno(errno);
+        return _bs_convertErrno(errno);
     }
 #endif
 
@@ -1067,7 +1067,7 @@ BSAPI bs_Result _bs_appendToFile(const char* path, const char* data) {
     FILE* file = fopen(path, "ab");
     if (!file) {
         BS_WARN_ERRNO_PATH("fopen", path);
-        return bs_convertErrno();
+        return _bs_convertErrno();
     }
 
     fputs(data, file);
@@ -1079,22 +1079,22 @@ BSAPI bs_Result _bs_saveFile(const char* path, char* data, bs_U32 data_len) {
     FILE* file = fopen(path, "wb");
     if (!file) {
         BS_WARN_ERRNO_PATH("fopen", path);
-        return bs_convertErrno();
+        return _bs_convertErrno();
     }
 
     if (data)
         fwrite(data, data_len, 1, file);
     fclose(file);
 
-    bs_infoF("Saved %d bytes to %s\n", data_len, path);
+    _bs_infoF("Saved %d bytes to %s\n", data_len, path);
     return BS_RESULT_OK;
 }
 
 BSAPI bs_String* _bs_fullPath(bs_String* old, const char* path, int path_len) {
-    bs_String* cwd = bs_workingDirectory();
-    bs_String* relative_path = bs_stringAlloc(old, path_len + cwd->len);
-    relative_path = bs_appendString(relative_path, cwd->value, cwd->len);
-    relative_path = bs_appendPath(relative_path, path, path_len);
+    bs_String* cwd = _bs_workingDirectory();
+    bs_String* relative_path = _bs_stringAlloc(old, path_len + cwd->len);
+    relative_path = _bs_appendString(relative_path, cwd->value, cwd->len);
+    relative_path = _bs_appendPath(relative_path, path, path_len);
     return relative_path;
 }
 
@@ -1130,12 +1130,12 @@ BSAPI bs_GUID _bs_stringToGuid(char* string) {
 
     HRESULT hr = CLSIDFromString(formatted, &guid);
     if (FAILED(hr)) {
-        bs_warnF("CLSIDFromString failed for string \"%s\" (HRESULT %lx)\n", string, hr);
+        _bs_warnF("CLSIDFromString failed for string \"%s\" (HRESULT %lx)\n", string, hr);
         return (bs_GUID) { 0 };
     }
 #else
     if (uuid_parse(str, &guid) != 0) {
-        bs_warnF("uuid_parse failed for string \"%s\"\n", string);
+        _bs_warnF("uuid_parse failed for string \"%s\"\n", string);
         return (bs_GUID) { 0 };
     }
 #endif
@@ -1149,7 +1149,7 @@ BSAPI bs_GUID _bs_guid() {
 #ifdef _WIN32
     HRESULT hr = CoCreateGuid(&guid);
     if (FAILED(hr)) {
-        bs_warnF("CoCreateGuid failed (HRESULT %lx)\n", hr);
+        _bs_warnF("CoCreateGuid failed (HRESULT %lx)\n", hr);
         return (bs_GUID) { 0 };
     }
 #else
@@ -1205,12 +1205,12 @@ BSAPI bs_U64 _bs_toULong(const char* str) {
     bs_I64 v = strtol(str, &o, 10);
 
     if (v < 0) {
-        bs_warnF("Expected unsigned value for \"%s\"\n", str);
+        _bs_warnF("Expected unsigned value for \"%s\"\n", str);
         return 0;
     }
 
     if (str == o) {
-        bs_warnF("Failed to convert \"%s\" to ULong\n", str);
+        _bs_warnF("Failed to convert \"%s\" to ULong\n", str);
         return 0;
     }
 
@@ -1222,7 +1222,7 @@ BSAPI bs_F64 _bs_toDouble(const char *str) {
     bs_F64 v = strtod(str, &o);
 
     if (str == o) {
-        bs_warnF("Failed to convert \"%s\" to Double\n", str);
+        _bs_warnF("Failed to convert \"%s\" to Double\n", str);
         return 0.0;
     }
 
@@ -1245,7 +1245,7 @@ BSAPI void _bs_convertWin32Path(char* path, int len) {
 // todo document that this will alter the path from / to \\ for win32
 // todo document limits
 BSAPI bs_Result _bs_ensureDirectory(char* path, int path_length) {
-    bs_convertWin32Path(path, path_length);
+    _bs_convertWin32Path(path, path_length);
     DWORD file_attributes = GetFileAttributes(path);
 
     if (file_attributes == INVALID_FILE_ATTRIBUTES) {
@@ -1265,7 +1265,7 @@ BSAPI bs_Result _bs_ensureDirectory(char* path, int path_length) {
 
         if (!CreateDirectoryA(path, NULL) && GetLastError() != ERROR_ALREADY_EXISTS) {
             BS_WARN_WIN32_PATH("CreateDirectoryA", path);
-            return bs_convertWin32Error(GetLastError());
+            return _bs_convertWin32Error(GetLastError());
         }
     }
     else {
@@ -1274,7 +1274,7 @@ BSAPI bs_Result _bs_ensureDirectory(char* path, int path_length) {
             ((file_attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0);
 
        // if (!is_directory_or_junction)
-       //     bs_throwLastWin32Error(path);
+       //     _bs_throwLastWin32Error(path);
     }
 
     return BS_RESULT_OK;
@@ -1284,7 +1284,7 @@ BSAPI void _bs_findExecutablePaths() {
     char executable_path[MAX_PATH];
     int len = GetModuleFileName(NULL, executable_path, MAX_PATH);
 
-    _bs_io_.executable = bs_string(NULL, executable_path, len);
+    _bs_io_.executable = _bs_string(NULL, executable_path, len);
     char* exe_path = _bs_io_.executable->value;
 
     int i = 0;
@@ -1302,18 +1302,18 @@ BSAPI void _bs_findExecutablePaths() {
 
     len -= len - i - 1;
     _bs_io_.executable->len = len;
-    bs_infoF("Executable path = (\"%s\")\n", exe_path);
+    _bs_infoF("Executable path = (\"%s\")\n", exe_path);
 }
 
 BSAPI void _bs_findRelativePath() {
     char path[MAX_PATH]; // todo check if this can be more than max path
     int len = GetCurrentDirectory(MAX_PATH, path);
     if (len == 0) {
-        bs_warnF("_bs_findRelativePath -> GetCurrentDirectory failed with error %lu\n", GetLastError());
+        _bs_warnF("_bs_findRelativePath -> GetCurrentDirectory failed with error %lu\n", GetLastError());
         return;
     }
 
-    _bs_io_.cwd = bs_string(NULL, path, len);
+    _bs_io_.cwd = _bs_string(NULL, path, len);
     for (int i = 0; i < len; i++) {
         char c = _bs_io_.cwd->value[i];
         _bs_io_.cwd->value[i] = c == '\\' ? '/' : c;
@@ -1328,16 +1328,16 @@ BSAPI char* _bs_appdataPath() {
     HRESULT result = SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, &wpath);
 
     if (result != S_OK) {
-        bs_warnF("_bs_appdataPath -> SHGetKnownFolderPath failed with HRESULT %lx\n", result);
+        _bs_warnF("_bs_appdataPath -> SHGetKnownFolderPath failed with HRESULT %lx\n", result);
         return NULL;
     }
 
     int len = lstrlenW(wpath);
-    _bs_io_.appdata = bs_string(_bs_io_.appdata, NULL, len);
-    bs_unwiden(wpath, _bs_io_.appdata->value, len + 1);
+    _bs_io_.appdata = _bs_string(_bs_io_.appdata, NULL, len);
+    _bs_unwiden(wpath, _bs_io_.appdata->value, len + 1);
     _bs_io_.appdata->len = len;
 
-    bs_replaceCharOccurrences(_bs_io_.appdata->value, len, '\\', '/');
+    _bs_replaceCharOccurrences(_bs_io_.appdata->value, len, '\\', '/');
 
     return _bs_io_.appdata->value;
 }
@@ -1360,10 +1360,10 @@ BSAPI void _bs_copyToClipboard(char* s, int len) {
     SetClipboardData(CF_TEXT, mem);
     CloseClipboard();
 
-    bs_infoF("Copied %s to the clipboard\n", s);
+    _bs_infoF("Copied %s to the clipboard\n", s);
 }
 #else
 BSAPI void _bs_copyToClipboard(char* s, int len) {
-    bs_warnF("bs_copyToClipboard has not been implemented for this OS yet\n");
+    _bs_warnF("bs_copyToClipboard has not been implemented for this OS yet\n");
 }
 #endif

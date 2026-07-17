@@ -208,18 +208,14 @@ typedef enum bs_JsonType bs_JsonType;
 typedef enum bs_ShaderType bs_ShaderType;
 typedef enum bs_BindType bs_BindType;
 
-#ifdef _WIN32
 #define bs_alloca                                                    \
     _alloca
-#else
+
 #define bs_alloca                                                    \
     alloca
-#endif
 
-#ifdef _WIN32
 #define BS_WARN_WIN32_PATH(function, path)                           \
     bs_warnF("%s: %s failed for \"%s\" (Win32 error %lu = \"%s\")\n", __func__, function, path, GetLastError(), bs_serializeWin32Error(GetLastError()))
-#endif
 
 #define BS_RGBA(r, g, b, a)                                          \
     (bs_RGBA) { r, g, b, a }
@@ -2525,6 +2521,7 @@ struct bs_Props {
 
 enum bs_Result {
     BS_RESULT_OK,
+    BS_RESULT_WAITING,
     BS_RESULT_GENERAL_ERROR,
     BS_RESULT_INTEGER_OVERFLOW,
     BS_RESULT_INVALID_BASE64_PADDING,
@@ -2539,6 +2536,7 @@ enum bs_Result {
     BS_RESULT_FAILED_TO_ENCODE,
     BS_RESULT_FAILED_TO_READ,
     BS_RESULT_FAILED_TO_INSPECT,
+    BS_RESULT_FAILED_TO_PARSE,
     BS_RESULT_OUT_OF_BOUNDS,
     BS_RESULT_VALIDATION_ERROR,
     BS_RESULT_ZERO_ALLOC,
@@ -4140,9 +4138,9 @@ bs_look(
   @param p3
   @param out
   @param out_length
-  @return float
+  @return void
   */
-BSAPI float
+BSAPI void
 bs_v2CubicBezier(
     const bs_vec2* p0,
     const bs_vec2* p1,
@@ -4157,9 +4155,9 @@ bs_v2CubicBezier(
   @param p2
   @param out
   @param out_length
-  @return float
+  @return void
   */
-BSAPI float
+BSAPI void
 bs_v2QuadBezier(
     const bs_vec2* p0,
     const bs_vec2* p1,
@@ -4174,9 +4172,9 @@ bs_v2QuadBezier(
   @param p3
   @param out
   @param out_length
-  @return float
+  @return void
   */
-BSAPI float
+BSAPI void
 bs_v3CubicBezier(
     const bs_vec3* p0,
     const bs_vec3* p1,
@@ -4191,9 +4189,9 @@ bs_v3CubicBezier(
   @param p2
   @param out
   @param out_length
-  @return float
+  @return void
   */
-BSAPI float
+BSAPI void
 bs_v3QuadBezier(
     const bs_vec3* p0,
     const bs_vec3* p1,
@@ -4597,9 +4595,9 @@ bs_swapchainImage();
   @param index
   @param resolution
   @param value
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_clearStencil(
     bs_U32 index,
     bs_ivec2 resolution,
@@ -4609,9 +4607,9 @@ bs_clearStencil(
   @param index
   @param dim
   @param value
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_clearDepth(
     bs_U32 index,
     bs_ivec2 dim,
@@ -4622,9 +4620,9 @@ bs_clearDepth(
   @param dim
   @param depth_value
   @param stencil_value
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_clearDepthStencil(
     bs_U32 index,
     bs_ivec2 dim,
@@ -4635,9 +4633,9 @@ bs_clearDepthStencil(
   @param index
   @param dim
   @param color
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_clearColor(
     bs_U32 index,
     bs_ivec2 dim,
@@ -4646,26 +4644,26 @@ bs_clearColor(
  /**
   @param face
   @param reference
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_stencilReference(
     bs_FaceType face,
     bs_U32 reference);
 
  /**
   @param flags
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_cull(
     bs_CullFlags flags);
 
  /**
   @param width
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_setLineWidth(
     float width);
 
@@ -4701,9 +4699,9 @@ bs_render(
   @param dst
   @param src_access
   @param dst_access
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_barrier(
     bs_U32 dependency_flags,
     bs_U32 src,
@@ -4717,9 +4715,9 @@ bs_barrier(
   @param width
   @param height
   @param depth
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_rayTrace(
     bs_RayTracer* ray_tracer,
     bs_Pipeline* pipeline,
@@ -4744,9 +4742,9 @@ bs_rayTracer(
  /**
   @param ray_tracer
   @param aabb
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_accelerateAabb(
     bs_RayTracer* ray_tracer,
     bs_Aabb aabb);
@@ -4754,9 +4752,9 @@ bs_accelerateAabb(
  /**
   @param ray_tracer
   @param batch
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_accelerateBatch(
     bs_RayTracer* ray_tracer,
     bs_Batch* batch);
@@ -4771,9 +4769,9 @@ bs_build(
 
  /**
   @param ray_tracer
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_destroyRayTracer(
     bs_RayTracer* ray_tracer);
 
@@ -4782,9 +4780,9 @@ bs_destroyRayTracer(
   @param x
   @param y
   @param z
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_dispatchAsync(
     bs_Pipeline* pipeline,
     bs_U32 x,
@@ -4803,9 +4801,9 @@ bs_bufferSwaps(
   @param buffer
   @param value
   @param value_length
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_nameBuffer(
     bs_Buffer* buffer,
     char* value,
@@ -4815,9 +4813,9 @@ bs_nameBuffer(
   @param buffer
   @param format
   @param args
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_nameBufferV(
     bs_Buffer* buffer,
     char* format,
@@ -4827,9 +4825,9 @@ bs_nameBufferV(
   @param buffer
   @param format
   @param ...
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_nameBufferF(
     bs_Buffer* buffer,
     char* format,
@@ -4879,9 +4877,9 @@ bs_mapBuffer(
 
  /**
   @param buffer
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_unmapBuffer(
     bs_Buffer* buffer);
 
@@ -4971,15 +4969,15 @@ bs_batch(
 
  /**
   @param batch
-  @param value
-  @param value_length
+  @param name
+  @param name_length
   @return bs_Attribute*
   */
 BSAPI bs_Attribute*
 bs_queryAttribute(
     bs_Batch* batch,
-    char* value,
-    int value_length);
+    char* name,
+    int name_length);
 
  /**
   @param batch
@@ -5023,9 +5021,9 @@ bs_batchIsIndexed(
 
  /**
   @param batch
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_minimizeBatch(
     bs_Batch* batch);
 
@@ -5043,17 +5041,17 @@ bs_pushBatch(
 
  /**
   @param batch
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_unpushBatch(
     bs_Batch* batch);
 
  /**
   @param batch
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_destroyBatch(
     bs_Batch* batch);
 
@@ -5069,9 +5067,9 @@ bs_recreateBatch(
   @param batch
   @param num_indices
   @param num_vertices
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_ensureBatchSize(
     bs_Batch* batch,
     bs_U32 num_indices,
@@ -5123,9 +5121,9 @@ bs_pushIndices(
   @param batch
   @param offset
   @param color
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchCube(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5148,9 +5146,9 @@ bs_pushCube(
   @param height
   @param radius
   @param color
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchCone(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5183,9 +5181,9 @@ bs_pushCone(
   @param texture_offset
   @param texture_coords
   @param color
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchRectangle(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5218,9 +5216,9 @@ bs_pushRectangle(
   @param offset
   @param quad
   @param color
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchQuad(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5246,9 +5244,9 @@ bs_pushQuad(
   @param b
   @param c
   @param color
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchTriangle(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5279,9 +5277,9 @@ bs_pushTriangle(
   @param start
   @param end
   @param color
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchLine(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5308,9 +5306,9 @@ bs_pushLine(
   @param offset
   @param ray
   @param color
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchRay(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5334,9 +5332,9 @@ bs_pushRay(
   @param offset
   @param position
   @param color
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchPoint(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5360,9 +5358,9 @@ bs_pushPoint(
   @param offset
   @param aabb
   @param color
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchAabb(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5389,9 +5387,9 @@ bs_pushAabb(
   @param lats
   @param longs
   @param color
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchSphere(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5426,9 +5424,9 @@ bs_pushSphere(
   @param width
   @param height
   @param color
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchPyramid(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5460,9 +5458,9 @@ bs_pushPyramid(
   @param width
   @param height
   @param color
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchBipyramid(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5491,9 +5489,9 @@ bs_pushBipyramid(
   @param batch
   @param offset
   @param primitive
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchPrimitive(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5513,9 +5511,9 @@ bs_pushPrimitive(
   @param batch
   @param offset
   @param mesh
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchMesh(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5535,9 +5533,9 @@ bs_pushMesh(
   @param batch
   @param offset
   @param model
-  @return bs_Range
+  @return void
   */
-BSAPI bs_Range
+BSAPI void
 bs_batchModel(
     bs_Batch* batch,
     bs_U32* offset,
@@ -5615,9 +5613,9 @@ bs_dependency(
 
  /**
   @param renderer
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_renderPass(
     bs_Renderer* renderer);
 
@@ -5703,18 +5701,18 @@ bs_queueFamily(
   @param queue
   @param wait_queues
   @param wait_queues_count
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_present(
     bs_Queue* queue,
     bs_Queue* wait_queues[],
     int wait_queues_count);
 
  /**
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_acquire();
 
  /**
@@ -5744,9 +5742,9 @@ bs_awaitAcquisition();
  /**
   @param queue
   @param function
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_enqueue(
     bs_Queue* queue,
     bs_Callback function);
@@ -5807,9 +5805,9 @@ bs_stall(
 
  /**
   @param queue
-  @return bool
+  @return bs_Result
   */
-BSAPI bool
+BSAPI bs_Result
 bs_poll(
     bs_Queue* queue);
 
@@ -6199,9 +6197,9 @@ bs_queryImageIndex(
   @param buffer_offset
   @param offset
   @param resolution
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_copyImageToBufferAsync(
     bs_Image* image,
     bs_Buffer* buffer,
@@ -6216,9 +6214,9 @@ bs_copyImageToBufferAsync(
   @param image
   @param index
   @param layout
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_copyBufferToImage(
     bs_Buffer* buffer,
     bs_Image* image,
@@ -6227,9 +6225,9 @@ bs_copyBufferToImage(
 
  /**
   @param operation
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_blit(
     bs_BlitOperation operation);
 
@@ -6308,18 +6306,18 @@ bs_hasAlpha(
  /**
   @param image
   @param name
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_nameImage(
     bs_Image* image,
     const char* name);
 
  /**
   @param sampler
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_destroySampler(
     bs_Sampler* sampler);
 
@@ -6441,9 +6439,9 @@ bs_queryAtlas(
 
  /**
   @param atlas
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_destroyAtlas(
     bs_Atlas* atlas);
 
@@ -6546,9 +6544,9 @@ bs_pushQueue(
   @param type
   @param value
   @param value_length
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bsi_nameHandle(
     bs_U64 handle,
     bs_U32 type,
@@ -6560,9 +6558,9 @@ bsi_nameHandle(
   @param type
   @param format
   @param args
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bsi_nameHandleV(
     bs_U64 handle,
     bs_U32 type,
@@ -6574,9 +6572,9 @@ bsi_nameHandleV(
   @param type
   @param format
   @param ...
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bsi_nameHandleF(
     bs_U64 handle,
     bs_U32 type,
@@ -7334,9 +7332,9 @@ bs_stringF(
  /**
   @param string
   @param len
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_toUpper(
     char* string,
     int len);
@@ -7344,9 +7342,9 @@ bs_toUpper(
  /**
   @param string
   @param len
-  @return bs_Result
+  @return void
   */
-BSAPI bs_Result
+BSAPI void
 bs_toLower(
     char* string,
     int len);
@@ -7418,9 +7416,9 @@ bs_workingDirectory();
  /**
   @param path
   @param path_length
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_setWorkingDirectory(
     char* path,
     int path_length);
@@ -7428,9 +7426,9 @@ bs_setWorkingDirectory(
  /**
   @param format
   @param args
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_setWorkingDirectoryV(
     char* format,
     va_list args);
@@ -7438,9 +7436,9 @@ bs_setWorkingDirectoryV(
  /**
   @param format
   @param ...
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_setWorkingDirectoryF(
     char* format,
      ...);
@@ -8572,12 +8570,14 @@ bs_destroyShader(
  /**
   @param compute_shader
   @param flags
-  @return bs_Pipeline*
+  @param out
+  @return bs_Result
   */
-BSAPI bs_Pipeline*
+BSAPI bs_Result
 bs_computePipeline(
     bs_Shader* compute_shader,
-    bs_PipelineFlags flags);
+    bs_PipelineFlags flags,
+    bs_Pipeline** out);
 
  /**
   @param pipeline
@@ -8662,7 +8662,6 @@ bs_loadBindings(
   @param bind_point_slot
   @param descriptors
   @param descriptors_count
-  @param out
   @return bs_Result
   */
 BSAPI bs_Result
@@ -8670,8 +8669,7 @@ bs_binding(
     bs_U32 bind_set_slot,
     bs_U32 bind_point_slot,
     bs_Descriptor* descriptors,
-    int descriptors_count,
-    bs_Binding** out);
+    int descriptors_count);
 
  /**
   @param bind_set_slot
@@ -9016,13 +9014,15 @@ bs_moveWindow(
     int y);
 
  /**
+  @param object
   @param width
   @param height
   @param title
-  @return void
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_window(
+    bs_Object* object,
     bs_U32 width,
     bs_U32 height,
     const char* title);

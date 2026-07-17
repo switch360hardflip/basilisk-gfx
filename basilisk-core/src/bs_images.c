@@ -45,7 +45,7 @@ BSAPI bool _bs_isStencilFormat(bs_Format format) {
 }
 
 BSAPI bool _bs_isDepthFormat(bs_Format format) {
-    return bs_isStencilFormat(format) ||
+    return _bs_isStencilFormat(format) ||
         format == BS_FORMAT_D16_UNORM || format == BS_FORMAT_D32_SFLOAT;
 }
 
@@ -67,7 +67,7 @@ BSAPI bool _bs_hasAlpha(bs_Format format) {
         format == BS_FORMAT_B8G8R8A8_SRGB;
 }
 
-static inline const char* bs_layoutName(bs_ImageLayout layout) {
+static inline const char* _bs_layoutName(bs_ImageLayout layout) {
     switch (layout) {
         case BS_LAYOUT_UNDEFINED: return "Undefined";
         case BS_LAYOUT_GENERAL: return "General";
@@ -98,7 +98,7 @@ BSAPI int _bs_imageSwapsCount(bs_Image* image) {
 BSAPI void _val_bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout, bs_ImageLayout new_layout) {
     BS_VALIDATE(old_layout != new_layout,,);
     BS_VALIDATE(index == 0 || index < image->num_indices,,);
-    bs_transition(image, index, old_layout, new_layout);
+    _bs_transition(image, index, old_layout, new_layout);
 }
 
 BSAPI void _bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout, bs_ImageLayout new_layout) {
@@ -232,7 +232,7 @@ BSAPI void _bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout,
         dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     }
     else {
-        bs_warnF("Unknown layout transition %s -> %s\n", bs_layoutName(old_layout), bs_layoutName(new_layout));
+        _bs_warnF("Unknown layout transition %s -> %s\n", _bs_layoutName(old_layout), _bs_layoutName(new_layout));
     }
 
     vkCmdPipelineBarrier(
@@ -244,20 +244,20 @@ BSAPI void _bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout,
         1, &barrier);
 
     if (_bs_scope_.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
-        bs_pushQueue(_bs_scope_.queue);
+        _bs_pushQueue(_bs_scope_.queue);
         result = vkQueueWaitIdle(_bs_scope_.queue->queue);
     }
 }
 
 BSAPI void _bs_nameImage(bs_Image* image, const char* name) {
-    for (int i = 0; i < bs_imageSwapsCount(image); i++) {
+    for (int i = 0; i < _bs_imageSwapsCount(image); i++) {
         bsi_nameHandleF(image->_[i].vk_image, VK_OBJECT_TYPE_IMAGE, BS_PRINT_COLOR("%s", BS_PRINT_BLUE_BRIGHT), name);
         bsi_nameHandleF(image->_[i].vk_image_view, VK_OBJECT_TYPE_IMAGE_VIEW, BS_PRINT_COLOR("%s (View)", BS_PRINT_BLUE_BRIGHT), name);
         bsi_nameHandleF(image->_[i].vk_memory, VK_OBJECT_TYPE_DEVICE_MEMORY, BS_PRINT_COLOR("%s (Memory)", BS_PRINT_BLUE_BRIGHT), name);
     }
 }
 
-static inline bs_Result bs_queryMemoryType(bs_U32 filter, VkMemoryPropertyFlags props, bs_U32* out) {
+static inline bs_Result _bs_queryMemoryType(bs_U32 filter, VkMemoryPropertyFlags props, bs_U32* out) {
     VkPhysicalDeviceMemoryProperties mem_props;
     vkGetPhysicalDeviceMemoryProperties(_bs_instance_->physical_device, &mem_props);
 
@@ -272,7 +272,7 @@ static inline bs_Result bs_queryMemoryType(bs_U32 filter, VkMemoryPropertyFlags 
 }
 
  /** TODO: this doesn't use swaps atm */
-static bs_Result bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, VkImageUsageFlags usage_flags, VkImageAspectFlags aspect_flags) {
+static bs_Result _bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, VkImageUsageFlags usage_flags, VkImageAspectFlags aspect_flags) {
     VkResult vk_result;
     bs_Result result;
 
@@ -302,7 +302,7 @@ static bs_Result bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, V
     vk_result = vkCreateImage(_bs_instance_->device, &image_ci, NULL, &image->_->vk_image);
     if (vk_result != VK_SUCCESS) {
         BS_WARN_VULKAN_ERROR("vkCreateImage", vk_result, "(%d, %d)", source_id, id);
-        return bs_convertVulkanResult(vk_result);
+        return _bs_convertVulkanResult(vk_result);
     }
 
     VkMemoryRequirements mem_req;
@@ -312,9 +312,9 @@ static bs_Result bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, V
         &mem_req);
     
     bs_U32 memory_type = 0;
-    result = bs_queryMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memory_type);
+    result = _bs_queryMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &memory_type);
     if (result != BS_RESULT_OK) {
-        bs_warnF("Failed to query memory type for image (%d, %d)\n", source_id, id);
+        _bs_warnF("Failed to query memory type for image (%d, %d)\n", source_id, id);
         return result;
     }
 
@@ -327,13 +327,13 @@ static bs_Result bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, V
     vk_result = vkAllocateMemory(_bs_instance_->device, &alloc_i, NULL, &image->_->vk_memory);
     if (vk_result != VK_SUCCESS) {
         BS_WARN_VULKAN_ERROR("vkAllocateMemory", result, "(%d, %d)", source_id, id);
-        return bs_convertVulkanResult(vk_result);
+        return _bs_convertVulkanResult(vk_result);
     }
 
     vk_result = vkBindImageMemory(_bs_instance_->device, image->_->vk_image, image->_->vk_memory, 0);
     if (vk_result != VK_SUCCESS) {
         BS_WARN_VULKAN_ERROR("vkBindImageMemory", result, "(%d, %d)", source_id, id);
-        return bs_convertVulkanResult(vk_result);
+        return _bs_convertVulkanResult(vk_result);
     }
 
    /**
@@ -359,21 +359,21 @@ static bs_Result bs_prepareImage(bs_U32 source_id, bs_U32 id, bs_Image* image, V
     vk_result = vkCreateImageView(_bs_instance_->device, &image_view_ci, NULL, &image->_->vk_image_view);
     if (vk_result != VK_SUCCESS) {
         BS_WARN_VULKAN_ERROR("vkCreateImageView", result, "(%d, %d)", source_id, id);
-        return bs_convertVulkanResult(vk_result);
+        return _bs_convertVulkanResult(vk_result);
     }
 
     if (id != 0)
-        bs_nameImage(image, bs_idName(source_id, id));
+        _bs_nameImage(image, _bs_idName(source_id, id));
 
     return BS_RESULT_OK;
 }
 
-static bs_Result bs_depthImage(bs_Object* object, bs_ivec2 dim, int num_indices, bs_Format format, bs_U32 flags) {
+static bs_Result _bs_depthImage(bs_Object* object, bs_ivec2 dim, int num_indices, bs_Format format, bs_U32 flags) {
     bs_Image* image = object->image;
 
     bs_U32 num_swaps = flags & BS_IMAGE_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
 
-    bs_prepareImage(image->head.source_id, image->head.id, image,
+    _bs_prepareImage(image->head.source_id, image->head.id, image,
         (flags & BS_IMAGE_ATTACHMENT_BIT       ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : 0) |
         (flags & BS_IMAGE_INPUT_ATTACHMENT_BIT ? VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT         : 0) |
         (flags & BS_IMAGE_USAGE_TRANSFER_DST_BIT ? VK_IMAGE_USAGE_TRANSFER_DST_BIT : 0) |
@@ -399,7 +399,7 @@ BSAPI bs_Result _bs_image(bs_Object* object, bs_ivec2 dim, int num_indices, bs_F
     if (object->flags & BS_OBJECT_ALREADY_EXISTS && !(object->flags & BS_OBJECT_FORCE_DESTROY)) 
         return BS_RESULT_OK;
 
-    bs_destroyImage(image);
+    _bs_destroyImage(image);
 
     image->dim = dim;
     image->flags = flags;
@@ -407,13 +407,13 @@ BSAPI bs_Result _bs_image(bs_Object* object, bs_ivec2 dim, int num_indices, bs_F
     image->num_indices = num_indices;
 
     if (num_indices > 0)
-        image->indices = bs_calloc(num_indices, sizeof(bs_ImageIndex));
+        image->indices = _bs_calloc(num_indices, sizeof(bs_ImageIndex));
 
     if (bs_isDepthFormat(format)) 
-        return bs_depthImage(object, dim, num_indices, format, flags);
+        return _bs_depthImage(object, dim, num_indices, format, flags);
 
     int num_swaps = flags & BS_IMAGE_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
-    bs_prepareImage(image->head.source_id, image->head.id, image,
+    _bs_prepareImage(image->head.source_id, image->head.id, image,
         (flags & BS_IMAGE_ATTACHMENT_BIT            ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT : 0) |
         (flags & BS_IMAGE_INPUT_ATTACHMENT_BIT      ? VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT : 0) |
         (flags & BS_IMAGE_USAGE_TRANSFER_DST_BIT    ? VK_IMAGE_USAGE_TRANSFER_DST_BIT : 0) | 
@@ -441,7 +441,7 @@ BSAPI bs_Result _bs_encodePng(size_t* out_size, const unsigned char* data, bs_iv
 
     if (result != 0) {
         char* error = lodepng_error_text(result);
-        bs_warn(error, strlen(error));
+        _bs_warn(error, strlen(error));
         return BS_RESULT_FAILED_TO_ENCODE;
     }
 
@@ -457,15 +457,15 @@ BSAPI bs_Result _bs_savePng(char* data, bs_ivec2 dim, bs_PngType type, char* nam
     case BS_PNG_GREY_ALPHA: error = lodepng_encode_file(name, data, dim.x, dim.y, LCT_GREY_ALPHA, 8); break;
     case BS_PNG_RGBA: error = lodepng_encode_file(name, data, dim.x, dim.y, LCT_RGBA, 8); break;
     default:
-        bs_warnF("Unsupported bs_PngType %d for png \"%s\"\n", type, name);
+        _bs_warnF("Unsupported bs_PngType %d for png \"%s\"\n", type, name);
     };
 
     if (error != 0) {
-        bs_warnF("Failed to save png \"%s\", lodepng error:\n%s\n", name, lodepng_error_text(error));
+        _bs_warnF("Failed to save png \"%s\", lodepng error:\n%s\n", name, lodepng_error_text(error));
         return BS_RESULT_FAILED_TO_WRITE;
     }
 
-    bs_infoF("Saved a PNG of size %d x %d to %s\n", dim.x, dim.y, name);
+    _bs_infoF("Saved a PNG of size %d x %d to %s\n", dim.x, dim.y, name);
 
     return BS_RESULT_OK;
 }
@@ -479,13 +479,13 @@ BSAPI bs_Result _bs_inspectPng(const char* path, int* width, int* height, size_t
 
     error = lodepng_load_file(&data, out_size, path);
     if (error) {
-        bs_warnF("Failed to read png file \"%s\", lodepng error:\n%s\n", path, lodepng_error_text(error));
+        _bs_warnF("Failed to read png file \"%s\", lodepng error:\n%s\n", path, lodepng_error_text(error));
         return BS_RESULT_FAILED_TO_READ;
     }
 
     error = lodepng_inspect(width, height, &state, data, *out_size);
     if (error) {
-        bs_warnF("Failed to inspect png \"%s\", lodepng error:\n%s\n", path, lodepng_error_text(error));
+        _bs_warnF("Failed to inspect png \"%s\", lodepng error:\n%s\n", path, lodepng_error_text(error));
         free(data);
         return BS_RESULT_FAILED_TO_INSPECT;
     }
@@ -498,7 +498,7 @@ BSAPI bs_Result _bs_inspectPng(const char* path, int* width, int* height, size_t
   */
 BSAPI bs_Result _val_bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out) {
     BS_VALIDATE(channels_count == 3 || channels_count == 4, BS_RESULT_VALIDATION_ERROR,);
-    return bs_loadPngData(data, size, channels_count, out);
+    return _bs_loadPngData(data, size, channels_count, out);
 }
 
 BSAPI bs_Result _bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out) {
@@ -507,12 +507,12 @@ BSAPI bs_Result _bs_loadPngData(char* data, size_t size, int channels_count, bs_
     case 3: error = lodepng_decode24(&out->data, &out->width, &out->height, data, size); break;
     case 4: error = lodepng_decode32(&out->data, &out->width, &out->height, data, size); break;
     default: 
-        bs_warnF("Failed to load png data, unsupported channels_count %d\n", channels_count);
+        _bs_warnF("Failed to load png data, unsupported channels_count %d\n", channels_count);
         return BS_RESULT_INVALID_PARAM;
     }
 
     if (error) {
-        bs_warnF("Failed to load png data, lodepng error:\n%s\n", lodepng_error_text(error));
+        _bs_warnF("Failed to load png data, lodepng error:\n%s\n", lodepng_error_text(error));
         free(data);
         return BS_RESULT_FAILED_TO_INSPECT;
     }
@@ -531,12 +531,12 @@ BSAPI bs_Result _bs_loadPng(const char* path, int channels_count, bs_PngData* ou
     case 3: error = lodepng_decode24_file(&out->data, &out->width, &out->height, path); break;
     case 4: error = lodepng_decode32_file(&out->data, &out->width, &out->height, path); break;
     default: 
-        bs_warnF("Failed to load png file \"%s\", unsupported channels_count %d\n", path, channels_count);
+        _bs_warnF("Failed to load png file \"%s\", unsupported channels_count %d\n", path, channels_count);
         return BS_RESULT_INVALID_PARAM;
     }
 
     if (error) {
-        bs_warnF("Failed to load png file \"%s\", lodepng error:\n%s\n", path, lodepng_error_text(error));
+        _bs_warnF("Failed to load png file \"%s\", lodepng error:\n%s\n", path, lodepng_error_text(error));
         return BS_RESULT_FAILED_TO_READ;
     }
 
@@ -554,7 +554,7 @@ BSAPI bs_Result _val_bs_bitmapImage(bs_Object* object, unsigned char* image_data
         BS_VALIDATE_OBJECT_TYPE(object, BS_OBJECT_IMAGE, BS_RESULT_VALIDATION_ERROR);
     }
 
-    return bs_bitmapImage(object, image_data, dim, format, flags);
+    return _bs_bitmapImage(object, image_data, dim, format, flags);
 }
 
 BSAPI bs_Result _bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs_ivec2 dim, bs_Format format, bs_ImageBits flags) {
@@ -567,7 +567,7 @@ BSAPI bs_Result _bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs
         return BS_RESULT_OK;
 
     bs_Image* image = object->image;
-    bs_destroyImage(image);
+    _bs_destroyImage(image);
 
     bs_U32 swaps_count = flags & BS_IMAGE_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
 
@@ -575,43 +575,43 @@ BSAPI bs_Result _bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs
     image->format = format;
     image->dim = dim;
 
-    int channels_count = bs_hasAlpha(format) ? 4 : 3;
+    int channels_count = _bs_hasAlpha(format) ? 4 : 3;
     bs_U32 size = image->dim.x * image->dim.y * channels_count;
 
    /**
     Staging buffer
     */
     bs_Buffer* staging_buffer = BS_BUFFER(-1, 0, 0)->buffer;
-    result = bs_buffer(staging_buffer, size,
+    result = _bs_buffer(staging_buffer, size,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         0);
 
     if (result != BS_RESULT_OK) {
-        bs_destroyImage(image);
+        _bs_destroyImage(image);
         return result;
     }
 
-    result = bs_mapBuffer(staging_buffer, size);
+    result = _bs_mapBuffer(staging_buffer, size);
 
-    bs_stageImage(staging_buffer, format, image->dim, image_data);
-    bs_unmapBuffer(staging_buffer);
+    _bs_stageImage(staging_buffer, format, image->dim, image_data);
+    _bs_unmapBuffer(staging_buffer);
 
    /**
     Create image
     */
-    bs_prepareImage(image->head.source_id, object->image->head.id, object->image,
+    _bs_prepareImage(image->head.source_id, object->image->head.id, object->image,
         (flags & BS_IMAGE_ATTACHMENT_BIT ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT : 0) |
         (flags & BS_IMAGE_INPUT_ATTACHMENT_BIT ? VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT : 0) |
         VK_IMAGE_USAGE_TRANSFER_DST_BIT | 
         VK_IMAGE_USAGE_SAMPLED_BIT,
         VK_IMAGE_ASPECT_COLOR_BIT);
 
-    bs_transition(object->image, 0, BS_LAYOUT_UNDEFINED, BS_LAYOUT_TRANSFER_DST_OPTIMAL);
-    bs_copyBufferToImage(staging_buffer, object->image, 0, BS_LAYOUT_TRANSFER_DST_OPTIMAL);
-    bs_transition(object->image, 0, BS_LAYOUT_TRANSFER_DST_OPTIMAL, BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    _bs_transition(object->image, 0, BS_LAYOUT_UNDEFINED, BS_LAYOUT_TRANSFER_DST_OPTIMAL);
+    _bs_copyBufferToImage(staging_buffer, object->image, 0, BS_LAYOUT_TRANSFER_DST_OPTIMAL);
+    _bs_transition(object->image, 0, BS_LAYOUT_TRANSFER_DST_OPTIMAL, BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-   // bs_destroyBuffer(staging_buffer); // queue this or sum shit idk how to deal with this
+   // _bs_destroyBuffer(staging_buffer); // queue this or sum shit idk how to deal with this
 
     return BS_RESULT_OK;
 }
@@ -634,11 +634,11 @@ BSAPI void _bs_destroyImage(bs_Image* image) {
 }
 
 BSAPI bs_Result _bs_resizeImage(bs_Image* image, bs_ivec2 dim, int num_indices) {
-    bs_destroyImage(image);
+    _bs_destroyImage(image);
 
     image->dim = dim;
     image->num_indices = num_indices;
-    return bs_prepareImage(image->head.source_id, image->head.id, image, image->usage_flags, image->aspect_flags);
+    return _bs_prepareImage(image->head.source_id, image->head.id, image, image->usage_flags, image->aspect_flags);
 }
 
 BSAPI bs_Result _bs_queryImageIndexHash(bs_Image* image, bs_U64 name_hash, int* out) {
@@ -654,7 +654,7 @@ BSAPI bs_Result _bs_queryImageIndexHash(bs_Image* image, bs_U64 name_hash, int* 
 }
 
 BSAPI bs_Result _bs_queryImageIndex(bs_Image* image, char* name, int* out) {
-    return bs_queryImageIndexHash(image, bs_stringHash(name), out);
+    return _bs_queryImageIndexHash(image, _bs_stringHash(name), out);
 }
 
 
@@ -676,7 +676,7 @@ BSAPI void _bs_destroySampler(bs_Sampler* sampler) {
 
 BSAPI bs_Result _val_bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_SamplerBits flags) {
     BS_VALIDATE_OBJECT_TYPE(object, BS_OBJECT_SAMPLER, BS_RESULT_VALIDATION_ERROR);
-    return bs_sampler(object, filter, flags);
+    return _bs_sampler(object, filter, flags);
 }
 
 BSAPI bs_Result _bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_SamplerBits flags) {
@@ -689,7 +689,7 @@ BSAPI bs_Result _bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_Sampler
     if (object->flags & BS_OBJECT_ALREADY_EXISTS && !(object->flags & BS_OBJECT_FORCE_DESTROY)) 
         return BS_RESULT_OK;
 
-    bs_destroySampler(sampler);
+    _bs_destroySampler(sampler);
 
     sampler->filter = filter;
     sampler->flags = flags;
@@ -719,17 +719,17 @@ BSAPI bs_Result _bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_Sampler
     result = vkCreateSampler(_bs_instance_->device, &sampler_i, NULL, &sampler->_->vk_sampler);
     if (result != VK_SUCCESS) {
         BS_WARN_VULKAN_ERROR("vkCreateSampler", result, "(%d, %d)", sampler->head.source_id, sampler->head.id);
-        return bs_convertVulkanResult(result);
+        return _bs_convertVulkanResult(result);
     }
 
     return BS_RESULT_OK;
 }
 
 BSAPI void _val_bs_copyImageToBufferAsync(bs_Image* image, bs_Buffer* buffer, int image_index, bs_ImageLayout layout, bs_U64 buffer_offset, bs_ivec2 offset, bs_ivec2 dim) {
-    int channels_count = bs_hasAlpha(image->format) ? 4 : 3;
+    int channels_count = _bs_hasAlpha(image->format) ? 4 : 3;
     BS_VALIDATE((dim.x * dim.y * channels_count) <= (buffer->num_bytes - buffer_offset),,);
 
-    bs_copyImageToBufferAsync(image, buffer, image_index, layout, buffer_offset, offset, dim);
+    _bs_copyImageToBufferAsync(image, buffer, image_index, layout, buffer_offset, offset, dim);
 }
 
 BSAPI void _bs_copyImageToBufferAsync(bs_Image* image, bs_Buffer* buffer, int image_index, bs_ImageLayout layout, bs_U64 buffer_offset, bs_ivec2 offset, bs_ivec2 dim) {
@@ -749,7 +749,7 @@ BSAPI void _bs_copyImageToBufferAsync(bs_Image* image, bs_Buffer* buffer, int im
             .depth = 1,
         },
         .imageSubresource = {
-            .aspectMask = bs_isDepthFormat(image->format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT,
+            .aspectMask = _bs_isDepthFormat(image->format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT,
             .layerCount = 1,
             .baseArrayLayer = image_index,
         },
@@ -758,7 +758,7 @@ BSAPI void _bs_copyImageToBufferAsync(bs_Image* image, bs_Buffer* buffer, int im
 //    if (copy.imageOffset.y < 0 || (copy.imageExtent.height + copy.imageOffset.y) > image->dim.y ||
 //        copy.imageOffset.x < 0 || (copy.imageExtent.width + copy.imageOffset.x) > image->dim.x) 
 //    {
-//        bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
+//        _bs_throwBasilisk(BSXI_INTERNAL | BSX_OUT_OF_BOUNDS);
 //        return;
 //    }
 
@@ -789,12 +789,12 @@ BSAPI void _bs_copyBufferToImage(bs_Buffer* buffer, bs_Image* image, int index, 
         &region);
 
     if (_bs_scope_.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
-        bs_pushQueue(_bs_scope_.queue);
+        _bs_pushQueue(_bs_scope_.queue);
         vkQueueWaitIdle(_bs_scope_.queue->queue);
     }
 }
 
-static VkImageAspectFlags bs_imageAspectFlags(bs_Image* image) {
+static VkImageAspectFlags _bs_imageAspectFlags(bs_Image* image) {
     if (bs_isDepthFormat(image->format)) {
         if (bs_isStencilFormat(image->format))
             return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
@@ -810,7 +810,7 @@ BSAPI void _bs_blit(bs_BlitOperation operation)  {
 
     VkImageBlit region = {
         .srcSubresource = {
-            .aspectMask = bs_imageAspectFlags(operation.source),
+            .aspectMask = _bs_imageAspectFlags(operation.source),
             .mipLevel = 0,
             .baseArrayLayer = 0,
             .layerCount = 1,
@@ -819,7 +819,7 @@ BSAPI void _bs_blit(bs_BlitOperation operation)  {
         .srcOffsets[1] = { operation.source_scale.x, operation.source_scale.y, 1 },
 
         .dstSubresource = {
-            .aspectMask = bs_imageAspectFlags(operation.destination),
+            .aspectMask = _bs_imageAspectFlags(operation.destination),
             .mipLevel = 0,
             .baseArrayLayer = 0,
             .layerCount = 1,
@@ -848,7 +848,7 @@ BSAPI void _bs_blit(bs_BlitOperation operation)  {
 BSAPI bs_Result _val_bs_loadImage(bs_Object* object, int package_id, bs_ImageBits flags, char* resource_name, char* resource_name_length) {
     BS_VALIDATE_OBJECT_TYPE(object, BS_OBJECT_IMAGE, BS_RESULT_OK);
 
-    return bs_loadImage(object, package_id, flags, resource_name, resource_name_length);
+    return _bs_loadImage(object, package_id, flags, resource_name, resource_name_length);
 }
 
 BSAPI bs_Result _bs_loadImage(bs_Object* object, int package_id, bs_ImageBits flags, char* resource_name, char* resource_name_length) {
@@ -858,52 +858,52 @@ BSAPI bs_Result _bs_loadImage(bs_Object* object, int package_id, bs_ImageBits fl
         return BS_RESULT_OK;
 
     bs_Resource* resource;
-    result = bs_loadResource(package_id, 0, &resource, resource_name, strlen(resource_name));
+    result = _bs_loadResource(package_id, 0, &resource, resource_name, strlen(resource_name));
     if (result != BS_RESULT_OK)
         return result;
 
     bs_BiffHeader* header = resource->data->value;
     if (header->magic != 0x66666962) {
-        bs_destroyResource(resource);
+        _bs_destroyResource(resource);
         return BS_RESULT_CORRUPTED;
     }
 
     if (header->version != 1) {
-        bs_destroyResource(resource);
+        _bs_destroyResource(resource);
         return BS_RESULT_NOT_SUPPORTED;
     }
 
     if (header->channels_count != 4) {
-        bs_destroyResource(resource);
+        _bs_destroyResource(resource);
         return BS_RESULT_NOT_IMPLEMENTED;
     }
 
-    result = bs_image(object, (bs_ivec2) { header->width, header->height }, header->images_count, BS_FORMAT_R8G8B8A8_UNORM, flags);
+    result = _bs_image(object, (bs_ivec2) { header->width, header->height }, header->images_count, BS_FORMAT_R8G8B8A8_UNORM, flags);
     if (result != BS_RESULT_OK) {
-       // bs_destroyResource(resource); // TODO: try uncomment
+       // _bs_destroyResource(resource); // TODO: try uncomment
         return result;
     }
 
     unsigned char* data = resource->data->value + sizeof(bs_BiffHeader);
 
     bs_Buffer* buffer = BS_BUFFER(-1, 0, 0)->buffer;
-    result = bs_buffer(buffer, header->width * header->height * header->channels_count,
+    result = _bs_buffer(buffer, header->width * header->height * header->channels_count,
         BS_BUFFER_USAGE_TRANSFER_SRC_BIT,
         BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | BS_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         0);
 
     if (result != BS_RESULT_OK) {
         // TODO: try uncomment
-        // bs_destroyResource(resource);
-        // bs_destroyImage(object->image);
+        // _bs_destroyResource(resource);
+        // _bs_destroyImage(object->image);
         return result;
     }
 
-    result = bs_mapBuffer(buffer, BS_U32_MAX);
+    result = _bs_mapBuffer(buffer, BS_U32_MAX);
     if (result != BS_RESULT_OK) {
         // TODO: try uncomment
-        // bs_destroyResource(resource);
-        // bs_destroyImage(object->image);
+        // _bs_destroyResource(resource);
+        // _bs_destroyImage(object->image);
         return result;
     }
 
@@ -917,17 +917,17 @@ BSAPI bs_Result _bs_loadImage(bs_Object* object, int package_id, bs_ImageBits fl
         unsigned char* bmp = resource->data->value + pointer->offset;
 
         object->image->indices[i].name = strdup(name);
-        object->image->indices[i].name_hash = bs_stringHash(name);
+        object->image->indices[i].name_hash = _bs_stringHash(name);
 
-        bs_stageImage(buffer, BS_FORMAT_R8G8B8A8_UNORM, object->image->dim, bmp);
-        bs_transition(object->image, i, BS_LAYOUT_UNDEFINED, BS_LAYOUT_TRANSFER_DST_OPTIMAL);
-        bs_copyBufferToImage(buffer, object->image, i, BS_LAYOUT_TRANSFER_DST_OPTIMAL);
-        bs_transition(object->image, i, BS_LAYOUT_TRANSFER_DST_OPTIMAL, BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        _bs_stageImage(buffer, BS_FORMAT_R8G8B8A8_UNORM, object->image->dim, bmp);
+        _bs_transition(object->image, i, BS_LAYOUT_UNDEFINED, BS_LAYOUT_TRANSFER_DST_OPTIMAL);
+        _bs_copyBufferToImage(buffer, object->image, i, BS_LAYOUT_TRANSFER_DST_OPTIMAL);
+        _bs_transition(object->image, i, BS_LAYOUT_TRANSFER_DST_OPTIMAL, BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         data += pointer->name_length;
     }
 
-    bs_nameImage(object->image, resource_name);
+    _bs_nameImage(object->image, resource_name);
    //bs_destroyBuffer(buffer);
 
     resource->image = object->image;
@@ -941,7 +941,7 @@ BSAPI bs_Result _bs_loadImage(bs_Object* object, int package_id, bs_ImageBits fl
    * Atlas File Format
    *============================================================================*/
 
-static bs_vec4 bs_calculateAtlasCoordinates(bs_Atlas* atlas, int texture_id, int frame) {
+static bs_vec4 _bs_calculateAtlasCoordinates(bs_Atlas* atlas, int texture_id, int frame) {
     bs_AtlasTexture* mapped = atlas->mapped + texture_id;
 
     float width = (float)mapped->w / (float)atlas->image->dim.x;
@@ -961,7 +961,7 @@ BSAPI bs_vec4 _val_bs_atlasCoordinates(bs_Atlas* atlas, int texture_id) {
     BS_VALIDATE(texture_id >= 0, (bs_vec4) { 0 },);
     BS_VALIDATE(texture_id < atlas->count, (bs_vec4) { 0 },);
 
-    return bs_atlasCoordinates(atlas, texture_id);
+    return _bs_atlasCoordinates(atlas, texture_id);
 }
 
 BSAPI bs_vec4 _bs_atlasCoordinates(bs_Atlas* atlas, int texture_id) {
@@ -991,7 +991,7 @@ BSAPI bs_vec2 _val_bs_atlasSize(bs_Atlas* atlas, int texture) {
     BS_VALIDATE(texture >= 0, (bs_vec2) { 0 },);
     BS_VALIDATE(texture < atlas->count, (bs_vec2) { 0 },);
 
-    return bs_atlasSize(atlas, texture);
+    return _bs_atlasSize(atlas, texture);
 }
 
 BSAPI bs_vec2 _bs_atlasSize(bs_Atlas* atlas, int texture) {
@@ -1009,12 +1009,12 @@ BSAPI int _bs_queryAtlasHash(bs_Atlas* atlas, bs_U64 hash) {
 }
 
 BSAPI int _bs_queryAtlas(bs_Atlas* atlas, const char* name) {
-    return bs_queryAtlasHash(atlas, bs_stringHash(name));
+    return _bs_queryAtlasHash(atlas, _bs_stringHash(name));
 }
 
 BSAPI void _bs_destroyAtlas(bs_Atlas* atlas) {
     if (atlas->image)
-        bs_destroyImage(atlas->image);
+        _bs_destroyImage(atlas->image);
 
     // TODO: make generic
     int id = atlas->head.id;
@@ -1030,7 +1030,7 @@ BSAPI void _bs_destroyAtlas(bs_Atlas* atlas) {
 BSAPI bs_Result _val_bs_loadAtlasMemory(bs_Object* object, int package_id, char* resource_name, char* data, bs_U32 flags) {
     BS_VALIDATE_OBJECT_TYPE(object, BS_OBJECT_ATLAS, BS_RESULT_VALIDATION_ERROR);
 
-    return bs_loadAtlasMemory(object, package_id, resource_name, data, flags);
+    return _bs_loadAtlasMemory(object, package_id, resource_name, data, flags);
 }
 
 BSAPI bs_Result _bs_loadAtlasMemory(bs_Object* object, int package_id, char* resource_name, char* data, bs_U32 flags) {
@@ -1048,21 +1048,21 @@ BSAPI bs_Result _bs_loadAtlasMemory(bs_Object* object, int package_id, char* res
     bs_Buffer* old_buffer = atlas->buffer;
     unsigned char* old_mapped = atlas->mapped;
 
-    bs_destroyAtlas(object->atlas);
+    _bs_destroyAtlas(object->atlas);
 
     bs_BatlHeader* header = data;
     if (header->magic != 0x6C746162) {
-        bs_warnF("Atlas resource \"%s\" is corrupted, invalid magic number\n", resource_name);
+        _bs_warnF("Atlas resource \"%s\" is corrupted, invalid magic number\n", resource_name);
         return BS_RESULT_CORRUPTED;
     }
 
     if (header->version != 1) {
-        bs_warnF("Atlas resource \"%s\" has an unsupported version (%d)\n", resource_name, header->version);
+        _bs_warnF("Atlas resource \"%s\" has an unsupported version (%d)\n", resource_name, header->version);
         return BS_RESULT_NOT_SUPPORTED;
     }
 
     if (header->channels_count != 4) {
-        bs_warnF("Atlas resource \"%s\" has an unsupported amount of channels (%d)\n", resource_name, header->channels_count);
+        _bs_warnF("Atlas resource \"%s\" has an unsupported amount of channels (%d)\n", resource_name, header->channels_count);
         return BS_RESULT_NOT_SUPPORTED;
     }
 
@@ -1071,30 +1071,30 @@ BSAPI bs_Result _bs_loadAtlasMemory(bs_Object* object, int package_id, char* res
     atlas->image = image_object->image;
 
     unsigned char* bmp = data + header->binary_offset;
-    result = bs_bitmapImage(image_object, bmp, (bs_ivec2) { header->width, header->height }, BS_FORMAT_R8G8B8A8_UNORM, 0);
+    result = _bs_bitmapImage(image_object, bmp, (bs_ivec2) { header->width, header->height }, BS_FORMAT_R8G8B8A8_UNORM, 0);
     if (result != BS_RESULT_OK) {
-        bs_destroyAtlas(object->atlas);
+        _bs_destroyAtlas(object->atlas);
         return result;
     }
 
-    bs_nameImage(atlas->image, resource_name);
+    _bs_nameImage(atlas->image, resource_name);
 
     //atlas->name = strdup(resource_name);
     atlas->count = header->images_count;
-    atlas->unmapped = bs_malloc(atlas->count * sizeof(*atlas->unmapped));
+    atlas->unmapped = _bs_malloc(atlas->count * sizeof(*atlas->unmapped));
 
     if (!old_buffer) {
         bs_Object* buffer_object = BS_BUFFER(-1, 0, 0);
         atlas->buffer = buffer_object->buffer;
-        bs_buffer(atlas->buffer, atlas->count * sizeof(*atlas->mapped),
+        _bs_buffer(atlas->buffer, atlas->count * sizeof(*atlas->mapped),
             BS_BUFFER_USAGE_STORAGE_BUFFER_BIT | BS_BUFFER_USAGE_TRANSFER_DST_BIT | BS_BUFFER_USAGE_TRANSFER_SRC_BIT,
             BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | BS_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             0);
 
-        atlas->mapped = bs_malloc(atlas->count * sizeof(*atlas->mapped));
-        result = bs_mapBuffer(atlas->buffer, atlas->count * sizeof(*atlas->mapped));
+        atlas->mapped = _bs_malloc(atlas->count * sizeof(*atlas->mapped));
+        result = _bs_mapBuffer(atlas->buffer, atlas->count * sizeof(*atlas->mapped));
         if (result != BS_RESULT_OK) {
-            bs_warnF("Failed to map buffer for atlas \"%s\"\n", resource_name);
+            _bs_warnF("Failed to map buffer for atlas \"%s\"\n", resource_name);
             return result;
         }
     }
@@ -1111,14 +1111,14 @@ BSAPI bs_Result _bs_loadAtlasMemory(bs_Object* object, int package_id, char* res
         offset += pointer->name_length + sizeof("\n");
 
         atlas->unmapped[i].name = strdup(name);
-        atlas->unmapped[i].name_hash = bs_stringHash(name);
+        atlas->unmapped[i].name_hash = _bs_stringHash(name);
         atlas->unmapped[i].category = pointer->category;
         atlas->mapped[i].x = pointer->x,
         atlas->mapped[i].y = atlas->image->dim.y - pointer->y - atlas->mapped[i].h;
         atlas->mapped[i].w = pointer->w,
         atlas->mapped[i].h = pointer->h,
         atlas->mapped[i].split = 1;
-        atlas->mapped[i].coords = bs_calculateAtlasCoordinates(atlas, i, 0);
+        atlas->mapped[i].coords = _bs_calculateAtlasCoordinates(atlas, i, 0);
         atlas->mapped[i].flags = pointer->flags;
     }
 
@@ -1129,11 +1129,11 @@ BSAPI bs_Result _bs_loadAtlas(bs_Object* object, int package_id, const char* res
     bs_Result result;
 
     bs_Resource* resource;
-    result = bs_loadResource(package_id, 0, &resource, resource_name, strlen(resource_name));
+    result = _bs_loadResource(package_id, 0, &resource, resource_name, strlen(resource_name));
     if (result != BS_RESULT_OK)
         return result;
 
-    result = bs_loadAtlasMemory(object, package_id, resource_name, resource->data->value, flags);
+    result = _bs_loadAtlasMemory(object, package_id, resource_name, resource->data->value, flags);
     if (result != BS_RESULT_OK)
         return result;
 

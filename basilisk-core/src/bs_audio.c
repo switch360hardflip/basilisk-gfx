@@ -81,11 +81,6 @@ IXAudio2* px_audio_2 = NULL;
     #define XAUDIO2D_DLL XAUDIO2D_DLL_A
 #endif
 
-BSAPI bs_Result _val_bs_playSound(bs_Sound* sound, float volume) {
-    BS_VALIDATE(sound->xaudio != NULL, BS_RESULT_INVALID_STATE,);
-
-    return bs_playSound(sound, volume);
-}
 
 BSAPI bs_Result _bs_playSound(bs_Sound* sound, float volume) {
     IXAudio2SourceVoice* voice = sound->xaudio;
@@ -105,6 +100,12 @@ BSAPI bs_Result _bs_playSound(bs_Sound* sound, float volume) {
     voice->lpVtbl->Start(voice, 0, 0);
 
     return BS_RESULT_OK;
+}
+
+BSAPI bs_Result _val_bs_playSound(bs_Sound* sound, float volume) {
+    BS_VALIDATE(sound->xaudio != NULL, BS_RESULT_INVALID_STATE, );
+
+    return _bs_playSound(sound, volume);
 }
 
 static bs_Result _bs_findAudioChunk(
@@ -184,28 +185,28 @@ BSAPI bs_Result _bs_sound(bs_Resource* resource, bs_U32 flags) {
     BYTE *data;
 
     if (file_handle == INVALID_HANDLE_VALUE)
-        bs_throwLastWin32Error(name);
+        _bs_throwLastWin32Error(name);
 
     if (SetFilePointer(file_handle, 0, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
-        bs_throwLastWin32Error(name);
+        _bs_throwLastWin32Error(name);
 
     // check the file type, should be fourccWAVE or 'XWMA'
-    bs_findAudioChunk(file_handle, FOUR_CC_RIFF, &chunk_size, &chunk_offset);
-    bs_readAudioChunk(file_handle, &file_type, sizeof(DWORD), chunk_offset);
+    _bs_findAudioChunk(file_handle, FOUR_CC_RIFF, &chunk_size, &chunk_offset);
+    _bs_readAudioChunk(file_handle, &file_type, sizeof(DWORD), chunk_offset);
 
     if (file_type != FOUR_CC_WAVE)
-        bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_FILE_TYPE);
+        _bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_FILE_TYPE);
 
-    bs_findAudioChunk(file_handle, FOUR_CC_FMT, &chunk_size, &chunk_offset);
-    bs_readAudioChunk(file_handle, &wfx, chunk_size, chunk_offset);
+    _bs_findAudioChunk(file_handle, FOUR_CC_FMT, &chunk_size, &chunk_offset);
+    _bs_readAudioChunk(file_handle, &wfx, chunk_size, chunk_offset);
 
-    bs_findAudioChunk(file_handle, FOUR_CC_DATA, &chunk_size, &chunk_offset);
-    data = bs_malloc(chunk_size);
-    bs_readAudioChunk(file_handle, data, chunk_size, chunk_offset);
+    _bs_findAudioChunk(file_handle, FOUR_CC_DATA, &chunk_size, &chunk_offset);
+    data = _bs_malloc(chunk_size);
+    _bs_readAudioChunk(file_handle, data, chunk_size, chunk_offset);
 
     HRESULT result = px_audio_2->lpVtbl->CreateSourceVoice(px_audio_2, &src_voice, (WAVEFORMATEX*)&wfx, 0, XAUDIO2_MAX_FREQ_RATIO, NULL, NULL, NULL);
     if (FAILED(result))
-        bs_throwHResult(result, NULL);
+        _bs_throwHResult(result, NULL);
 
     CloseHandle(file_handle);
 
@@ -216,7 +217,7 @@ BSAPI bs_Result _bs_sound(bs_Resource* resource, bs_U32 flags) {
         .name = name,
     };
 
-    bs_free(path);
+    _bs_free(path);
 
     memcpy(existing, &sound, sizeof(bs_Sound));
     */
