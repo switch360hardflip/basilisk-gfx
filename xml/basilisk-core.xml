@@ -1502,6 +1502,7 @@
             <field><type>int</type><name>width</name></field>
             <field><type>int</type><name>height</name></field>
             <field><type>int</type><name>channels_count</name></field>
+            <field><type>size_t</type><name>size</name></field>
             <field><type>unsigned char*</type><name>data</name></field>
         </structure>
         <structure name="bs_Procedure">
@@ -2451,9 +2452,9 @@
         </vectorTemplate>
         <function name="bs_v2Mid" comment="Midpoint of two 2D vectors">
             <return>void</return>
-            <param><type>const bs_vec3*</type><name>a</name></param>
-            <param><type>const bs_vec3*</type><name>b</name></param>
-            <param><type>bs_vec3*</type><name>out</name></param>
+            <param><type>const bs_vec2*</type><name>a</name></param>
+            <param><type>const bs_vec2*</type><name>b</name></param>
+            <param><type>bs_vec2*</type><name>out</name></param>
         </function>
 
         <vectorTemplate>
@@ -2470,14 +2471,14 @@
             <param><type>const bs_vec3*</type><name>b</name></param>
             <param><type>bs_vec3*</type><name>out</name></param>
         </function>
-        <function name="bs_v3Cross" comment="Cross product of two 3D vectors">
+		<function type="cglm" name="bs_v3Cross" comment="Cross product of two 3D vectors">
             <return>void</return>
             <param><type>const bs_vec3*</type><name>a</name></param>
             <param><type>const bs_vec3*</type><name>b</name></param>
             <param><type>bs_vec3*</type><name>out</name></param>
 			<body>    glm_vec3_cross(a->a, b->a, out->a);</body>
         </function>
-		<function name="bs_v3Angle" comment="Angle (radians) between two 3D vectors">
+		<function type="cglm" name="bs_v3Angle" comment="Angle (radians) between two 3D vectors">
             <return>float</return>
             <param><type>const bs_vec3*</type><name>a</name></param>
             <param><type>const bs_vec3*</type><name>b</name></param>
@@ -2495,7 +2496,7 @@
         </vectorTemplate>
 
         <matrixTemplate><rows>3</rows><columns>3</columns></matrixTemplate>
-        <function name="bs_m3MulV3">
+		<function type="cglm" name="bs_m3MulV3">
             <return>void</return>
             <param><type>const bs_mat3*</type><name>m</name></param>
             <param><type>const bs_vec3*</type><name>v</name></param>
@@ -2509,8 +2510,8 @@
             <return>bs_mat4x3</return>
             <param><type>const bs_mat4*</type><name>m</name></param>
         </function>
-		
-        <function name="bs_m4MulV3">
+
+		<function type="cglm" name="bs_m4MulV3">
             <return>void</return>
             <param><type>const bs_mat4*</type><name>m</name></param>
             <param><type>const bs_vec3*</type><name>v</name></param>
@@ -2518,7 +2519,7 @@
             <body>    glm_mat4_mulv3(m->v, v->a, 1.0, out->a);</body>
         </function>
 
-        <function name="bs_m4MulV4">
+		<function type="cglm" name="bs_m4MulV4">
             <return>void</return>
             <param><type>const bs_mat4*</type><name>m</name></param>
             <param><type>const bs_vec4*</type><name>v</name></param>
@@ -2526,7 +2527,7 @@
             <body>    glm_mat4_mulv(m->v, v->a, out->a);</body>
         </function>
 
-        <function name="bs_m4Translate">
+		<function type="cglm" name="bs_m4Translate">
             <return>void</return>
             <param><type>const bs_mat4*</type><name>m</name></param>
             <param><type>const bs_vec3*</type><name>v</name></param>
@@ -2534,7 +2535,7 @@
             <body>    glm_translate_to(m->v, v->a, out->a);</body>
         </function>
 
-        <function name="bs_m4Rotate">
+		<function type="cglm" name="bs_m4Rotate">
             <return>void</return>
             <param><type>const bs_mat4*</type><name>m</name></param>
             <param><type>const bs_vec4*</type><name>q</name></param>
@@ -2542,7 +2543,7 @@
             <body>    glm_quat_rotate(m->v, q->a, out->a);</body>
         </function>
 
-        <function name="bs_m4Scale">
+		<function type="cglm" name="bs_m4Scale">
             <return>void</return>
             <param><type>const bs_mat4*</type><name>m</name></param>
             <param><type>const bs_vec3*</type><name>v</name></param>
@@ -2550,49 +2551,43 @@
             <body>    glm_scale_to(m->v, v->a, out->a);</body>
         </function>
 
-		<function name="bs_m3ToM4">
-            <return>void</return>
-            <param><type>const bs_mat3*</type><name>m</name></param>
-            <param><type>bs_mat4*</type><name>out</name></param>
-        </function>
-		
-        <function name="bs_m3ToQ">
+		<function type="cglm" name="bs_m3ToQ">
             <return>void</return>
             <param><type>const bs_mat3*</type><name>m</name></param>
             <param><type>bs_vec4*</type><name>out</name></param>
             <body>    glm_mat3_quat(m->v, out->a);</body>
         </function>
 
-        <function name="bs_m4ToQ">
+		<function type="cglm" name="bs_m4ToQ">
             <return>void</return>
             <param><type>const bs_mat4*</type><name>m</name></param>
             <param><type>bs_vec4*</type><name>out</name></param>
             <body>    glm_mat4_quat(m->v, out->a);</body>
         </function>
-		
-        <function name="bs_qToM3">
+
+		<function type="cglm" name="bs_qToM3">
             <return>void</return>
             <param><type>const bs_vec4*</type><name>q</name></param>
             <param><type>bs_mat3*</type><name>out</name></param>
             <body>    glm_quat_mat3(q->a, out->v);</body>
         </function>
 
-        <function name="bs_qToM4">
+		<function type="cglm" name="bs_qToM4">
             <return>void</return>
             <param><type>const bs_vec4*</type><name>q</name></param>
             <param><type>bs_mat4*</type><name>out</name></param>
             <body>    glm_quat_mat4(q->a, out->v);</body>
         </function>
-		
-        <function name="bs_qMulQ">
+
+		<function type="cglm" name="bs_qMulQ">
             <return>void</return>
             <param><type>const bs_vec4*</type><name>p</name></param>
             <param><type>const bs_vec4*</type><name>q</name></param>
             <param><type>bs_vec4*</type><name>out</name></param>
             <body>    glm_quat_mul(p->a, q->a, out->a);</body>
         </function>
-		
-		<function name="bs_qAxisAngle">
+
+		<function type="cglm" name="bs_qAxisAngle">
             <return>void</return>
             <param><type>const bs_vec3*</type><name>axis</name></param>
             <param><type>float</type><name>radians</name></param>
@@ -2600,14 +2595,14 @@
             <body>    glm_quatv(axis->a, radians, out->a);</body>
         </function>
 
-        <function name="bs_qNormalize">
+		<function type="cglm" name="bs_qNormalize">
             <return>void</return>
             <param><type>const bs_vec4*</type><name>q</name></param>
             <param><type>bs_vec4*</type><name>out</name></param>
             <body>    glm_quat_normalize_to(q->a, out->a);</body>
         </function>
 
-        <function name="bs_qSlerp">
+		<function type="cglm" name="bs_qSlerp">
             <return>void</return>
             <param><type>const bs_vec4*</type><name>from</name></param>
             <param><type>const bs_vec4*</type><name>to</name></param>
@@ -2616,15 +2611,15 @@
             <body>    glm_quat_slerp(from->a, to->a, t, out->a);</body>
         </function>
 
-		<function name="bs_qRotateV3">
+		<function type="cglm" name="bs_qRotateV3">
             <return>void</return>
             <param><type>const bs_vec4*</type><name>q</name></param>
             <param><type>const bs_vec3*</type><name>v</name></param>
             <param><type>bs_vec3*</type><name>out</name></param>
             <body>    glm_quat_rotatev(q->a, v->a, out->a);</body>
         </function>
-		
-        <function name="bs_qLongSlerp">
+
+		<function type="cglm" name="bs_qLongSlerp">
             <return>void</return>
             <param><type>const bs_vec4*</type><name>from</name></param>
             <param><type>const bs_vec4*</type><name>to</name></param>
@@ -2644,8 +2639,8 @@
             <param><type>const bs_vec4*</type><name>q</name></param>
             <param><type>bs_vec3*</type><name>out</name></param>
         </function>
-		
-        <function name="bs_orthographic">
+
+		<function type="cglm" name="bs_orthographic">
             <return>void</return>
             <param><type>float</type><name>left</name></param>
             <param><type>float</type><name>right</name></param>
@@ -2657,7 +2652,7 @@
             <body>    glm_ortho(left, right, bottom, top, near_z, far_z, out->v);</body>
         </function>
 
-        <function name="bs_perspective">
+		<function type="cglm" name="bs_perspective">
             <return>void</return>
             <param><type>float</type><name>fov</name></param>
             <param><type>float</type><name>aspect</name></param>
@@ -2667,7 +2662,7 @@
             <body>    glm_perspective(fov, aspect, near_z, far_z, out->v);</body>
         </function>
 
-        <function name="bs_lookAt">
+		<function type="cglm" name="bs_lookAt">
             <return>void</return>
             <param><type>const bs_vec3*</type><name>eye</name></param>
             <param><type>const bs_vec3*</type><name>center</name></param>
@@ -2676,7 +2671,7 @@
             <body>    glm_lookat(eye->a, center->a, up->a, out->a);</body>
         </function>
 
-        <function name="bs_look">
+		<function type="cglm" name="bs_look">
             <return>void</return>
             <param><type>const bs_vec3*</type><name>eye</name></param>
             <param><type>const bs_vec3*</type><name>direction</name></param>
@@ -2782,12 +2777,13 @@
         </function>
 
         <function name="bs_quad">
-            <return>bs_Quad</return>
-            <param><type>bs_vec3</type><name>position</name></param>
-            <param><type>bs_vec2</type><name>dimensions</name></param>
+			<return>void</return>
+			<param><type>const bs_vec3*</type><name>position</name></param>
+            <param><type>const bs_vec2*</type><name>dimensions</name></param>
+            <param><type>bs_Quad*</type><name>out</name></param>
         </function>
 
-        <function name="bs_lerp">
+		<function type="cglm" name="bs_lerp">
             <return>float</return>
             <param><type>float</type><name>from</name></param>
             <param><type>float</type><name>to</name></param>
@@ -2818,8 +2814,8 @@
             <param><type>float</type><name>v</name></param>
             <body>    return floorf(v);</body>
         </function>
-		
-		<function name="bs_clamp">
+
+		<function type="cglm" name="bs_clamp">
             <return>float</return>
             <param><type>float</type><name>v</name></param>
             <param><type>float</type><name>min</name></param>
@@ -2843,11 +2839,11 @@
         </function>
         <function name="bs_convertWin32Error">
             <return>bs_Result</return>
-            <param><type>unsigned long</type><name>code</name></param>
+            <param><type>int</type><name>code</name></param>
         </function>
         <function name="bs_serializeWin32Error">
             <return>const char*</return>
-            <param><type>unsigned long</type><name>code</name></param>
+            <param><type>int</type><name>code</name></param>
         </function>
         <function name="bs_convertErrno">
             <return>bs_Result</return>
@@ -2868,13 +2864,6 @@
         <function name="bs_iniAudio">
             <return>bs_Result</return>
         </function>
-        <function name="bs_ray" section="Collision">
-            <return>bs_Result</return>
-            <param><type>bs_vec3</type><name>start</name></param>
-            <param><type>bs_vec3</type><name>direction</name></param>
-            <param><type>float</type><name>length</name></param>
-            <param><type>bs_Ray*</type><name>ray</name></param>
-        </function>
         <function name="bs_rayVsObb">
             <return>void</return>
             <param><type>const bs_Ray*</type><name>ray</name></param>
@@ -2884,10 +2873,10 @@
             <param><type>bs_RayVsObb*</type><name>out</name></param>
         </function>
         <function name="bs_sphereVsPoint">
-            <return>void</return>
-            <param><type>bs_vec3</type><name>center</name></param>
+            <return>bool</return>
+            <param><type>const bs_vec3*</type><name>center</name></param>
             <param><type>float</type><name>radius</name></param>
-            <param><type>bs_vec3</type><name>point</name></param>
+            <param><type>const bs_vec3*</type><name>point</name></param>
             <param><type>bs_SphereVsPoint*</type><name>out</name></param>
         </function>
 		<function name="bs_sphereVsObbTest">
@@ -2914,11 +2903,11 @@
             <param><type>const bs_vec2*</type><name>point</name></param>
         </function>
         <function name="bs_lineVsLine">
-            <return>void</return>
-            <param><type>bs_vec2</type><name>l1_start</name></param>
-            <param><type>bs_vec2</type><name>l1_end</name></param>
-            <param><type>bs_vec2</type><name>l2_start</name></param>
-            <param><type>bs_vec2</type><name>l2_end</name></param>
+            <return>bool</return>
+            <param><type>const bs_vec2*</type><name>l1_start</name></param>
+            <param><type>const bs_vec2*</type><name>l1_end</name></param>
+            <param><type>const bs_vec2*</type><name>l2_start</name></param>
+            <param><type>const bs_vec2*</type><name>l2_end</name></param>
             <param><type>bs_LineVsLine*</type><name>out</name></param>
         </function>
         <function name="bs_populateVertexDeclaration" section="bs_core.h">
@@ -2930,9 +2919,6 @@
 				<type>int</type>
 				<name>attributes_count</name>
 			</param>
-        </function>
-        <function name="bs_currentSwap">
-            <return>int</return>
         </function>
         <variadicStringTemplate name="bs_beginComment">
             <return>void</return>
@@ -3147,10 +3133,6 @@
             <return>void</return>
             <param><type>bs_Batch*</type><name>batch</name></param>
         </function>
-        <function name="bs_recreateBatch">
-            <return>bs_Result</return>
-            <param><type>bs_Batch*</type><name>batch</name></param>
-        </function>
         <function name="bs_ensureBatchSize">
             <return>void</return>
             <param><type>bs_Batch*</type><name>batch</name></param>
@@ -3176,7 +3158,7 @@
             <return>void</return>
             <param><type>bs_Batch*</type><name>batch</name></param>
             <param><type>int</type><name>indices</name><size></size></param>
-            <param><type>bs_U32</type><name>indices_count</name></param>
+            <param><type>int</type><name>indices_count</name></param>
         </function>
         <batchFunctionTemplate name="Cube">
             <param><type>bs_RGBA</type><name>color</name></param>
@@ -3185,13 +3167,6 @@
             <param><type>int</type><name>segments</name></param>
             <param><type>float</type><name>height</name></param>
             <param><type>float</type><name>radius</name></param>
-            <param><type>bs_RGBA</type><name>color</name></param>
-        </batchFunctionTemplate>
-        <batchFunctionTemplate name="Rectangle">
-            <param><type>bs_vec3</type><name>position</name></param>
-            <param><type>bs_vec2</type><name>dimensions</name></param>
-            <param><type>bs_vec2</type><name>texture_offset</name></param>
-            <param><type>bs_vec2</type><name>texture_coords</name></param>
             <param><type>bs_RGBA</type><name>color</name></param>
         </batchFunctionTemplate>
         <batchFunctionTemplate name="Quad">
@@ -3207,10 +3182,6 @@
         <batchFunctionTemplate name="Line">
             <param><type>bs_vec3</type><name>start</name></param>
             <param><type>bs_vec3</type><name>end</name></param>
-            <param><type>bs_RGBA</type><name>color</name></param>
-        </batchFunctionTemplate>
-        <batchFunctionTemplate name="Ray">
-            <param><type>bs_Ray*</type><name>ray</name></param>
             <param><type>bs_RGBA</type><name>color</name></param>
         </batchFunctionTemplate>
         <batchFunctionTemplate name="Point">
@@ -3417,7 +3388,7 @@
             <param><type>char*</type><name>out_bmp</name></param>
             <param><assert>scale &gt; 0.0f</assert><type>float</type><name>scale</name></param>
         </function>
-        <function name="bs_kern">
+        <function name="bs_readKernTable">
             <return>void</return>
             <param><type>bs_TTF*</type><name>ttf</name></param>
         </function>
@@ -3466,11 +3437,10 @@
             <param><type>bs_ImageLayout</type><name>old_layout</name></param>
             <param><type>bs_ImageLayout</type><name>new_layout</name></param>
         </function>
-        <function name="bs_inspectPng">
+		<variadicStringTemplate name="bs_inspectPng" string="path">
             <return>bs_Result</return>
-            <param><type>const char*</type><name>path</name></param>
             <param><type>bs_PngData*</type><name>out_png_data</name></param>
-        </function>
+        </variadicStringTemplate>
         <function name="bs_loadPngData">
             <return>bs_Result</return>
             <param><type>char*</type><name>data</name></param>
@@ -3492,20 +3462,20 @@
             <param><type>bs_Format</type><name>format</name></param>
             <param><type>bs_ImageBits</type><name>flags</name></param>
         </function>
-        <variadicStringTemplate name="bs_savePng">
-            <return>bs_Result</return>
+        <variadicStringTemplate name="bs_savePng" string="path">
+			<return>bs_Result</return>
             <param><type>char*</type><name>data</name></param>
             <param><type>bs_ivec2</type><name>resolution</name></param>
             <param><type>bs_PngType</type><name>type</name></param>
         </variadicStringTemplate>
-        <variadicStringTemplate name="bs_encodePng">
+		<function name="bs_encodePng" string="path">
             <return>bs_Result</return>
             <param><type>size_t*</type><name>out_size</name></param>
             <param><type>const unsigned char*</type><name>data</name></param>
             <param><type>bs_ivec2</type><name>size</name></param>
             <param><type>bs_PngType</type><name>type</name></param>
             <param><type>unsigned char**</type><name>out</name></param>
-        </variadicStringTemplate>
+        </function>
         <function name="bs_destroyImage">
             <return>void</return>
             <param><type>bs_Image*</type><name>image</name></param>
@@ -3549,7 +3519,7 @@
             <return>void</return>
             <param><type>bs_BlitOperation</type><name>operation</name></param>
         </function>
-        <variadicStringTemplate name="bs_loadImage">
+        <variadicStringTemplate name="bs_loadImage" string="path">
             <return>bs_Result</return>
             <param><type>bs_Object*</type><name>object</name></param>
             <param><type>int</type><name>package_id</name></param>
@@ -3582,7 +3552,7 @@
             <param><type>bs_ImageFilter</type><name>filter</name></param>
             <param><type>bs_SamplerBits</type><name>flags</name></param>
         </function>
-        <variadicStringTemplate name="bs_loadAtlas">
+        <variadicStringTemplate name="bs_loadAtlas" string="path">
             <return>bs_Result</return>
             <param><type>bs_Object*</type><name>object</name></param>
             <param><type>int</type><name>package_id</name></param>
@@ -3656,9 +3626,6 @@
         <function name="bsi_fetchDevice">
             <return>struct VkDevice_T*</return>
         </function>
-        <function name="bsi_resizeObjects">
-            <return>void</return>
-        </function>
         <function name="bs_resetQueue">
             <return>bs_Result</return>
             <param><type>bs_Queue*</type><name>queue</name></param>
@@ -3710,11 +3677,11 @@
             <return>bs_Result</return>
             <param><type>char*</type><name>raw</name></param>
             <param><assert>len &gt;= 0</assert><type>int</type><name>len</name></param>
-            <param><type>bs_Json*</type><name>out_json</name></param>
+            <param><type>bs_Json*</type><name>out</name></param>
         </function>
         <variadicStringTemplate name="bs_loadJson" string="path">
             <return>bs_Result</return>
-            <param><type>bs_Json*</type><name>out_json</name></param>
+            <param><type>bs_Json*</type><name>out</name></param>
         </variadicStringTemplate>
         <function name="bs_destroyJson">
             <return>void</return>
@@ -3807,31 +3774,18 @@
             <param><type>const char*</type><name>type</name></param>
             <param><assert>type_len &gt;= 0</assert><type>int</type><name>type_len</name></param>
         </variadicStringTemplate>
-        <variadicStringTemplate name="bs_log">
+        <variadicStringTemplate name="bs_log" string="message">
             <return>char*</return>
         </variadicStringTemplate>
-        <variadicStringTemplate name="bs_info">
+        <variadicStringTemplate name="bs_info" string="message">
             <return>char*</return>
         </variadicStringTemplate>
-        <variadicStringTemplate name="bs_warn">
+        <variadicStringTemplate name="bs_warn" string="message">
             <return>char*</return>
         </variadicStringTemplate>
-        <variadicStringTemplate name="bs_critical">
+        <variadicStringTemplate name="bs_critical" string="message">
             <return>void</return>
         </variadicStringTemplate>
-        <function name="bs_logObjectDiff">
-            <return>void</return>
-        </function>
-        <function name="bs_logUnchangedObjects">
-            <return>void</return>
-        </function>
-        <function name="bs_logBindings">
-            <return>void</return>
-        </function>
-        <function name="bs_infoF4">
-            <return>void</return>
-            <param><type>bs_mat4*</type><name>m</name></param>
-        </function>
         <function name="bs_instance" section="bs_mem.h">
             <return>bs_Instance*</return>
         </function>
@@ -3852,7 +3806,6 @@
         </function>
         <variadicStringTemplate name="bs_system">
             <return>void</return>
-            <param><type>char*</type><name>command</name></param>
         </variadicStringTemplate>
         <function name="bs_createThread">
             <return>void</return>
@@ -3944,11 +3897,6 @@
             <param><type>bs_String*</type><name>string</name></param>
             <param><type>char</type><name>c</name></param>
         </function>
-        <function name="bs_removeLastCharsCount">
-            <return>void</return>
-            <param><type>bs_String*</type><name>string</name></param>
-            <param><assert>n &lt;= string-&gt;len</assert><assert>n &gt;= 0</assert><type>int</type><name>n</name></param>
-        </function>
         <function name="bs_removeCharRange">
             <return>void</return>
             <param><type>bs_String*</type><name>string</name></param>
@@ -4013,9 +3961,21 @@
             <param><type>char*</type><name>dst</name></param>
             <param><type>bs_U32</type><name>dst_size</name></param>
         </function>
-        <variadicStringTemplate name="bs_charString">
+		<function name="bs_charStringV">
             <return>char*</return>
-        </variadicStringTemplate>
+            <param><type>const char*</type><name>format</name></param>
+            <param><type>va_list</type><name>args</name></param>
+        </function>
+		<function name="bs_charStringF" type="allowBody">
+			<return>char*</return>
+            <param><type>const char*</type><name>format</name></param>
+            <param><type></type><name>...</name></param>
+			<body>    va_list args;
+    va_start(args, format);
+    char* _return = bs_charStringV(format, args);
+    va_end(args);
+    return _return;</body>
+		</function>
         <function name="bs_free">
             <return>void*</return>
             <param><type>void*</type><name>p</name></param>
@@ -4045,10 +4005,6 @@
             <param><type>bs_U32</type><name>index</name></param>
         </function>
         <function name="bs_fetchLast">
-            <return>void*</return>
-            <param><type>bs_List*</type><name>list</name></param>
-        </function>
-        <function name="bs_fetchLastNull">
             <return>void*</return>
             <param><type>bs_List*</type><name>list</name></param>
         </function>
@@ -4116,10 +4072,9 @@
             <return>int</return>
             <param><type>int</type><name>n</name></param>
         </function>
-        <function name="bs_directoryExists">
+		<variadicStringTemplate name="bs_directoryExists" string="path">
             <return>bool</return>
-            <param><type>char*</type><name>path</name></param>
-        </function>
+        </variadicStringTemplate>
         <function name="bs_fileExtension">
             <return>char*</return>
             <param><type>const char*</type><name>path</name></param>
@@ -4133,11 +4088,11 @@
             <return>char*</return>
             <param><type>const char*</type><name>path</name></param>
         </function>
-        <function name="bs_appendFile">
-            <return>void</return>
-            <param><type>const char*</type><name>path</name></param>
-            <param><type>const char*</type><name>data</name></param>
-        </function>
+		<variadicStringTemplate name="bs_appendFile">
+            <return>bs_Result</return>
+            <param><type>char*</type><name>data</name></param>
+            <param><type>bs_U32</type><name>data_len</name></param>
+        </variadicStringTemplate>
         <variadicStringTemplate name="bs_saveFile" string="path">
             <return>bs_Result</return>
             <param><type>char*</type><name>data</name></param>
@@ -4493,12 +4448,6 @@
             <param><type>const char*</type><name>name</name></param>
             <param><type>bs_Format</type><name>base_format</name></param>
         </function>
-        <function name="bs_wnd" section="bs_window.h">
-            <return>bs_Window*</return>
-        </function>
-        <function name="bs_io">
-            <return>bs_IO*</return>
-        </function>
         <function name="bs_timeZoneBias">
             <return>bs_Result</return>
             <param><type>int*</type><name>out</name></param>
@@ -4595,9 +4544,6 @@
             <param><type>bs_U32</type><name>width</name></param>
             <param><type>bs_U32</type><name>height</name></param>
         </function>
-        <function name="bs_screenDimensions">
-            <return>bs_ivec2</return>
-        </function>
         <function name="bs_moveWindow">
             <return>void</return>
             <param><type>int</type><name>x</name></param>
@@ -4622,12 +4568,6 @@
         <function name="bs_setCursor">
             <return>void</return>
             <param><type>bs_CursorIcon</type><name>type</name></param>
-        </function>
-        <function name="bs_maximize">
-            <return>void</return>
-        </function>
-        <function name="bs_minimize">
-            <return>void</return>
         </function>
         <function name="bs_deltaTime">
             <return>double</return>
@@ -4664,7 +4604,6 @@
 
         <variadicStringTemplate name="bs_copyToClipboard">
             <return>void</return>
-            <param><type>bs_Timer*</type><name>timer</name></param>
         </variadicStringTemplate>
 
         <variadicStringTemplate name="bs_appendString">
@@ -4684,38 +4623,38 @@
             <param><type>void*</type><name>param</name></param>
         </variadicStringTemplate>
 
-        <variadicStringTemplate name="bs_numFiles">
+        <variadicStringTemplate name="bs_numFiles" string="path">
             <return>int</return>
         </variadicStringTemplate>
 
-        <variadicStringTemplate name="bs_numDirectories">
+        <variadicStringTemplate name="bs_numDirectories" string="path">
             <return>int</return>
         </variadicStringTemplate>
 
-        <variadicStringTemplate name="bs_loadFile">
+        <variadicStringTemplate name="bs_loadFile" string="path">
             <return>bs_Result</return>
             <param><type>bs_String**</type><name>out</name></param>
         </variadicStringTemplate>
 
-        <variadicStringTemplate name="bs_loadFileChunk">
+        <variadicStringTemplate name="bs_loadFileChunk" string="path">
             <return>bs_Result</return>
-            <param><type>const char*</type><name>path</name></param>
             <param><type>long</type><name>offset</name></param>
             <param><type>size_t</type><name>size</name></param>
             <param><type>bs_String**</type><name>out</name></param>
         </variadicStringTemplate>
 
-        <variadicStringTemplate name="bs_deleteFile">
+        <variadicStringTemplate name="bs_deleteFile" string="path">
             <return>bs_Result</return>
         </variadicStringTemplate>
 
-        <variadicStringTemplate name="bs_deleteDirectoryContents">
+        <variadicStringTemplate name="bs_deleteDirectoryContents" string="path">
             <return>bs_Result</return>
         </variadicStringTemplate>
 
-        <variadicStringTemplate name="bs_deleteDirectory">
+        <variadicStringTemplate name="bs_deleteDirectory" string="path">
             <return>bs_Result</return>
         </variadicStringTemplate>
 
-    </functions>
+    
+</functions>
 </registry>

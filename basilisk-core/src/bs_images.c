@@ -123,10 +123,10 @@ BSAPI void _bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout,
         }
     };
 
-    if (bs_isDepthFormat(image->format)) {
+    if (_bs_isDepthFormat(image->format)) {
         barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
 
-        if (bs_isStencilFormat(image->format))
+        if (_bs_isStencilFormat(image->format))
             barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
     }
     else {
@@ -409,7 +409,7 @@ BSAPI bs_Result _bs_image(bs_Object* object, bs_ivec2 dim, int num_indices, bs_F
     if (num_indices > 0)
         image->indices = _bs_calloc(num_indices, sizeof(bs_ImageIndex));
 
-    if (bs_isDepthFormat(format)) 
+    if (_bs_isDepthFormat(format)) 
         return _bs_depthImage(object, dim, num_indices, format, flags);
 
     int num_swaps = flags & BS_IMAGE_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
@@ -448,42 +448,42 @@ BSAPI bs_Result _bs_encodePng(size_t* out_size, const unsigned char* data, bs_iv
     return BS_RESULT_OK;
 }
 
-BSAPI bs_Result _bs_savePng(char* data, bs_ivec2 dim, bs_PngType type, char* name) {
+BSAPI bs_Result _bs_savePng(char* data, bs_ivec2 dim, bs_PngType type, char* path, int path_length) {
     int error = 0;
 
     switch (type) {
-    case BS_PNG_GREY: error = lodepng_encode_file(name, data, dim.x, dim.y, LCT_GREY, 8); break;
-    case BS_PNG_RGB: error = lodepng_encode_file(name, data, dim.x, dim.y, LCT_RGB, 8); break;
-    case BS_PNG_GREY_ALPHA: error = lodepng_encode_file(name, data, dim.x, dim.y, LCT_GREY_ALPHA, 8); break;
-    case BS_PNG_RGBA: error = lodepng_encode_file(name, data, dim.x, dim.y, LCT_RGBA, 8); break;
+    case BS_PNG_GREY: error = lodepng_encode_file(path, data, dim.x, dim.y, LCT_GREY, 8); break;
+    case BS_PNG_RGB: error = lodepng_encode_file(path, data, dim.x, dim.y, LCT_RGB, 8); break;
+    case BS_PNG_GREY_ALPHA: error = lodepng_encode_file(path, data, dim.x, dim.y, LCT_GREY_ALPHA, 8); break;
+    case BS_PNG_RGBA: error = lodepng_encode_file(path, data, dim.x, dim.y, LCT_RGBA, 8); break;
     default:
-        _bs_warnF("Unsupported bs_PngType %d for png \"%s\"\n", type, name);
+        _bs_warnF("Unsupported bs_PngType %d for png \"%s\"\n", type, path);
     };
 
     if (error != 0) {
-        _bs_warnF("Failed to save png \"%s\", lodepng error:\n%s\n", name, lodepng_error_text(error));
+        _bs_warnF("Failed to save png \"%s\", lodepng error:\n%s\n", path, lodepng_error_text(error));
         return BS_RESULT_FAILED_TO_WRITE;
     }
 
-    _bs_infoF("Saved a PNG of size %d x %d to %s\n", dim.x, dim.y, name);
+    _bs_infoF("Saved a PNG of size %d x %d to %s\n", dim.x, dim.y, path);
 
     return BS_RESULT_OK;
 }
 
-BSAPI bs_Result _bs_inspectPng(const char* path, int* width, int* height, size_t* out_size) {
+BSAPI bs_Result _bs_inspectPng(bs_PngData* out_png_data, char* path, int path_length) {
     unsigned error;
     unsigned char* data = NULL;
 
     LodePNGState state;
     lodepng_state_init(&state);
 
-    error = lodepng_load_file(&data, out_size, path);
+    error = lodepng_load_file(&data, out_png_data->size, path);
     if (error) {
         _bs_warnF("Failed to read png file \"%s\", lodepng error:\n%s\n", path, lodepng_error_text(error));
         return BS_RESULT_FAILED_TO_READ;
     }
 
-    error = lodepng_inspect(width, height, &state, data, *out_size);
+    error = lodepng_inspect(out_png_data->width, out_png_data->height, &state, data, out_png_data->size);
     if (error) {
         _bs_warnF("Failed to inspect png \"%s\", lodepng error:\n%s\n", path, lodepng_error_text(error));
         free(data);
@@ -517,6 +517,8 @@ BSAPI bs_Result _bs_loadPngData(char* data, size_t size, int channels_count, bs_
         return BS_RESULT_FAILED_TO_INSPECT;
     }
 
+    out->size = out->width * out->height * out->channels_count;
+
     return BS_RESULT_OK;
 }
 
@@ -539,6 +541,8 @@ BSAPI bs_Result _bs_loadPng(const char* path, int channels_count, bs_PngData* ou
         _bs_warnF("Failed to load png file \"%s\", lodepng error:\n%s\n", path, lodepng_error_text(error));
         return BS_RESULT_FAILED_TO_READ;
     }
+
+    out->size = out->width * out->height * out->channels_count;
 
     return BS_RESULT_OK;
 }
@@ -795,8 +799,8 @@ BSAPI void _bs_copyBufferToImage(bs_Buffer* buffer, bs_Image* image, int index, 
 }
 
 static VkImageAspectFlags _bs_imageAspectFlags(bs_Image* image) {
-    if (bs_isDepthFormat(image->format)) {
-        if (bs_isStencilFormat(image->format))
+    if (_bs_isDepthFormat(image->format)) {
+        if (_bs_isStencilFormat(image->format))
             return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 
         return VK_IMAGE_ASPECT_DEPTH_BIT;
@@ -851,14 +855,14 @@ BSAPI bs_Result _val_bs_loadImage(bs_Object* object, int package_id, bs_ImageBit
     return _bs_loadImage(object, package_id, flags, resource_name, resource_name_length);
 }
 
-BSAPI bs_Result _bs_loadImage(bs_Object* object, int package_id, bs_ImageBits flags, char* resource_name, char* resource_name_length) {
+BSAPI bs_Result _bs_loadImage(bs_Object* object, int package_id, bs_ImageBits flags, char* path, int path_length) {
     bs_Result result;
 
     if (!object->image)
         return BS_RESULT_OK;
 
     bs_Resource* resource;
-    result = _bs_loadResource(package_id, 0, &resource, resource_name, strlen(resource_name));
+    result = _bs_loadResource(package_id, 0, &resource, path, path_length);
     if (result != BS_RESULT_OK)
         return result;
 
@@ -927,8 +931,8 @@ BSAPI bs_Result _bs_loadImage(bs_Object* object, int package_id, bs_ImageBits fl
         data += pointer->name_length;
     }
 
-    _bs_nameImage(object->image, resource_name);
-   //bs_destroyBuffer(buffer);
+    _bs_nameImage(object->image, path);
+   //_bs_destroyBuffer(buffer);
 
     resource->image = object->image;
 
@@ -1024,7 +1028,7 @@ BSAPI void _bs_destroyAtlas(bs_Atlas* atlas) {
     atlas->head.id = id;
 
     //if (atlas->buffer)
-    //	bs_destroyBuffer(atlas->buffer);
+    //	_bs_destroyBuffer(atlas->buffer);
 }
 
 BSAPI bs_Result _val_bs_loadAtlasMemory(bs_Object* object, int package_id, char* resource_name, char* data, bs_U32 flags) {
@@ -1125,15 +1129,15 @@ BSAPI bs_Result _bs_loadAtlasMemory(bs_Object* object, int package_id, char* res
     return BS_RESULT_OK;
 }
 
-BSAPI bs_Result _bs_loadAtlas(bs_Object* object, int package_id, const char* resource_name, bs_U32 flags) {
+BSAPI bs_Result _bs_loadAtlas(bs_Object* object, int package_id, bs_U32 flags, char* path, int path_length) {
     bs_Result result;
 
     bs_Resource* resource;
-    result = _bs_loadResource(package_id, 0, &resource, resource_name, strlen(resource_name));
+    result = _bs_loadResource(package_id, 0, &resource, path, path_length);
     if (result != BS_RESULT_OK)
         return result;
 
-    result = _bs_loadAtlasMemory(object, package_id, resource_name, resource->data->value, flags);
+    result = _bs_loadAtlasMemory(object, package_id, path, resource->data->value, flags);
     if (result != BS_RESULT_OK)
         return result;
 

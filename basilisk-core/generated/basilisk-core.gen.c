@@ -156,9 +156,9 @@ void bs_v2Lerp(
 }
 
 void bs_v2Mid(
-    const bs_vec3* a, 
-    const bs_vec3* b, 
-    bs_vec3* out)
+    const bs_vec2* a, 
+    const bs_vec2* b, 
+    bs_vec2* out)
 {
     next.bs_v2Mid(a, b, out);
 }
@@ -501,13 +501,6 @@ void bs_m4Scale(
     glm_scale_to(m->v, v->a, out->a);
 }
 
-void bs_m3ToM4(
-    const bs_mat3* m, 
-    bs_mat4* out)
-{
-    next.bs_m3ToM4(m, out);
-}
-
 void bs_m3ToQ(
     const bs_mat3* m, 
     bs_vec4* out)
@@ -740,11 +733,12 @@ int bs_sign(
     return (v > 0.0f) - (v < 0.0f);
 }
 
-bs_Quad bs_quad(
-    bs_vec3 position, 
-    bs_vec2 dimensions)
+void bs_quad(
+    const bs_vec3* position, 
+    const bs_vec2* dimensions, 
+    bs_Quad* out)
 {
-    return next.bs_quad(position, dimensions);
+    next.bs_quad(position, dimensions, out);
 }
 
 float bs_lerp(
@@ -806,13 +800,13 @@ bs_Result bs_convertVulkanResult(
 }
 
 bs_Result bs_convertWin32Error(
-    unsigned long code)
+    int code)
 {
     return next.bs_convertWin32Error(code);
 }
 
 const char* bs_serializeWin32Error(
-    unsigned long code)
+    int code)
 {
     return next.bs_serializeWin32Error(code);
 }
@@ -846,15 +840,6 @@ bs_Result bs_iniAudio()
     return next.bs_iniAudio();
 }
 
-bs_Result bs_ray(
-    bs_vec3 start, 
-    bs_vec3 direction, 
-    float length, 
-    bs_Ray* ray)
-{
-    return next.bs_ray(start, direction, length, ray);
-}
-
 void bs_rayVsObb(
     const bs_Ray* ray, 
     const bs_vec3* position, 
@@ -865,13 +850,13 @@ void bs_rayVsObb(
     next.bs_rayVsObb(ray, position, rotation, scale, out);
 }
 
-void bs_sphereVsPoint(
-    bs_vec3 center, 
+bool bs_sphereVsPoint(
+    const bs_vec3* center, 
     float radius, 
-    bs_vec3 point, 
+    const bs_vec3* point, 
     bs_SphereVsPoint* out)
 {
-    next.bs_sphereVsPoint(center, radius, point, out);
+    return next.bs_sphereVsPoint(center, radius, point, out);
 }
 
 bool bs_sphereVsObbTest(
@@ -903,14 +888,14 @@ bool bs_rectangleVsPoint(
     return next.bs_rectangleVsPoint(position, dimensions, point);
 }
 
-void bs_lineVsLine(
-    bs_vec2 l1_start, 
-    bs_vec2 l1_end, 
-    bs_vec2 l2_start, 
-    bs_vec2 l2_end, 
+bool bs_lineVsLine(
+    const bs_vec2* l1_start, 
+    const bs_vec2* l1_end, 
+    const bs_vec2* l2_start, 
+    const bs_vec2* l2_end, 
     bs_LineVsLine* out)
 {
-    next.bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, out);
+    return next.bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, out);
 }
 
 void bs_populateVertexDeclaration(
@@ -919,11 +904,6 @@ void bs_populateVertexDeclaration(
     int attributes_count)
 {
     next.bs_populateVertexDeclaration(declaration, attributes, attributes_count);
-}
-
-int bs_currentSwap()
-{
-    return next.bs_currentSwap();
 }
 
 void bs_beginComment(
@@ -937,10 +917,7 @@ void bs_beginCommentV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    bs_beginComment(_formatted, _length);
+    next.bs_beginCommentV(format, args);
 }
 
 void bs_beginCommentF(
@@ -949,7 +926,7 @@ void bs_beginCommentF(
 {
     va_list args;
     va_start(args, format);
-    bs_beginCommentV(format, args);
+    next.bs_beginCommentV(format, args);
     va_end(args);
 }
 
@@ -1115,10 +1092,7 @@ void bs_nameBufferV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    bs_nameBuffer(buffer, _formatted, _length);
+    next.bs_nameBufferV(buffer, format, args);
 }
 
 void bs_nameBufferF(
@@ -1128,7 +1102,7 @@ void bs_nameBufferF(
 {
     va_list args;
     va_start(args, format);
-    bs_nameBufferV(buffer, format, args);
+    next.bs_nameBufferV(buffer, format, args);
     va_end(args);
 }
 
@@ -1236,10 +1210,7 @@ bs_Attribute* bs_queryAttributeV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_queryAttribute(batch, _formatted, _length);
+    return next.bs_queryAttributeV(batch, format, args);
 }
 
 bs_Attribute* bs_queryAttributeF(
@@ -1249,7 +1220,7 @@ bs_Attribute* bs_queryAttributeF(
 {
     va_list args;
     va_start(args, format);
-    bs_Attribute* _return = bs_queryAttributeV(batch, format, args);
+    bs_Attribute* _return = next.bs_queryAttributeV(batch, format, args);
     va_end(args);
     return _return;
 }
@@ -1292,12 +1263,6 @@ void bs_destroyBatch(
     next.bs_destroyBatch(batch);
 }
 
-bs_Result bs_recreateBatch(
-    bs_Batch* batch)
-{
-    return next.bs_recreateBatch(batch);
-}
-
 void bs_ensureBatchSize(
     bs_Batch* batch, 
     bs_U32 num_indices, 
@@ -1330,7 +1295,7 @@ void bs_pushIndex(
 void bs_pushIndices(
     bs_Batch* batch, 
     int indices[], 
-    bs_U32 indices_count)
+    int indices_count)
 {
     next.bs_pushIndices(batch, indices, indices_count);
 }
@@ -1369,29 +1334,6 @@ bs_Range bs_pushCone(
     bs_RGBA color)
 {
     return next.bs_pushCone(batch, segments, height, radius, color);
-}
-
-void bs_batchRectangle(
-    bs_Batch* batch, 
-    bs_U32* offset, 
-    bs_vec3 position, 
-    bs_vec2 dimensions, 
-    bs_vec2 texture_offset, 
-    bs_vec2 texture_coords, 
-    bs_RGBA color)
-{
-    next.bs_batchRectangle(batch, offset, position, dimensions, texture_offset, texture_coords, color);
-}
-
-bs_Range bs_pushRectangle(
-    bs_Batch* batch, 
-    bs_vec3 position, 
-    bs_vec2 dimensions, 
-    bs_vec2 texture_offset, 
-    bs_vec2 texture_coords, 
-    bs_RGBA color)
-{
-    return next.bs_pushRectangle(batch, position, dimensions, texture_offset, texture_coords, color);
 }
 
 void bs_batchQuad(
@@ -1449,23 +1391,6 @@ bs_Range bs_pushLine(
     bs_RGBA color)
 {
     return next.bs_pushLine(batch, start, end, color);
-}
-
-void bs_batchRay(
-    bs_Batch* batch, 
-    bs_U32* offset, 
-    bs_Ray* ray, 
-    bs_RGBA color)
-{
-    next.bs_batchRay(batch, offset, ray, color);
-}
-
-bs_Range bs_pushRay(
-    bs_Batch* batch, 
-    bs_Ray* ray, 
-    bs_RGBA color)
-{
-    return next.bs_pushRay(batch, ray, color);
 }
 
 void bs_batchPoint(
@@ -1854,10 +1779,10 @@ void bs_rasterizeGlyph(
     next.bs_rasterizeGlyph(font, glyph, width, height, out_bmp, scale);
 }
 
-void bs_kern(
+void bs_readKernTable(
     bs_TTF* ttf)
 {
-    next.bs_kern(ttf);
+    next.bs_readKernTable(ttf);
 }
 
 void bs_bindFont(
@@ -1920,10 +1845,31 @@ void bs_transition(
 }
 
 bs_Result bs_inspectPng(
-    const char* path, 
-    bs_PngData* out_png_data)
+    bs_PngData* out_png_data, 
+    char* path, 
+    int path_length)
 {
-    return next.bs_inspectPng(path, out_png_data);
+    return next.bs_inspectPng(out_png_data, path, path_length);
+}
+
+bs_Result bs_inspectPngV(
+    bs_PngData* out_png_data, 
+    char* format, 
+    va_list args)
+{
+    return next.bs_inspectPngV(out_png_data, format, args);
+}
+
+bs_Result bs_inspectPngF(
+    bs_PngData* out_png_data, 
+    char* format, 
+    ...)
+{
+    va_list args;
+    va_start(args, format);
+    bs_Result _return = next.bs_inspectPngV(out_png_data, format, args);
+    va_end(args);
+    return _return;
 }
 
 bs_Result bs_loadPngData(
@@ -1957,10 +1903,10 @@ bs_Result bs_savePng(
     char* data, 
     bs_ivec2 resolution, 
     bs_PngType type, 
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_savePng(data, resolution, type, value, value_length);
+    return next.bs_savePng(data, resolution, type, path, path_length);
 }
 
 bs_Result bs_savePngV(
@@ -1970,10 +1916,7 @@ bs_Result bs_savePngV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_savePng(data, resolution, type, _formatted, _length);
+    return next.bs_savePngV(data, resolution, type, format, args);
 }
 
 bs_Result bs_savePngF(
@@ -1985,7 +1928,7 @@ bs_Result bs_savePngF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_savePngV(data, resolution, type, format, args);
+    bs_Result _return = next.bs_savePngV(data, resolution, type, format, args);
     va_end(args);
     return _return;
 }
@@ -1995,42 +1938,9 @@ bs_Result bs_encodePng(
     const unsigned char* data, 
     bs_ivec2 size, 
     bs_PngType type, 
-    unsigned char** out, 
-    char* value, 
-    int value_length)
+    unsigned char** out)
 {
-    return next.bs_encodePng(out_size, data, size, type, out, value, value_length);
-}
-
-bs_Result bs_encodePngV(
-    size_t* out_size, 
-    const unsigned char* data, 
-    bs_ivec2 size, 
-    bs_PngType type, 
-    unsigned char** out, 
-    char* format, 
-    va_list args)
-{
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_encodePng(out_size, data, size, type, out, _formatted, _length);
-}
-
-bs_Result bs_encodePngF(
-    size_t* out_size, 
-    const unsigned char* data, 
-    bs_ivec2 size, 
-    bs_PngType type, 
-    unsigned char** out, 
-    char* format, 
-    ...)
-{
-    va_list args;
-    va_start(args, format);
-    bs_Result _return = bs_encodePngV(out_size, data, size, type, out, format, args);
-    va_end(args);
-    return _return;
+    return next.bs_encodePng(out_size, data, size, type, out);
 }
 
 void bs_destroyImage(
@@ -2094,10 +2004,10 @@ bs_Result bs_loadImage(
     bs_Object* object, 
     int package_id, 
     bs_ImageBits flags, 
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_loadImage(object, package_id, flags, value, value_length);
+    return next.bs_loadImage(object, package_id, flags, path, path_length);
 }
 
 bs_Result bs_loadImageV(
@@ -2107,10 +2017,7 @@ bs_Result bs_loadImageV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_loadImage(object, package_id, flags, _formatted, _length);
+    return next.bs_loadImageV(object, package_id, flags, format, args);
 }
 
 bs_Result bs_loadImageF(
@@ -2122,7 +2029,7 @@ bs_Result bs_loadImageF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_loadImageV(object, package_id, flags, format, args);
+    bs_Result _return = next.bs_loadImageV(object, package_id, flags, format, args);
     va_end(args);
     return _return;
 }
@@ -2170,10 +2077,10 @@ bs_Result bs_loadAtlas(
     bs_Object* object, 
     int package_id, 
     bs_U32 flags, 
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_loadAtlas(object, package_id, flags, value, value_length);
+    return next.bs_loadAtlas(object, package_id, flags, path, path_length);
 }
 
 bs_Result bs_loadAtlasV(
@@ -2183,10 +2090,7 @@ bs_Result bs_loadAtlasV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_loadAtlas(object, package_id, flags, _formatted, _length);
+    return next.bs_loadAtlasV(object, package_id, flags, format, args);
 }
 
 bs_Result bs_loadAtlasF(
@@ -2198,7 +2102,7 @@ bs_Result bs_loadAtlasF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_loadAtlasV(object, package_id, flags, format, args);
+    bs_Result _return = next.bs_loadAtlasV(object, package_id, flags, format, args);
     va_end(args);
     return _return;
 }
@@ -2301,11 +2205,6 @@ struct VkDevice_T* bsi_fetchDevice()
     return next.bsi_fetchDevice();
 }
 
-void bsi_resizeObjects()
-{
-    next.bsi_resizeObjects();
-}
-
 bs_Result bs_resetQueue(
     bs_Queue* queue)
 {
@@ -2333,10 +2232,7 @@ void bsi_nameHandleV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    bsi_nameHandle(handle, type, _formatted, _length);
+    next.bsi_nameHandleV(handle, type, format, args);
 }
 
 void bsi_nameHandleF(
@@ -2347,7 +2243,7 @@ void bsi_nameHandleF(
 {
     va_list args;
     va_start(args, format);
-    bsi_nameHandleV(handle, type, format, args);
+    next.bsi_nameHandleV(handle, type, format, args);
     va_end(args);
 }
 
@@ -2404,38 +2300,35 @@ bs_Json bs_emptyJsonArray()
 bs_Result bs_json(
     char* raw, 
     int len, 
-    bs_Json* out_json)
+    bs_Json* out)
 {
-    return next.bs_json(raw, len, out_json);
+    return next.bs_json(raw, len, out);
 }
 
 bs_Result bs_loadJson(
-    bs_Json* out_json, 
+    bs_Json* out, 
     char* path, 
     int path_length)
 {
-    return next.bs_loadJson(out_json, path, path_length);
+    return next.bs_loadJson(out, path, path_length);
 }
 
 bs_Result bs_loadJsonV(
-    bs_Json* out_json, 
+    bs_Json* out, 
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_loadJson(out_json, _formatted, _length);
+    return next.bs_loadJsonV(out, format, args);
 }
 
 bs_Result bs_loadJsonF(
-    bs_Json* out_json, 
+    bs_Json* out, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_loadJsonV(out_json, format, args);
+    bs_Result _return = next.bs_loadJsonV(out, format, args);
     va_end(args);
     return _return;
 }
@@ -2467,10 +2360,7 @@ bs_JsonValue bs_fetchJsonV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_fetchJson(root, expect, _formatted, _length);
+    return next.bs_fetchJsonV(root, expect, format, args);
 }
 
 bs_JsonValue bs_fetchJsonF(
@@ -2481,7 +2371,7 @@ bs_JsonValue bs_fetchJsonF(
 {
     va_list args;
     va_start(args, format);
-    bs_JsonValue _return = bs_fetchJsonV(root, expect, format, args);
+    bs_JsonValue _return = next.bs_fetchJsonV(root, expect, format, args);
     va_end(args);
     return _return;
 }
@@ -2499,10 +2389,7 @@ void bs_deleteJsonV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    bs_deleteJson(root, _formatted, _length);
+    next.bs_deleteJsonV(root, format, args);
 }
 
 void bs_deleteJsonF(
@@ -2512,7 +2399,7 @@ void bs_deleteJsonF(
 {
     va_list args;
     va_start(args, format);
-    bs_deleteJsonV(root, format, args);
+    next.bs_deleteJsonV(root, format, args);
     va_end(args);
 }
 
@@ -2531,10 +2418,7 @@ bs_Result bs_ensureJsonV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_ensureJson(root, value, _formatted, _length);
+    return next.bs_ensureJsonV(root, value, format, args);
 }
 
 bs_Result bs_ensureJsonF(
@@ -2545,7 +2429,7 @@ bs_Result bs_ensureJsonF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_ensureJsonV(root, value, format, args);
+    bs_Result _return = next.bs_ensureJsonV(root, value, format, args);
     va_end(args);
     return _return;
 }
@@ -2647,10 +2531,7 @@ char* bs_logSectionV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_logSection(_formatted, _length);
+    return next.bs_logSectionV(format, args);
 }
 
 char* bs_logSectionF(
@@ -2659,7 +2540,7 @@ char* bs_logSectionF(
 {
     va_list args;
     va_start(args, format);
-    char* _return = bs_logSectionV(format, args);
+    char* _return = next.bs_logSectionV(format, args);
     va_end(args);
     return _return;
 }
@@ -2684,10 +2565,7 @@ char* bs_logWithTimestampV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_logWithTimestamp(type, type_len, _formatted, _length);
+    return next.bs_logWithTimestampV(type, type_len, format, args);
 }
 
 char* bs_logWithTimestampF(
@@ -2698,26 +2576,23 @@ char* bs_logWithTimestampF(
 {
     va_list args;
     va_start(args, format);
-    char* _return = bs_logWithTimestampV(type, type_len, format, args);
+    char* _return = next.bs_logWithTimestampV(type, type_len, format, args);
     va_end(args);
     return _return;
 }
 
 char* bs_log(
-    char* value, 
-    int value_length)
+    char* message, 
+    int message_length)
 {
-    return next.bs_log(value, value_length);
+    return next.bs_log(message, message_length);
 }
 
 char* bs_logV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_log(_formatted, _length);
+    return next.bs_logV(format, args);
 }
 
 char* bs_logF(
@@ -2726,26 +2601,23 @@ char* bs_logF(
 {
     va_list args;
     va_start(args, format);
-    char* _return = bs_logV(format, args);
+    char* _return = next.bs_logV(format, args);
     va_end(args);
     return _return;
 }
 
 char* bs_info(
-    char* value, 
-    int value_length)
+    char* message, 
+    int message_length)
 {
-    return next.bs_info(value, value_length);
+    return next.bs_info(message, message_length);
 }
 
 char* bs_infoV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_info(_formatted, _length);
+    return next.bs_infoV(format, args);
 }
 
 char* bs_infoF(
@@ -2754,26 +2626,23 @@ char* bs_infoF(
 {
     va_list args;
     va_start(args, format);
-    char* _return = bs_infoV(format, args);
+    char* _return = next.bs_infoV(format, args);
     va_end(args);
     return _return;
 }
 
 char* bs_warn(
-    char* value, 
-    int value_length)
+    char* message, 
+    int message_length)
 {
-    return next.bs_warn(value, value_length);
+    return next.bs_warn(message, message_length);
 }
 
 char* bs_warnV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_warn(_formatted, _length);
+    return next.bs_warnV(format, args);
 }
 
 char* bs_warnF(
@@ -2782,26 +2651,23 @@ char* bs_warnF(
 {
     va_list args;
     va_start(args, format);
-    char* _return = bs_warnV(format, args);
+    char* _return = next.bs_warnV(format, args);
     va_end(args);
     return _return;
 }
 
 void bs_critical(
-    char* value, 
-    int value_length)
+    char* message, 
+    int message_length)
 {
-    next.bs_critical(value, value_length);
+    next.bs_critical(message, message_length);
 }
 
 void bs_criticalV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    bs_critical(_formatted, _length);
+    next.bs_criticalV(format, args);
 }
 
 void bs_criticalF(
@@ -2810,29 +2676,8 @@ void bs_criticalF(
 {
     va_list args;
     va_start(args, format);
-    bs_criticalV(format, args);
+    next.bs_criticalV(format, args);
     va_end(args);
-}
-
-void bs_logObjectDiff()
-{
-    next.bs_logObjectDiff();
-}
-
-void bs_logUnchangedObjects()
-{
-    next.bs_logUnchangedObjects();
-}
-
-void bs_logBindings()
-{
-    next.bs_logBindings();
-}
-
-void bs_infoF4(
-    bs_mat4* m)
-{
-    next.bs_infoF4(m);
 }
 
 bs_Instance* bs_instance()
@@ -2866,32 +2711,26 @@ bs_Scope* bs_scope()
 }
 
 void bs_system(
-    char* command, 
     char* value, 
     int value_length)
 {
-    next.bs_system(command, value, value_length);
+    next.bs_system(value, value_length);
 }
 
 void bs_systemV(
-    char* command, 
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    bs_system(command, _formatted, _length);
+    next.bs_systemV(format, args);
 }
 
 void bs_systemF(
-    char* command, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_systemV(command, format, args);
+    next.bs_systemV(format, args);
     va_end(args);
 }
 
@@ -2942,10 +2781,7 @@ bs_String* bs_stringV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_string(old, _formatted, _length);
+    return next.bs_stringV(old, format, args);
 }
 
 bs_String* bs_stringF(
@@ -2955,7 +2791,7 @@ bs_String* bs_stringF(
 {
     va_list args;
     va_start(args, format);
-    bs_String* _return = bs_stringV(old, format, args);
+    bs_String* _return = next.bs_stringV(old, format, args);
     va_end(args);
     return _return;
 }
@@ -3031,10 +2867,7 @@ bs_Result bs_setWorkingDirectoryV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_setWorkingDirectory(_formatted, _length);
+    return next.bs_setWorkingDirectoryV(format, args);
 }
 
 bs_Result bs_setWorkingDirectoryF(
@@ -3043,7 +2876,7 @@ bs_Result bs_setWorkingDirectoryF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_setWorkingDirectoryV(format, args);
+    bs_Result _return = next.bs_setWorkingDirectoryV(format, args);
     va_end(args);
     return _return;
 }
@@ -3070,13 +2903,6 @@ bs_String* bs_appendChar(
     char c)
 {
     return next.bs_appendChar(string, c);
-}
-
-void bs_removeLastCharsCount(
-    bs_String* string, 
-    int n)
-{
-    next.bs_removeLastCharsCount(string, n);
 }
 
 void bs_removeCharRange(
@@ -3165,26 +2991,16 @@ bs_Result bs_unwiden(
     return next.bs_unwiden(src, dst, dst_size);
 }
 
-char* bs_charString(
-    char* value, 
-    int value_length)
-{
-    return next.bs_charString(value, value_length);
-}
-
 char* bs_charStringV(
-    char* format, 
+    const char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_charString(_formatted, _length);
+    return next.bs_charStringV(format, args);
 }
 
 char* bs_charStringF(
-    char* format, 
-    ...)
+    const char* format, 
+     ...)
 {
     va_list args;
     va_start(args, format);
@@ -3237,12 +3053,6 @@ void* bs_fetchLast(
     bs_List* list)
 {
     return next.bs_fetchLast(list);
-}
-
-void* bs_fetchLastNull(
-    bs_List* list)
-{
-    return next.bs_fetchLastNull(list);
 }
 
 void bs_ensureSize(
@@ -3338,9 +3148,28 @@ int bs_numDigits(
 }
 
 bool bs_directoryExists(
-    char* path)
+    char* path, 
+    int path_length)
 {
-    return next.bs_directoryExists(path);
+    return next.bs_directoryExists(path, path_length);
+}
+
+bool bs_directoryExistsV(
+    char* format, 
+    va_list args)
+{
+    return next.bs_directoryExistsV(format, args);
+}
+
+bool bs_directoryExistsF(
+    char* format, 
+    ...)
+{
+    va_list args;
+    va_start(args, format);
+    bool _return = next.bs_directoryExistsV(format, args);
+    va_end(args);
+    return _return;
 }
 
 char* bs_fileExtension(
@@ -3362,11 +3191,35 @@ char* bs_fileName(
     return next.bs_fileName(path);
 }
 
-void bs_appendFile(
-    const char* path, 
-    const char* data)
+bs_Result bs_appendFile(
+    char* data, 
+    bs_U32 data_len, 
+    char* value, 
+    int value_length)
 {
-    next.bs_appendFile(path, data);
+    return next.bs_appendFile(data, data_len, value, value_length);
+}
+
+bs_Result bs_appendFileV(
+    char* data, 
+    bs_U32 data_len, 
+    char* format, 
+    va_list args)
+{
+    return next.bs_appendFileV(data, data_len, format, args);
+}
+
+bs_Result bs_appendFileF(
+    char* data, 
+    bs_U32 data_len, 
+    char* format, 
+    ...)
+{
+    va_list args;
+    va_start(args, format);
+    bs_Result _return = next.bs_appendFileV(data, data_len, format, args);
+    va_end(args);
+    return _return;
 }
 
 bs_Result bs_saveFile(
@@ -3384,10 +3237,7 @@ bs_Result bs_saveFileV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_saveFile(data, data_len, _formatted, _length);
+    return next.bs_saveFileV(data, data_len, format, args);
 }
 
 bs_Result bs_saveFileF(
@@ -3398,7 +3248,7 @@ bs_Result bs_saveFileF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_saveFileV(data, data_len, format, args);
+    bs_Result _return = next.bs_saveFileV(data, data_len, format, args);
     va_end(args);
     return _return;
 }
@@ -3414,10 +3264,7 @@ void bs_convertWin32PathV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    bs_convertWin32Path(_formatted, _length);
+    next.bs_convertWin32PathV(format, args);
 }
 
 void bs_convertWin32PathF(
@@ -3426,7 +3273,7 @@ void bs_convertWin32PathF(
 {
     va_list args;
     va_start(args, format);
-    bs_convertWin32PathV(format, args);
+    next.bs_convertWin32PathV(format, args);
     va_end(args);
 }
 
@@ -3441,10 +3288,7 @@ bs_Result bs_ensureDirectoryV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_ensureDirectory(_formatted, _length);
+    return next.bs_ensureDirectoryV(format, args);
 }
 
 bs_Result bs_ensureDirectoryF(
@@ -3453,7 +3297,7 @@ bs_Result bs_ensureDirectoryF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_ensureDirectoryV(format, args);
+    bs_Result _return = next.bs_ensureDirectoryV(format, args);
     va_end(args);
     return _return;
 }
@@ -3471,10 +3315,7 @@ bs_Result bs_fileModifiedDateV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_fileModifiedDate(out, _formatted, _length);
+    return next.bs_fileModifiedDateV(out, format, args);
 }
 
 bs_Result bs_fileModifiedDateF(
@@ -3484,7 +3325,7 @@ bs_Result bs_fileModifiedDateF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_fileModifiedDateV(out, format, args);
+    bs_Result _return = next.bs_fileModifiedDateV(out, format, args);
     va_end(args);
     return _return;
 }
@@ -3502,10 +3343,7 @@ bs_Result bs_setFileModifiedDateV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_setFileModifiedDate(date, _formatted, _length);
+    return next.bs_setFileModifiedDateV(date, format, args);
 }
 
 bs_Result bs_setFileModifiedDateF(
@@ -3515,7 +3353,7 @@ bs_Result bs_setFileModifiedDateF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_setFileModifiedDateV(date, format, args);
+    bs_Result _return = next.bs_setFileModifiedDateV(date, format, args);
     va_end(args);
     return _return;
 }
@@ -3539,10 +3377,7 @@ bool bs_fileExistsV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_fileExists(_formatted, _length);
+    return next.bs_fileExistsV(format, args);
 }
 
 bool bs_fileExistsF(
@@ -3551,7 +3386,7 @@ bool bs_fileExistsF(
 {
     va_list args;
     va_start(args, format);
-    bool _return = bs_fileExistsV(format, args);
+    bool _return = next.bs_fileExistsV(format, args);
     va_end(args);
     return _return;
 }
@@ -3808,10 +3643,7 @@ bs_Result bs_loadResourceV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_loadResource(package_id, flags, out, _formatted, _length);
+    return next.bs_loadResourceV(package_id, flags, out, format, args);
 }
 
 bs_Result bs_loadResourceF(
@@ -3823,7 +3655,7 @@ bs_Result bs_loadResourceF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_loadResourceV(package_id, flags, out, format, args);
+    bs_Result _return = next.bs_loadResourceV(package_id, flags, out, format, args);
     va_end(args);
     return _return;
 }
@@ -4034,16 +3866,6 @@ void bs_configureAttribute(
     next.bs_configureAttribute(name, base_format);
 }
 
-bs_Window* bs_wnd()
-{
-    return next.bs_wnd();
-}
-
-bs_IO* bs_io()
-{
-    return next.bs_io();
-}
-
 bs_Result bs_timeZoneBias(
     int* out)
 {
@@ -4194,11 +4016,6 @@ void bs_resizeWindow(
     next.bs_resizeWindow(width, height);
 }
 
-bs_ivec2 bs_screenDimensions()
-{
-    return next.bs_screenDimensions();
-}
-
 void bs_moveWindow(
     int x, 
     int y)
@@ -4232,16 +4049,6 @@ void bs_setCursor(
     bs_CursorIcon type)
 {
     next.bs_setCursor(type);
-}
-
-void bs_maximize()
-{
-    next.bs_maximize();
-}
-
-void bs_minimize()
-{
-    next.bs_minimize();
 }
 
 double bs_deltaTime()
@@ -4280,10 +4087,7 @@ void bs_titleWindowV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    bs_titleWindow(_formatted, _length);
+    next.bs_titleWindowV(format, args);
 }
 
 void bs_titleWindowF(
@@ -4292,7 +4096,7 @@ void bs_titleWindowF(
 {
     va_list args;
     va_start(args, format);
-    bs_titleWindowV(format, args);
+    next.bs_titleWindowV(format, args);
     va_end(args);
 }
 
@@ -4319,32 +4123,26 @@ void bs_checkTimer(
 }
 
 void bs_copyToClipboard(
-    bs_Timer* timer, 
     char* value, 
     int value_length)
 {
-    next.bs_copyToClipboard(timer, value, value_length);
+    next.bs_copyToClipboard(value, value_length);
 }
 
 void bs_copyToClipboardV(
-    bs_Timer* timer, 
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    bs_copyToClipboard(timer, _formatted, _length);
+    next.bs_copyToClipboardV(format, args);
 }
 
 void bs_copyToClipboardF(
-    bs_Timer* timer, 
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    bs_copyToClipboardV(timer, format, args);
+    next.bs_copyToClipboardV(format, args);
     va_end(args);
 }
 
@@ -4361,10 +4159,7 @@ bs_String* bs_appendStringV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_appendString(destination, _formatted, _length);
+    return next.bs_appendStringV(destination, format, args);
 }
 
 bs_String* bs_appendStringF(
@@ -4374,7 +4169,7 @@ bs_String* bs_appendStringF(
 {
     va_list args;
     va_start(args, format);
-    bs_String* _return = bs_appendStringV(destination, format, args);
+    bs_String* _return = next.bs_appendStringV(destination, format, args);
     va_end(args);
     return _return;
 }
@@ -4394,10 +4189,7 @@ bs_Result bs_foreachFileV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_foreachFile(x, param, _formatted, _length);
+    return next.bs_foreachFileV(x, param, format, args);
 }
 
 bs_Result bs_foreachFileF(
@@ -4408,7 +4200,7 @@ bs_Result bs_foreachFileF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_foreachFileV(x, param, format, args);
+    bs_Result _return = next.bs_foreachFileV(x, param, format, args);
     va_end(args);
     return _return;
 }
@@ -4428,10 +4220,7 @@ bs_Result bs_foreachDirectoryV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_foreachDirectory(x, param, _formatted, _length);
+    return next.bs_foreachDirectoryV(x, param, format, args);
 }
 
 bs_Result bs_foreachDirectoryF(
@@ -4442,26 +4231,23 @@ bs_Result bs_foreachDirectoryF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_foreachDirectoryV(x, param, format, args);
+    bs_Result _return = next.bs_foreachDirectoryV(x, param, format, args);
     va_end(args);
     return _return;
 }
 
 int bs_numFiles(
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_numFiles(value, value_length);
+    return next.bs_numFiles(path, path_length);
 }
 
 int bs_numFilesV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_numFiles(_formatted, _length);
+    return next.bs_numFilesV(format, args);
 }
 
 int bs_numFilesF(
@@ -4470,26 +4256,23 @@ int bs_numFilesF(
 {
     va_list args;
     va_start(args, format);
-    int _return = bs_numFilesV(format, args);
+    int _return = next.bs_numFilesV(format, args);
     va_end(args);
     return _return;
 }
 
 int bs_numDirectories(
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_numDirectories(value, value_length);
+    return next.bs_numDirectories(path, path_length);
 }
 
 int bs_numDirectoriesV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_numDirectories(_formatted, _length);
+    return next.bs_numDirectoriesV(format, args);
 }
 
 int bs_numDirectoriesF(
@@ -4498,17 +4281,17 @@ int bs_numDirectoriesF(
 {
     va_list args;
     va_start(args, format);
-    int _return = bs_numDirectoriesV(format, args);
+    int _return = next.bs_numDirectoriesV(format, args);
     va_end(args);
     return _return;
 }
 
 bs_Result bs_loadFile(
     bs_String** out, 
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_loadFile(out, value, value_length);
+    return next.bs_loadFile(out, path, path_length);
 }
 
 bs_Result bs_loadFileV(
@@ -4516,10 +4299,7 @@ bs_Result bs_loadFileV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_loadFile(out, _formatted, _length);
+    return next.bs_loadFileV(out, format, args);
 }
 
 bs_Result bs_loadFileF(
@@ -4529,38 +4309,32 @@ bs_Result bs_loadFileF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_loadFileV(out, format, args);
+    bs_Result _return = next.bs_loadFileV(out, format, args);
     va_end(args);
     return _return;
 }
 
 bs_Result bs_loadFileChunk(
-    const char* path, 
     long offset, 
     size_t size, 
     bs_String** out, 
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_loadFileChunk(path, offset, size, out, value, value_length);
+    return next.bs_loadFileChunk(offset, size, out, path, path_length);
 }
 
 bs_Result bs_loadFileChunkV(
-    const char* path, 
     long offset, 
     size_t size, 
     bs_String** out, 
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_loadFileChunk(path, offset, size, out, _formatted, _length);
+    return next.bs_loadFileChunkV(offset, size, out, format, args);
 }
 
 bs_Result bs_loadFileChunkF(
-    const char* path, 
     long offset, 
     size_t size, 
     bs_String** out, 
@@ -4569,26 +4343,23 @@ bs_Result bs_loadFileChunkF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_loadFileChunkV(path, offset, size, out, format, args);
+    bs_Result _return = next.bs_loadFileChunkV(offset, size, out, format, args);
     va_end(args);
     return _return;
 }
 
 bs_Result bs_deleteFile(
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_deleteFile(value, value_length);
+    return next.bs_deleteFile(path, path_length);
 }
 
 bs_Result bs_deleteFileV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_deleteFile(_formatted, _length);
+    return next.bs_deleteFileV(format, args);
 }
 
 bs_Result bs_deleteFileF(
@@ -4597,26 +4368,23 @@ bs_Result bs_deleteFileF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_deleteFileV(format, args);
+    bs_Result _return = next.bs_deleteFileV(format, args);
     va_end(args);
     return _return;
 }
 
 bs_Result bs_deleteDirectoryContents(
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_deleteDirectoryContents(value, value_length);
+    return next.bs_deleteDirectoryContents(path, path_length);
 }
 
 bs_Result bs_deleteDirectoryContentsV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_deleteDirectoryContents(_formatted, _length);
+    return next.bs_deleteDirectoryContentsV(format, args);
 }
 
 bs_Result bs_deleteDirectoryContentsF(
@@ -4625,26 +4393,23 @@ bs_Result bs_deleteDirectoryContentsF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_deleteDirectoryContentsV(format, args);
+    bs_Result _return = next.bs_deleteDirectoryContentsV(format, args);
     va_end(args);
     return _return;
 }
 
 bs_Result bs_deleteDirectory(
-    char* value, 
-    int value_length)
+    char* path, 
+    int path_length)
 {
-    return next.bs_deleteDirectory(value, value_length);
+    return next.bs_deleteDirectory(path, path_length);
 }
 
 bs_Result bs_deleteDirectoryV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bs_deleteDirectory(_formatted, _length);
+    return next.bs_deleteDirectoryV(format, args);
 }
 
 bs_Result bs_deleteDirectoryF(
@@ -4653,7 +4418,7 @@ bs_Result bs_deleteDirectoryF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bs_deleteDirectoryV(format, args);
+    bs_Result _return = next.bs_deleteDirectoryV(format, args);
     va_end(args);
     return _return;
 }

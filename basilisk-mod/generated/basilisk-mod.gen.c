@@ -196,10 +196,7 @@ bs_Result bsmod_packBMFontV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bsmod_packBMFont(package_name, bmfont_path, png_path, _formatted, _length);
+    return next.bsmod_packBMFontV(package_name, bmfont_path, png_path, format, args);
 }
 
 bs_Result bsmod_packBMFontF(
@@ -211,7 +208,7 @@ bs_Result bsmod_packBMFontF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bsmod_packBMFontV(package_name, bmfont_path, png_path, format, args);
+    bs_Result _return = next.bsmod_packBMFontV(package_name, bmfont_path, png_path, format, args);
     va_end(args);
     return _return;
 }
@@ -283,10 +280,7 @@ bs_Result bsmod_packResourceV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bsmod_packResource(type, data, data_size, package_name, _formatted, _length);
+    return next.bsmod_packResourceV(type, data, data_size, package_name, format, args);
 }
 
 bs_Result bsmod_packResourceF(
@@ -299,7 +293,7 @@ bs_Result bsmod_packResourceF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bsmod_packResourceV(type, data, data_size, package_name, format, args);
+    bs_Result _return = next.bsmod_packResourceV(type, data, data_size, package_name, format, args);
     va_end(args);
     return _return;
 }
@@ -434,10 +428,7 @@ bs_Result bsmod_saveTypeV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bsmod_saveType(id, _formatted, _length);
+    return next.bsmod_saveTypeV(id, format, args);
 }
 
 bs_Result bsmod_saveTypeF(
@@ -447,7 +438,7 @@ bs_Result bsmod_saveTypeF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bsmod_saveTypeV(id, format, args);
+    bs_Result _return = next.bsmod_saveTypeV(id, format, args);
     va_end(args);
     return _return;
 }

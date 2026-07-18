@@ -20,7 +20,7 @@
         <xsl:text>INTERNAL_GEN_H&#xA;&#xA;</xsl:text>
 		
 		<xsl:apply-templates select="registry/includes/internalHeader/include"/>
-		<xsl:text>&#xA;&#xA;</xsl:text>
+		<xsl:text>&#xA;</xsl:text>
 
 		<xsl:apply-templates select="registry/functions/function" mode="typedef"/>
         <xsl:text>&#xA;typedef struct {&#xA;</xsl:text>
@@ -29,13 +29,14 @@
         <xsl:value-of select="$functionPrefix"/>
         <xsl:text>FunctionTable;&#xA;&#xA;</xsl:text>
 
-        <xsl:call-template name="addFunctionTableGetter">
+		<xsl:apply-templates select="registry/functions/function" mode="declaration"/>
+		<xsl:text>&#xA;</xsl:text>
+
+		<xsl:call-template name="addFunctionTableGetter">
             <xsl:with-param name="prefix" select="'_'"/>
         </xsl:call-template>
 
-		<xsl:apply-templates select="registry/functions/function" mode="declaration"/>
-
-		<xsl:text>&#xA;#endif&#xA;</xsl:text>
+		<xsl:text>#endif&#xA;</xsl:text>
     </xsl:template>
 	
 	<xsl:template match="registry/includes/internalHeader/include">
@@ -45,18 +46,18 @@
     </xsl:template>
 
     <xsl:template match="function" mode="table">
-        <xsl:if test="not(@type = 'generated')">
-            <xsl:text>    PFN_</xsl:text>
+		<xsl:if test="not(body) or @type = 'allowBody'">
+			<xsl:text>    PFN_</xsl:text>
             <xsl:value-of select="@name"/>
             <xsl:text> </xsl:text>
             <xsl:value-of select="@name"/>
             <xsl:text>;&#xA;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+		</xsl:if>
+	</xsl:template>
 
     <xsl:template match="function" mode="typedef">
-        <xsl:if test="not(@type = 'generated')">
-            <xsl:text>typedef </xsl:text>
+		<xsl:if test="not(body) or @type = 'allowBody'">
+			<xsl:text>typedef </xsl:text>
             <xsl:value-of select="return"/>
             <xsl:text>(__stdcall* PFN_</xsl:text>
             <xsl:value-of select="@name"/>
@@ -71,11 +72,11 @@
 
                 <xsl:value-of select="name"/>
 
-				<xsl:for-each select="size">
-					<xsl:text>[</xsl:text>
-					<xsl:value-of select="."/>
-					<xsl:text>]</xsl:text>
-				</xsl:for-each>
+			    <xsl:for-each select="size">
+				    <xsl:text>[</xsl:text>
+				    <xsl:value-of select="."/>
+				    <xsl:text>]</xsl:text>
+			    </xsl:for-each>
 				
                 <xsl:if test="position() != last()">
                     <xsl:text>, </xsl:text>
@@ -84,33 +85,35 @@
             </xsl:for-each>
 
             <xsl:text>);&#xA;</xsl:text>
-        </xsl:if>
-    </xsl:template>
+		</xsl:if>
+	</xsl:template>
 
 	<xsl:template match="function" mode="declaration">
-		<xsl:value-of select="/registry/prefix"/>
-		<xsl:text> </xsl:text>
-		<xsl:value-of select="return"/>
-		<xsl:text> _</xsl:text>
-		<xsl:value-of select="@name"/>
-		<xsl:text>(</xsl:text>
+		<xsl:if test="not(body) or @type = 'allowBody'">
+			<xsl:value-of select="/registry/prefix"/>
+		    <xsl:text> </xsl:text>
+		    <xsl:value-of select="return"/>
+		    <xsl:text> _</xsl:text>
+		    <xsl:value-of select="@name"/>
+		    <xsl:text>(</xsl:text>
 
-		<xsl:for-each select="param">
-			<xsl:value-of select="type"/>
-			<xsl:text> </xsl:text>
-			<xsl:value-of select="name"/>
-			<xsl:for-each select="size">
-				<xsl:text>[</xsl:text>
-				<xsl:value-of select="."/>
-				<xsl:text>]</xsl:text>
-			</xsl:for-each>
-			<xsl:if test="position() != last()">
+		    <xsl:for-each select="param">
+			    <xsl:value-of select="type"/>
+			    <xsl:text> </xsl:text>
+			    <xsl:value-of select="name"/>
+			    <xsl:for-each select="size">
+				    <xsl:text>[</xsl:text>
+				    <xsl:value-of select="."/>
+				    <xsl:text>]</xsl:text>
+			    </xsl:for-each>
+			    <xsl:if test="position() != last()">
 
-				<xsl:text>,</xsl:text>
+				    <xsl:text>, </xsl:text>
 
-			</xsl:if>
-		</xsl:for-each>
+			    </xsl:if>
+		    </xsl:for-each>
 
-		<xsl:text>);&#xA;</xsl:text>
+		    <xsl:text>);&#xA;</xsl:text>
+		</xsl:if>
 	</xsl:template>
 </xsl:stylesheet>

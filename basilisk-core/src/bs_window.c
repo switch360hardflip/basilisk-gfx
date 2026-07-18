@@ -126,11 +126,11 @@ static void _bs_swapchain(bs_Window* window) {
         VK_FORMAT_B8G8R8A8_SRGB,
     };
 
-    if (bs_querySwapchainMode(window, modes, sizeof(modes) / sizeof(*modes)) != BS_RESULT_OK) {
+    if (_bs_querySwapchainMode(window, modes, sizeof(modes) / sizeof(*modes)) != BS_RESULT_OK) {
         return;
     }
 
-    if (bs_querySwapchainFormat(window, formats, sizeof(formats) / sizeof(*formats)) != BS_RESULT_OK) {
+    if (_bs_querySwapchainFormat(window, formats, sizeof(formats) / sizeof(*formats)) != BS_RESULT_OK) {
         return;
     }
 
@@ -240,7 +240,7 @@ BSAPI bs_Result _bs_timeZoneBias(int* out) {
 
 	DWORD time_zone_id = 0;
 	if ((time_zone_id = GetTimeZoneInformation(&info)) == TIME_ZONE_ID_INVALID) {
-		bs_warnF("GetTimeZoneInformation failed (GetLastError() = %d)\n", GetLastError());
+		_bs_warnF("GetTimeZoneInformation failed (GetLastError() = %d)\n", GetLastError());
 		return _bs_convertWin32Error(GetLastError());
 	}
 
@@ -305,7 +305,7 @@ BSAPI bool _bs_isLaterThan(const bs_DateTime* a, const bs_DateTime* b) {
 }
 
 BSAPI void _bs_setCursor(bs_CursorIcon icon) {
-	bs_warnF("bs_setCursor has not been implemented yet\n");
+	_bs_warnF("_bs_setCursor has not been implemented yet\n");
 	/*
 	if (window->cursor_icons[icon].handle == NULL)
 		window->cursor_icons[icon].handle = LoadCursor(NULL, _bs_wnd.cursor_icons[icon].id);
@@ -327,7 +327,7 @@ BSAPI void _bs_maximizeWindow() {
 #ifdef _WIN32
 	ShowWindow(window->hwnd, SW_SHOWMAXIMIZED);
 #else
-	bs_warnF("bs_maximizeWindow has not been implemented for this OS yet\n");
+	_bs_warnF("_bs_maximizeWindow has not been implemented for this OS yet\n");
 #endif
 }
 
@@ -336,7 +336,7 @@ BSAPI void _bs_minimizeWindow() {
 #ifdef _WIN32
 	ShowWindow(window->hwnd, SW_SHOWMINIMIZED);
 #else
-	bs_warnF("bs_minimizeWindow has not been implemented for this OS yet\n");
+	_bs_warnF("_bs_minimizeWindow has not been implemented for this OS yet\n");
 #endif
 }
 
@@ -363,8 +363,8 @@ BSAPI void _bs_advance() {
 BSAPI double _bs_deltaTime() {
     bs_Window* window = _bs_scope_.window;
 //#ifdef _DEBUG
-//	if (bs_wnd.delta_time == 0.0)
-//		bs_throwBasiliskF(BSX_GENERAL, "Delta time is 0.0"); // some bug is ruining my life
+//	if (_bs_wnd.delta_time == 0.0)
+//		_bs_throwBasiliskF(BSX_GENERAL, "Delta time is 0.0"); // some bug is ruining my life
 //#endif
 	return window->delta_time;
 }
@@ -385,7 +385,7 @@ BSAPI bs_vec2 _bs_cursorPosition() {
     bs_vec2 dim = { window->swapchain_image->image->dim.x, window->swapchain_image->image->dim.y };
     bs_vec2 pos;
 
-    _bs_v2Div(&window->cursor, &dim, &pos);
+    bs_v2Div(&window->cursor, &dim, &pos);
 	return BS_V2(pos.x, 1.0 - pos.y);
 }
 
@@ -421,7 +421,7 @@ BSAPI bs_ivec2 _bs_windowPosition() {
     };
 
 #elif defined(__APPLE__)
-    _bs_warnF("bs_windowPosition has not been implemented for macOS yet\n");
+    _bs_warnF("_bs_windowPosition has not been implemented for macOS yet\n");
     return (bs_ivec2) { 0, 0 };
 #else
     return (bs_ivec2) { 0, 0 };
@@ -528,9 +528,9 @@ BSAPI void _bs_checkTimer(bs_Timer* timer) {
     timer->seconds = timer->microseconds / 1000000.0;
 }
 
-BSAPI void _bs_titleWindow(const char* title, ...) {
+BSAPI void _bs_titleWindow(char* name, int name_length) {
     bs_Window* window = _bs_scope_.window;
-	window->title = title; // todo
+	window->title = name; // todo
 }
 
 BSAPI bool _bs_inFixedTick() {
@@ -595,9 +595,9 @@ BSAPI void _bs_tickWindow(bs_Window* window, bs_Callback tick, bs_Callback fixed
         }
     }
 
-    if (bs_leftClickOnce() || _bs_rightClickOnce() || _bs_middleClickOnce())
+    if (_bs_leftClickOnce() || _bs_rightClickOnce() || _bs_middleClickOnce())
         SetCapture(window->hwnd);
-    if (bs_leftClickUpOnce() || _bs_rightClickUpOnce() || _bs_middleClickUpOnce())
+    if (_bs_leftClickUpOnce() || _bs_rightClickUpOnce() || _bs_middleClickUpOnce())
         ReleaseCapture();
 
     POINT p;
@@ -669,7 +669,7 @@ BSAPI void _bs_tickWindow(bs_Window* window, bs_Callback tick, bs_Callback fixed
     }
 }
 
-BSAPI void _bs_tick(bs_Callback tick, bs_Callback fixed_tick) {
+BSAPI void _bs_tick(bs_Window* window, bs_Callback tick, bs_Callback fixed_tick) {
     _bs_instance_->alive = true;
 
     while (_bs_instance_->alive) {
@@ -699,8 +699,9 @@ LRESULT CALLBACK _bs_windowProcedure(HWND hwnd, UINT msg, WPARAM w_param, LPARAM
     return 0;
 }
 
-BSAPI void _bs_moveWindow(bs_Window* window, int x, int y) {
-	bs_ivec2 resolution = _bs_resolution(window);
+BSAPI void _bs_moveWindow(int x, int y) {
+    bs_Window* window = _bs_scope_.window;
+    bs_ivec2 resolution = _bs_resolution(window);
 	SetWindowPos(window->hwnd, HWND_TOP, x, y, 0, 0, SWP_NOSIZE);
 }
 
@@ -772,15 +773,15 @@ BSAPI bs_Result _bs_window(bs_Object* object, bs_U32 width, bs_U32 height, const
      HDC hdc = GetDC(window->hwnd);
      int pixel_format = ChoosePixelFormat(hdc, &pixel_format_descriptor);
 	 SetPixelFormat(hdc, pixel_format, &pixel_format_descriptor);
-//	 SetWindowLong(bs_wnd.hwnd, GWL_STYLE, 0);
+//	 SetWindowLong(_bs_wnd.hwnd, GWL_STYLE, 0);
 //
 //	 COLORREF DARK_COLOR = 0x00000000;
 //	 BOOL SET_CAPTION_COLOR = SUCCEEDED(DwmSetWindowAttribute(
 //		 _bs_wnd.hwnd, DWMWA_CAPTION_COLOR,
 //		 &DARK_COLOR, sizeof(DARK_COLOR)));
-	 //SetWindowLong(bs_wnd.hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW);
+	 //SetWindowLong(_bs_wnd.hwnd, GWL_EXSTYLE, WS_EX_TOOLWINDOW);
 
-		//SetWindowPos(bs_wnd.hwnd, 0, 0, 0, width, height, SWP_FRAMECHANGED); //some trick to redraw window ShowWindow(hwnd, SW_SHOW);
+		//SetWindowPos(_bs_wnd.hwnd, 0, 0, 0, width, height, SWP_FRAMECHANGED); //some trick to redraw window ShowWindow(hwnd, SW_SHOW);
 
 	// DWM_WINDOW_CORNER_PREFERENCE preference = DWMWCP_ROUND;
 	//

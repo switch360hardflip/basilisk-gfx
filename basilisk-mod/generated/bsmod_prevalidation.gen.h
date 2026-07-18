@@ -67,7 +67,6 @@ static inline bsmod_FunctionTable _preval_bsmod_getFunctions() {
     functions.bsmod_packAtlas = (PFN_bsmod_packAtlas)GetProcAddress(module, "_preval_bsmod_packAtlas");
     functions.bsmod_createAtlasPacker = (PFN_bsmod_createAtlasPacker)GetProcAddress(module, "_preval_bsmod_createAtlasPacker");
     functions.bsmod_packImageDirectory = (PFN_bsmod_packImageDirectory)GetProcAddress(module, "_preval_bsmod_packImageDirectory");
-    functions.bsmod_packBMFont = (PFN_bsmod_packBMFont)GetProcAddress(module, "_preval_bsmod_packBMFont");
     functions.bsmod_scrollbar = (PFN_bsmod_scrollbar)GetProcAddress(module, "_preval_bsmod_scrollbar");
     functions.bsmod_dividerWidget = (PFN_bsmod_dividerWidget)GetProcAddress(module, "_preval_bsmod_dividerWidget");
     functions.bsmod_iconWidget = (PFN_bsmod_iconWidget)GetProcAddress(module, "_preval_bsmod_iconWidget");
@@ -75,7 +74,6 @@ static inline bsmod_FunctionTable _preval_bsmod_getFunctions() {
     functions.bsmod_queryPackage = (PFN_bsmod_queryPackage)GetProcAddress(module, "_preval_bsmod_queryPackage");
     functions.bsmod_ensurePackage = (PFN_bsmod_ensurePackage)GetProcAddress(module, "_preval_bsmod_ensurePackage");
     functions.bsmod_iniPackage = (PFN_bsmod_iniPackage)GetProcAddress(module, "_preval_bsmod_iniPackage");
-    functions.bsmod_packResource = (PFN_bsmod_packResource)GetProcAddress(module, "_preval_bsmod_packResource");
     functions.bsmod_savePackage = (PFN_bsmod_savePackage)GetProcAddress(module, "_preval_bsmod_savePackage");
     functions.bsmod_loadShaderReferences = (PFN_bsmod_loadShaderReferences)GetProcAddress(module, "_preval_bsmod_loadShaderReferences");
     functions.bsmod_updateShaderReferences = (PFN_bsmod_updateShaderReferences)GetProcAddress(module, "_preval_bsmod_updateShaderReferences");
@@ -95,7 +93,6 @@ static inline bsmod_FunctionTable _preval_bsmod_getFunctions() {
     functions.bsmod_queryType = (PFN_bsmod_queryType)GetProcAddress(module, "_preval_bsmod_queryType");
     functions.bsmod_delete = (PFN_bsmod_delete)GetProcAddress(module, "_preval_bsmod_delete");
     functions.bsmod_deleteSelected = (PFN_bsmod_deleteSelected)GetProcAddress(module, "_preval_bsmod_deleteSelected");
-    functions.bsmod_saveType = (PFN_bsmod_saveType)GetProcAddress(module, "_preval_bsmod_saveType");
     functions.bsmod_add = (PFN_bsmod_add)GetProcAddress(module, "_preval_bsmod_add");
     functions.bsmod_isSelected = (PFN_bsmod_isSelected)GetProcAddress(module, "_preval_bsmod_isSelected");
     functions.bsmod_select = (PFN_bsmod_select)GetProcAddress(module, "_preval_bsmod_select");

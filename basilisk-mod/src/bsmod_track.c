@@ -241,7 +241,7 @@ BSMODAPI void _bsmod_onLoadTTF(bsmod_TrackParams params) {
 	for (int i = 0; i < alphabet_length; i++)
 		bs_glyph(&ttf, alphabet[i]);
 
-	bs_kern(&ttf);
+	bs_readKernTable(&ttf);
 
    /**
     Rasterize

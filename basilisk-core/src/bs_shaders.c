@@ -80,7 +80,7 @@ static VkDescriptorSetLayout _bs_pushDescriptorLayout(bs_BindSet* bind_set) {
 
     for (int i = 0; i < BS_PIPELINE_TYPE_COUNT; i++) {
         for (int j = 0; j < _bs_pipelines_[i].count; j++) {
-            bs_Pipeline* pipeline = *(bs_Pipeline**)bs_fetchUnit(_bs_pipelines_ + i, j);
+            bs_Pipeline* pipeline = *(bs_Pipeline**)_bs_fetchUnit(_bs_pipelines_ + i, j);
             if (bind_set->slot < pipeline->num_bind_sets)
                 pipeline->flags |= BS_PIPELINE_NEEDS_UPDATING;
         }
@@ -129,7 +129,7 @@ static inline VkDescriptorType _bs_convertBindType(bs_BindType type) {
 }
 
 static void _bs_pushDescriptorPools() {
-//    if (bs_instance->descriptor_pool_needs_update) {
+//    if (_bs_instance->descriptor_pool_needs_update) {
 //        _bs_instance->descriptor_pool_needs_update = false;
 //    }
 //    else return;
@@ -437,7 +437,7 @@ BSAPI bs_Result _val_bs_bindAccelerationStructures(bs_U32 bind_set_slot, bs_U32 
 }
 
 BSAPI bs_Result _bs_bindAccelerationStructures(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer** ray_tracers, int ray_tracers_count) {
-    _bs_warn(BS_CONSTANT_STRING("bs_bindAccelerationStructures has not been implemented yet\n"));
+    _bs_warn(BS_CONSTANT_STRING("_bs_bindAccelerationStructures has not been implemented yet\n"));
     return BS_RESULT_NOT_IMPLEMENTED;
 }
 
@@ -551,7 +551,7 @@ BSAPI void _bs_loadBindings(int package_id, const char* path) {
 
         bs_Json root = _bs_jsonRoot(&json, e.value.as_object);
 
-        bs_BindType bind_type = _bs_deserializeBindType(bs_fetchJson(&root, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string);
+        bs_BindType bind_type = _bs_deserializeBindType(_bs_fetchJson(&root, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string);
         if (bind_type == BS_BIND_TYPE_PUSH_CONSTANT)
             continue;
 
@@ -660,7 +660,7 @@ static void _bs_readBuffer(bs_Shader* shader, bs_Json* root, const char* name) {
         bs_Json object = _bs_jsonRoot(root, objects.as_array.as_objects[i]);
 
         char* name = _bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string;
-        bs_BindType type = _bs_deserializeBindType(bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string);
+        bs_BindType type = _bs_deserializeBindType(_bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string);
         int set = _bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("set")).as_number;
         int point = _bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("point")).as_number;
 
@@ -671,7 +671,7 @@ static void _bs_readBuffer(bs_Shader* shader, bs_Json* root, const char* name) {
 
         shader->bind_sets |= (1 << set);
 
-       // bs_Binding* binding = _bs_queryBinding(bs_queryBindSet(set), point);
+       // bs_Binding* binding = _bs_queryBinding(_bs_queryBindSet(set), point);
        // if (binding) {
        //    // binding->stages |= shader->type;
        //  //   _bs_pushDescriptorPools();
@@ -748,7 +748,7 @@ static inline void _bs_readAttributes(bs_Shader* shader, bs_Json* root) {
         bs_Json attribute = _bs_jsonRoot(root, objects.as_array.as_objects[i]);
         bs_Attribute* result = shader->attributes + i;
 
-        result->name      = strdup(bs_fetchJson(&attribute, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string);
+        result->name      = strdup(_bs_fetchJson(&attribute, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string);
         result->location  = _bs_fetchJson(&attribute, BS_JSON_NUMBER, BS_CONSTANT_STRING("location")).as_number;
         result->size      = _bs_fetchJson(&attribute, BS_JSON_NUMBER, BS_CONSTANT_STRING("size")).as_number;
         result->name_hash = _bs_stringHash(result->name);
@@ -765,50 +765,6 @@ static inline void _bs_readAttributes(bs_Shader* shader, bs_Json* root) {
     }
 }
 
- /**
-  TODO: When doing the shader format rewrite, rename the strings and generate these from xml
-  */
-BSAPI bs_ShaderType _bs_deserializeShaderType(const char* type_name) {
-    if (strcmp(type_name, "VERTEX") == 0)
-        return BS_VERTEX_SHADER;
-    else if (strcmp(type_name, "GEOMETRY") == 0)
-        return BS_GEOMETRY_SHADER;
-    else if (strcmp(type_name, "FRAGMENT") == 0)
-        return BS_FRAGMENT_SHADER;
-    else if (strcmp(type_name, "COMPUTE") == 0)
-        return BS_COMPUTE_SHADER;
-    else if (strcmp(type_name, "RAY_GEN") == 0)
-        return BS_RAY_GEN_SHADER;
-    else if (strcmp(type_name, "ANY_HIT") == 0)
-        return BS_ANY_HIT_SHADER;
-    else if (strcmp(type_name, "CLOSEST_HIT") == 0)
-        return BS_CLOSEST_HIT_SHADER;
-    else if (strcmp(type_name, "MISS") == 0)
-        return BS_MISS_SHADER;
-    else if (strcmp(type_name, "INTERSECTION") == 0)
-        return BS_INTERSECTION_SHADER;
-
-    _bs_warnF("Failed to convert shader type \"%s\"\n", type_name);
-    return 0;
-}
-
-BSAPI const char* _bs_serializeShaderType(bs_ShaderType type) {
-    switch (type) {
-    case BS_VERTEX_SHADER: return "VERTEX";
-    case BS_GEOMETRY_SHADER: return "GEOMETRY";
-    case BS_FRAGMENT_SHADER: return "FRAGMENT";
-    case BS_COMPUTE_SHADER: return "COMPUTE";
-    case BS_RAY_GEN_SHADER: return "RAY_GEN";
-    case BS_ANY_HIT_SHADER: return "ANY_HIT";
-    case BS_CLOSEST_HIT_SHADER: return "CLOSEST_HIT";
-    case BS_MISS_SHADER: return "MISS";
-    case BS_INTERSECTION_SHADER: return "INTERSECTION";
-    }
-
-    _bs_warnF("Failed to convert shader type \"%d\"\n", type);
-    return 0;
-}
-
 BSAPI bs_Result _bs_shader(int package_id, const char* name, bs_U32 flags, bs_Resource** out) {
     /*
     bs_Result result;
@@ -823,7 +779,7 @@ BSAPI bs_Result _bs_shader(int package_id, const char* name, bs_U32 flags, bs_Re
 
     bs_U64 code_len = 0;
     bs_U32* spirv;
-    if (!bs_decodeBase64(base64, strlen(base64), &code_len, &spirv)) {
+    if (!_bs_decodeBase64(base64, strlen(base64), &code_len, &spirv)) {
         if (out) *out = NULL;
         _bs_destroyJson(&metadata);
         return BS_RESULT_OK;
@@ -890,7 +846,7 @@ BSAPI bs_Result _bs_shader(int package_id, const char* name, bs_U32 flags, bs_Re
     }
 
     for (int i = 0; i < _bs_pipelines[shader.pipeline_type].count; i++) {
-        bs_Pipeline* pipeline = *(bs_Pipeline**)bs_fetchUnit(bs_pipelines + shader.pipeline_type, i);
+        bs_Pipeline* pipeline = *(bs_Pipeline**)_bs_fetchUnit(_bs_pipelines + shader.pipeline_type, i);
 
         for (int j = 0; j < pipeline->shaders_count; j++) {
             if (pipeline->_[j].shader == resource->shader) {
@@ -899,7 +855,7 @@ BSAPI bs_Result _bs_shader(int package_id, const char* name, bs_U32 flags, bs_Re
             }
         }
     }
-    //bs_destroyShader(existing);
+    //_bs_destroyShader(existing);
     if (!resource->shader)
         resource->shader = _bs_malloc(sizeof(bs_Shader)); // todo dont do this
     memcpy(resource->shader, &shader, sizeof(bs_Shader));
@@ -908,7 +864,7 @@ BSAPI bs_Result _bs_shader(int package_id, const char* name, bs_U32 flags, bs_Re
 *out = resource;
     return BS_RESULT_OK;
     */
-    _bs_warn(BS_CONSTANT_STRING("bs_shader(...) has not been implemented yet\n"));
+    _bs_warn(BS_CONSTANT_STRING("_bs_shader(...) has not been implemented yet\n"));
     return BS_RESULT_NOT_IMPLEMENTED;
 }
 
@@ -928,7 +884,7 @@ BSAPI void _bs_destroyShader(bs_Shader* shader) {
 
 BSAPI bs_Pipeline* _bs_queryPipeline(bs_PipelineType type, bs_U64 hash) {
     for (int i = 0; i < _bs_pipelines_[type].count; i++) {
-        bs_Pipeline* pipeline = *(bs_Pipeline**)bs_fetchUnit(_bs_pipelines_ + type, i);
+        bs_Pipeline* pipeline = *(bs_Pipeline**)_bs_fetchUnit(_bs_pipelines_ + type, i);
 
         if (pipeline->hash == hash)
             return pipeline;
@@ -1045,7 +1001,7 @@ static bs_Pipeline* _bs_preparePipeline(bs_PipelineType type, bs_U64 hash, bs_Pi
 
     bool recreated = false;
     if (existing) {
-        if (bs_pipelineNeedsUpdating(existing)) {
+        if (_bs_pipelineNeedsUpdating(existing)) {
             _bs_destroyPipeline(existing);
             existing->flags &= ~BS_PIPELINE_NEEDS_UPDATING;
             recreated = true;
@@ -1214,7 +1170,7 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
             bs_Output* output = _bs_scope_.renderer->outputs + i;
             if (output->subpass != descriptor->subpass)
                 continue;
-            if (bs_isDepthFormat(output->image->format))
+            if (_bs_isDepthFormat(output->image->format))
                 continue;
 
             if (!_bs_features_.independent_blend && num_blend_states > 0)
@@ -1235,7 +1191,7 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
     else {
         for (int i = 0; i < _bs_scope_.renderer->num_outputs; i++) {
             bs_Output* output = _bs_scope_.renderer->outputs + i;
-            if (bs_isDepthFormat(output->image->format)) {
+            if (_bs_isDepthFormat(output->image->format)) {
                 render_info.depthAttachmentFormat = (VkFormat)output->image->format; // TODO: ensure only one?
             }
         }
@@ -1502,7 +1458,7 @@ BSAPI bs_Result _bs_rayTracingPipeline(bs_RayTracePipelineHash* pipeline_hash, b
     const char* cyan = (_bs_args_.color_log ? BS_PRINT_CYAN : "");
     const char* reset = (_bs_args_.color_log ? BS_PRINT_RESET : "");
 
-    bs_infoF("%s%" PRIx64 "%s\n", blue, pipeline->hash, reset);
+    _bs_infoF("%s%" PRIx64 "%s\n", blue, pipeline->hash, reset);
 
     /**
      Binding table

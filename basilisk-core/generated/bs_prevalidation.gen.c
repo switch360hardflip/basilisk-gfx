@@ -39,185 +39,11 @@ void _preval_bs_setFunctions(const struct _preval_bs_FunctionTable* table) {
     memcpy(&next, table, sizeof(next));
 }
 
-BSAPI void _preval_bs_v2Add(const bs_vec2* a, const bs_vec2* b, bs_vec2* out) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v2Add(a, b, out);
-}
-
-BSAPI void _preval_bs_v2Sub(const bs_vec2* a, const bs_vec2* b, bs_vec2* out) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v2Sub(a, b, out);
-}
-
-BSAPI void _preval_bs_v2Mul(const bs_vec2* a, const bs_vec2* b, bs_vec2* out) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v2Mul(a, b, out);
-}
-
-BSAPI void _preval_bs_v2Div(const bs_vec2* a, const bs_vec2* b, bs_vec2* out) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v2Div(a, b, out);
-}
-
-BSAPI void _preval_bs_v2AddS(const bs_vec2* v, float s, bs_vec2* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v2AddS(v, s, out);
-}
-
-BSAPI void _preval_bs_v2SubS(const bs_vec2* v, float s, bs_vec2* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v2SubS(v, s, out);
-}
-
-BSAPI void _preval_bs_v2MulS(const bs_vec2* v, float s, bs_vec2* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v2MulS(v, s, out);
-}
-
-BSAPI void _preval_bs_v2DivS(const bs_vec2* v, float s, bs_vec2* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v2DivS(v, s, out);
-}
-
-BSAPI float _preval_bs_v2Dot(const bs_vec2* a, const bs_vec2* b) {
-    BS_VALIDATE(a != NULL, 0,);
-    BS_VALIDATE(b != NULL, 0,);
-    return next.bs_v2Dot(a, b);
-}
-
-BSAPI float _preval_bs_v2Distance(const bs_vec2* a, const bs_vec2* b) {
-    BS_VALIDATE(a != NULL, 0,);
-    BS_VALIDATE(b != NULL, 0,);
-    return next.bs_v2Distance(a, b);
-}
-
-BSAPI float _preval_bs_v2Magnitude(const bs_vec2* v) {
-    BS_VALIDATE(v != NULL, 0,);
-    return next.bs_v2Magnitude(v);
-}
-
-BSAPI float _preval_bs_v2MagnitudeSqrd(const bs_vec2* v) {
-    BS_VALIDATE(v != NULL, 0,);
-    return next.bs_v2MagnitudeSqrd(v);
-}
-
-BSAPI void _preval_bs_v2Normalize(const bs_vec2* v, bs_vec2* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v2Normalize(v, out);
-}
-
-BSAPI void _preval_bs_v2Lerp(const bs_vec2* from, const bs_vec2* to, float t, bs_vec2* out) {
-    BS_VALIDATE(from != NULL, ,);
-    BS_VALIDATE(to != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v2Lerp(from, to, t, out);
-}
-
-BSAPI void _preval_bs_v2Mid(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
+BSAPI void _preval_bs_v2Mid(const bs_vec2* a, const bs_vec2* b, bs_vec2* out) {
     BS_VALIDATE(a != NULL, ,);
     BS_VALIDATE(b != NULL, ,);
     BS_VALIDATE(out != NULL, ,);
     next.bs_v2Mid(a, b, out);
-}
-
-BSAPI void _preval_bs_v3Add(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v3Add(a, b, out);
-}
-
-BSAPI void _preval_bs_v3Sub(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v3Sub(a, b, out);
-}
-
-BSAPI void _preval_bs_v3Mul(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v3Mul(a, b, out);
-}
-
-BSAPI void _preval_bs_v3Div(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v3Div(a, b, out);
-}
-
-BSAPI void _preval_bs_v3AddS(const bs_vec3* v, float s, bs_vec3* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v3AddS(v, s, out);
-}
-
-BSAPI void _preval_bs_v3SubS(const bs_vec3* v, float s, bs_vec3* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v3SubS(v, s, out);
-}
-
-BSAPI void _preval_bs_v3MulS(const bs_vec3* v, float s, bs_vec3* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v3MulS(v, s, out);
-}
-
-BSAPI void _preval_bs_v3DivS(const bs_vec3* v, float s, bs_vec3* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v3DivS(v, s, out);
-}
-
-BSAPI float _preval_bs_v3Dot(const bs_vec3* a, const bs_vec3* b) {
-    BS_VALIDATE(a != NULL, 0,);
-    BS_VALIDATE(b != NULL, 0,);
-    return next.bs_v3Dot(a, b);
-}
-
-BSAPI float _preval_bs_v3Distance(const bs_vec3* a, const bs_vec3* b) {
-    BS_VALIDATE(a != NULL, 0,);
-    BS_VALIDATE(b != NULL, 0,);
-    return next.bs_v3Distance(a, b);
-}
-
-BSAPI float _preval_bs_v3Magnitude(const bs_vec3* v) {
-    BS_VALIDATE(v != NULL, 0,);
-    return next.bs_v3Magnitude(v);
-}
-
-BSAPI float _preval_bs_v3MagnitudeSqrd(const bs_vec3* v) {
-    BS_VALIDATE(v != NULL, 0,);
-    return next.bs_v3MagnitudeSqrd(v);
-}
-
-BSAPI void _preval_bs_v3Normalize(const bs_vec3* v, bs_vec3* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v3Normalize(v, out);
-}
-
-BSAPI void _preval_bs_v3Lerp(const bs_vec3* from, const bs_vec3* to, float t, bs_vec3* out) {
-    BS_VALIDATE(from != NULL, ,);
-    BS_VALIDATE(to != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v3Lerp(from, to, t, out);
 }
 
 BSAPI void _preval_bs_v3Mid(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
@@ -227,259 +53,9 @@ BSAPI void _preval_bs_v3Mid(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
     next.bs_v3Mid(a, b, out);
 }
 
-BSAPI void _preval_bs_v3Cross(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v3Cross(a, b, out);
-}
-
-BSAPI float _preval_bs_v3Angle(const bs_vec3* a, const bs_vec3* b) {
-    BS_VALIDATE(a != NULL, 0,);
-    BS_VALIDATE(b != NULL, 0,);
-    return next.bs_v3Angle(a, b);
-}
-
-BSAPI void _preval_bs_v4Add(const bs_vec4* a, const bs_vec4* b, bs_vec4* out) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v4Add(a, b, out);
-}
-
-BSAPI void _preval_bs_v4Sub(const bs_vec4* a, const bs_vec4* b, bs_vec4* out) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v4Sub(a, b, out);
-}
-
-BSAPI void _preval_bs_v4Mul(const bs_vec4* a, const bs_vec4* b, bs_vec4* out) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v4Mul(a, b, out);
-}
-
-BSAPI void _preval_bs_v4Div(const bs_vec4* a, const bs_vec4* b, bs_vec4* out) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v4Div(a, b, out);
-}
-
-BSAPI void _preval_bs_v4AddS(const bs_vec4* v, float s, bs_vec4* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v4AddS(v, s, out);
-}
-
-BSAPI void _preval_bs_v4SubS(const bs_vec4* v, float s, bs_vec4* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v4SubS(v, s, out);
-}
-
-BSAPI void _preval_bs_v4MulS(const bs_vec4* v, float s, bs_vec4* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v4MulS(v, s, out);
-}
-
-BSAPI void _preval_bs_v4DivS(const bs_vec4* v, float s, bs_vec4* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v4DivS(v, s, out);
-}
-
-BSAPI float _preval_bs_v4Dot(const bs_vec4* a, const bs_vec4* b) {
-    BS_VALIDATE(a != NULL, 0,);
-    BS_VALIDATE(b != NULL, 0,);
-    return next.bs_v4Dot(a, b);
-}
-
-BSAPI float _preval_bs_v4Distance(const bs_vec4* a, const bs_vec4* b) {
-    BS_VALIDATE(a != NULL, 0,);
-    BS_VALIDATE(b != NULL, 0,);
-    return next.bs_v4Distance(a, b);
-}
-
-BSAPI float _preval_bs_v4Magnitude(const bs_vec4* v) {
-    BS_VALIDATE(v != NULL, 0,);
-    return next.bs_v4Magnitude(v);
-}
-
-BSAPI float _preval_bs_v4MagnitudeSqrd(const bs_vec4* v) {
-    BS_VALIDATE(v != NULL, 0,);
-    return next.bs_v4MagnitudeSqrd(v);
-}
-
-BSAPI void _preval_bs_v4Normalize(const bs_vec4* v, bs_vec4* out) {
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v4Normalize(v, out);
-}
-
-BSAPI void _preval_bs_v4Lerp(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out) {
-    BS_VALIDATE(from != NULL, ,);
-    BS_VALIDATE(to != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_v4Lerp(from, to, t, out);
-}
-
-BSAPI void _preval_bs_m3Mul(const bs_mat3* a, const bs_mat3* b, const bs_mat3* result) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(result != NULL, ,);
-    next.bs_m3Mul(a, b, result);
-}
-
-BSAPI void _preval_bs_m3Transpose(const bs_mat3* m, const bs_mat3* result) {
-    BS_VALIDATE(m != NULL, ,);
-    BS_VALIDATE(result != NULL, ,);
-    next.bs_m3Transpose(m, result);
-}
-
-BSAPI void _preval_bs_m3Inverse(const bs_mat3* m, const bs_mat3* result) {
-    BS_VALIDATE(m != NULL, ,);
-    BS_VALIDATE(result != NULL, ,);
-    next.bs_m3Inverse(m, result);
-}
-
-BSAPI void _preval_bs_m3MulV3(const bs_mat3* m, const bs_vec3* v, bs_vec3* out) {
-    BS_VALIDATE(m != NULL, ,);
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_m3MulV3(m, v, out);
-}
-
-BSAPI void _preval_bs_m4Mul(const bs_mat4* a, const bs_mat4* b, const bs_mat4* result) {
-    BS_VALIDATE(a != NULL, ,);
-    BS_VALIDATE(b != NULL, ,);
-    BS_VALIDATE(result != NULL, ,);
-    next.bs_m4Mul(a, b, result);
-}
-
-BSAPI void _preval_bs_m4Transpose(const bs_mat4* m, const bs_mat4* result) {
-    BS_VALIDATE(m != NULL, ,);
-    BS_VALIDATE(result != NULL, ,);
-    next.bs_m4Transpose(m, result);
-}
-
-BSAPI void _preval_bs_m4Inverse(const bs_mat4* m, const bs_mat4* result) {
-    BS_VALIDATE(m != NULL, ,);
-    BS_VALIDATE(result != NULL, ,);
-    next.bs_m4Inverse(m, result);
-}
-
 BSAPI bs_mat4x3 _preval_bs_m4x3(const bs_mat4* m) {
     BS_VALIDATE(m != NULL, (bs_mat4x3) { 0 },);
     return next.bs_m4x3(m);
-}
-
-BSAPI void _preval_bs_m4MulV3(const bs_mat4* m, const bs_vec3* v, bs_vec3* out) {
-    BS_VALIDATE(m != NULL, ,);
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_m4MulV3(m, v, out);
-}
-
-BSAPI void _preval_bs_m4MulV4(const bs_mat4* m, const bs_vec4* v, bs_vec4* out) {
-    BS_VALIDATE(m != NULL, ,);
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_m4MulV4(m, v, out);
-}
-
-BSAPI void _preval_bs_m4Translate(const bs_mat4* m, const bs_vec3* v, bs_mat4* out) {
-    BS_VALIDATE(m != NULL, ,);
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_m4Translate(m, v, out);
-}
-
-BSAPI void _preval_bs_m4Rotate(const bs_mat4* m, const bs_vec4* q, bs_mat4* out) {
-    BS_VALIDATE(m != NULL, ,);
-    BS_VALIDATE(q != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_m4Rotate(m, q, out);
-}
-
-BSAPI void _preval_bs_m4Scale(const bs_mat4* m, const bs_vec3* v, bs_mat4* out) {
-    BS_VALIDATE(m != NULL, ,);
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_m4Scale(m, v, out);
-}
-
-BSAPI void _preval_bs_m3ToM4(const bs_mat3* m, bs_mat4* out) {
-    BS_VALIDATE(m != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_m3ToM4(m, out);
-}
-
-BSAPI void _preval_bs_m3ToQ(const bs_mat3* m, bs_vec4* out) {
-    BS_VALIDATE(m != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_m3ToQ(m, out);
-}
-
-BSAPI void _preval_bs_m4ToQ(const bs_mat4* m, bs_vec4* out) {
-    BS_VALIDATE(m != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_m4ToQ(m, out);
-}
-
-BSAPI void _preval_bs_qToM3(const bs_vec4* q, bs_mat3* out) {
-    BS_VALIDATE(q != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_qToM3(q, out);
-}
-
-BSAPI void _preval_bs_qToM4(const bs_vec4* q, bs_mat4* out) {
-    BS_VALIDATE(q != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_qToM4(q, out);
-}
-
-BSAPI void _preval_bs_qMulQ(const bs_vec4* p, const bs_vec4* q, bs_vec4* out) {
-    BS_VALIDATE(p != NULL, ,);
-    BS_VALIDATE(q != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_qMulQ(p, q, out);
-}
-
-BSAPI void _preval_bs_qAxisAngle(const bs_vec3* axis, float radians, bs_vec4* out) {
-    BS_VALIDATE(axis != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_qAxisAngle(axis, radians, out);
-}
-
-BSAPI void _preval_bs_qNormalize(const bs_vec4* q, bs_vec4* out) {
-    BS_VALIDATE(q != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_qNormalize(q, out);
-}
-
-BSAPI void _preval_bs_qSlerp(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out) {
-    BS_VALIDATE(from != NULL, ,);
-    BS_VALIDATE(to != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_qSlerp(from, to, t, out);
-}
-
-BSAPI void _preval_bs_qRotateV3(const bs_vec4* q, const bs_vec3* v, bs_vec3* out) {
-    BS_VALIDATE(q != NULL, ,);
-    BS_VALIDATE(v != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_qRotateV3(q, v, out);
-}
-
-BSAPI void _preval_bs_qLongSlerp(const bs_vec4* from, const bs_vec4* to, float t, bs_vec4* out) {
-    BS_VALIDATE(from != NULL, ,);
-    BS_VALIDATE(to != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_qLongSlerp(from, to, t, out);
 }
 
 BSAPI void _preval_bs_eulToQ(const bs_vec3* eul, bs_vec4* out) {
@@ -492,32 +68,6 @@ BSAPI void _preval_bs_qToEul(const bs_vec4* q, bs_vec3* out) {
     BS_VALIDATE(q != NULL, ,);
     BS_VALIDATE(out != NULL, ,);
     next.bs_qToEul(q, out);
-}
-
-BSAPI void _preval_bs_orthographic(float left, float right, float bottom, float top, float near_z, float far_z, bs_mat4* out) {
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_orthographic(left, right, bottom, top, near_z, far_z, out);
-}
-
-BSAPI void _preval_bs_perspective(float fov, float aspect, float near_z, float far_z, bs_mat4* out) {
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_perspective(fov, aspect, near_z, far_z, out);
-}
-
-BSAPI void _preval_bs_lookAt(const bs_vec3* eye, const bs_vec3* center, const bs_vec3* up, bs_mat4* out) {
-    BS_VALIDATE(eye != NULL, ,);
-    BS_VALIDATE(center != NULL, ,);
-    BS_VALIDATE(up != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_lookAt(eye, center, up, out);
-}
-
-BSAPI void _preval_bs_look(const bs_vec3* eye, const bs_vec3* direction, const bs_vec3* up, bs_mat4* out) {
-    BS_VALIDATE(eye != NULL, ,);
-    BS_VALIDATE(direction != NULL, ,);
-    BS_VALIDATE(up != NULL, ,);
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_look(eye, direction, up, out);
 }
 
 BSAPI void _preval_bs_v2CubicBezier(const bs_vec2* p0, const bs_vec2* p1, const bs_vec2* p2, const bs_vec2* p3, bs_vec2* out, int out_length) {
@@ -569,60 +119,11 @@ BSAPI void _preval_bs_fitAabb(const bs_Aabb* aabb, const bs_vec2* size, const bs
     next.bs_fitAabb(aabb, size, rotation, out);
 }
 
-BSAPI float _preval_bs_round(float v) {
-    return next.bs_round(v);
-}
-
-BSAPI float _preval_bs_abs(float v) {
-    return next.bs_abs(v);
-}
-
-BSAPI float _preval_bs_sqrt(float v) {
-    return next.bs_sqrt(v);
-}
-
-BSAPI float _preval_bs_sin(float v) {
-    return next.bs_sin(v);
-}
-
-BSAPI float _preval_bs_cos(float v) {
-    return next.bs_cos(v);
-}
-
-BSAPI float _preval_bs_tan(float v) {
-    return next.bs_tan(v);
-}
-
-BSAPI int _preval_bs_sign(float v) {
-    return next.bs_sign(v);
-}
-
-BSAPI bs_Quad _preval_bs_quad(bs_vec3 position, bs_vec2 dimensions) {
-    return next.bs_quad(position, dimensions);
-}
-
-BSAPI float _preval_bs_lerp(float from, float to, float t) {
-    return next.bs_lerp(from, to, t);
-}
-
-BSAPI float _preval_bs_degrees(float radians) {
-    return next.bs_degrees(radians);
-}
-
-BSAPI float _preval_bs_radians(float degrees) {
-    return next.bs_radians(degrees);
-}
-
-BSAPI float _preval_bs_ceil(float v) {
-    return next.bs_ceil(v);
-}
-
-BSAPI float _preval_bs_floor(float v) {
-    return next.bs_floor(v);
-}
-
-BSAPI float _preval_bs_clamp(float v, float min, float max) {
-    return next.bs_clamp(v, min, max);
+BSAPI void _preval_bs_quad(const bs_vec3* position, const bs_vec2* dimensions, bs_Quad* out) {
+    BS_VALIDATE(position != NULL, ,);
+    BS_VALIDATE(dimensions != NULL, ,);
+    BS_VALIDATE(out != NULL, ,);
+    next.bs_quad(position, dimensions, out);
 }
 
 BSAPI bs_vec3 _preval_bs_hsvToRgb(const bs_vec3* hsv) {
@@ -639,11 +140,11 @@ BSAPI bs_Result _preval_bs_convertVulkanResult(int code) {
     return next.bs_convertVulkanResult(code);
 }
 
-BSAPI bs_Result _preval_bs_convertWin32Error(unsigned long code) {
+BSAPI bs_Result _preval_bs_convertWin32Error(int code) {
     return next.bs_convertWin32Error(code);
 }
 
-BSAPI const char* _preval_bs_serializeWin32Error(unsigned long code) {
+BSAPI const char* _preval_bs_serializeWin32Error(int code) {
     return next.bs_serializeWin32Error(code);
 }
 
@@ -669,11 +170,6 @@ BSAPI bs_Result _preval_bs_iniAudio() {
     return next.bs_iniAudio();
 }
 
-BSAPI bs_Result _preval_bs_ray(bs_vec3 start, bs_vec3 direction, float length, bs_Ray* ray) {
-    BS_VALIDATE(ray != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_ray(start, direction, length, ray);
-}
-
 BSAPI void _preval_bs_rayVsObb(const bs_Ray* ray, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_RayVsObb* out) {
     BS_VALIDATE(ray != NULL, ,);
     BS_VALIDATE(position != NULL, ,);
@@ -683,9 +179,11 @@ BSAPI void _preval_bs_rayVsObb(const bs_Ray* ray, const bs_vec3* position, const
     next.bs_rayVsObb(ray, position, rotation, scale, out);
 }
 
-BSAPI void _preval_bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point, bs_SphereVsPoint* out) {
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_sphereVsPoint(center, radius, point, out);
+BSAPI bool _preval_bs_sphereVsPoint(const bs_vec3* center, float radius, const bs_vec3* point, bs_SphereVsPoint* out) {
+    BS_VALIDATE(center != NULL, false,);
+    BS_VALIDATE(point != NULL, false,);
+    BS_VALIDATE(out != NULL, false,);
+    return next.bs_sphereVsPoint(center, radius, point, out);
 }
 
 BSAPI bool _preval_bs_sphereVsObbTest(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale) {
@@ -712,24 +210,19 @@ BSAPI bool _preval_bs_rectangleVsPoint(const bs_vec2* position, const bs_vec2* d
     return next.bs_rectangleVsPoint(position, dimensions, point);
 }
 
-BSAPI void _preval_bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_LineVsLine* out) {
-    BS_VALIDATE(out != NULL, ,);
-    next.bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, out);
+BSAPI bool _preval_bs_lineVsLine(const bs_vec2* l1_start, const bs_vec2* l1_end, const bs_vec2* l2_start, const bs_vec2* l2_end, bs_LineVsLine* out) {
+    BS_VALIDATE(l1_start != NULL, false,);
+    BS_VALIDATE(l1_end != NULL, false,);
+    BS_VALIDATE(l2_start != NULL, false,);
+    BS_VALIDATE(l2_end != NULL, false,);
+    BS_VALIDATE(out != NULL, false,);
+    return next.bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, out);
 }
 
 BSAPI void _preval_bs_populateVertexDeclaration(bs_VertexDeclaration* declaration, bs_Attribute* attributes, int attributes_count) {
     BS_VALIDATE(declaration != NULL, ,);
     BS_VALIDATE(attributes != NULL, ,);
     next.bs_populateVertexDeclaration(declaration, attributes, attributes_count);
-}
-
-BSAPI int _preval_bs_currentSwap() {
-    return next.bs_currentSwap();
-}
-
-BSAPI void _preval_bs_beginComment(char* value, int value_length) {
-    BS_VALIDATE(value != NULL, ,);
-    next.bs_beginComment(value, value_length);
 }
 
 BSAPI void _preval_bs_endComment() {
@@ -835,13 +328,6 @@ BSAPI int _preval_bs_bufferSwaps(bs_Buffer* buffer) {
     return next.bs_bufferSwaps(buffer);
 }
 
-BSAPI void _preval_bs_nameBuffer(bs_Buffer* buffer, char* value, int value_length) {
-    BS_VALIDATE(buffer != NULL, ,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, ,);
-    BS_VALIDATE(value != NULL, ,);
-    next.bs_nameBuffer(buffer, value, value_length);
-}
-
 BSAPI bs_Result _preval_bs_buffer(bs_Object* object, bs_U32 num_bytes, bs_BufferUsageFlags usage_flags, bs_MemoryPropertyFlags memory_flags, bs_BufferBits flags) {
     BS_VALIDATE(object != NULL, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_buffer(object, num_bytes, usage_flags, memory_flags, flags);
@@ -917,13 +403,6 @@ BSAPI bs_Result _preval_bs_batch(bs_Object* object, int index_size, bs_Shader* v
     return next.bs_batch(object, index_size, vertex_shader, flags);
 }
 
-BSAPI bs_Attribute* _preval_bs_queryAttribute(bs_Batch* batch, char* name, int name_length) {
-    BS_VALIDATE(batch != NULL, NULL,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, NULL,);
-    BS_VALIDATE(name != NULL, NULL,);
-    return next.bs_queryAttribute(batch, name, name_length);
-}
-
 BSAPI bool _preval_bs_batchIsPushed(bs_Batch* batch) {
     BS_VALIDATE(batch != NULL, false,);
     BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, false,);
@@ -960,12 +439,6 @@ BSAPI void _preval_bs_destroyBatch(bs_Batch* batch) {
     next.bs_destroyBatch(batch);
 }
 
-BSAPI bs_Result _preval_bs_recreateBatch(bs_Batch* batch) {
-    BS_VALIDATE(batch != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_recreateBatch(batch);
-}
-
 BSAPI void _preval_bs_ensureBatchSize(bs_Batch* batch, bs_U32 num_indices, bs_U32 num_vertices) {
     BS_VALIDATE(batch != NULL, ,);
     BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
@@ -990,7 +463,7 @@ BSAPI void _preval_bs_pushIndex(bs_Batch* batch, int index) {
     next.bs_pushIndex(batch, index);
 }
 
-BSAPI void _preval_bs_pushIndices(bs_Batch* batch, int indices[], bs_U32 indices_count) {
+BSAPI void _preval_bs_pushIndices(bs_Batch* batch, int indices[], int indices_count) {
     BS_VALIDATE(batch != NULL, ,);
     BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
     next.bs_pushIndices(batch, indices, indices_count);
@@ -1020,19 +493,6 @@ BSAPI bs_Range _preval_bs_pushCone(bs_Batch* batch, int segments, float height, 
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
     BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
     return next.bs_pushCone(batch, segments, height, radius, color);
-}
-
-BSAPI void _preval_bs_batchRectangle(bs_Batch* batch, bs_U32* offset, bs_vec3 position, bs_vec2 dimensions, bs_vec2 texture_offset, bs_vec2 texture_coords, bs_RGBA color) {
-    BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
-    BS_VALIDATE(offset != NULL, ,);
-    next.bs_batchRectangle(batch, offset, position, dimensions, texture_offset, texture_coords, color);
-}
-
-BSAPI bs_Range _preval_bs_pushRectangle(bs_Batch* batch, bs_vec3 position, bs_vec2 dimensions, bs_vec2 texture_offset, bs_vec2 texture_coords, bs_RGBA color) {
-    BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
-    return next.bs_pushRectangle(batch, position, dimensions, texture_offset, texture_coords, color);
 }
 
 BSAPI void _preval_bs_batchQuad(bs_Batch* batch, bs_U32* offset, bs_Quad quad, bs_RGBA color) {
@@ -1072,21 +532,6 @@ BSAPI bs_Range _preval_bs_pushLine(bs_Batch* batch, bs_vec3 start, bs_vec3 end, 
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
     BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
     return next.bs_pushLine(batch, start, end, color);
-}
-
-BSAPI void _preval_bs_batchRay(bs_Batch* batch, bs_U32* offset, bs_Ray* ray, bs_RGBA color) {
-    BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
-    BS_VALIDATE(offset != NULL, ,);
-    BS_VALIDATE(ray != NULL, ,);
-    next.bs_batchRay(batch, offset, ray, color);
-}
-
-BSAPI bs_Range _preval_bs_pushRay(bs_Batch* batch, bs_Ray* ray, bs_RGBA color) {
-    BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
-    BS_VALIDATE(ray != NULL, (bs_Range) { 0 },);
-    return next.bs_pushRay(batch, ray, color);
 }
 
 BSAPI void _preval_bs_batchPoint(bs_Batch* batch, bs_U32* offset, bs_vec3 position, bs_RGBA color) {
@@ -1402,9 +847,9 @@ BSAPI void _preval_bs_rasterizeGlyph(bs_TTF* font, bs_Glyph* glyph, int width, i
     next.bs_rasterizeGlyph(font, glyph, width, height, out_bmp, scale);
 }
 
-BSAPI void _preval_bs_kern(bs_TTF* ttf) {
+BSAPI void _preval_bs_readKernTable(bs_TTF* ttf) {
     BS_VALIDATE(ttf != NULL, ,);
-    next.bs_kern(ttf);
+    next.bs_readKernTable(ttf);
 }
 
 BSAPI void _preval_bs_bindFont(bs_Font* font, bs_Sampler* sampler, int bind_set, int bind_point) {
@@ -1452,12 +897,6 @@ BSAPI void _preval_bs_transition(bs_Image* image, int index, bs_ImageLayout old_
     next.bs_transition(image, index, old_layout, new_layout);
 }
 
-BSAPI bs_Result _preval_bs_inspectPng(const char* path, bs_PngData* out_png_data) {
-    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(out_png_data != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_inspectPng(path, out_png_data);
-}
-
 BSAPI bs_Result _preval_bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out_png_data) {
     BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
     BS_VALIDATE(out_png_data != NULL, BS_RESULT_VALIDATION_ERROR,);
@@ -1476,18 +915,11 @@ BSAPI bs_Result _preval_bs_bitmapImage(bs_Object* existing_object, unsigned char
     return next.bs_bitmapImage(existing_object, image_data, dim, format, flags);
 }
 
-BSAPI bs_Result _preval_bs_savePng(char* data, bs_ivec2 resolution, bs_PngType type, char* value, int value_length) {
-    BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_savePng(data, resolution, type, value, value_length);
-}
-
-BSAPI bs_Result _preval_bs_encodePng(size_t* out_size, const unsigned char* data, bs_ivec2 size, bs_PngType type, unsigned char** out, char* value, int value_length) {
+BSAPI bs_Result _preval_bs_encodePng(size_t* out_size, const unsigned char* data, bs_ivec2 size, bs_PngType type, unsigned char** out) {
     BS_VALIDATE(out_size != NULL, BS_RESULT_VALIDATION_ERROR,);
     BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
     BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_encodePng(out_size, data, size, type, out, value, value_length);
+    return next.bs_encodePng(out_size, data, size, type, out);
 }
 
 BSAPI void _preval_bs_destroyImage(bs_Image* image) {
@@ -1537,12 +969,6 @@ BSAPI void _preval_bs_blit(bs_BlitOperation operation) {
     next.bs_blit(operation);
 }
 
-BSAPI bs_Result _preval_bs_loadImage(bs_Object* object, int package_id, bs_ImageBits flags, char* value, int value_length) {
-    BS_VALIDATE(object != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_loadImage(object, package_id, flags, value, value_length);
-}
-
 BSAPI bool _preval_bs_isStencilFormat(bs_Format format) {
     return next.bs_isStencilFormat(format);
 }
@@ -1571,12 +997,6 @@ BSAPI void _preval_bs_destroySampler(bs_Sampler* sampler) {
 BSAPI bs_Result _preval_bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_SamplerBits flags) {
     BS_VALIDATE(object != NULL, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_sampler(object, filter, flags);
-}
-
-BSAPI bs_Result _preval_bs_loadAtlas(bs_Object* object, int package_id, bs_U32 flags, char* value, int value_length) {
-    BS_VALIDATE(object != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_loadAtlas(object, package_id, flags, value, value_length);
 }
 
 BSAPI bs_vec4 _preval_bs_atlasCoordinates(bs_Atlas* atlas, int texture_id) {
@@ -1657,10 +1077,6 @@ BSAPI struct VkDevice_T* _preval_bsi_fetchDevice() {
     return next.bsi_fetchDevice();
 }
 
-BSAPI void _preval_bsi_resizeObjects() {
-    next.bsi_resizeObjects();
-}
-
 BSAPI bs_Result _preval_bs_resetQueue(bs_Queue* queue) {
     BS_VALIDATE(queue != NULL, BS_RESULT_VALIDATION_ERROR,);
     BS_VALIDATE(queue->head.source_id != BS_OBJECT_QUEUE, BS_RESULT_VALIDATION_ERROR,);
@@ -1671,11 +1087,6 @@ BSAPI bs_Result _preval_bs_pushQueue(bs_Queue* queue) {
     BS_VALIDATE(queue != NULL, BS_RESULT_VALIDATION_ERROR,);
     BS_VALIDATE(queue->head.source_id != BS_OBJECT_QUEUE, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_pushQueue(queue);
-}
-
-BSAPI void _preval_bsi_nameHandle(bs_U64 handle, bs_U32 type, char* value, int value_length) {
-    BS_VALIDATE(value != NULL, ,);
-    next.bsi_nameHandle(handle, type, value, value_length);
 }
 
 BSAPI bs_JsonEnumeration _preval_bs_beginEnumeration(bs_Json* json) {
@@ -1718,16 +1129,10 @@ BSAPI bs_Json _preval_bs_emptyJsonArray() {
     return next.bs_emptyJsonArray();
 }
 
-BSAPI bs_Result _preval_bs_json(char* raw, int len, bs_Json* out_json) {
+BSAPI bs_Result _preval_bs_json(char* raw, int len, bs_Json* out) {
     BS_VALIDATE(raw != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(out_json != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_json(raw, len, out_json);
-}
-
-BSAPI bs_Result _preval_bs_loadJson(bs_Json* out_json, char* path, int path_length) {
-    BS_VALIDATE(out_json != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_loadJson(out_json, path, path_length);
+    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_json(raw, len, out);
 }
 
 BSAPI void _preval_bs_destroyJson(bs_Json* json) {
@@ -1738,24 +1143,6 @@ BSAPI void _preval_bs_destroyJson(bs_Json* json) {
 BSAPI bs_JsonValue _preval_bs_parseJsonValue(char* raw) {
     BS_VALIDATE(raw != NULL, (bs_JsonValue) { 0 },);
     return next.bs_parseJsonValue(raw);
-}
-
-BSAPI bs_JsonValue _preval_bs_fetchJson(bs_Json* root, bs_JsonType expect, char* path, int path_length) {
-    BS_VALIDATE(root != NULL, (bs_JsonValue) { 0 },);
-    BS_VALIDATE(path != NULL, (bs_JsonValue) { 0 },);
-    return next.bs_fetchJson(root, expect, path, path_length);
-}
-
-BSAPI void _preval_bs_deleteJson(bs_Json* root, char* path, int path_length) {
-    BS_VALIDATE(root != NULL, ,);
-    BS_VALIDATE(path != NULL, ,);
-    next.bs_deleteJson(root, path, path_length);
-}
-
-BSAPI bs_Result _preval_bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path, int path_length) {
-    BS_VALIDATE(root != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_ensureJson(root, value, path, path_length);
 }
 
 BSAPI bs_JsonValue _preval_bs_jsonValueFromObject(bs_JsonObject x) {
@@ -1821,56 +1208,8 @@ BSAPI bs_JsonValue _preval_bs_jsonRGBA(bs_RGBA color) {
     return next.bs_jsonRGBA(color);
 }
 
-BSAPI char* _preval_bs_logSection(char* value, int value_length) {
-    BS_VALIDATE(value != NULL, NULL,);
-    return next.bs_logSection(value, value_length);
-}
-
 BSAPI char* _preval_bs_logEndOfSection() {
     return next.bs_logEndOfSection();
-}
-
-BSAPI char* _preval_bs_logWithTimestamp(const char* type, int type_len, char* value, int value_length) {
-    BS_VALIDATE(type != NULL, NULL,);
-    BS_VALIDATE(value != NULL, NULL,);
-    return next.bs_logWithTimestamp(type, type_len, value, value_length);
-}
-
-BSAPI char* _preval_bs_log(char* value, int value_length) {
-    BS_VALIDATE(value != NULL, NULL,);
-    return next.bs_log(value, value_length);
-}
-
-BSAPI char* _preval_bs_info(char* value, int value_length) {
-    BS_VALIDATE(value != NULL, NULL,);
-    return next.bs_info(value, value_length);
-}
-
-BSAPI char* _preval_bs_warn(char* value, int value_length) {
-    BS_VALIDATE(value != NULL, NULL,);
-    return next.bs_warn(value, value_length);
-}
-
-BSAPI void _preval_bs_critical(char* value, int value_length) {
-    BS_VALIDATE(value != NULL, ,);
-    next.bs_critical(value, value_length);
-}
-
-BSAPI void _preval_bs_logObjectDiff() {
-    next.bs_logObjectDiff();
-}
-
-BSAPI void _preval_bs_logUnchangedObjects() {
-    next.bs_logUnchangedObjects();
-}
-
-BSAPI void _preval_bs_logBindings() {
-    next.bs_logBindings();
-}
-
-BSAPI void _preval_bs_infoF4(bs_mat4* m) {
-    BS_VALIDATE(m != NULL, ,);
-    next.bs_infoF4(m);
 }
 
 BSAPI bs_Instance* _preval_bs_instance() {
@@ -1897,12 +1236,6 @@ BSAPI bs_Scope* _preval_bs_scope() {
     return next.bs_scope();
 }
 
-BSAPI void _preval_bs_system(char* command, char* value, int value_length) {
-    BS_VALIDATE(command != NULL, ,);
-    BS_VALIDATE(value != NULL, ,);
-    next.bs_system(command, value, value_length);
-}
-
 BSAPI void _preval_bs_createThread(bs_ThreadFunction function, void* param) {
     BS_VALIDATE(param != NULL, ,);
     next.bs_createThread(function, param);
@@ -1927,12 +1260,6 @@ BSAPI bs_String* _preval_bs_stringAlloc(bs_String* old, int len) {
 BSAPI bs_String* _preval_bs_emptyString(bs_String* old) {
     BS_VALIDATE(old != NULL, NULL,);
     return next.bs_emptyString(old);
-}
-
-BSAPI bs_String* _preval_bs_string(bs_String* old, char* value, int value_length) {
-    BS_VALIDATE(old != NULL, NULL,);
-    BS_VALIDATE(value != NULL, NULL,);
-    return next.bs_string(old, value, value_length);
 }
 
 BSAPI void _preval_bs_toUpper(char* string, int len) {
@@ -1981,11 +1308,6 @@ BSAPI bs_String* _preval_bs_workingDirectory() {
     return next.bs_workingDirectory();
 }
 
-BSAPI bs_Result _preval_bs_setWorkingDirectory(char* path, int path_length) {
-    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_setWorkingDirectory(path, path_length);
-}
-
 BSAPI bs_String* _preval_bs_executablePath() {
     return next.bs_executablePath();
 }
@@ -2002,11 +1324,6 @@ BSAPI void _preval_bs_shortenString(bs_String* string, int len) {
 BSAPI bs_String* _preval_bs_appendChar(bs_String* string, char c) {
     BS_VALIDATE(string != NULL, NULL,);
     return next.bs_appendChar(string, c);
-}
-
-BSAPI void _preval_bs_removeLastCharsCount(bs_String* string, int n) {
-    BS_VALIDATE(string != NULL, ,);
-    next.bs_removeLastCharsCount(string, n);
 }
 
 BSAPI void _preval_bs_removeCharRange(bs_String* string, int start, int count) {
@@ -2068,9 +1385,14 @@ BSAPI bs_Result _preval_bs_unwiden(wchar_t* src, char* dst, bs_U32 dst_size) {
     return next.bs_unwiden(src, dst, dst_size);
 }
 
-BSAPI char* _preval_bs_charString(char* value, int value_length) {
-    BS_VALIDATE(value != NULL, NULL,);
-    return next.bs_charString(value, value_length);
+BSAPI char* _preval_bs_charStringV(const char* format, va_list args) {
+    BS_VALIDATE(format != NULL, NULL,);
+    return next.bs_charStringV(format, args);
+}
+
+BSAPI char* _preval_bs_charStringF(const char* format,  ...) {
+    BS_VALIDATE(format != NULL, NULL,);
+    return next.bs_charStringF(format, ...);
 }
 
 BSAPI void* _preval_bs_free(void* p) {
@@ -2105,11 +1427,6 @@ BSAPI void* _preval_bs_fetchUnit(bs_List* list, bs_U32 index) {
 BSAPI void* _preval_bs_fetchLast(bs_List* list) {
     BS_VALIDATE(list != NULL, NULL,);
     return next.bs_fetchLast(list);
-}
-
-BSAPI void* _preval_bs_fetchLastNull(bs_List* list) {
-    BS_VALIDATE(list != NULL, NULL,);
-    return next.bs_fetchLastNull(list);
 }
 
 BSAPI void _preval_bs_ensureSize(bs_List* list, bs_U32 num_units) {
@@ -2182,11 +1499,6 @@ BSAPI int _preval_bs_numDigits(int n) {
     return next.bs_numDigits(n);
 }
 
-BSAPI bool _preval_bs_directoryExists(char* path) {
-    BS_VALIDATE(path != NULL, false,);
-    return next.bs_directoryExists(path);
-}
-
 BSAPI char* _preval_bs_fileExtension(const char* path) {
     BS_VALIDATE(path != NULL, NULL,);
     return next.bs_fileExtension(path);
@@ -2203,49 +1515,10 @@ BSAPI char* _preval_bs_fileName(const char* path) {
     return next.bs_fileName(path);
 }
 
-BSAPI void _preval_bs_appendFile(const char* path, const char* data) {
-    BS_VALIDATE(path != NULL, ,);
-    BS_VALIDATE(data != NULL, ,);
-    next.bs_appendFile(path, data);
-}
-
-BSAPI bs_Result _preval_bs_saveFile(char* data, bs_U32 data_len, char* path, int path_length) {
-    BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_saveFile(data, data_len, path, path_length);
-}
-
-BSAPI void _preval_bs_convertWin32Path(char* path, int path_length) {
-    BS_VALIDATE(path != NULL, ,);
-    next.bs_convertWin32Path(path, path_length);
-}
-
-BSAPI bs_Result _preval_bs_ensureDirectory(char* path, int path_length) {
-    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_ensureDirectory(path, path_length);
-}
-
-BSAPI bs_Result _preval_bs_fileModifiedDate(bs_DateTime* out, char* path, int path_length) {
-    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_fileModifiedDate(out, path, path_length);
-}
-
-BSAPI bs_Result _preval_bs_setFileModifiedDate(bs_DateTime* date, char* path, int path_length) {
-    BS_VALIDATE(date != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_setFileModifiedDate(date, path, path_length);
-}
-
 BSAPI bs_String* _preval_bs_fullPath(bs_String* old, const char* path, int path_len) {
     BS_VALIDATE(old != NULL, NULL,);
     BS_VALIDATE(path != NULL, NULL,);
     return next.bs_fullPath(old, path, path_len);
-}
-
-BSAPI bool _preval_bs_fileExists(char* path, int path_length) {
-    BS_VALIDATE(path != NULL, false,);
-    return next.bs_fileExists(path, path_length);
 }
 
 BSAPI bs_I64 _preval_bs_toLong(const char* str) {
@@ -2422,12 +1695,6 @@ BSAPI bs_Result _preval_bs_queryPackage(const char* name, int* out) {
     return next.bs_queryPackage(name, out);
 }
 
-BSAPI bs_Result _preval_bs_loadResource(int package_id, bs_U32 flags, bs_Resource** out, char* value, int value_length) {
-    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_loadResource(package_id, flags, out, value, value_length);
-}
-
 BSAPI bs_Result _preval_bs_loadPackage(const char* path, int* out) {
     BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
     BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
@@ -2572,14 +1839,6 @@ BSAPI void _preval_bs_configureAttribute(const char* name, bs_Format base_format
     next.bs_configureAttribute(name, base_format);
 }
 
-BSAPI bs_Window* _preval_bs_wnd() {
-    return next.bs_wnd();
-}
-
-BSAPI bs_IO* _preval_bs_io() {
-    return next.bs_io();
-}
-
 BSAPI bs_Result _preval_bs_timeZoneBias(int* out) {
     BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_timeZoneBias(out);
@@ -2692,10 +1951,6 @@ BSAPI void _preval_bs_resizeWindow(bs_U32 width, bs_U32 height) {
     next.bs_resizeWindow(width, height);
 }
 
-BSAPI bs_ivec2 _preval_bs_screenDimensions() {
-    return next.bs_screenDimensions();
-}
-
 BSAPI void _preval_bs_moveWindow(int x, int y) {
     next.bs_moveWindow(x, y);
 }
@@ -2719,14 +1974,6 @@ BSAPI void _preval_bs_setCursor(bs_CursorIcon type) {
     next.bs_setCursor(type);
 }
 
-BSAPI void _preval_bs_maximize() {
-    next.bs_maximize();
-}
-
-BSAPI void _preval_bs_minimize() {
-    next.bs_minimize();
-}
-
 BSAPI double _preval_bs_deltaTime() {
     return next.bs_deltaTime();
 }
@@ -2747,11 +1994,6 @@ BSAPI bs_ivec2 _preval_bs_resolution() {
     return next.bs_resolution();
 }
 
-BSAPI void _preval_bs_titleWindow(char* name, int name_length) {
-    BS_VALIDATE(name != NULL, ,);
-    next.bs_titleWindow(name, name_length);
-}
-
 BSAPI bool _preval_bs_inFixedTick() {
     return next.bs_inFixedTick();
 }
@@ -2769,189 +2011,21 @@ BSAPI void _preval_bs_checkTimer(bs_Timer* timer) {
     next.bs_checkTimer(timer);
 }
 
-BSAPI void _preval_bs_copyToClipboard(bs_Timer* timer, char* value, int value_length) {
-    BS_VALIDATE(timer != NULL, ,);
-    BS_VALIDATE(value != NULL, ,);
-    next.bs_copyToClipboard(timer, value, value_length);
-}
-
-BSAPI bs_String* _preval_bs_appendString(bs_String* destination, char* value, int value_length) {
-    BS_VALIDATE(destination != NULL, NULL,);
-    BS_VALIDATE(value != NULL, NULL,);
-    return next.bs_appendString(destination, value, value_length);
-}
-
-BSAPI bs_Result _preval_bs_foreachFile(bs_ForeachDocumentFunction x, void* param, char* value, int value_length) {
-    BS_VALIDATE(param != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_foreachFile(x, param, value, value_length);
-}
-
-BSAPI bs_Result _preval_bs_foreachDirectory(bs_ForeachDocumentFunction x, void* param, char* path, int path_length) {
-    BS_VALIDATE(param != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_foreachDirectory(x, param, path, path_length);
-}
-
-BSAPI int _preval_bs_numFiles(char* value, int value_length) {
-    BS_VALIDATE(value != NULL, 0,);
-    return next.bs_numFiles(value, value_length);
-}
-
-BSAPI int _preval_bs_numDirectories(char* value, int value_length) {
-    BS_VALIDATE(value != NULL, 0,);
-    return next.bs_numDirectories(value, value_length);
-}
-
-BSAPI bs_Result _preval_bs_loadFile(bs_String** out, char* value, int value_length) {
-    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_loadFile(out, value, value_length);
-}
-
-BSAPI bs_Result _preval_bs_loadFileChunk(const char* path, long offset, size_t size, bs_String** out, char* value, int value_length) {
-    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_loadFileChunk(path, offset, size, out, value, value_length);
-}
-
-BSAPI bs_Result _preval_bs_deleteFile(char* value, int value_length) {
-    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_deleteFile(value, value_length);
-}
-
-BSAPI bs_Result _preval_bs_deleteDirectoryContents(char* value, int value_length) {
-    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_deleteDirectoryContents(value, value_length);
-}
-
-BSAPI bs_Result _preval_bs_deleteDirectory(char* value, int value_length) {
-    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_deleteDirectory(value, value_length);
-}
-
-BSAPI const char* _preval_bs_serializeJsonType(bs_JsonType e) {
-    return next.bs_serializeJsonType(e);
-}
-
-BSAPI const char* _preval_bs_serializeShaderType(bs_ShaderType e) {
-    return next.bs_serializeShaderType(e);
-}
-
-BSAPI bs_ShaderType _preval_bs_deserializeShaderType(const char* value) {
-    BS_VALIDATE(value != NULL, 0,);
-    return next.bs_deserializeShaderType(value);
-}
-
-BSAPI const char* _preval_bs_serializeBindType(bs_BindType e) {
-    return next.bs_serializeBindType(e);
-}
-
-BSAPI bs_BindType _preval_bs_deserializeBindType(const char* value) {
-    BS_VALIDATE(value != NULL, 0,);
-    return next.bs_deserializeBindType(value);
-}
-
 bs_FunctionTable _preval_bs_getFunctionTable() {
     bs_FunctionTable functions;
 
-    functions.bs_v2Add = _preval_bs_v2Add;
-    functions.bs_v2Sub = _preval_bs_v2Sub;
-    functions.bs_v2Mul = _preval_bs_v2Mul;
-    functions.bs_v2Div = _preval_bs_v2Div;
-    functions.bs_v2AddS = _preval_bs_v2AddS;
-    functions.bs_v2SubS = _preval_bs_v2SubS;
-    functions.bs_v2MulS = _preval_bs_v2MulS;
-    functions.bs_v2DivS = _preval_bs_v2DivS;
-    functions.bs_v2Dot = _preval_bs_v2Dot;
-    functions.bs_v2Distance = _preval_bs_v2Distance;
-    functions.bs_v2Magnitude = _preval_bs_v2Magnitude;
-    functions.bs_v2MagnitudeSqrd = _preval_bs_v2MagnitudeSqrd;
-    functions.bs_v2Normalize = _preval_bs_v2Normalize;
-    functions.bs_v2Lerp = _preval_bs_v2Lerp;
     functions.bs_v2Mid = _preval_bs_v2Mid;
-    functions.bs_v3Add = _preval_bs_v3Add;
-    functions.bs_v3Sub = _preval_bs_v3Sub;
-    functions.bs_v3Mul = _preval_bs_v3Mul;
-    functions.bs_v3Div = _preval_bs_v3Div;
-    functions.bs_v3AddS = _preval_bs_v3AddS;
-    functions.bs_v3SubS = _preval_bs_v3SubS;
-    functions.bs_v3MulS = _preval_bs_v3MulS;
-    functions.bs_v3DivS = _preval_bs_v3DivS;
-    functions.bs_v3Dot = _preval_bs_v3Dot;
-    functions.bs_v3Distance = _preval_bs_v3Distance;
-    functions.bs_v3Magnitude = _preval_bs_v3Magnitude;
-    functions.bs_v3MagnitudeSqrd = _preval_bs_v3MagnitudeSqrd;
-    functions.bs_v3Normalize = _preval_bs_v3Normalize;
-    functions.bs_v3Lerp = _preval_bs_v3Lerp;
     functions.bs_v3Mid = _preval_bs_v3Mid;
-    functions.bs_v3Cross = _preval_bs_v3Cross;
-    functions.bs_v3Angle = _preval_bs_v3Angle;
-    functions.bs_v4Add = _preval_bs_v4Add;
-    functions.bs_v4Sub = _preval_bs_v4Sub;
-    functions.bs_v4Mul = _preval_bs_v4Mul;
-    functions.bs_v4Div = _preval_bs_v4Div;
-    functions.bs_v4AddS = _preval_bs_v4AddS;
-    functions.bs_v4SubS = _preval_bs_v4SubS;
-    functions.bs_v4MulS = _preval_bs_v4MulS;
-    functions.bs_v4DivS = _preval_bs_v4DivS;
-    functions.bs_v4Dot = _preval_bs_v4Dot;
-    functions.bs_v4Distance = _preval_bs_v4Distance;
-    functions.bs_v4Magnitude = _preval_bs_v4Magnitude;
-    functions.bs_v4MagnitudeSqrd = _preval_bs_v4MagnitudeSqrd;
-    functions.bs_v4Normalize = _preval_bs_v4Normalize;
-    functions.bs_v4Lerp = _preval_bs_v4Lerp;
-    functions.bs_m3Mul = _preval_bs_m3Mul;
-    functions.bs_m3Transpose = _preval_bs_m3Transpose;
-    functions.bs_m3Inverse = _preval_bs_m3Inverse;
-    functions.bs_m3MulV3 = _preval_bs_m3MulV3;
-    functions.bs_m4Mul = _preval_bs_m4Mul;
-    functions.bs_m4Transpose = _preval_bs_m4Transpose;
-    functions.bs_m4Inverse = _preval_bs_m4Inverse;
     functions.bs_m4x3 = _preval_bs_m4x3;
-    functions.bs_m4MulV3 = _preval_bs_m4MulV3;
-    functions.bs_m4MulV4 = _preval_bs_m4MulV4;
-    functions.bs_m4Translate = _preval_bs_m4Translate;
-    functions.bs_m4Rotate = _preval_bs_m4Rotate;
-    functions.bs_m4Scale = _preval_bs_m4Scale;
-    functions.bs_m3ToM4 = _preval_bs_m3ToM4;
-    functions.bs_m3ToQ = _preval_bs_m3ToQ;
-    functions.bs_m4ToQ = _preval_bs_m4ToQ;
-    functions.bs_qToM3 = _preval_bs_qToM3;
-    functions.bs_qToM4 = _preval_bs_qToM4;
-    functions.bs_qMulQ = _preval_bs_qMulQ;
-    functions.bs_qAxisAngle = _preval_bs_qAxisAngle;
-    functions.bs_qNormalize = _preval_bs_qNormalize;
-    functions.bs_qSlerp = _preval_bs_qSlerp;
-    functions.bs_qRotateV3 = _preval_bs_qRotateV3;
-    functions.bs_qLongSlerp = _preval_bs_qLongSlerp;
     functions.bs_eulToQ = _preval_bs_eulToQ;
     functions.bs_qToEul = _preval_bs_qToEul;
-    functions.bs_orthographic = _preval_bs_orthographic;
-    functions.bs_perspective = _preval_bs_perspective;
-    functions.bs_lookAt = _preval_bs_lookAt;
-    functions.bs_look = _preval_bs_look;
     functions.bs_v2CubicBezier = _preval_bs_v2CubicBezier;
     functions.bs_v2QuadBezier = _preval_bs_v2QuadBezier;
     functions.bs_v3CubicBezier = _preval_bs_v3CubicBezier;
     functions.bs_v3QuadBezier = _preval_bs_v3QuadBezier;
     functions.bs_rotateAabb = _preval_bs_rotateAabb;
     functions.bs_fitAabb = _preval_bs_fitAabb;
-    functions.bs_round = _preval_bs_round;
-    functions.bs_abs = _preval_bs_abs;
-    functions.bs_sqrt = _preval_bs_sqrt;
-    functions.bs_sin = _preval_bs_sin;
-    functions.bs_cos = _preval_bs_cos;
-    functions.bs_tan = _preval_bs_tan;
-    functions.bs_sign = _preval_bs_sign;
     functions.bs_quad = _preval_bs_quad;
-    functions.bs_lerp = _preval_bs_lerp;
-    functions.bs_degrees = _preval_bs_degrees;
-    functions.bs_radians = _preval_bs_radians;
-    functions.bs_ceil = _preval_bs_ceil;
-    functions.bs_floor = _preval_bs_floor;
-    functions.bs_clamp = _preval_bs_clamp;
     functions.bs_hsvToRgb = _preval_bs_hsvToRgb;
     functions.bs_rgbToHsv = _preval_bs_rgbToHsv;
     functions.bs_convertVulkanResult = _preval_bs_convertVulkanResult;
@@ -2962,7 +2036,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_playSound = _preval_bs_playSound;
     functions.bs_sound = _preval_bs_sound;
     functions.bs_iniAudio = _preval_bs_iniAudio;
-    functions.bs_ray = _preval_bs_ray;
     functions.bs_rayVsObb = _preval_bs_rayVsObb;
     functions.bs_sphereVsPoint = _preval_bs_sphereVsPoint;
     functions.bs_sphereVsObbTest = _preval_bs_sphereVsObbTest;
@@ -2970,8 +2043,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_rectangleVsPoint = _preval_bs_rectangleVsPoint;
     functions.bs_lineVsLine = _preval_bs_lineVsLine;
     functions.bs_populateVertexDeclaration = _preval_bs_populateVertexDeclaration;
-    functions.bs_currentSwap = _preval_bs_currentSwap;
-    functions.bs_beginComment = _preval_bs_beginComment;
     functions.bs_endComment = _preval_bs_endComment;
     functions.bs_swapchainImage = _preval_bs_swapchainImage;
     functions.bs_clearStencil = _preval_bs_clearStencil;
@@ -2992,7 +2063,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_destroyRayTracer = _preval_bs_destroyRayTracer;
     functions.bs_dispatchAsync = _preval_bs_dispatchAsync;
     functions.bs_bufferSwaps = _preval_bs_bufferSwaps;
-    functions.bs_nameBuffer = _preval_bs_nameBuffer;
     functions.bs_buffer = _preval_bs_buffer;
     functions.bs_bufferIsMapped = _preval_bs_bufferIsMapped;
     functions.bs_bufferMap = _preval_bs_bufferMap;
@@ -3005,14 +2075,12 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_copyAsync = _preval_bs_copyAsync;
     functions.bs_setBufferAsync = _preval_bs_setBufferAsync;
     functions.bs_batch = _preval_bs_batch;
-    functions.bs_queryAttribute = _preval_bs_queryAttribute;
     functions.bs_batchIsPushed = _preval_bs_batchIsPushed;
     functions.bs_batchIsIndexed = _preval_bs_batchIsIndexed;
     functions.bs_minimizeBatch = _preval_bs_minimizeBatch;
     functions.bs_pushBatch = _preval_bs_pushBatch;
     functions.bs_unpushBatch = _preval_bs_unpushBatch;
     functions.bs_destroyBatch = _preval_bs_destroyBatch;
-    functions.bs_recreateBatch = _preval_bs_recreateBatch;
     functions.bs_ensureBatchSize = _preval_bs_ensureBatchSize;
     functions.bs_batchVertex = _preval_bs_batchVertex;
     functions.bs_batchRange = _preval_bs_batchRange;
@@ -3022,16 +2090,12 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_pushCube = _preval_bs_pushCube;
     functions.bs_batchCone = _preval_bs_batchCone;
     functions.bs_pushCone = _preval_bs_pushCone;
-    functions.bs_batchRectangle = _preval_bs_batchRectangle;
-    functions.bs_pushRectangle = _preval_bs_pushRectangle;
     functions.bs_batchQuad = _preval_bs_batchQuad;
     functions.bs_pushQuad = _preval_bs_pushQuad;
     functions.bs_batchTriangle = _preval_bs_batchTriangle;
     functions.bs_pushTriangle = _preval_bs_pushTriangle;
     functions.bs_batchLine = _preval_bs_batchLine;
     functions.bs_pushLine = _preval_bs_pushLine;
-    functions.bs_batchRay = _preval_bs_batchRay;
-    functions.bs_pushRay = _preval_bs_pushRay;
     functions.bs_batchPoint = _preval_bs_batchPoint;
     functions.bs_pushPoint = _preval_bs_pushPoint;
     functions.bs_batchAabb = _preval_bs_batchAabb;
@@ -3085,7 +2149,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_glyph = _preval_bs_glyph;
     functions.bs_ttf = _preval_bs_ttf;
     functions.bs_rasterizeGlyph = _preval_bs_rasterizeGlyph;
-    functions.bs_kern = _preval_bs_kern;
+    functions.bs_readKernTable = _preval_bs_readKernTable;
     functions.bs_bindFont = _preval_bs_bindFont;
     functions.bs_textDimensions = _preval_bs_textDimensions;
     functions.bs_destroyFont = _preval_bs_destroyFont;
@@ -3093,11 +2157,9 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_image = _preval_bs_image;
     functions.bs_imageSwapsCount = _preval_bs_imageSwapsCount;
     functions.bs_transition = _preval_bs_transition;
-    functions.bs_inspectPng = _preval_bs_inspectPng;
     functions.bs_loadPngData = _preval_bs_loadPngData;
     functions.bs_loadPng = _preval_bs_loadPng;
     functions.bs_bitmapImage = _preval_bs_bitmapImage;
-    functions.bs_savePng = _preval_bs_savePng;
     functions.bs_encodePng = _preval_bs_encodePng;
     functions.bs_destroyImage = _preval_bs_destroyImage;
     functions.bs_resizeImage = _preval_bs_resizeImage;
@@ -3106,14 +2168,12 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_copyImageToBufferAsync = _preval_bs_copyImageToBufferAsync;
     functions.bs_copyBufferToImage = _preval_bs_copyBufferToImage;
     functions.bs_blit = _preval_bs_blit;
-    functions.bs_loadImage = _preval_bs_loadImage;
     functions.bs_isStencilFormat = _preval_bs_isStencilFormat;
     functions.bs_isDepthFormat = _preval_bs_isDepthFormat;
     functions.bs_hasAlpha = _preval_bs_hasAlpha;
     functions.bs_nameImage = _preval_bs_nameImage;
     functions.bs_destroySampler = _preval_bs_destroySampler;
     functions.bs_sampler = _preval_bs_sampler;
-    functions.bs_loadAtlas = _preval_bs_loadAtlas;
     functions.bs_atlasCoordinates = _preval_bs_atlasCoordinates;
     functions.bs_mirrorUV = _preval_bs_mirrorUV;
     functions.bs_flipUV = _preval_bs_flipUV;
@@ -3129,10 +2189,8 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_queryProcedures = _preval_bs_queryProcedures;
     functions.bsi_fetchCommands = _preval_bsi_fetchCommands;
     functions.bsi_fetchDevice = _preval_bsi_fetchDevice;
-    functions.bsi_resizeObjects = _preval_bsi_resizeObjects;
     functions.bs_resetQueue = _preval_bs_resetQueue;
     functions.bs_pushQueue = _preval_bs_pushQueue;
-    functions.bsi_nameHandle = _preval_bsi_nameHandle;
     functions.bs_beginEnumeration = _preval_bs_beginEnumeration;
     functions.bs_enumerateJson = _preval_bs_enumerateJson;
     functions.bs_jsonRoot = _preval_bs_jsonRoot;
@@ -3142,12 +2200,8 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_emptyJson = _preval_bs_emptyJson;
     functions.bs_emptyJsonArray = _preval_bs_emptyJsonArray;
     functions.bs_json = _preval_bs_json;
-    functions.bs_loadJson = _preval_bs_loadJson;
     functions.bs_destroyJson = _preval_bs_destroyJson;
     functions.bs_parseJsonValue = _preval_bs_parseJsonValue;
-    functions.bs_fetchJson = _preval_bs_fetchJson;
-    functions.bs_deleteJson = _preval_bs_deleteJson;
-    functions.bs_ensureJson = _preval_bs_ensureJson;
     functions.bs_jsonValueFromObject = _preval_bs_jsonValueFromObject;
     functions.bs_jsonValueFromRoot = _preval_bs_jsonValueFromRoot;
     functions.bs_jsonValueFromBool = _preval_bs_jsonValueFromBool;
@@ -3162,30 +2216,18 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_jsonVec3 = _preval_bs_jsonVec3;
     functions.bs_jsonVec4 = _preval_bs_jsonVec4;
     functions.bs_jsonRGBA = _preval_bs_jsonRGBA;
-    functions.bs_logSection = _preval_bs_logSection;
     functions.bs_logEndOfSection = _preval_bs_logEndOfSection;
-    functions.bs_logWithTimestamp = _preval_bs_logWithTimestamp;
-    functions.bs_log = _preval_bs_log;
-    functions.bs_info = _preval_bs_info;
-    functions.bs_warn = _preval_bs_warn;
-    functions.bs_critical = _preval_bs_critical;
-    functions.bs_logObjectDiff = _preval_bs_logObjectDiff;
-    functions.bs_logUnchangedObjects = _preval_bs_logUnchangedObjects;
-    functions.bs_logBindings = _preval_bs_logBindings;
-    functions.bs_infoF4 = _preval_bs_infoF4;
     functions.bs_instance = _preval_bs_instance;
     functions.bs_args = _preval_bs_args;
     functions.bs_features = _preval_bs_features;
     functions.bs_props = _preval_bs_props;
     functions.bs_config = _preval_bs_config;
     functions.bs_scope = _preval_bs_scope;
-    functions.bs_system = _preval_bs_system;
     functions.bs_createThread = _preval_bs_createThread;
     functions.bs_formatStringLength = _preval_bs_formatStringLength;
     functions.bs_checkStringPool = _preval_bs_checkStringPool;
     functions.bs_stringAlloc = _preval_bs_stringAlloc;
     functions.bs_emptyString = _preval_bs_emptyString;
-    functions.bs_string = _preval_bs_string;
     functions.bs_toUpper = _preval_bs_toUpper;
     functions.bs_toLower = _preval_bs_toLower;
     functions.bs_hash = _preval_bs_hash;
@@ -3195,12 +2237,10 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_lastChar = _preval_bs_lastChar;
     functions.bs_stringContainsChar = _preval_bs_stringContainsChar;
     functions.bs_workingDirectory = _preval_bs_workingDirectory;
-    functions.bs_setWorkingDirectory = _preval_bs_setWorkingDirectory;
     functions.bs_executablePath = _preval_bs_executablePath;
     functions.bs_appdataPath = _preval_bs_appdataPath;
     functions.bs_shortenString = _preval_bs_shortenString;
     functions.bs_appendChar = _preval_bs_appendChar;
-    functions.bs_removeLastCharsCount = _preval_bs_removeLastCharsCount;
     functions.bs_removeCharRange = _preval_bs_removeCharRange;
     functions.bs_insertChar = _preval_bs_insertChar;
     functions.bs_appendPath = _preval_bs_appendPath;
@@ -3212,7 +2252,8 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_alignUp = _preval_bs_alignUp;
     functions.bs_widen = _preval_bs_widen;
     functions.bs_unwiden = _preval_bs_unwiden;
-    functions.bs_charString = _preval_bs_charString;
+    functions.bs_charStringV = _preval_bs_charStringV;
+    functions.bs_charStringF = _preval_bs_charStringF;
     functions.bs_free = _preval_bs_free;
     functions.bs_malloc = _preval_bs_malloc;
     functions.bs_calloc = _preval_bs_calloc;
@@ -3220,7 +2261,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_listContains = _preval_bs_listContains;
     functions.bs_fetchUnit = _preval_bs_fetchUnit;
     functions.bs_fetchLast = _preval_bs_fetchLast;
-    functions.bs_fetchLastNull = _preval_bs_fetchLastNull;
     functions.bs_ensureSize = _preval_bs_ensureSize;
     functions.bs_erase = _preval_bs_erase;
     functions.bs_pushBack = _preval_bs_pushBack;
@@ -3235,18 +2275,10 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_guid = _preval_bs_guid;
     functions.bs_guidIsNull = _preval_bs_guidIsNull;
     functions.bs_numDigits = _preval_bs_numDigits;
-    functions.bs_directoryExists = _preval_bs_directoryExists;
     functions.bs_fileExtension = _preval_bs_fileExtension;
     functions.bs_fileExtensionIs = _preval_bs_fileExtensionIs;
     functions.bs_fileName = _preval_bs_fileName;
-    functions.bs_appendFile = _preval_bs_appendFile;
-    functions.bs_saveFile = _preval_bs_saveFile;
-    functions.bs_convertWin32Path = _preval_bs_convertWin32Path;
-    functions.bs_ensureDirectory = _preval_bs_ensureDirectory;
-    functions.bs_fileModifiedDate = _preval_bs_fileModifiedDate;
-    functions.bs_setFileModifiedDate = _preval_bs_setFileModifiedDate;
     functions.bs_fullPath = _preval_bs_fullPath;
-    functions.bs_fileExists = _preval_bs_fileExists;
     functions.bs_toLong = _preval_bs_toLong;
     functions.bs_toULong = _preval_bs_toULong;
     functions.bs_toDouble = _preval_bs_toDouble;
@@ -3279,7 +2311,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_destroyResource = _preval_bs_destroyResource;
     functions.bs_queryResource = _preval_bs_queryResource;
     functions.bs_queryPackage = _preval_bs_queryPackage;
-    functions.bs_loadResource = _preval_bs_loadResource;
     functions.bs_loadPackage = _preval_bs_loadPackage;
     functions.bs_configureSource = _preval_bs_configureSource;
     functions.bs_exists = _preval_bs_exists;
@@ -3308,8 +2339,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_queryBindSet = _preval_bs_queryBindSet;
     functions.bs_queryBinding = _preval_bs_queryBinding;
     functions.bs_configureAttribute = _preval_bs_configureAttribute;
-    functions.bs_wnd = _preval_bs_wnd;
-    functions.bs_io = _preval_bs_io;
     functions.bs_timeZoneBias = _preval_bs_timeZoneBias;
     functions.bs_dateTime = _preval_bs_dateTime;
     functions.bs_totalSeconds = _preval_bs_totalSeconds;
@@ -3337,40 +2366,20 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_charUpOnce = _preval_bs_charUpOnce;
     functions.bs_scroll = _preval_bs_scroll;
     functions.bs_resizeWindow = _preval_bs_resizeWindow;
-    functions.bs_screenDimensions = _preval_bs_screenDimensions;
     functions.bs_moveWindow = _preval_bs_moveWindow;
     functions.bs_window = _preval_bs_window;
     functions.bs_tick = _preval_bs_tick;
     functions.bs_exit = _preval_bs_exit;
     functions.bs_setCursor = _preval_bs_setCursor;
-    functions.bs_maximize = _preval_bs_maximize;
-    functions.bs_minimize = _preval_bs_minimize;
     functions.bs_deltaTime = _preval_bs_deltaTime;
     functions.bs_pause = _preval_bs_pause;
     functions.bs_advance = _preval_bs_advance;
     functions.bs_elapsedTime = _preval_bs_elapsedTime;
     functions.bs_resolution = _preval_bs_resolution;
-    functions.bs_titleWindow = _preval_bs_titleWindow;
     functions.bs_inFixedTick = _preval_bs_inFixedTick;
     functions.bs_setTargetFramerate = _preval_bs_setTargetFramerate;
     functions.bs_timer = _preval_bs_timer;
     functions.bs_checkTimer = _preval_bs_checkTimer;
-    functions.bs_copyToClipboard = _preval_bs_copyToClipboard;
-    functions.bs_appendString = _preval_bs_appendString;
-    functions.bs_foreachFile = _preval_bs_foreachFile;
-    functions.bs_foreachDirectory = _preval_bs_foreachDirectory;
-    functions.bs_numFiles = _preval_bs_numFiles;
-    functions.bs_numDirectories = _preval_bs_numDirectories;
-    functions.bs_loadFile = _preval_bs_loadFile;
-    functions.bs_loadFileChunk = _preval_bs_loadFileChunk;
-    functions.bs_deleteFile = _preval_bs_deleteFile;
-    functions.bs_deleteDirectoryContents = _preval_bs_deleteDirectoryContents;
-    functions.bs_deleteDirectory = _preval_bs_deleteDirectory;
-    functions.bs_serializeJsonType = _preval_bs_serializeJsonType;
-    functions.bs_serializeShaderType = _preval_bs_serializeShaderType;
-    functions.bs_deserializeShaderType = _preval_bs_deserializeShaderType;
-    functions.bs_serializeBindType = _preval_bs_serializeBindType;
-    functions.bs_deserializeBindType = _preval_bs_deserializeBindType;
 
     return functions;
 }

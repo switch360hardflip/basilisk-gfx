@@ -166,10 +166,7 @@ bsgfx_Material* bsgfx_materialV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    return bsgfx_material(_formatted, _length);
+    return next.bsgfx_materialV(format, args);
 }
 
 bsgfx_Material* bsgfx_materialF(
@@ -178,7 +175,7 @@ bsgfx_Material* bsgfx_materialF(
 {
     va_list args;
     va_start(args, format);
-    bsgfx_Material* _return = bsgfx_materialV(format, args);
+    bsgfx_Material* _return = next.bsgfx_materialV(format, args);
     va_end(args);
     return _return;
 }
@@ -554,10 +551,7 @@ void bsgfx_instanceTextV(
     char* format, 
     va_list args)
 {
-    int _length = bs_formatStringLength(format, args);
-    char* _formatted = bs_alloca(_length + 1);
-    vsnprintf(_formatted, _length + 1, format, args);
-    bsgfx_instanceText(subtype, font, params, out_text_size, _formatted, _length);
+    next.bsgfx_instanceTextV(subtype, font, params, out_text_size, format, args);
 }
 
 void bsgfx_instanceTextF(
@@ -570,7 +564,7 @@ void bsgfx_instanceTextF(
 {
     va_list args;
     va_start(args, format);
-    bsgfx_instanceTextV(subtype, font, params, out_text_size, format, args);
+    next.bsgfx_instanceTextV(subtype, font, params, out_text_size, format, args);
     va_end(args);
 }
 

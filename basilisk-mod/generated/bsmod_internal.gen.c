@@ -41,7 +41,7 @@ bs_Result _bsmod_packBMFontV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bsmod_packBMFont(package_name, bmfont_path, png_path, _formatted, _length);
+    return _bsmod_packBMFont(package_name, bmfont_path, png_path, _formatted, _length);
 }
 
 bs_Result _bsmod_packBMFontF(
@@ -53,7 +53,7 @@ bs_Result _bsmod_packBMFontF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bsmod_packBMFontV(package_name, bmfont_path, png_path, format, args);
+    bs_Result _return = _bsmod_packBMFontV(package_name, bmfont_path, png_path, format, args);
     va_end(args);
     return _return;
 }
@@ -69,7 +69,7 @@ bs_Result _bsmod_packResourceV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bsmod_packResource(type, data, data_size, package_name, _formatted, _length);
+    return _bsmod_packResource(type, data, data_size, package_name, _formatted, _length);
 }
 
 bs_Result _bsmod_packResourceF(
@@ -82,7 +82,7 @@ bs_Result _bsmod_packResourceF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bsmod_packResourceV(type, data, data_size, package_name, format, args);
+    bs_Result _return = _bsmod_packResourceV(type, data, data_size, package_name, format, args);
     va_end(args);
     return _return;
 }
@@ -95,7 +95,7 @@ bs_Result _bsmod_saveTypeV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return bsmod_saveType(id, _formatted, _length);
+    return _bsmod_saveType(id, _formatted, _length);
 }
 
 bs_Result _bsmod_saveTypeF(
@@ -105,7 +105,7 @@ bs_Result _bsmod_saveTypeF(
 {
     va_list args;
     va_start(args, format);
-    bs_Result _return = bsmod_saveTypeV(id, format, args);
+    bs_Result _return = _bsmod_saveTypeV(id, format, args);
     va_end(args);
     return _return;
 }

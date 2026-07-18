@@ -63,7 +63,7 @@ int _bs_image_index_ = 0;
 #define BS_PCLOSE pclose
 #endif
 
-BSAPI void _bs_system(char* command) {
+BSAPI void _bs_system(char* command, int command_length) {
     char output[512];
 
     FILE* fp = BS_POPEN(command, "r");
@@ -226,6 +226,18 @@ BSAPI void* _bs_fetchUnit(bs_List* list, bs_U32 offset) {
    *============================================================================*/
 
 #define BS_STRING_OVERHEAD (128)
+
+BSAPI char* _bs_charStringV(const char* format, va_list args) {
+    int len = vsnprintf(NULL, 0, format, args);
+    if (len < 0) {
+        BS_WARN_ERRNO_PATH("vsnprintf", format);
+        return NULL;
+    }
+
+    char* buffer = _bs_malloc(len + 1);
+    vsnprintf(buffer, len + 1, format, args);
+    return buffer;
+}
 
 BSAPI int _bs_formatStringLength(const char* format, va_list args) {
     va_list args_copy;
@@ -686,11 +698,11 @@ static inline bs_Result _bs_iterateDocuments(int is_file, int(*x)(bs_FileInfo, v
     return BS_RESULT_OK;
 }
 
-BSAPI bs_Result _bs_foreachFile(void(*x)(bs_FileInfo, void*), void* param, const char* directory, int directory_length) {
+BSAPI bs_Result _bs_foreachFile(bs_ForeachDocumentFunction x, void* param, const char* directory, int directory_length) {
     return _bs_iterateDocuments(true, x, param, directory, directory_length);
 }
 
-BSAPI bs_Result _bs_foreachDirectory(void(*x)(bs_FileInfo, void*), void* param, const char* directory, int directory_length) {
+BSAPI bs_Result _bs_foreachDirectory(bs_ForeachDocumentFunction x, void* param, const char* directory, int directory_length) {
     return _bs_iterateDocuments(false, x, param, directory, directory_length);
 }
 
@@ -712,10 +724,8 @@ BSAPI int _bs_numDirectories(char* directory, int directory_length) {
 }
 
 #else
-BSAPI bs_Result _bs_foreachFile(int(*x)(bs_FileInfo, void*), const char* directory) { _bs_warnF("_bs_foreachFile not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
-BSAPI bs_Result _bs_foreachDirectory(int(*x)(bs_FileInfo, void*), const char* directory) { _bs_warnF("_bs_foreachDirectory not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
-BSAPI bs_Result _bs_foreachFileF(int(*x)(bs_FileInfo, void*), const char* format, ...) { _bs_warnF("_bs_foreachFileF not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
-BSAPI bs_Result _bs_foreachDirectoryF(int(*x)(bs_FileInfo, void*), const char* format, ...) { _bs_warnF("_bs_foreachDirectoryF not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
+BSAPI bs_Result _bs_foreachFile(bs_ForeachDocumentFunction x, const char* directory) { _bs_warnF("_bs_foreachFile not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
+BSAPI bs_Result _bs_foreachDirectory(bs_ForeachDocumentFunction x, const char* directory) { _bs_warnF("_bs_foreachDirectory not implemented on this platform\n"); return BS_RESULT_NOT_IMPLEMENTED; }
 #endif
 
    /**
@@ -956,7 +966,7 @@ static bs_String* _bs_loadFileFromHandle(FILE* file) {
     return string;
 }
 
-BSAPI bs_Result _bs_loadFile(const char* path, bs_String** out) {
+BSAPI bs_Result _bs_loadFile(bs_String** out, char* path, int path_length) {
     FILE* file = fopen(path, "rb");
     if (!file) {
         BS_WARN_ERRNO_PATH("fopen", path);
@@ -1063,20 +1073,8 @@ BSAPI bool _bs_directoryExists(char* path, int path_length) {
     Saving documents
     */
 
-BSAPI bs_Result _bs_appendToFile(const char* path, const char* data) {
-    FILE* file = fopen(path, "ab");
-    if (!file) {
-        BS_WARN_ERRNO_PATH("fopen", path);
-        return _bs_convertErrno();
-    }
-
-    fputs(data, file);
-    fclose(file);
-    return BS_RESULT_OK;
-}
-
-BSAPI bs_Result _bs_saveFile(const char* path, char* data, bs_U32 data_len) {
-    FILE* file = fopen(path, "wb");
+static inline bs_Result _bs_writeFile(const char* mode, char* data, bs_U32 data_len, char* path, int path_length) {
+    FILE* file = fopen(path, mode);
     if (!file) {
         BS_WARN_ERRNO_PATH("fopen", path);
         return _bs_convertErrno();
@@ -1088,6 +1086,14 @@ BSAPI bs_Result _bs_saveFile(const char* path, char* data, bs_U32 data_len) {
 
     _bs_infoF("Saved %d bytes to %s\n", data_len, path);
     return BS_RESULT_OK;
+}
+
+BSAPI bs_Result _bs_appendFile(char* data, bs_U32 data_length, char* path, int path_length) {
+    return _bs_writeFile("ab", data, data_length, path, path_length);
+}
+
+BSAPI bs_Result _bs_saveFile(char* data, bs_U32 data_length, char* path, int path_length) {
+    return _bs_writeFile("wb", data, data_length, path, path_length);
 }
 
 BSAPI bs_String* _bs_fullPath(bs_String* old, const char* path, int path_len) {
@@ -1364,6 +1370,6 @@ BSAPI void _bs_copyToClipboard(char* s, int len) {
 }
 #else
 BSAPI void _bs_copyToClipboard(char* s, int len) {
-    _bs_warnF("bs_copyToClipboard has not been implemented for this OS yet\n");
+    _bs_warnF("_bs_copyToClipboard has not been implemented for this OS yet\n");
 }
 #endif

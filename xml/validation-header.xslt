@@ -22,7 +22,7 @@
         <xsl:apply-templates select="registry/includes/validationHeader/include"/>
         <xsl:text>&#xA;</xsl:text>
 		
-        <xsl:call-template name="addFunctionTableGetter">
+        <xsl:call-template name="addFunctionProcsGetter">
             <xsl:with-param name="prefix" select="'_val_'"/>
         </xsl:call-template>
 
@@ -45,7 +45,7 @@
     </xsl:template>
 	
     <xsl:template match="function" mode="table">
-        <xsl:if test="not(@type = 'generated')">
+        <xsl:if test="not(body) or @type = 'allowBody'">
             <xsl:text>    PFN_</xsl:text>
             <xsl:value-of select="@name"/>
             <xsl:text> </xsl:text>
@@ -55,7 +55,7 @@
     </xsl:template>
 
     <xsl:template match="function" mode="typedef">
-        <xsl:if test="not(@type = 'generated')">
+        <xsl:if test="not(body) or @type = 'allowBody'">
             <xsl:text>typedef </xsl:text>
             <xsl:value-of select="return"/>
             <xsl:text>(__stdcall* PFN_</xsl:text>

@@ -40,6 +40,34 @@
 	</xsl:template>
 
 	<xsl:template name="addFunctionTableGetter">
+		<xsl:param name="prefix"/>
+
+		<xsl:text>static inline </xsl:text>
+		<xsl:value-of select="registry/functionPrefix"/>
+		<xsl:text>FunctionTable </xsl:text>
+		<xsl:value-of select="$prefix"/>
+		<xsl:value-of select="registry/functionPrefix"/>
+		<xsl:text>getFunctions() {&#xA;    </xsl:text>
+		<xsl:value-of select="registry/functionPrefix"/>
+		<xsl:text>FunctionTable functions;&#xA;&#xA;</xsl:text>
+
+		<xsl:for-each select="registry/functions/function">
+			<xsl:if test="not(body) or @type = 'allowBody'">
+				<xsl:text>    functions.</xsl:text>
+				<xsl:value-of select="@name"/>
+				<xsl:text> = </xsl:text>
+				<xsl:value-of select="$prefix"/>
+				<xsl:value-of select="@name"/>
+				<xsl:text>;&#xA;</xsl:text>
+			</xsl:if>
+		</xsl:for-each>
+
+		<xsl:text>&#xA;    return functions;&#xA;</xsl:text>
+
+		<xsl:text>}&#xA;&#xA;</xsl:text>
+	</xsl:template>
+
+	<xsl:template name="addFunctionProcsGetter">
         <xsl:param name="prefix"/>
 
         <xsl:text>static inline </xsl:text>
@@ -57,7 +85,7 @@
         <xsl:text>),&#xA;        &amp;module);&#xA;&#xA;</xsl:text>
 
         <xsl:for-each select="registry/functions/function">
-            <xsl:if test="not(@type = 'generated')">
+			<xsl:if test="not(body) or @type = 'allowBody'">
                 <xsl:text>    functions.</xsl:text>
                 <xsl:value-of select="@name"/>
                 <xsl:text> = (PFN_</xsl:text>

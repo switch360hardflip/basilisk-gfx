@@ -26,7 +26,7 @@
         <xsl:value-of select="registry/functionPrefix"/>
         <xsl:text>FunctionTable functions;&#xA;&#xA;</xsl:text>
         <xsl:for-each select="registry/functions/function">
-            <xsl:if test="not(@type = 'generated')">
+            <xsl:if test="not(body) or @type = 'allowBody'">
                 <xsl:text>    functions.</xsl:text>
                 <xsl:value-of select="@name"/>
                 <xsl:text> = _preval_</xsl:text>
@@ -44,7 +44,7 @@
     </xsl:template>
 
     <xsl:template match="function" mode="validation">
-        <xsl:if test="not(@type = 'generated')">
+        <xsl:if test="not(body) or @type = 'allowBody'">
 			<xsl:value-of select="/registry/prefix"/>
 			<xsl:text> </xsl:text>
             <xsl:value-of select="return"/>
@@ -137,7 +137,7 @@
     </xsl:template>
 
     <xsl:template match="function" mode="enableValidation">
-        <xsl:if test="not(@type = 'generated')">
+        <xsl:if test="not(body) or @type = 'allowBody'">
             <xsl:text>    </xsl:text>
             <xsl:text>functions.</xsl:text>
             <xsl:value-of select="@name"/>
@@ -148,7 +148,7 @@
     </xsl:template>
 
     <xsl:template match="function" mode="disableValidation">
-        <xsl:if test="not(@type = 'generated')">
+        <xsl:if test="not(body) or @type = 'allowBody'">
             <xsl:text>    </xsl:text>
             <xsl:text>functions.</xsl:text>
             <xsl:value-of select="@name"/>

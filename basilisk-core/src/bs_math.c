@@ -46,6 +46,29 @@
 
 
 
+  /*==============================================================================
+   * Quads
+   =============================================================================*/
+
+static void _bs_quadTextureCoords(const bs_vec2* offset, const bs_vec2* coords, bs_Quad* out) {
+    out->ca = BS_V2(offset->x, offset->y);
+    out->cb = BS_V2(coords->x, offset->y);
+    out->cc = BS_V2(offset->x, coords->y);
+    out->cd = BS_V2(coords->x, coords->y);
+}
+
+BSAPI void _bs_quad(const bs_vec3* position, const bs_vec2* dimensions, bs_Quad* out) {
+    *out = (bs_Quad) {
+        *position,
+        BS_V3(position->x + dimensions->x, position->y, position->z),
+        BS_V3(position->x, position->y + dimensions->y, position->z),
+        BS_V3(position->x + dimensions->x, position->y + dimensions->y, position->z)
+    };
+
+    _bs_quadTextureCoords(&BS_V2(0.0, 0.0), &BS_V2(1.0, 1.0), out);
+}
+
+
 
   /*==============================================================================
    * Vectors
@@ -119,7 +142,7 @@ BSAPI bs_mat4x3 _bs_m4x3(const bs_mat4* m) {
     };
 }
 
-BSAPI void _bs_m3ToM4(const bs_mat3* m, bs_mat4* out) {
+BSAPI void bs_m3ToM4(const bs_mat3* m, bs_mat4* out) {
     out->v[0] = BS_V3_TO_V4(m->v[0], 0.0f);
     out->v[1] = BS_V3_TO_V4(m->v[1], 0.0f);
     out->v[2] = BS_V3_TO_V4(m->v[2], 0.0f);
@@ -247,7 +270,7 @@ BSAPI void _bs_v2CubicBezier(const bs_vec2* p0, const bs_vec2* p1, const bs_vec2
     _bs_nCubicBezier(2, p0, p1, p2, p3, out, out_length);
 }
 
-BSAPI void _bs_v2QuadBezier(const bs_vec2* p0, const bs_vec2* p1, const bs_vec2* p2, const bs_vec2* p3, bs_vec2* out, int out_length) {
+BSAPI void _bs_v2QuadBezier(const bs_vec2* p0, const bs_vec2* p1, const bs_vec2* p2, bs_vec2* out, int out_length) {
     _bs_nQuadBezier(2, p0, p1, p2, out, out_length);
 }
 
@@ -255,7 +278,7 @@ BSAPI void _bs_v3CubicBezier(const bs_vec3* p0, const bs_vec3* p1, const bs_vec3
     _bs_nCubicBezier(3, p0, p1, p2, p3, out, out_length);
 }
 
-BSAPI void _bs_v3QuadBezier(const bs_vec3* p0, const bs_vec3* p1, const bs_vec3* p2, const bs_vec3* p3, bs_vec3* out, int out_length) {
+BSAPI void _bs_v3QuadBezier(const bs_vec3* p0, const bs_vec3* p1, const bs_vec3* p2, bs_vec3* out, int out_length) {
     _bs_nQuadBezier(3, p0, p1, p2, out, out_length);
 }
 
@@ -285,7 +308,7 @@ BSAPI void _bs_rotateAabb(const bs_Aabb* aabb, const bs_mat3* rotation_matrix, b
 
     for (int i = 0; i < 8; i++) {
         bs_vec3 p;
-        _bs_m3MulV3(rotation_matrix, corners + i, &p);
+        bs_m3MulV3(rotation_matrix, corners + i, &p);
 
         new_min = BS_V3_MIN(new_min, p);
         new_max = BS_V3_MAX(new_max, p);
@@ -320,16 +343,16 @@ BSAPI void _bs_fitAabb(const bs_Aabb* aabb, const bs_vec2* size, const bs_vec4* 
 
     bs_mat4 translation_matrix, scale_matrix, center_translation_matrix;
 
-    _bs_m4Translate(&BS_MAT4_IDENTITY, &BS_V3(size->x * 0.5, size->y * 0.5, 0.0), &translation_matrix);
-    _bs_m4Scale(&BS_MAT4_IDENTITY, &BS_V3(scale, scale, scale), &scale_matrix);
-    _bs_m4Translate(&BS_MAT4_IDENTITY, &BS_V3_MUL_S(center, -1.0), &center_translation_matrix);
+    bs_m4Translate(&BS_MAT4_IDENTITY, &BS_V3(size->x * 0.5, size->y * 0.5, 0.0), &translation_matrix);
+    bs_m4Scale(&BS_MAT4_IDENTITY, &BS_V3(scale, scale, scale), &scale_matrix);
+    bs_m4Translate(&BS_MAT4_IDENTITY, &BS_V3_MUL_S(center, -1.0), &center_translation_matrix);
 
     bs_mat4 transform;
-    _bs_m3ToM4(&rotation_matrix, &transform);
+    bs_m3ToM4(&rotation_matrix, &transform);
 
-    _bs_m4Mul(&transform, &center_translation_matrix, &transform);
-    _bs_m4Mul(&scale_matrix, &transform, &transform);
-    _bs_m4Mul(&translation_matrix, &transform, &transform);
+    bs_m4Mul(&transform, &center_translation_matrix, &transform);
+    bs_m4Mul(&scale_matrix, &transform, &transform);
+    bs_m4Mul(&translation_matrix, &transform, &transform);
 
     *out = transform;
 }
@@ -350,21 +373,32 @@ static inline double _bs_determinate(float a, float b, float c, float d) {
     return a * d - b * c;
 }
 
-BSAPI bool _bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_vec2* out) {
-    double detL1 = _bs_determinate(l1_start.x, l1_start.y, l1_end.x, l1_end.y);
-    double detL2 = _bs_determinate(l2_start.x, l2_start.y, l2_end.x, l2_end.y);
-    double x1mx2 = l1_start.x - l1_end.x;
-    double x3mx4 = l2_start.x - l2_end.x;
-    double y1my2 = l1_start.y - l1_end.y;
-    double y3my4 = l2_start.y - l2_end.y;
+BSAPI bool _val_bs_lineVsLine(const bs_vec2* l1_start, const bs_vec2* l1_end, const bs_vec2* l2_start, const bs_vec2* l2_end, bs_LineVsLine* out) {
+    _bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, out);
+
+    if (!isfinite(out->point.x) || !isfinite(out->point.y)) {
+        _bs_warn(BS_CONSTANT_STRING("_bs_lineVsLine returned an infinite number\n"));
+    }
+}
+
+BSAPI bool _bs_lineVsLine(const bs_vec2* l1_start, const bs_vec2* l1_end, const bs_vec2* l2_start, const bs_vec2* l2_end, bs_LineVsLine* out) {
+    out->hit = false;
+
+    double detL1 = _bs_determinate(l1_start->x, l1_start->y, l1_end->x, l1_end->y);
+    double detL2 = _bs_determinate(l2_start->x, l2_start->y, l2_end->x, l2_end->y);
+    double x1mx2 = l1_start->x - l1_end->x;
+    double x3mx4 = l2_start->x - l2_end->x;
+    double y1my2 = l1_start->y - l1_end->y;
+    double y3my4 = l2_start->y - l2_end->y;
 
     double xnom = _bs_determinate(detL1, x1mx2, detL2, x3mx4);
     double ynom = _bs_determinate(detL1, y1my2, detL2, y3my4);
     double denom = _bs_determinate(x1mx2, y1my2, x3mx4, y3my4);
 
     if (denom == 0.0) {
-        if (out)
-            *out = (bs_vec2){ NAN, NAN };
+        *out = (bs_LineVsLine) {
+            .point = { NAN, NAN }
+        };
 
         return false;
     }
@@ -374,19 +408,16 @@ BSAPI bool _bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs
         .y = ynom / denom,
     };
 
-    if (out)
-        *out = result;
+    *out = (bs_LineVsLine) {
+        .hit = true,
+        .point = result,
+    };
+    
 
     if (!isfinite(result.x) || !isfinite(result.y))
         return false;
 
     return true;
-}
-
-BSAPI void _postval_bs_lineVsLine(bs_vec2 l1_start, bs_vec2 l1_end, bs_vec2 l2_start, bs_vec2 l2_end, bs_LineVsLine* result) {
-    if (!isfinite(result->point.x) || !isfinite(result->point.y)) {
-        _bs_warnF("bs_lineVsLine returned an infinite number\n");
-    }
 }
 
  /**
@@ -423,11 +454,11 @@ BSAPI void _bs_rayVsObb(const bs_Ray* ray, const bs_vec3* position, const bs_vec
     bs_mat3 rotation_matrix;
     bs_mat3 rotation_matrix_inverse;
 
-    _bs_m4Translate(&transform, position, &transform);
-    _bs_m4Rotate(&transform, rotation, &transform);
+    bs_m4Translate(&transform, position, &transform);
+    bs_m4Rotate(&transform, rotation, &transform);
 
     _bs_qToM3(rotation, &rotation_matrix);
-    _bs_m3Inverse(&rotation_matrix, &rotation_matrix_inverse);
+    bs_m3Inverse(&rotation_matrix, &rotation_matrix_inverse);
 
     bs_vec3 origin;
     bs_vec3 direction;
@@ -436,8 +467,8 @@ BSAPI void _bs_rayVsObb(const bs_Ray* ray, const bs_vec3* position, const bs_vec
     bs_vec3 s;
     _bs_v3Sub(&ray->origin, position, &s);
 
-    _bs_m3MulV3(&rotation_matrix_inverse, &s, &origin);
-    _bs_m3MulV3(&rotation_matrix_inverse, &ray->direction, &direction);
+    bs_m3MulV3(&rotation_matrix_inverse, &s, &origin);
+    bs_m3MulV3(&rotation_matrix_inverse, &ray->direction, &direction);
 
     bs_v3MulS(scale, -1.0, &min);
     max = *scale;
@@ -488,7 +519,7 @@ BSAPI void _bs_rayVsObb(const bs_Ray* ray, const bs_vec3* position, const bs_vec
 
     bs_vec3 normal;
     bs_vec3 normals[3] = { BS_V3(1, 0, 0), BS_V3(0, 1, 0), BS_V3(0, 0, 1) };
-    _bs_m3MulV3(&rotation_matrix, &normals[which_plane], &normal);
+    bs_m3MulV3(&rotation_matrix, &normals[which_plane], &normal);
 
     if (quadrant[which_plane] == LEFT)
         bs_v3MulS(&normal, -1.0, &normal);
@@ -511,22 +542,23 @@ BSAPI void _bs_rayVsObb(const bs_Ray* ray, const bs_vec3* position, const bs_vec
         .hit = true,
     };
 
-    _bs_m4MulV3(&transform, &coord, &result->coordinate);
+    bs_m4MulV3(&transform, &coord, &result->coordinate);
 }
 
  /**
   Sphere vs Point
   */
-BSAPI bool _bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point) {
-    int x1 = pow((point.x - center.x), 2);
-    int y1 = pow((point.y - center.y), 2);
-    int z1 = pow((point.z - center.z), 2);
+BSAPI bool _bs_sphereVsPoint(const bs_vec3* center, float radius, const bs_vec3* point, bs_SphereVsPoint* out) {
+    int x1 = pow((point->x - center->x), 2);
+    int y1 = pow((point->y - center->y), 2);
+    int z1 = pow((point->z - center->z), 2);
 
     int dist = (x1 + y1 + z1);
 
     if (dist <= (radius * radius))
-        return true;
-    return false;
+        return out->hit = true;
+
+    return out->hit = false;
 }
 
  /**
@@ -536,14 +568,14 @@ BSAPI bool _bs_sphereVsPoint(bs_vec3 center, float radius, bs_vec3 point) {
 static bool bsi_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* position, const bs_vec4* rotation, const bs_vec3* scale, bs_mat4* transform, bs_vec3* closest_point) {
     *transform = BS_MAT4_IDENTITY;
 
-    _bs_m4Translate(transform, position, transform);
-    _bs_m4Rotate(transform, rotation, transform);
-    _bs_m4Inverse(transform, transform);
+    bs_m4Translate(transform, position, transform);
+    bs_m4Rotate(transform, rotation, transform);
+    bs_m4Inverse(transform, transform);
 
     bs_vec3 relative_center;
-    _bs_m4MulV3(transform, center, &relative_center);
+    bs_m4MulV3(transform, center, &relative_center);
 
-    if (bs_abs(relative_center.x) - radius > scale->x ||
+    if (_bs_abs(relative_center.x) - radius > scale->x ||
         _bs_abs(relative_center.y) - radius > scale->y ||
         _bs_abs(relative_center.z) - radius > scale->z)
     {
@@ -598,7 +630,7 @@ BSAPI bool _bs_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* p
     if (!inside)
         return false;
 
-    _bs_m4MulV3(&transform, &closest_point, &result->point);
+    bs_m4MulV3(&transform, &closest_point, &result->point);
 
     _bs_v3Sub(&center, &result->point, &result->normal);
     _bs_v3Normalize(&result->normal, &result->normal);

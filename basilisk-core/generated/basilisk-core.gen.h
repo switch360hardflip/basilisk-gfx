@@ -1503,6 +1503,7 @@ struct bs_PngData {
     int width;
     int height;
     int channels_count;
+    size_t size;
     unsigned char* data;
 };
 
@@ -3429,9 +3430,9 @@ bs_v2Lerp(
   */
 BSAPI void
 bs_v2Mid(
-    const bs_vec3* a,
-    const bs_vec3* b,
-    bs_vec3* out);
+    const bs_vec2* a,
+    const bs_vec2* b,
+    bs_vec2* out);
 
  /**
   @param a
@@ -3929,16 +3930,6 @@ bs_m4Scale(
   @return void
   */
 BSAPI void
-bs_m3ToM4(
-    const bs_mat3* m,
-    bs_mat4* out);
-
- /**
-  @param m
-  @param out
-  @return void
-  */
-BSAPI void
 bs_m3ToQ(
     const bs_mat3* m,
     bs_vec4* out);
@@ -4284,12 +4275,14 @@ bs_sign(
  /**
   @param position
   @param dimensions
-  @return bs_Quad
+  @param out
+  @return void
   */
-BSAPI bs_Quad
+BSAPI void
 bs_quad(
-    bs_vec3 position,
-    bs_vec2 dimensions);
+    const bs_vec3* position,
+    const bs_vec2* dimensions,
+    bs_Quad* out);
 
  /**
   @param from
@@ -4377,7 +4370,7 @@ bs_convertVulkanResult(
   */
 BSAPI bs_Result
 bs_convertWin32Error(
-    unsigned long code);
+    int code);
 
  /**
   @param code
@@ -4385,7 +4378,7 @@ bs_convertWin32Error(
   */
 BSAPI const char*
 bs_serializeWin32Error(
-    unsigned long code);
+    int code);
 
  /**
   @return bs_Result
@@ -4426,20 +4419,6 @@ BSAPI bs_Result
 bs_iniAudio();
 
  /**
-  @param start
-  @param direction
-  @param length
-  @param ray
-  @return bs_Result
-  */
-BSAPI bs_Result
-bs_ray(
-    bs_vec3 start,
-    bs_vec3 direction,
-    float length,
-    bs_Ray* ray);
-
- /**
   @param ray
   @param position
   @param rotation
@@ -4460,13 +4439,13 @@ bs_rayVsObb(
   @param radius
   @param point
   @param out
-  @return void
+  @return bool
   */
-BSAPI void
+BSAPI bool
 bs_sphereVsPoint(
-    bs_vec3 center,
+    const bs_vec3* center,
     float radius,
-    bs_vec3 point,
+    const bs_vec3* point,
     bs_SphereVsPoint* out);
 
  /**
@@ -4521,14 +4500,14 @@ bs_rectangleVsPoint(
   @param l2_start
   @param l2_end
   @param out
-  @return void
+  @return bool
   */
-BSAPI void
+BSAPI bool
 bs_lineVsLine(
-    bs_vec2 l1_start,
-    bs_vec2 l1_end,
-    bs_vec2 l2_start,
-    bs_vec2 l2_end,
+    const bs_vec2* l1_start,
+    const bs_vec2* l1_end,
+    const bs_vec2* l2_start,
+    const bs_vec2* l2_end,
     bs_LineVsLine* out);
 
  /**
@@ -4542,12 +4521,6 @@ bs_populateVertexDeclaration(
     bs_VertexDeclaration* declaration,
     bs_Attribute* attributes,
     int attributes_count);
-
- /**
-  @return int
-  */
-BSAPI int
-bs_currentSwap();
 
  /**
   @param value
@@ -5057,14 +5030,6 @@ bs_destroyBatch(
 
  /**
   @param batch
-  @return bs_Result
-  */
-BSAPI bs_Result
-bs_recreateBatch(
-    bs_Batch* batch);
-
- /**
-  @param batch
   @param num_indices
   @param num_vertices
   @return void
@@ -5115,7 +5080,7 @@ BSAPI void
 bs_pushIndices(
     bs_Batch* batch,
     int indices[],
-    bs_U32 indices_count);
+    int indices_count);
 
  /**
   @param batch
@@ -5171,44 +5136,6 @@ bs_pushCone(
     int segments,
     float height,
     float radius,
-    bs_RGBA color);
-
- /**
-  @param batch
-  @param offset
-  @param position
-  @param dimensions
-  @param texture_offset
-  @param texture_coords
-  @param color
-  @return void
-  */
-BSAPI void
-bs_batchRectangle(
-    bs_Batch* batch,
-    bs_U32* offset,
-    bs_vec3 position,
-    bs_vec2 dimensions,
-    bs_vec2 texture_offset,
-    bs_vec2 texture_coords,
-    bs_RGBA color);
-
- /**
-  @param batch
-  @param position
-  @param dimensions
-  @param texture_offset
-  @param texture_coords
-  @param color
-  @return bs_Range
-  */
-BSAPI bs_Range
-bs_pushRectangle(
-    bs_Batch* batch,
-    bs_vec3 position,
-    bs_vec2 dimensions,
-    bs_vec2 texture_offset,
-    bs_vec2 texture_coords,
     bs_RGBA color);
 
  /**
@@ -5299,32 +5226,6 @@ bs_pushLine(
     bs_Batch* batch,
     bs_vec3 start,
     bs_vec3 end,
-    bs_RGBA color);
-
- /**
-  @param batch
-  @param offset
-  @param ray
-  @param color
-  @return void
-  */
-BSAPI void
-bs_batchRay(
-    bs_Batch* batch,
-    bs_U32* offset,
-    bs_Ray* ray,
-    bs_RGBA color);
-
- /**
-  @param batch
-  @param ray
-  @param color
-  @return bs_Range
-  */
-BSAPI bs_Range
-bs_pushRay(
-    bs_Batch* batch,
-    bs_Ray* ray,
     bs_RGBA color);
 
  /**
@@ -5892,7 +5793,7 @@ bs_rasterizeGlyph(
   @return void
   */
 BSAPI void
-bs_kern(
+bs_readKernTable(
     bs_TTF* ttf);
 
  /**
@@ -5986,14 +5887,40 @@ bs_transition(
     bs_ImageLayout new_layout);
 
  /**
-  @param path
   @param out_png_data
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_inspectPng(
-    const char* path,
-    bs_PngData* out_png_data);
+    bs_PngData* out_png_data,
+    char* path,
+    int path_length);
+
+ /**
+  @param out_png_data
+  @param format
+  @param args
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_inspectPngV(
+    bs_PngData* out_png_data,
+    char* format,
+    va_list args);
+
+ /**
+  @param out_png_data
+  @param format
+  @param ...
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_inspectPngF(
+    bs_PngData* out_png_data,
+    char* format,
+     ...);
 
  /**
   @param data
@@ -6041,8 +5968,8 @@ bs_bitmapImage(
   @param data
   @param resolution
   @param type
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
@@ -6050,8 +5977,8 @@ bs_savePng(
     char* data,
     bs_ivec2 resolution,
     bs_PngType type,
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param data
@@ -6091,8 +6018,6 @@ bs_savePngF(
   @param size
   @param type
   @param out
-  @param value
-  @param value_length
   @return bs_Result
   */
 BSAPI bs_Result
@@ -6101,49 +6026,7 @@ bs_encodePng(
     const unsigned char* data,
     bs_ivec2 size,
     bs_PngType type,
-    unsigned char** out,
-    char* value,
-    int value_length);
-
- /**
-  @param out_size
-  @param data
-  @param size
-  @param type
-  @param out
-  @param format
-  @param args
-  @return bs_Result
-  */
-BSAPI bs_Result
-bs_encodePngV(
-    size_t* out_size,
-    const unsigned char* data,
-    bs_ivec2 size,
-    bs_PngType type,
-    unsigned char** out,
-    char* format,
-    va_list args);
-
- /**
-  @param out_size
-  @param data
-  @param size
-  @param type
-  @param out
-  @param format
-  @param ...
-  @return bs_Result
-  */
-BSAPI bs_Result
-bs_encodePngF(
-    size_t* out_size,
-    const unsigned char* data,
-    bs_ivec2 size,
-    bs_PngType type,
-    unsigned char** out,
-    char* format,
-     ...);
+    unsigned char** out);
 
  /**
   @param image
@@ -6235,8 +6118,8 @@ bs_blit(
   @param object
   @param package_id
   @param flags
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
@@ -6244,8 +6127,8 @@ bs_loadImage(
     bs_Object* object,
     int package_id,
     bs_ImageBits flags,
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param object
@@ -6337,8 +6220,8 @@ bs_sampler(
   @param object
   @param package_id
   @param flags
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
@@ -6346,8 +6229,8 @@ bs_loadAtlas(
     bs_Object* object,
     int package_id,
     bs_U32 flags,
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param object
@@ -6518,12 +6401,6 @@ BSAPI struct VkDevice_T*
 bsi_fetchDevice();
 
  /**
-  @return void
-  */
-BSAPI void
-bsi_resizeObjects();
-
- /**
   @param queue
   @return bs_Result
   */
@@ -6652,48 +6529,48 @@ bs_emptyJsonArray();
  /**
   @param raw
   @param len
-  @param out_json
+  @param out
   @return bs_Result
   */
 BSAPI bs_Result
 bs_json(
     char* raw,
     int len,
-    bs_Json* out_json);
+    bs_Json* out);
 
  /**
-  @param out_json
+  @param out
   @param path
   @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_loadJson(
-    bs_Json* out_json,
+    bs_Json* out,
     char* path,
     int path_length);
 
  /**
-  @param out_json
+  @param out
   @param format
   @param args
   @return bs_Result
   */
 BSAPI bs_Result
 bs_loadJsonV(
-    bs_Json* out_json,
+    bs_Json* out,
     char* format,
     va_list args);
 
  /**
-  @param out_json
+  @param out
   @param format
   @param ...
   @return bs_Result
   */
 BSAPI bs_Result
 bs_loadJsonF(
-    bs_Json* out_json,
+    bs_Json* out,
     char* format,
      ...);
 
@@ -7028,14 +6905,14 @@ bs_logWithTimestampF(
      ...);
 
  /**
-  @param value
-  @param value_length
+  @param message
+  @param message_length
   @return char*
   */
 BSAPI char*
 bs_log(
-    char* value,
-    int value_length);
+    char* message,
+    int message_length);
 
  /**
   @param format
@@ -7058,14 +6935,14 @@ bs_logF(
      ...);
 
  /**
-  @param value
-  @param value_length
+  @param message
+  @param message_length
   @return char*
   */
 BSAPI char*
 bs_info(
-    char* value,
-    int value_length);
+    char* message,
+    int message_length);
 
  /**
   @param format
@@ -7088,14 +6965,14 @@ bs_infoF(
      ...);
 
  /**
-  @param value
-  @param value_length
+  @param message
+  @param message_length
   @return char*
   */
 BSAPI char*
 bs_warn(
-    char* value,
-    int value_length);
+    char* message,
+    int message_length);
 
  /**
   @param format
@@ -7118,14 +6995,14 @@ bs_warnF(
      ...);
 
  /**
-  @param value
-  @param value_length
+  @param message
+  @param message_length
   @return void
   */
 BSAPI void
 bs_critical(
-    char* value,
-    int value_length);
+    char* message,
+    int message_length);
 
  /**
   @param format
@@ -7146,32 +7023,6 @@ BSAPI void
 bs_criticalF(
     char* format,
      ...);
-
- /**
-  @return void
-  */
-BSAPI void
-bs_logObjectDiff();
-
- /**
-  @return void
-  */
-BSAPI void
-bs_logUnchangedObjects();
-
- /**
-  @return void
-  */
-BSAPI void
-bs_logBindings();
-
- /**
-  @param m
-  @return void
-  */
-BSAPI void
-bs_infoF4(
-    bs_mat4* m);
 
  /**
   @return bs_Instance*
@@ -7210,38 +7061,32 @@ BSAPI bs_Scope*
 bs_scope();
 
  /**
-  @param command
   @param value
   @param value_length
   @return void
   */
 BSAPI void
 bs_system(
-    char* command,
     char* value,
     int value_length);
 
  /**
-  @param command
   @param format
   @param args
   @return void
   */
 BSAPI void
 bs_systemV(
-    char* command,
     char* format,
     va_list args);
 
  /**
-  @param command
   @param format
   @param ...
   @return void
   */
 BSAPI void
 bs_systemF(
-    char* command,
     char* format,
      ...);
 
@@ -7477,16 +7322,6 @@ bs_appendChar(
 
  /**
   @param string
-  @param n
-  @return void
-  */
-BSAPI void
-bs_removeLastCharsCount(
-    bs_String* string,
-    int n);
-
- /**
-  @param string
   @param start
   @param count
   @return void
@@ -7614,23 +7449,13 @@ bs_unwiden(
     bs_U32 dst_size);
 
  /**
-  @param value
-  @param value_length
-  @return char*
-  */
-BSAPI char*
-bs_charString(
-    char* value,
-    int value_length);
-
- /**
   @param format
   @param args
   @return char*
   */
 BSAPI char*
 bs_charStringV(
-    char* format,
+    const char* format,
     va_list args);
 
  /**
@@ -7640,7 +7465,7 @@ bs_charStringV(
   */
 BSAPI char*
 bs_charStringF(
-    char* format,
+    const char* format,
      ...);
 
  /**
@@ -7705,14 +7530,6 @@ bs_fetchUnit(
   */
 BSAPI void*
 bs_fetchLast(
-    bs_List* list);
-
- /**
-  @param list
-  @return void*
-  */
-BSAPI void*
-bs_fetchLastNull(
     bs_List* list);
 
  /**
@@ -7845,11 +7662,33 @@ bs_numDigits(
 
  /**
   @param path
+  @param path_length
   @return bool
   */
 BSAPI bool
 bs_directoryExists(
-    char* path);
+    char* path,
+    int path_length);
+
+ /**
+  @param format
+  @param args
+  @return bool
+  */
+BSAPI bool
+bs_directoryExistsV(
+    char* format,
+    va_list args);
+
+ /**
+  @param format
+  @param ...
+  @return bool
+  */
+BSAPI bool
+bs_directoryExistsF(
+    char* format,
+     ...);
 
  /**
   @param path
@@ -7878,14 +7717,46 @@ bs_fileName(
     const char* path);
 
  /**
-  @param path
   @param data
-  @return void
+  @param data_len
+  @param value
+  @param value_length
+  @return bs_Result
   */
-BSAPI void
+BSAPI bs_Result
 bs_appendFile(
-    const char* path,
-    const char* data);
+    char* data,
+    bs_U32 data_len,
+    char* value,
+    int value_length);
+
+ /**
+  @param data
+  @param data_len
+  @param format
+  @param args
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_appendFileV(
+    char* data,
+    bs_U32 data_len,
+    char* format,
+    va_list args);
+
+ /**
+  @param data
+  @param data_len
+  @param format
+  @param ...
+  @return bs_Result
+  */
+BSAPI bs_Result
+bs_appendFileF(
+    char* data,
+    bs_U32 data_len,
+    char* format,
+     ...);
 
  /**
   @param data
@@ -8794,18 +8665,6 @@ bs_configureAttribute(
     bs_Format base_format);
 
  /**
-  @return bs_Window*
-  */
-BSAPI bs_Window*
-bs_wnd();
-
- /**
-  @return bs_IO*
-  */
-BSAPI bs_IO*
-bs_io();
-
- /**
   @param out
   @return bs_Result
   */
@@ -8998,12 +8857,6 @@ bs_resizeWindow(
     bs_U32 height);
 
  /**
-  @return bs_ivec2
-  */
-BSAPI bs_ivec2
-bs_screenDimensions();
-
- /**
   @param x
   @param y
   @return void
@@ -9052,18 +8905,6 @@ bs_exit();
 BSAPI void
 bs_setCursor(
     bs_CursorIcon type);
-
- /**
-  @return void
-  */
-BSAPI void
-bs_maximize();
-
- /**
-  @return void
-  */
-BSAPI void
-bs_minimize();
 
  /**
   @return double
@@ -9154,38 +8995,32 @@ bs_checkTimer(
     bs_Timer* timer);
 
  /**
-  @param timer
   @param value
   @param value_length
   @return void
   */
 BSAPI void
 bs_copyToClipboard(
-    bs_Timer* timer,
     char* value,
     int value_length);
 
  /**
-  @param timer
   @param format
   @param args
   @return void
   */
 BSAPI void
 bs_copyToClipboardV(
-    bs_Timer* timer,
     char* format,
     va_list args);
 
  /**
-  @param timer
   @param format
   @param ...
   @return void
   */
 BSAPI void
 bs_copyToClipboardF(
-    bs_Timer* timer,
     char* format,
      ...);
 
@@ -9310,14 +9145,14 @@ bs_foreachDirectoryF(
      ...);
 
  /**
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return int
   */
 BSAPI int
 bs_numFiles(
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param format
@@ -9340,14 +9175,14 @@ bs_numFilesF(
      ...);
 
  /**
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return int
   */
 BSAPI int
 bs_numDirectories(
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param format
@@ -9371,15 +9206,15 @@ bs_numDirectoriesF(
 
  /**
   @param out
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_loadFile(
     bs_String** out,
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param out
@@ -9406,25 +9241,22 @@ bs_loadFileF(
      ...);
 
  /**
-  @param path
   @param offset
   @param size
   @param out
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_loadFileChunk(
-    const char* path,
     long offset,
     size_t size,
     bs_String** out,
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
-  @param path
   @param offset
   @param size
   @param out
@@ -9434,7 +9266,6 @@ bs_loadFileChunk(
   */
 BSAPI bs_Result
 bs_loadFileChunkV(
-    const char* path,
     long offset,
     size_t size,
     bs_String** out,
@@ -9442,7 +9273,6 @@ bs_loadFileChunkV(
     va_list args);
 
  /**
-  @param path
   @param offset
   @param size
   @param out
@@ -9452,7 +9282,6 @@ bs_loadFileChunkV(
   */
 BSAPI bs_Result
 bs_loadFileChunkF(
-    const char* path,
     long offset,
     size_t size,
     bs_String** out,
@@ -9460,14 +9289,14 @@ bs_loadFileChunkF(
      ...);
 
  /**
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_deleteFile(
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param format
@@ -9490,14 +9319,14 @@ bs_deleteFileF(
      ...);
 
  /**
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_deleteDirectoryContents(
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param format
@@ -9520,14 +9349,14 @@ bs_deleteDirectoryContentsF(
      ...);
 
  /**
-  @param value
-  @param value_length
+  @param path
+  @param path_length
   @return bs_Result
   */
 BSAPI bs_Result
 bs_deleteDirectory(
-    char* value,
-    int value_length);
+    char* path,
+    int path_length);
 
  /**
   @param format

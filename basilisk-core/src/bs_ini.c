@@ -54,6 +54,7 @@ BSAPI bs_Args* _bs_args() { return &_bs_args_; }
 BSAPI bs_Features* _bs_features() { return &_bs_features_; }
 BSAPI bs_Props* _bs_props() { return &_bs_props_; }
 BSAPI bs_Config* _bs_config() { return &_bs_config_; }
+BSAPI bs_Scope* _bs_scope() { return &_bs_scope_; }
 
 BSAPI void _bsi_nameHandle(bs_U64 handle, bs_U32 type, char* name, int name_length) {
     PFN_vkSetDebugUtilsObjectNameEXT pfn_vkSetDebugUtilsObjectNameEXT = 
@@ -367,7 +368,7 @@ static void _bs_preparePhysicalDevice() {
         chosen = i;
         _bs_logPhysicalDeviceInfo(i, devices[i]);
         _bs_instance_->physical_device = devices[i];
-        if (bs_queueFamily(BS_QUEUE_GRAPHICS_BIT) != -1)
+        if (_bs_queueFamily(BS_QUEUE_GRAPHICS_BIT) != -1)
             break;
         _bs_instance_->physical_device = VK_NULL_HANDLE;
     }
@@ -524,8 +525,8 @@ static void _bs_prepareLogicalDevice() {
         BS_CRITICAL_VULKAN_ERROR("vkCreateDevice", vk_result, "");
     }
 
-    //bs_nameHandlef((bs_U64)bs_instance->_.graphics_queue, VK_OBJECT_TYPE_QUEUE, "graphics queue");
-    //bs_nameHandlef((bs_U64)bs_instance->_.compute_queue, VK_OBJECT_TYPE_QUEUE, "compute queue");
+    //_bs_nameHandlef((bs_U64)_bs_instance->_.graphics_queue, VK_OBJECT_TYPE_QUEUE, "graphics queue");
+    //_bs_nameHandlef((bs_U64)_bs_instance->_.compute_queue, VK_OBJECT_TYPE_QUEUE, "compute queue");
 }
 
 static void _bs_prepareCommands() {
@@ -553,7 +554,7 @@ BSAPI void _bs_parseArgs(int argc, char* argv[]) {
     }
 }
 
-BSAPI void _bs_queryProcedures(bs_Procedure* procedures, int count, HMODULE dll_handle, unsigned char* destination) {
+BSAPI void _bs_queryProcedures(bs_Procedure* procedures, int count, void* dll_handle, unsigned char* destination) {
 #define BS_STRING_GEN_2(TYPE, FUNC, ...) { .size = sizeof(TYPE), .func = #FUNC, __VA_OPT__(.is_required = __VA_ARGS__) },
 
     for (int i = 0; i < count; i++) {
@@ -585,14 +586,14 @@ BSAPI void _bs_ini() {
    // _bs_wnd.fixed_time = 0.025;
     _bs_findExecutablePaths();
     _bs_prepareInstance();
-    //bs_prepareSurface();
+    //_bs_prepareSurface();
     _bs_preparePhysicalDevice();
     _bs_prepareLogicalDevice();
 
     bs_Procedure procedures[] = { BS_FOREACH_PROC(BS_STRING_GEN_2) };
     _bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), 0, &_bs_procs_);
 
-    //bs_prepareSwapchain();
+    //_bs_prepareSwapchain();
     _bs_prepareCommands();
 }
 
@@ -607,7 +608,7 @@ BSAPI void _bs_load(
 {
     if (!_bs_instance_->single_times_queue) {
         bs_Object* object = BS_QUEUE(-1, 0, 0);
-        if (bs_queue(object, BS_QUEUE_TRANSFER_BIT | BS_QUEUE_COMPUTE_BIT | BS_QUEUE_SINGLE_TIMES_BIT) != BS_RESULT_OK) {
+        if (_bs_queue(object, BS_QUEUE_TRANSFER_BIT | BS_QUEUE_COMPUTE_BIT | BS_QUEUE_SINGLE_TIMES_BIT) != BS_RESULT_OK) {
             _bs_critical(BS_CONSTANT_STRING("Failed to create single times queue\n"));
             return;
         }

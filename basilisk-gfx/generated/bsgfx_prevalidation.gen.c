@@ -128,11 +128,6 @@ BSGFXAPI void _preval_bsgfx_loadMaterials() {
     next.bsgfx_loadMaterials();
 }
 
-BSGFXAPI bsgfx_Material* _preval_bsgfx_material(char* name, int name_length) {
-    BSGFX_VALIDATE(name != NULL, NULL,);
-    return next.bsgfx_material(name, name_length);
-}
-
 BSGFXAPI void _preval_bsgfx_highlightMaterial(int material_id, bool auto_unhighlight) {
     next.bsgfx_highlightMaterial(material_id, auto_unhighlight);
 }
@@ -346,14 +341,6 @@ BSGFXAPI int _preval_bsgfx_instanceAtlas(int subtype, bs_mat4x3 transform, int t
 
 BSGFXAPI int _preval_bsgfx_instanceAtlasFlipped(int subtype, bs_mat4x3 transform, int texture, bs_U32 flags, int id, int material) {
     return next.bsgfx_instanceAtlasFlipped(subtype, transform, texture, flags, id, material);
-}
-
-BSGFXAPI void _preval_bsgfx_instanceText(int subtype, bs_Font* font, bsgfx_Text* params, bs_vec2* out_text_size, char* value, int value_length) {
-    BSGFX_VALIDATE(font != NULL, ,);
-    BSGFX_VALIDATE(params != NULL, ,);
-    BSGFX_VALIDATE(out_text_size != NULL, ,);
-    BSGFX_VALIDATE(value != NULL, ,);
-    next.bsgfx_instanceText(subtype, font, params, out_text_size, value, value_length);
 }
 
 BSGFXAPI bs_mat4x3 _preval_bsgfx_matrix(bs_vec3 position, bs_vec3 scale) {
@@ -708,7 +695,6 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_fetchMaterial = _preval_bsgfx_fetchMaterial;
     functions.bsgfx_queryMaterial = _preval_bsgfx_queryMaterial;
     functions.bsgfx_loadMaterials = _preval_bsgfx_loadMaterials;
-    functions.bsgfx_material = _preval_bsgfx_material;
     functions.bsgfx_highlightMaterial = _preval_bsgfx_highlightMaterial;
     functions.bsgfx_unhighlightMaterial = _preval_bsgfx_unhighlightMaterial;
     functions.bsgfx_tickMaterials = _preval_bsgfx_tickMaterials;
@@ -756,7 +742,6 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_instanceDepthlessCircle = _preval_bsgfx_instanceDepthlessCircle;
     functions.bsgfx_instanceAtlas = _preval_bsgfx_instanceAtlas;
     functions.bsgfx_instanceAtlasFlipped = _preval_bsgfx_instanceAtlasFlipped;
-    functions.bsgfx_instanceText = _preval_bsgfx_instanceText;
     functions.bsgfx_matrix = _preval_bsgfx_matrix;
     functions.bsgfx_renderFontSubtypes = _preval_bsgfx_renderFontSubtypes;
     functions.bsgfx_settingsEditor = _preval_bsgfx_settingsEditor;

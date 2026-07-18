@@ -394,7 +394,7 @@ static void _bs_readHmtxTable(bs_TTF* ttf, bs_Glyph* glyph) {
 
     bs_U32 offset = glyph->index * sizeof(bs_LongHorMetric);
     glyph->long_hor_metric.advance_width = _bs_memU16(ttf->hmtx.buf, offset);
-    glyph->long_hor_metric.left_side_bearing = (bs_I16)bs_memU16(ttf->hmtx.buf, offset + 2);
+    glyph->long_hor_metric.left_side_bearing = (bs_I16)_bs_memU16(ttf->hmtx.buf, offset + 2);
 }
 
 
@@ -455,7 +455,7 @@ static int _bs_glyfCoords(bs_Glyf* glyf, bool y, bs_U8* flags, bs_GlyfPt* pts, i
 }
 
 static void _bs_readGlyfTable(bs_TTF* ttf, bs_Glyph* glyph) {
-    if (bs_findTable(ttf, "glyf", ttf->glyf.buf) != BS_RESULT_OK) {
+    if (_bs_findTable(ttf, "glyf", ttf->glyf.buf) != BS_RESULT_OK) {
         return;
     }
 
@@ -835,7 +835,7 @@ BSAPI void _bs_destroyFont(bs_Font* font) {
     if (font->atlas)
         _bs_destroyAtlas(font->atlas);
     //	if (font->fragment_shader)
-    //		bs_destroyShader(font->fragment_shader);
+    //		_bs_destroyShader(font->fragment_shader);
 
     // TODO: make generic
     int id = font->head.id;

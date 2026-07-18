@@ -29,7 +29,7 @@
 
 	<xsl:template match="function" mode="definition">
 
-		<xsl:if test="@type = 'generated'">
+		<xsl:if test="@type = 'allowBody'">
 			<xsl:call-template name="createFunctionBody">
 				<xsl:with-param name="prefix" select="'_'"/>
 			</xsl:call-template>

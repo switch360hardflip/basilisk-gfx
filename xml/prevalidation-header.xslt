@@ -22,7 +22,7 @@
         <xsl:apply-templates select="registry/includes/prevalidationHeader/include"/>
         <xsl:text>&#xA;</xsl:text>
 
-		<xsl:call-template name="addFunctionTableGetter">
+		<xsl:call-template name="addFunctionProcsGetter">
 			<xsl:with-param name="prefix" select="'_preval_'"/>
 		</xsl:call-template>
 

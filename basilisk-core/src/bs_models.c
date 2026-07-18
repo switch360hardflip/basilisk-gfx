@@ -98,7 +98,7 @@ static void _bs_modelAttribDataI(
     unsigned int* out)
 {
     int num_floats = 0;
-    bs_U8* arr = (bs_U8*)bs_gltfFloatArray(primitive->parent->model, root, accessor, &num_floats, num_components);
+    bs_U8* arr = (bs_U8*)_bs_gltfFloatArray(primitive->parent->model, root, accessor, &num_floats, num_components);
 
     for (int i = 0; i < num_floats / num_components; i++, offset += primitive->vertex_size) {
         for (int j = 0; j < num_components; j++)
@@ -150,7 +150,7 @@ static bs_Primitive* _bs_loadPrimitive(
     */
     int accessor = _bs_fetchJson(primitive_json, BS_JSON_NUMBER, BS_CONSTANT_STRING("indices")).as_number;
 
-    bs_U16* arr = (bs_U16*)bs_gltfFloatArray(mesh->model, root, accessor, &primitive->num_indices, 1);
+    bs_U16* arr = (bs_U16*)_bs_gltfFloatArray(mesh->model, root, accessor, &primitive->num_indices, 1);
     primitive->indices = _bs_calloc(primitive->num_indices, sizeof(int));
     for (int i = 0; i < primitive->num_indices; i++)
         primitive->indices[i] = arr[i];
@@ -194,7 +194,7 @@ static void _bs_loadMeshes(bs_Model* model, bs_Json* root) {
             .model = model,
             .aabb.max = { -FLT_MAX, -FLT_MAX, -FLT_MAX },
             .aabb.min = { FLT_MAX, FLT_MAX, FLT_MAX },
-            .name = strdup(bs_fetchJson(&node, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string),
+            .name = strdup(_bs_fetchJson(&node, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string),
             .primitives = _bs_malloc(primitives.size * sizeof(bs_Primitive)),
             .primitives_count = primitives.size,
 
@@ -271,7 +271,7 @@ BSAPI bs_vec3 _bs_bonePosition(bs_Armature* armature, bs_Bone* joint) {
     bs_mat4 bone_transform = _bs_boneTransform(armature, joint);
     bs_vec4 result = { 0.0, 0.0, 0.0, 1.0 };
 
-    _bs_m4MulV4(&bone_transform, &result, &result);
+    bs_m4MulV4(&bone_transform, &result, &result);
 
     return result.xyz;
 }
@@ -280,9 +280,9 @@ BSAPI bs_mat4* _bs_transformBone(bs_Armature* armature, bs_Bone* bone, const bs_
     bs_mat4 parent = (bone->parent_idx == -1) ? BS_MAT4_IDENTITY : armature->bones[bone->parent_idx].matrix;
     bs_mat4* destination = &armature->bones[bone->id].matrix;
 
-    _bs_m4Mul(&bone->local_matrix, transform, destination);
-    _bs_m4Mul(destination, &bone->bind_matrix_inverse, destination);
-    _bs_m4Mul(&parent, destination, destination);
+    bs_m4Mul(&bone->local_matrix, transform, destination);
+    bs_m4Mul(destination, &bone->bind_matrix_inverse, destination);
+    bs_m4Mul(&parent, destination, destination);
 
     return destination;
 }
@@ -320,9 +320,9 @@ BSAPI void _bs_blendPose(bs_Armature* armature, bs_Animation* animation_a, bs_An
             _bs_v3Lerp(&interpolated_scale_a, &interpolated_scale_b, factor, &scale);
 
             bs_mat4 transform = BS_MAT4_IDENTITY;
-            _bs_m4Translate(&transform, &translation, &transform);
-            _bs_m4Rotate(&transform, &rotation, &transform);
-            _bs_m4Scale(&transform, &scale, &transform);
+            bs_m4Translate(&transform, &translation, &transform);
+            bs_m4Rotate(&transform, &rotation, &transform);
+            bs_m4Scale(&transform, &scale, &transform);
 
             _bs_transformBone(armature, &armature->bones[i].bone, &transform);
         }
@@ -336,9 +336,9 @@ BSAPI void _bs_blendPose(bs_Armature* armature, bs_Animation* animation_a, bs_An
             bs_vec3 scale = _bs_interpolateScale(a, time_a);
 
             bs_mat4 transform = BS_MAT4_IDENTITY;
-            _bs_m4Translate(&transform, &translation, &transform);
-            _bs_m4Rotate(&transform, &rotation, &transform);
-            _bs_m4Scale(&transform, &scale, &transform);
+            bs_m4Translate(&transform, &translation, &transform);
+            bs_m4Rotate(&transform, &rotation, &transform);
+            bs_m4Scale(&transform, &scale, &transform);
 
             _bs_transformBone(armature, &armature->bones[i].bone, &transform);
         }
@@ -347,13 +347,13 @@ BSAPI void _bs_blendPose(bs_Armature* armature, bs_Animation* animation_a, bs_An
 
 static inline bs_vec3 _bs_worldSpaceJoint(bs_Armature* armature, int bone_id) {
     bs_mat4 bind_matrix;
-    _bs_m4Inverse(&armature->bones[bone_id].bone.bind_matrix_inverse, &bind_matrix);
+    bs_m4Inverse(&armature->bones[bone_id].bone.bind_matrix_inverse, &bind_matrix);
 
     bs_mat4 mul;
-    _bs_m4Mul(&armature->bones[bone_id].matrix, &bind_matrix, &mul);
+    bs_m4Mul(&armature->bones[bone_id].matrix, &bind_matrix, &mul);
 
     bs_vec4 result = { 0.0, 0.0, 0.0, 1.0 };
-    _bs_m4MulV4(&mul, &result, &result);
+    bs_m4MulV4(&mul, &result, &result);
 
     return result.xyz;
 }
@@ -404,10 +404,10 @@ BSAPI void _bs_fabrik(bs_Armature* armature, int end_effector_id, bs_vec3 target
         _bs_qNormalize(&rotation, &rotation);
 
         bs_mat4 transform = BS_MAT4_IDENTITY;
-        _bs_m4Translate(&transform, &current, &transform);
-        _bs_m4Rotate(&transform, &rotation, &transform);
+        bs_m4Translate(&transform, &current, &transform);
+        bs_m4Rotate(&transform, &rotation, &transform);
 
-        _bs_m4Mul(&transform, &armature->bones[armature->bones[i].ik_id].bone.bind_matrix_inverse, &armature->bones[armature->bones[i].ik_id].matrix);
+        bs_m4Mul(&transform, &armature->bones[armature->bones[i].ik_id].bone.bind_matrix_inverse, &armature->bones[armature->bones[i].ik_id].matrix);
 
         bs_v3MulS(&direction, armature->bones[i].ik_length, &direction);
 
@@ -456,7 +456,7 @@ static int _bs_queryAnimation(bs_Model* model, char* name) {
 BSAPI bs_Result _bs_loadAnimation(bs_Model* model, const char* name, bs_Animation* out) {
     int animation_id = _bs_queryAnimation(model, name);
     if (animation_id == -1) {
-        bs_warnF("Failed to query animation \"%s\"\n", name);
+        _bs_warnF("Failed to query animation \"%s\"\n", name);
         return BS_RESULT_FAILED_TO_QUERY;
     }
 
@@ -468,7 +468,7 @@ BSAPI bs_Result _bs_loadAnimation(bs_Model* model, const char* name, bs_Animatio
     bs_JsonValue channels_json = _bs_fetchJson(&animation_root, BS_JSON_ARRAY, BS_CONSTANT_STRING("channels"));
 
     bs_Animation animation = {
-        .name = strdup(bs_fetchJson(&animation_root, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string),
+        .name = strdup(_bs_fetchJson(&animation_root, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string),
         .bones_allocated = channels_json.size / 3,
     };
 
@@ -569,7 +569,7 @@ static void _bs_loadArmature(bs_Model* model, bs_Armature* armature, bs_Json* ro
     bs_JsonValue joints = _bs_fetchJson(skin_root, BS_JSON_ARRAY, BS_CONSTANT_STRING("joints"));
 
     *armature = (bs_Armature){
-        .name = strdup(bs_fetchJson(skin_root, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string),
+        .name = strdup(_bs_fetchJson(skin_root, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string),
         .bones_count = joints.size,
         .bones_allocated = joints.size,
         .bones = _bs_calloc(joints.size, sizeof(*armature->bones)),
@@ -591,22 +591,22 @@ static void _bs_loadArmature(bs_Model* model, bs_Armature* armature, bs_Json* ro
 
         bs_mat4 transform = BS_MAT4_IDENTITY;
         if (translation)
-            _bs_m4Translate(&transform, &(bs_vec3) { translation[0], translation[1], translation[2] }, &transform);
+            bs_m4Translate(&transform, &(bs_vec3) { translation[0], translation[1], translation[2] }, &transform);
         if (rotation)
-            _bs_m4Translate(&transform, &(bs_vec4) { rotation[0], rotation[1], rotation[2], rotation[3] }, & transform);
+            bs_m4Translate(&transform, &(bs_vec4) { rotation[0], rotation[1], rotation[2], rotation[3] }, & transform);
         if (scale)
-            _bs_m4Translate(&transform, &(bs_vec3) { scale[0], scale[1], scale[2] }, & transform);
-        _bs_m4Inverse(&transform, &transform);
+            bs_m4Translate(&transform, &(bs_vec3) { scale[0], scale[1], scale[2] }, & transform);
+        bs_m4Inverse(&transform, &transform);
 
         bs_Bone* bone = &armature->bones[j].bone;
 
         bone->bind_matrix_inverse = _bs_gltfMat4(model, root, inverse_bind_matrices_accessor, j);
 
         bs_mat4 bind_matrix; 
-        _bs_m4Inverse(&bone->bind_matrix_inverse, &bind_matrix);
+        bs_m4Inverse(&bone->bind_matrix_inverse, &bind_matrix);
 
         bone->local_matrix;
-        _bs_m4Mul(&bind_matrix, &transform, &bone->local_matrix);
+        bs_m4Mul(&bind_matrix, &transform, &bone->local_matrix);
 
         char* name = _bs_fetchJson(&node, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string;
         if (name) {
@@ -647,7 +647,7 @@ static void _bs_loadArmatures(bs_Model* model, bs_Json* root) {
    =============================================================================*/
 
 static void _bs_loadMaterial(bs_Material* material, bs_Json* root) {
-    material->name = strdup(bs_fetchJson(root, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string);
+    material->name = strdup(_bs_fetchJson(root, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string);
 
     bs_JsonValue base_color_factor = _bs_fetchJson(root, BS_JSON_UNDEFINED, BS_CONSTANT_STRING("pbrMetallicRoughness.baseColorFactor"));
     if (base_color_factor.found) {
@@ -812,7 +812,7 @@ BSAPI bs_Result _bs_model(int package_id, const char* name, bs_U32 flags, bs_Res
 bs_Object _bs_armature(int id, bs_ArmatureFlags flags) {
     if (!id) 
         _bs_throwBasilisk(BSXI_INTERNAL | BSX_NOT_IMPLEMENTED);
-    if (bs_shouldLoadId(id)) {
+    if (_bs_shouldLoadId(id)) {
         bs_Object existing = _bs_fetchNull(id);
         if (existing.armature && !(flags & BS_ARMATURE_FORCE_DESTROY))
             return existing;
@@ -844,7 +844,7 @@ BSAPI int _bs_bone(bs_Armature* armature, bs_mat4 local_transform, int parent_id
         .parent_idx = parent_id,
     };
 
-    _bs_m4Mul(&bind_matrix, &local_transform, &armature->bones[armature->bones_count].bone.local_matrix);
+    bs_m4Mul(&bind_matrix, &local_transform, &armature->bones[armature->bones_count].bone.local_matrix);
 
     _bs_transformBone(armature, &armature->bones[armature->bones_count].bone, &BS_MAT4_IDENTITY);
 
@@ -864,7 +864,7 @@ bs_Object _bs_animation(bs_Armature* armature, int id, const char* name, bs_Anim
     if (!armature) 
         _bs_throwBasilisk(BSXI_INTERNAL | BSX_INVALID_PARAM);
 
-    if (bs_shouldLoadId(id)) {
+    if (_bs_shouldLoadId(id)) {
         bs_Object existing = _bs_fetchNull(id);
 
         if (existing.animation) {
@@ -907,7 +907,7 @@ BSAPI bs_Mesh* _bs_queryMesh(bs_Model* model, const char* name) {
 bs_Object _bs_queryArmature(bs_Model* model, int id, const char* name, bs_ArmatureFlags flags) {
     if (!id) 
         _bs_throwBasilisk(BSXI_INTERNAL | BSX_NOT_IMPLEMENTED);
-    if (bs_shouldLoadId(id)) {
+    if (_bs_shouldLoadId(id)) {
     }
     else return (bs_Object) { 0 };
 

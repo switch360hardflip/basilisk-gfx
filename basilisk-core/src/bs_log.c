@@ -86,6 +86,15 @@ BSAPI char* _postval_bs_logWithTimestamp(const char* type, int type_len, const c
     return _return;
 }
 
+BSAPI char* _bs_log(char* message, int message_len) {
+    _bs_io_.log = _bs_appendString(_bs_io_.log, message, message_len);
+}
+
+/** Info log */
+BSAPI char* _bs_info(char* message, int message_len) {
+    return _bs_logWithTimestamp("", 0, message, message_len);
+}
+
  /** Warning log */
 BSAPI char* _bs_warn(char* message, int message_len) {
     return _bs_logWithTimestamp(BS_WARN_HEADER, sizeof(BS_WARN_HEADER) - 1, message, message_len);
@@ -180,6 +189,13 @@ BSAPI bs_Result _bs_convertVulkanResult(int result) {
     return BS_RESULT_GENERAL_ERROR;
 }
 
+BSAPI bs_Result _bs_convertErrno() {
+    switch (errno) {
+    }
+
+    return BS_RESULT_GENERAL_ERROR;
+}
+
 #ifdef _WIN32 
 BSAPI bs_Result _bs_convertWin32Error(int code) {
     switch (code) {
@@ -187,6 +203,13 @@ BSAPI bs_Result _bs_convertWin32Error(int code) {
     }
 
     return BS_RESULT_GENERAL_ERROR;
+}
+
+BSAPI const char* _bs_serializeWin32Error(int code) {
+    switch (code) {
+    }
+
+    return "Unknown";
 }
 
 BSAPI bs_Result _bs_convertHResult(int code) {

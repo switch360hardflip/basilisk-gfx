@@ -64,7 +64,6 @@ static inline bsgfx_FunctionTable _preval_bsgfx_getFunctions() {
     functions.bsgfx_fetchMaterial = (PFN_bsgfx_fetchMaterial)GetProcAddress(module, "_preval_bsgfx_fetchMaterial");
     functions.bsgfx_queryMaterial = (PFN_bsgfx_queryMaterial)GetProcAddress(module, "_preval_bsgfx_queryMaterial");
     functions.bsgfx_loadMaterials = (PFN_bsgfx_loadMaterials)GetProcAddress(module, "_preval_bsgfx_loadMaterials");
-    functions.bsgfx_material = (PFN_bsgfx_material)GetProcAddress(module, "_preval_bsgfx_material");
     functions.bsgfx_highlightMaterial = (PFN_bsgfx_highlightMaterial)GetProcAddress(module, "_preval_bsgfx_highlightMaterial");
     functions.bsgfx_unhighlightMaterial = (PFN_bsgfx_unhighlightMaterial)GetProcAddress(module, "_preval_bsgfx_unhighlightMaterial");
     functions.bsgfx_tickMaterials = (PFN_bsgfx_tickMaterials)GetProcAddress(module, "_preval_bsgfx_tickMaterials");
@@ -112,7 +111,6 @@ static inline bsgfx_FunctionTable _preval_bsgfx_getFunctions() {
     functions.bsgfx_instanceDepthlessCircle = (PFN_bsgfx_instanceDepthlessCircle)GetProcAddress(module, "_preval_bsgfx_instanceDepthlessCircle");
     functions.bsgfx_instanceAtlas = (PFN_bsgfx_instanceAtlas)GetProcAddress(module, "_preval_bsgfx_instanceAtlas");
     functions.bsgfx_instanceAtlasFlipped = (PFN_bsgfx_instanceAtlasFlipped)GetProcAddress(module, "_preval_bsgfx_instanceAtlasFlipped");
-    functions.bsgfx_instanceText = (PFN_bsgfx_instanceText)GetProcAddress(module, "_preval_bsgfx_instanceText");
     functions.bsgfx_matrix = (PFN_bsgfx_matrix)GetProcAddress(module, "_preval_bsgfx_matrix");
     functions.bsgfx_renderFontSubtypes = (PFN_bsgfx_renderFontSubtypes)GetProcAddress(module, "_preval_bsgfx_renderFontSubtypes");
     functions.bsgfx_settingsEditor = (PFN_bsgfx_settingsEditor)GetProcAddress(module, "_preval_bsgfx_settingsEditor");

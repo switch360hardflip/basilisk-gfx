@@ -244,7 +244,7 @@ BSAPI bs_Result _bs_loadPackage(const char* path, int* out) {
     BS_VALIDATE(source_id < _bs_objectSources()->count, _return,)
 
 #define BS_VALIDATE_ID(id, _return) \
-    BS_VALIDATE(id < ((bs_ObjectSource*)bs_fetchUnit(bs_objectSources(), source_id))->ids_count, _return,)
+    BS_VALIDATE(id < ((bs_ObjectSource*)_bs_fetchUnit(_bs_objectSources(), source_id))->ids_count, _return,)
 
 BSAPI int _bs_configureSource(bs_ObjectType type, int count, const char** names) {
     bs_ObjectSource source = {
@@ -449,7 +449,7 @@ BSAPI bs_Object* _bs_object(bs_U32 source_id, bs_U32 id, size_t size, size_t fle
 
     bs_Object* result = source->ids[id].object;
 
-    if (!bs_shouldLoadId(source_id, id))
+    if (!_bs_shouldLoadId(source_id, id))
         return NULL;
 
     if (result && result->head) {
@@ -460,7 +460,7 @@ BSAPI bs_Object* _bs_object(bs_U32 source_id, bs_U32 id, size_t size, size_t fle
         return result;
     }
 
-    if (!bs_exists(source_id, id)) {
+    if (!_bs_exists(source_id, id)) {
         result = source->ids[id].object = _bs_allocateObject(size, flexible_array_size, flexible_count, flags);
         result->head->id = id;
         result->head->source_id = source_id;

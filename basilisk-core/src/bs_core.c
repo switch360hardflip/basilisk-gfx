@@ -338,14 +338,14 @@ BSAPI void _bs_unmapBuffer(bs_Buffer* buffer) {
 }
 
 BSAPI void _bs_stageNull(bs_Buffer* buffer) {
-    memset(bs_bufferMap(buffer), 0, buffer->num_bytes);
+    memset(_bs_bufferMap(buffer), 0, buffer->num_bytes);
 }
 
  /**
   Stage list
   */
 BSAPI void _val_bs_stageList(bs_Buffer* buffer, bs_List* list) {
-    BS_VALIDATE(bs_bufferIsMapped(buffer),,);
+    BS_VALIDATE(_bs_bufferIsMapped(buffer),,);
     BS_VALIDATE((list->count * list->unit_size) < buffer->num_bytes,,);
 
     _bs_stageList(buffer, list);
@@ -353,7 +353,7 @@ BSAPI void _val_bs_stageList(bs_Buffer* buffer, bs_List* list) {
 
 BSAPI void _bs_stageList(bs_Buffer* buffer, bs_List* list) {
     bs_U32 size = list->count * list->unit_size;
-    memcpy(bs_bufferMap(buffer), list->data, size);
+    memcpy(_bs_bufferMap(buffer), list->data, size);
 }
 
  /**
@@ -373,7 +373,7 @@ BSAPI void _bs_stageImage(bs_Buffer* buffer, bs_Format format, bs_ivec2 dim, con
             return;
     }
 
-    memcpy(bs_bufferMap(buffer), data, size);
+    memcpy(_bs_bufferMap(buffer), data, size);
 }
 
 BSAPI void _bs_destroyBuffer(bs_Buffer* buffer) {
@@ -648,7 +648,7 @@ BSAPI bs_Range _bs_pushCube(bs_Batch* batch, bs_RGBA color) {
     return _bs_batchRange(batch, index_offset);
 }
 
-BSAPI void _bs_batchCone(bs_Batch* batch, bs_U32* offset, bs_RGBA color, int segments, float height, float radius) {
+BSAPI void _bs_batchCone(bs_Batch* batch, bs_U32* offset, int segments, float height, float radius, bs_RGBA color) {
     BS_VERTEX_DECLARATION(
         declaration, batch, offset,
         bs_vec3, bs_Position,
@@ -822,6 +822,20 @@ BSAPI void _bs_batchSphere(bs_Batch* batch, bs_U32* offset, bs_vec3 position, fl
     }
 }
 
+BSAPI void _bs_batchPrimitive(
+    bs_Batch* batch, bs_U32* offset, bs_Primitive* primitive
+) {
+    _bs_warn(BS_CONSTANT_STRING("_bs_batchPrimitive has not been implemented\n"));
+}
+
+BSAPI void _bs_batchMesh(bs_Batch* batch, bs_U32* offset, bs_Mesh* mesh) {
+    _bs_warn(BS_CONSTANT_STRING("_bs_batchMesh has not been implemented\n"));
+}
+
+BSAPI void _bs_batchModel(bs_Batch* batch, bs_U32* offset, bs_Model* model) {
+    _bs_warn(BS_CONSTANT_STRING("_bs_batchModel has not been implemented\n"));
+}
+
 
 
   /*==============================================================================
@@ -833,22 +847,6 @@ static inline void _bs_quadTextureCoords(bs_Quad* q, bs_vec2 offset, bs_vec2 coo
     q->cb = BS_V2(coords.x, offset.y);
     q->cc = BS_V2(offset.x, coords.y);
     q->cd = BS_V2(coords.x, coords.y);
-}
-
-BSAPI bs_Range _bs_pushRectangle(
-    bs_Batch* batch, bs_vec3 position, bs_vec2 dimensions, bs_vec2 texture_offset, bs_vec2 texture_coords, bs_RGBA color
-) {
-    int index_offset = batch->indices.count;
-    const int indices[] = { 1, 2, 0, 2, 1, 3 };
-
-    bs_Quad quad = _bs_quad(position, dimensions);
-    _bs_quadTextureCoords(&quad, texture_offset, texture_coords);
-
-    _bs_ensureBatchSize(batch, 6, 4);
-    _bs_pushIndices(batch, indices, sizeof(indices) / sizeof(*indices));
-    _bs_batchQuad(batch, &batch->vertices.count, quad, color);
-
-    return _bs_batchRange(batch, index_offset);
 }
 
 BSAPI bs_Range _bs_pushQuad(
@@ -888,15 +886,6 @@ BSAPI bs_Range _bs_pushLine(
     _bs_batchLine(batch, &batch->vertices.count, a, b, color);
 
     return _bs_batchRange(batch, index_offset);
-}
-
-BSAPI bs_Range _bs_pushRay(
-    bs_Batch* batch, bs_Ray* ray, bs_RGBA color
-) {
-    bs_vec3 end;
-    bs_v3MulS(&ray->direction, ray->length, &end);
-    bs_v3Add(&ray->origin, &end, &end);
-    return _bs_pushLine(batch, ray->origin, end, color);
 }
 
 BSAPI bs_Range _bs_pushPoint(
@@ -1025,7 +1014,7 @@ BSAPI bs_Range _bs_pushCone(
         _bs_pushIndices(batch, indices, sizeof(indices) / sizeof(*indices));
     }
 
-    _bs_batchCone(batch, &batch->vertices.count, color, segments, height, radius);
+    _bs_batchCone(batch, &batch->vertices.count, segments, height, radius, color);
 
     return _bs_batchRange(batch, index_offset);
 }
@@ -1354,7 +1343,7 @@ BSAPI void _bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offs
 
     vkCmdBindVertexBuffers(command_buffer, 0, 1, &batch->vertex_buffer->buffer->_[vertex_swap].vk_buffer, offsets);
 
-    if (!bs_batchIsIndexed(batch)) {
+    if (!_bs_batchIsIndexed(batch)) {
         vkCmdDraw(command_buffer, vertex_count, instance_count, vertex_offset, instance_offset);
     } else {
         bs_U32 index_swap = (batch->index_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_scope_.window->frame : 0;
@@ -1624,7 +1613,7 @@ BSAPI void _bs_beginRender(bs_Renderer* renderer) {
     for (int i = 0; i < renderer->num_outputs; i++) {
         bs_Output* output = renderer->outputs + i;
 
-        if (bs_isDepthFormat(output->image->format))
+        if (_bs_isDepthFormat(output->image->format))
             clear_values[i].depthStencil.depth = 1.0;
         else
             clear_values[i].color.float32[3] = 1.0;
@@ -1663,7 +1652,7 @@ BSAPI void _bs_beginRender(bs_Renderer* renderer) {
                 .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
             };
 
-            if (bs_isDepthFormat(renderer->outputs[i].image->format)) {
+            if (_bs_isDepthFormat(renderer->outputs[i].image->format)) {
                 depth_attachment = attachments + i; // should only be 1
                 color_attachments_count--;
             }
@@ -1844,7 +1833,7 @@ BSAPI void _bs_rayTrace(bs_RayTracer* ray_tracer, bs_Pipeline* pipeline, bs_U32 
     int order[4] = { BS_RAY_GEN_SHADER, BS_MISS_SHADER, -1, -1 };
 
     if (ray_tracer->groups_count > 2) {
-        bs_warnF(BS_CONSTANT_STRING("Not implemented: ray_tracer->groups_count > 2\n"));
+        _bs_warnF(BS_CONSTANT_STRING("Not implemented: ray_tracer->groups_count > 2\n"));
         return;
     }
 
@@ -1936,7 +1925,7 @@ static bs_Result _bs_buildBLAS(bs_RayTracer* tracer, bs_Buffer* staging_buffer) 
 
     _bs_scope_.queue->flags &= ~BS_QUEUE_SINGLE_TIMES_BIT;
 
-    bs_Batch* batch = *(bs_Batch**)bs_fetchUnit(&tracer->batches, 0);
+    bs_Batch* batch = *(bs_Batch**)_bs_fetchUnit(&tracer->batches, 0);
 
     VkAccelerationStructureGeometryKHR geometry = {
         .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR ,
@@ -2260,8 +2249,8 @@ static inline VkQueueFlags _bs_convertQueueFlags(bs_QueueBits flags) {
         (flags & BS_QUEUE_TRANSFER_BIT ? VK_QUEUE_TRANSFER_BIT : 0);
 }
 
-BSAPI bs_I32 _bs_queueFamily(bs_QueueBits bs_flags) {
-    VkQueueFlagBits flags = _bs_convertQueueFlags(bs_flags);
+BSAPI bs_I32 _bs_queueFamily(bs_QueueBits _bs_flags) {
+    VkQueueFlagBits flags = _bs_convertQueueFlags(_bs_flags);
 
     bs_U32 num_families = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(_bs_instance_->physical_device, &num_families, NULL);
@@ -2448,13 +2437,13 @@ BSAPI bs_Result _bs_stall(bs_Queue* queue) {
     result = vkWaitForFences(_bs_instance_->device, 1, &queue->_[swap].fence, VK_TRUE, BS_TIMEOUT);
     if (result != VK_SUCCESS) {
         BS_WARN_VULKAN_ERROR("vkWaitForFences", result,);
-        return bs_convertVulkanResult(result);
+        return _bs_convertVulkanResult(result);
     }
 
     result = vkResetFences(_bs_instance_->device, 1, &queue->_[swap].fence);
     if (result != VK_SUCCESS) {
         BS_WARN_VULKAN_ERROR("vkResetFences", result, );
-        return bs_convertVulkanResult(result);
+        return _bs_convertVulkanResult(result);
     }
 
     return true;
@@ -2471,7 +2460,7 @@ BSAPI bs_Result _bs_poll(bs_Queue* queue) {
 
         if (result != VK_SUCCESS) {
             BS_WARN_VULKAN_ERROR("vkResetFences", result, );
-            return bs_convertVulkanResult(result);
+            return _bs_convertVulkanResult(result);
         }
 
         return BS_RESULT_OK;
@@ -2549,7 +2538,7 @@ BSAPI bs_Result _bs_pushQueue(bs_Queue* queue) {
 }
 
 BSAPI void _bs_enqueue(bs_Queue* queue, bs_Callback function) {
-    if (bs_resetQueue(queue) == BS_RESULT_OK) {
+    if (_bs_resetQueue(queue) == BS_RESULT_OK) {
         if (function)
             function();
         _bs_pushQueue(queue);
@@ -2581,7 +2570,7 @@ BSAPI void _bs_leaveSingle(bs_Scope* backup) {
     _bs_scope_ = *backup;
 }
 
-BSAPI void _bs_runSingle(void (*f)()) {
+BSAPI void _bs_runSingle(bs_Callback f) {
     bs_Scope backup = _bs_enterSingle();
     if (f) f();
     _bs_leaveSingle(&backup);
@@ -2615,12 +2604,12 @@ static void _bs_destroySwapchain() {
 }
 
 static void _bs_resizeSwapchain() {
-    // glfwGetFramebufferSize(bs_instance->glfw, &bs_swapchain->image.image->dim.x, &bs_swapchain->image.image->dim.y);
+    // glfwGetFramebufferSize(_bs_instance->glfw, &_bs_swapchain->image.image->dim.x, &_bs_swapchain->image.image->dim.y);
     //
-    // while (bs_swapchain->image.image->dim.x == 0 || _bs_swapchain->image.image->dim.y == 0) {
-    //     if (glfwWindowShouldClose(bs_instance->glfw)) return;
+    // while (_bs_swapchain->image.image->dim.x == 0 || _bs_swapchain->image.image->dim.y == 0) {
+    //     if (glfwWindowShouldClose(_bs_instance->glfw)) return;
     //
-    //     glfwGetFramebufferSize(bs_instance->glfw, &bs_swapchain->image.image->dim.x, &bs_swapchain->image.image->dim.y);
+    //     glfwGetFramebufferSize(_bs_instance->glfw, &_bs_swapchain->image.image->dim.x, &_bs_swapchain->image.image->dim.y);
     //     glfwWaitEvents();
     // }
 
@@ -2696,7 +2685,7 @@ void bsi_resizeObjects() {
     _bs_pushDescriptors();
     _bs_resizeRenderers();
 
-    if (bs_instance->resize) _bs_instance->resize();
+    if (_bs_instance->resize) _bs_instance->resize();
 }
 */
 
