@@ -994,6 +994,9 @@ BSAPI bs_vec4 _bs_flipUV(bs_vec4 uv) {
 BSAPI bs_vec2 _val_bs_atlasSize(bs_Atlas* atlas, int texture) {
     BS_VALIDATE(texture >= 0, (bs_vec2) { 0 },);
     BS_VALIDATE(texture < atlas->count, (bs_vec2) { 0 },);
+    BS_VALIDATE(atlas->buffer != NULL, (bs_vec2) { 0 }, );
+    BS_VALIDATE(_bs_bufferIsMapped(atlas->buffer), (bs_vec2) { 0 }, );
+    BS_VALIDATE(atlas->mapped != NULL, (bs_vec2) { 0 }, );
 
     return _bs_atlasSize(atlas, texture);
 }

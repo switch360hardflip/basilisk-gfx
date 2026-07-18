@@ -212,6 +212,9 @@ typedef enum bsgfx_WidgetAdvanceType bsgfx_WidgetAdvanceType;
     X(BSGFX_FONT_ARIAL_32)                                           \
     X(BSGFX_FONT_ARIAL_48)
 
+#define BSGFX_WINDOWS                                                \
+    bsgfx_windows()
+
 #define BSGFX_IMAGES                                                 \
     bsgfx_images()
 
@@ -1361,6 +1364,18 @@ enum bsgfx_WidgetAdvanceType {
 };
 
  /**
+  @return void
+  */
+BSGFXAPI void
+bsgfx_enableValidation();
+
+ /**
+  @return void
+  */
+BSGFXAPI void
+bsgfx_disableValidation();
+
+ /**
   @return bsgfx_Scene*
   */
 BSGFXAPI bsgfx_Scene*
@@ -1373,6 +1388,12 @@ bsgfx_currentScene();
 BSGFXAPI void
 bsgfx_loadScene(
     const char* name);
+
+ /**
+  @return int
+  */
+BSGFXAPI int
+bsgfx_windows();
 
  /**
   @return int
@@ -2157,22 +2178,6 @@ bsgfx_ini(
     char* argv[]);
 
  /**
-  @param result
-  @return void
-  */
-BSGFXAPI void
-bsgfx_checkGFSDK(
-    bs_U32 result);
-
- /**
-  @param result
-  @return void
-  */
-BSGFXAPI void
-bsgfx_logGFSDK(
-    bs_U32 result);
-
- /**
   @return bsgfx_Application*
   */
 BSGFXAPI bsgfx_Application*
@@ -2319,24 +2324,6 @@ BSGFXAPI int
 bsgfx_flexibleCount(
     bsgfx_TypeId type_id,
     int id);
-
- /**
-  @param id
-  @param data
-  @return void*
-  */
-BSGFXAPI void*
-bsmod_add(
-    bsgfx_TypeId id,
-    void* data);
-
- /**
-  @param plural
-  @return bsgfx_TypeId
-  */
-BSGFXAPI bsgfx_TypeId
-bsmod_queryType(
-    const char* plural);
 
  /**
   @param package_id

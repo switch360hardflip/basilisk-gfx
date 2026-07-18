@@ -10,6 +10,8 @@
 		<trampoline>
 			<include>basilisk-core.h</include>
 			<include>bs_internal.h</include>
+			<include>bs_prevalidation.gen.h</include>
+			<include>bs_validation.gen.h</include>
 			<include>cglm/vec2.h</include>
 			<include>cglm/vec3.h</include>
 			<include>cglm/vec4.h</include>
@@ -767,16 +769,17 @@
 			<line><name>BS_CURSOR_TYPE_COUNT</name><value>2</value></line>
 		</enum>
 		<enum name="bs_ObjectType">
-			<line><name>BS_OBJECT_IMAGE</name><value>0</value></line>
-			<line><name>BS_OBJECT_SAMPLER</name><value>1</value></line>
-			<line><name>BS_OBJECT_BUFFER</name><value>2</value></line>
-			<line><name>BS_OBJECT_QUEUE</name><value>3</value></line>
-			<line><name>BS_OBJECT_BATCH</name><value>4</value></line>
-			<line><name>BS_OBJECT_RENDERER</name><value>5</value></line>
-			<line><name>BS_OBJECT_RAY_TRACER</name><value>6</value></line>
-			<line><name>BS_OBJECT_FONT</name><value>7</value></line>
-			<line><name>BS_OBJECT_ATLAS</name><value>8</value></line>
-			<line><name>BS_OBJECT_TYPE_COUNT</name><value>9</value></line>
+			<line><name>BS_OBJECT_WINDOW</name></line>
+			<line><name>BS_OBJECT_IMAGE</name></line>
+			<line><name>BS_OBJECT_SAMPLER</name></line>
+			<line><name>BS_OBJECT_BUFFER</name></line>
+			<line><name>BS_OBJECT_QUEUE</name></line>
+			<line><name>BS_OBJECT_BATCH</name></line>
+			<line><name>BS_OBJECT_RENDERER</name></line>
+			<line><name>BS_OBJECT_RAY_TRACER</name></line>
+			<line><name>BS_OBJECT_FONT</name></line>
+			<line><name>BS_OBJECT_ATLAS</name></line>
+			<line><name>BS_OBJECT_TYPE_COUNT</name></line>
 		</enum>
 		<enum name="bs_SurfaceType">
 			<line><name>BS_SURFACE_TYPE_UNDEFINED</name><value>0</value></line>
@@ -1117,6 +1120,7 @@
             <name>#define BS_OBJECT(type, source_id, id, swaps_count, flags)</name>
             <line>    bs_object(source_id, id, sizeof(type), BS_SWAP_SIZE(type), swaps_count, flags)</line>
         </macro>
+        <macro><name>#define BS_WINDOW(source_id, id, flags)</name><line>BS_OBJECT(bs_Window, source_id, id, BS_SWAPS_COUNT(flags), flags)</line></macro>
         <macro><name>#define BS_IMAGE(source_id, id, flags)</name><line>BS_OBJECT(bs_Image, source_id, id, BS_SWAPS_COUNT(flags), flags)</line></macro>
         <macro><name>#define BS_SAMPLER(source_id, id, flags)</name><line>BS_OBJECT(bs_Sampler, source_id, id, BS_SWAPS_COUNT(flags), flags)</line></macro>
         <macro><name>#define BS_RENDERER(source_id, id, flags)</name><line>BS_OBJECT(bs_Renderer, source_id, id, BS_SWAPS_COUNT(flags), flags)</line></macro>
@@ -2395,6 +2399,8 @@
 	</externs>
 	
     <functions>
+		<validationTemplate/>
+		
         <vectorTemplate>
             <n>2</n>
             <components>

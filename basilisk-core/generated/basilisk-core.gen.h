@@ -705,6 +705,9 @@ typedef enum bs_BindType bs_BindType;
 #define BS_OBJECT(type, source_id, id, swaps_count, flags)           \
         bs_object(source_id, id, sizeof(type), BS_SWAP_SIZE(type), swaps_count, flags)
 
+#define BS_WINDOW(source_id, id, flags)                              \
+    BS_OBJECT(bs_Window, source_id, id, BS_SWAPS_COUNT(flags), flags)
+
 #define BS_IMAGE(source_id, id, flags)                               \
     BS_OBJECT(bs_Image, source_id, id, BS_SWAPS_COUNT(flags), flags)
 
@@ -3166,16 +3169,17 @@ enum bs_CursorIcon {
 };
 
 enum bs_ObjectType {
-    BS_OBJECT_IMAGE = 0,
-    BS_OBJECT_SAMPLER = 1,
-    BS_OBJECT_BUFFER = 2,
-    BS_OBJECT_QUEUE = 3,
-    BS_OBJECT_BATCH = 4,
-    BS_OBJECT_RENDERER = 5,
-    BS_OBJECT_RAY_TRACER = 6,
-    BS_OBJECT_FONT = 7,
-    BS_OBJECT_ATLAS = 8,
-    BS_OBJECT_TYPE_COUNT = 9,
+    BS_OBJECT_WINDOW,
+    BS_OBJECT_IMAGE,
+    BS_OBJECT_SAMPLER,
+    BS_OBJECT_BUFFER,
+    BS_OBJECT_QUEUE,
+    BS_OBJECT_BATCH,
+    BS_OBJECT_RENDERER,
+    BS_OBJECT_RAY_TRACER,
+    BS_OBJECT_FONT,
+    BS_OBJECT_ATLAS,
+    BS_OBJECT_TYPE_COUNT,
 };
 
 enum bs_SurfaceType {
@@ -3238,6 +3242,18 @@ enum bs_BindType {
     BS_BIND_TYPE_MUTABLE_VALVE = 14,
     BS_BIND_TYPES_COUNT,
 };
+
+ /**
+  @return void
+  */
+BSAPI void
+bs_enableValidation();
+
+ /**
+  @return void
+  */
+BSAPI void
+bs_disableValidation();
 
  /**
   @param a

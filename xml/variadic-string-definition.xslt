@@ -16,28 +16,12 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 			<xsl:copy-of select="return | param"/>
 			<xsl:choose>
 				<xsl:when test="@string">
-					<param>
-						<type>char*</type>
-						<name>
-							<xsl:value-of select="@string"/>
-						</name>
-					</param>
-					<param>
-						<type>int</type>
-						<name>
-							<xsl:value-of select="@string"/>_length
-						</name>
-					</param>
+					<param><type>char*</type><name><xsl:value-of select="@string"/></name></param>
+					<param><type>int</type><name><xsl:value-of select="@string"/>_length</name></param>
 				</xsl:when>
 				<xsl:otherwise>
-					<param>
-						<type>char*</type>
-						<name>value</name>
-					</param>
-					<param>
-						<type>int</type>
-						<name>value_length</name>
-					</param>
+					<param><type>char*</type><name>value</name></param>
+					<param><type>int</type><name>value_length</name></param>
 				</xsl:otherwise>
 			</xsl:choose>
 		</function>

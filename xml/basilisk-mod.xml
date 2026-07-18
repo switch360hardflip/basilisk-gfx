@@ -10,6 +10,8 @@
 		<trampoline>
 			<include>basilisk-mod.h</include>
 			<include>bsmod_internal.gen.h</include>
+			<include>bsmod_prevalidation.gen.h</include>
+			<include>bsmod_validation.gen.h</include>
 			<include>math.h</include>
 			<include>stdio.h</include>
 		</trampoline>
@@ -195,6 +197,8 @@
 	</externs>
 
 	<functions>
+		<validationTemplate/>
+
 		<function name="bsmod_copyHoveringDataToBuffer">
 			<return>void</return>
 		</function>
@@ -215,9 +219,6 @@
 			<return>void</return>
 		</function>
 		<function name="bsmod_onGfxRender">
-			<return>void</return>
-		</function>
-		<function name="bsmod_onPostRender">
 			<return>void</return>
 		</function>
 		<function name="bsmod_onTick">
@@ -366,14 +367,6 @@
 		<function name="bsmod_updateBindings">
 			<return>void</return>
 		</function>
-
-		<function name="bsmod_iniLisk">
-			<return>void</return>
-		</function>
-		<function name="bsmod_tickLisk">
-			<return>void</return>
-		</function>
-
 		<function name="bsmod_onQueue">
 			<return>bs_Queue*</return>
 		</function>

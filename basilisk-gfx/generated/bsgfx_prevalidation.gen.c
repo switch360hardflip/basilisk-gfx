@@ -34,8 +34,19 @@
 
 static bsgfx_FunctionTable next = { 0 };
 
-void _preval_bsgfx_setFunctions(const struct _preval_bsgfx_FunctionTable* table) {
-    memcpy(&next, table, sizeof(next));
+const bsgfx_FunctionTable* _preval_bsgfx_setFunctions(const bsgfx_FunctionTable* a, bsgfx_FunctionTable* b) {
+    memcpy(&next, a, sizeof(next));
+
+	if (!b) return &next;
+
+    for (size_t offset = 0; offset < sizeof(bsgfx_FunctionTable); offset += sizeof(void*)) {
+        bs_Callback* f_a = ((unsigned char*)&next) + offset;
+        bs_Callback* f_b = ((unsigned char*)b) + offset;
+        if (!*f_a) 
+            *f_a = *f_b;
+    }
+
+    return &next;
 }
 
 BSGFXAPI bsgfx_Scene* _preval_bsgfx_currentScene() {
@@ -45,6 +56,10 @@ BSGFXAPI bsgfx_Scene* _preval_bsgfx_currentScene() {
 BSGFXAPI void _preval_bsgfx_loadScene(const char* name) {
     BSGFX_VALIDATE(name != NULL, ,);
     next.bsgfx_loadScene(name);
+}
+
+BSGFXAPI int _preval_bsgfx_windows() {
+    return next.bsgfx_windows();
 }
 
 BSGFXAPI int _preval_bsgfx_images() {
@@ -124,6 +139,16 @@ BSGFXAPI bsgfx_Material* _preval_bsgfx_queryMaterial(const char* name) {
 
 BSGFXAPI void _preval_bsgfx_loadMaterials() {
     next.bsgfx_loadMaterials();
+}
+
+BSGFXAPI bsgfx_Material* _preval_bsgfx_material(char* name, int name_length) {
+    BSGFX_VALIDATE(name != NULL, NULL,);
+    return next.bsgfx_material(name, name_length);
+}
+
+BSGFXAPI bsgfx_Material* _preval_bsgfx_materialV(char* format, va_list args) {
+    BSGFX_VALIDATE(format != NULL, NULL,);
+    return next.bsgfx_materialV(format, args);
 }
 
 BSGFXAPI void _preval_bsgfx_highlightMaterial(int material_id, bool auto_unhighlight) {
@@ -339,6 +364,22 @@ BSGFXAPI int _preval_bsgfx_instanceAtlasFlipped(int subtype, bs_mat4x3 transform
     return next.bsgfx_instanceAtlasFlipped(subtype, transform, texture, flags, id, material);
 }
 
+BSGFXAPI void _preval_bsgfx_instanceText(int subtype, bs_Font* font, bsgfx_Text* params, bs_vec2* out_text_size, char* value, int value_length) {
+    BSGFX_VALIDATE(font != NULL, ,);
+    BSGFX_VALIDATE(params != NULL, ,);
+    BSGFX_VALIDATE(out_text_size != NULL, ,);
+    BSGFX_VALIDATE(value != NULL, ,);
+    next.bsgfx_instanceText(subtype, font, params, out_text_size, value, value_length);
+}
+
+BSGFXAPI void _preval_bsgfx_instanceTextV(int subtype, bs_Font* font, bsgfx_Text* params, bs_vec2* out_text_size, char* format, va_list args) {
+    BSGFX_VALIDATE(font != NULL, ,);
+    BSGFX_VALIDATE(params != NULL, ,);
+    BSGFX_VALIDATE(out_text_size != NULL, ,);
+    BSGFX_VALIDATE(format != NULL, ,);
+    next.bsgfx_instanceTextV(subtype, font, params, out_text_size, format, args);
+}
+
 BSGFXAPI bs_mat4x3 _preval_bsgfx_matrix(bs_vec3 position, bs_vec3 scale) {
     return next.bsgfx_matrix(position, scale);
 }
@@ -367,14 +408,6 @@ BSGFXAPI void _preval_bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, i
     BSGFX_VALIDATE(name != NULL, ,);
     BSGFX_VALIDATE(argv != NULL, ,);
     next.bsgfx_ini(name, width, height, argc, argv);
-}
-
-BSGFXAPI void _preval_bsgfx_checkGFSDK(bs_U32 result) {
-    next.bsgfx_checkGFSDK(result);
-}
-
-BSGFXAPI void _preval_bsgfx_logGFSDK(bs_U32 result) {
-    next.bsgfx_logGFSDK(result);
 }
 
 BSGFXAPI bsgfx_Application* _preval_bsgfx_app() {
@@ -441,16 +474,6 @@ BSGFXAPI void* _preval_bsgfx_getRaw(bsgfx_TypeId type_id, int id) {
 
 BSGFXAPI int _preval_bsgfx_flexibleCount(bsgfx_TypeId type_id, int id) {
     return next.bsgfx_flexibleCount(type_id, id);
-}
-
-BSGFXAPI void* _preval_bsmod_add(bsgfx_TypeId id, void* data) {
-    BSGFX_VALIDATE(data != NULL, NULL,);
-    return next.bsmod_add(id, data);
-}
-
-BSGFXAPI bsgfx_TypeId _preval_bsmod_queryType(const char* plural) {
-    BSGFX_VALIDATE(plural != NULL, 0,);
-    return next.bsmod_queryType(plural);
 }
 
 BSGFXAPI void _preval_bsgfx_loadLights(int package_id) {
@@ -636,11 +659,12 @@ BSGFXAPI void _preval_bsgfx_renderColorPickers() {
     next.bsgfx_renderColorPickers();
 }
 
-bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
-    bsgfx_FunctionTable functions;
+bsgfx_FunctionTable* _preval_bsgfx_getFunctionTable() {
+    bsgfx_FunctionTable functions = { 0 };
 
     functions.bsgfx_currentScene = _preval_bsgfx_currentScene;
     functions.bsgfx_loadScene = _preval_bsgfx_loadScene;
+    functions.bsgfx_windows = _preval_bsgfx_windows;
     functions.bsgfx_images = _preval_bsgfx_images;
     functions.bsgfx_samplers = _preval_bsgfx_samplers;
     functions.bsgfx_buffers = _preval_bsgfx_buffers;
@@ -659,6 +683,8 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_fetchMaterial = _preval_bsgfx_fetchMaterial;
     functions.bsgfx_queryMaterial = _preval_bsgfx_queryMaterial;
     functions.bsgfx_loadMaterials = _preval_bsgfx_loadMaterials;
+    functions.bsgfx_material = _preval_bsgfx_material;
+    functions.bsgfx_materialV = _preval_bsgfx_materialV;
     functions.bsgfx_highlightMaterial = _preval_bsgfx_highlightMaterial;
     functions.bsgfx_unhighlightMaterial = _preval_bsgfx_unhighlightMaterial;
     functions.bsgfx_tickMaterials = _preval_bsgfx_tickMaterials;
@@ -705,6 +731,8 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_instanceDepthlessCircle = _preval_bsgfx_instanceDepthlessCircle;
     functions.bsgfx_instanceAtlas = _preval_bsgfx_instanceAtlas;
     functions.bsgfx_instanceAtlasFlipped = _preval_bsgfx_instanceAtlasFlipped;
+    functions.bsgfx_instanceText = _preval_bsgfx_instanceText;
+    functions.bsgfx_instanceTextV = _preval_bsgfx_instanceTextV;
     functions.bsgfx_matrix = _preval_bsgfx_matrix;
     functions.bsgfx_renderFineShadowVolumes = _preval_bsgfx_renderFineShadowVolumes;
     functions.bsgfx_renderShadowVolumes = _preval_bsgfx_renderShadowVolumes;
@@ -712,8 +740,6 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_prefabModel = _preval_bsgfx_prefabModel;
     functions.bsgfx_package = _preval_bsgfx_package;
     functions.bsgfx_ini = _preval_bsgfx_ini;
-    functions.bsgfx_checkGFSDK = _preval_bsgfx_checkGFSDK;
-    functions.bsgfx_logGFSDK = _preval_bsgfx_logGFSDK;
     functions.bsgfx_app = _preval_bsgfx_app;
     functions.bsgfx_callbacks = _preval_bsgfx_callbacks;
     functions.bsgfx_settings = _preval_bsgfx_settings;
@@ -729,8 +755,6 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_rawId = _preval_bsgfx_rawId;
     functions.bsgfx_getRaw = _preval_bsgfx_getRaw;
     functions.bsgfx_flexibleCount = _preval_bsgfx_flexibleCount;
-    functions.bsmod_add = _preval_bsmod_add;
-    functions.bsmod_queryType = _preval_bsmod_queryType;
     functions.bsgfx_loadLights = _preval_bsgfx_loadLights;
     functions.bsgfx_computePrefabShadows = _preval_bsgfx_computePrefabShadows;
     functions.bsgfx_renderPrefabShadowVolumes = _preval_bsgfx_renderPrefabShadowVolumes;
@@ -770,6 +794,6 @@ bsgfx_FunctionTable _preval_bsgfx_getFunctionTable() {
     functions.bsgfx_instanceWidgets = _preval_bsgfx_instanceWidgets;
     functions.bsgfx_renderColorPickers = _preval_bsgfx_renderColorPickers;
 
-    return functions;
+    return &functions;
 }
 

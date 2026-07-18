@@ -20,11 +20,11 @@
         <xsl:apply-templates select="registry/functions/function" mode="validation"/>
 
         <xsl:value-of select="registry/functionPrefix"/>
-        <xsl:text>FunctionTable _preval_</xsl:text>
+        <xsl:text>FunctionTable* _preval_</xsl:text>
         <xsl:value-of select="registry/functionPrefix"/>
         <xsl:text>getFunctionTable() {&#xA;    </xsl:text>
         <xsl:value-of select="registry/functionPrefix"/>
-        <xsl:text>FunctionTable functions;&#xA;&#xA;</xsl:text>
+        <xsl:text>FunctionTable functions = { 0 };&#xA;&#xA;</xsl:text>
         <xsl:for-each select="registry/functions/function">
             <xsl:if test="not(body)">
                 <xsl:text>    functions.</xsl:text>
@@ -34,7 +34,7 @@
                 <xsl:text>;&#xA;</xsl:text>
             </xsl:if>
         </xsl:for-each>
-        <xsl:text>&#xA;    return functions;&#xA;}&#xA;&#xA;</xsl:text>
+        <xsl:text>&#xA;    return &amp;functions;&#xA;}&#xA;&#xA;</xsl:text>
     </xsl:template>
 
     <xsl:template match="registry/includes/prevalidation/include">
@@ -108,7 +108,7 @@
                         <xsl:value-of select="/registry/functionPrefixCaps"/>
                         <xsl:text>VALIDATE(</xsl:text>
                         <xsl:value-of select="name"/>
-                        <xsl:text>->head.source_id != </xsl:text>
+                        <xsl:text>->head.source_id == </xsl:text>
                         <xsl:value-of select="$objectType"/>
                         <xsl:text>, </xsl:text>
                         <xsl:value-of select="$returnValue"/>
@@ -136,6 +136,7 @@
         </xsl:if>
     </xsl:template>
 
+	<!--
     <xsl:template match="function" mode="enableValidation">
         <xsl:if test="not(body)">
             <xsl:text>    </xsl:text>
@@ -157,5 +158,6 @@
             <xsl:text>;&#xA;</xsl:text>
         </xsl:if>
     </xsl:template>
+	-->
 
 </xsl:stylesheet>

@@ -28,15 +28,31 @@
 		<xsl:value-of select="registry/functionPrefix"/>
 		<xsl:text>FunctionTable next = { 0 };&#xA;&#xA;</xsl:text>
 
-		<xsl:text>void </xsl:text>
+		<xsl:text>const </xsl:text>
+		<xsl:value-of select="registry/functionPrefix"/>
+		<xsl:text>FunctionTable* </xsl:text>
 		<xsl:value-of select="$prefix"/>
 		<xsl:value-of select="registry/functionPrefix"/>
-		<xsl:text>setFunctions(const struct </xsl:text>
-		<xsl:value-of select="$prefix"/>
+		<xsl:text>setFunctions(const </xsl:text>
 		<xsl:value-of select="registry/functionPrefix"/>
-		<xsl:text>FunctionTable* table) {&#xA;    </xsl:text>
-		<xsl:text>memcpy(&amp;next, table, sizeof(next));&#xA;</xsl:text>
-		<xsl:text>}&#xA;&#xA;</xsl:text>
+		<xsl:text>FunctionTable* a, </xsl:text>
+		<xsl:value-of select="registry/functionPrefix"/>
+		<xsl:text>FunctionTable* b) {&#xA;    </xsl:text>
+		<xsl:text>memcpy(&amp;next, a, sizeof(next));
+
+	if (!b) return &amp;next;
+
+    for (size_t offset = 0; offset &lt; sizeof(</xsl:text><xsl:value-of select="registry/functionPrefix"/><xsl:text>FunctionTable); offset += sizeof(void*)) {
+        bs_Callback* f_a = ((unsigned char*)&amp;next) + offset;
+        bs_Callback* f_b = ((unsigned char*)b) + offset;
+        if (!*f_a) 
+            *f_a = *f_b;
+    }
+
+    return &amp;next;
+}
+
+</xsl:text>
 	</xsl:template>
 
 	<xsl:template name="addFunctionTableGetter">
@@ -44,10 +60,12 @@
 
 		<xsl:text>static inline </xsl:text>
 		<xsl:value-of select="registry/functionPrefix"/>
-		<xsl:text>FunctionTable </xsl:text>
+		<xsl:text>FunctionTable* </xsl:text>
 		<xsl:value-of select="$prefix"/>
 		<xsl:value-of select="registry/functionPrefix"/>
 		<xsl:text>getFunctions() {&#xA;    </xsl:text>
+		
+		<xsl:text>static </xsl:text>
 		<xsl:value-of select="registry/functionPrefix"/>
 		<xsl:text>FunctionTable functions;&#xA;&#xA;</xsl:text>
 
@@ -62,7 +80,7 @@
 			</xsl:if>
 		</xsl:for-each>
 
-		<xsl:text>&#xA;    return functions;&#xA;</xsl:text>
+		<xsl:text>&#xA;    return &amp;functions;&#xA;</xsl:text>
 
 		<xsl:text>}&#xA;&#xA;</xsl:text>
 	</xsl:template>
@@ -72,11 +90,13 @@
 
         <xsl:text>static inline </xsl:text>
         <xsl:value-of select="registry/functionPrefix"/>
-        <xsl:text>FunctionTable </xsl:text>
+        <xsl:text>FunctionTable* </xsl:text>
         <xsl:value-of select="$prefix"/>
         <xsl:value-of select="registry/functionPrefix"/>
         <xsl:text>getFunctions() {&#xA;    </xsl:text>
-        <xsl:value-of select="registry/functionPrefix"/>
+		
+		<xsl:text>static </xsl:text>
+		<xsl:value-of select="registry/functionPrefix"/>
         <xsl:text>FunctionTable functions;&#xA;&#xA;</xsl:text>
 
         <xsl:text>    HMODULE module = NULL;&#xA;</xsl:text>
@@ -85,7 +105,7 @@
         <xsl:text>),&#xA;        &amp;module);&#xA;&#xA;</xsl:text>
 
         <xsl:for-each select="registry/functions/function">
-			<xsl:if test="not(body) or @type = 'allowBody'">
+			<xsl:if test="not(body) and not(@variadic)">
                 <xsl:text>    functions.</xsl:text>
                 <xsl:value-of select="@name"/>
                 <xsl:text> = (PFN_</xsl:text>
@@ -97,7 +117,7 @@
             </xsl:if>
         </xsl:for-each>
 
-        <xsl:text>&#xA;    return functions;&#xA;</xsl:text>
+        <xsl:text>&#xA;    return &amp;functions;&#xA;</xsl:text>
 
         <xsl:text>}&#xA;&#xA;</xsl:text>
     </xsl:template>

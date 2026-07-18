@@ -10,6 +10,55 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 			<xsl:apply-templates select="@*|node()"/>
 		</xsl:copy>
     </xsl:template>
+	
+    <xsl:template match="validationTemplate">
+        <function name="{/registry/functionPrefix}enableValidation">
+			<return>void</return>
+			<body>
+                <xsl:text>    </xsl:text>
+                <xsl:value-of select="/registry/functionPrefix"/>
+                <xsl:text>FunctionTable* definitions = _</xsl:text>
+                <xsl:value-of select="/registry/functionPrefix"/>
+                <xsl:text>getFunctions();&#xA;</xsl:text>
+
+				<xsl:text>    </xsl:text>
+				<xsl:value-of select="/registry/functionPrefix"/>
+                <xsl:text>FunctionTable* preval_definitions = _preval_</xsl:text>
+			    <xsl:value-of select="/registry/functionPrefix"/>
+				<xsl:text>getFunctions();&#xA;</xsl:text>
+
+				<xsl:text>    </xsl:text>
+				<xsl:value-of select="/registry/functionPrefix"/>
+				<xsl:text>FunctionTable* val_definitions = _val_</xsl:text>
+				<xsl:value-of select="/registry/functionPrefix"/>
+				<xsl:text>getFunctions();&#xA;</xsl:text>
+
+				<xsl:text>    </xsl:text>
+				<xsl:text>val_definitions = _</xsl:text>
+				<xsl:value-of select="/registry/functionPrefix"/>
+				<xsl:text>setFunctions(val_definitions, definitions);&#xA;</xsl:text>
+
+				<xsl:text>    </xsl:text>
+				<xsl:text>preval_definitions = _preval_</xsl:text>
+				<xsl:value-of select="/registry/functionPrefix"/>
+				<xsl:text>setFunctions(preval_definitions, val_definitions);</xsl:text>
+			</body>
+        </function>
+		
+        <function name="{/registry/functionPrefix}disableValidation">
+	        <return>void</return>
+	        <body>
+                <xsl:text>    </xsl:text>
+                <xsl:value-of select="/registry/functionPrefix"/>
+                <xsl:text>FunctionTable* definitions = _</xsl:text>
+				<xsl:value-of select="/registry/functionPrefix"/>
+				<xsl:text>getFunctions();&#xA;</xsl:text>
+
+				<xsl:text>    _</xsl:text>
+				<xsl:value-of select="/registry/functionPrefix"/><xsl:text>setFunctions(definitions, NULL);</xsl:text>
+			</body>
+        </function>
+    </xsl:template>
 
     <xsl:template match="batchFunctionTemplate">
         <function name="bs_batch{@name}">

@@ -35,8 +35,8 @@
 
 #include <bs_internal.h>
 
-static inline bs_FunctionTable _preval_bs_getFunctions() {
-    bs_FunctionTable functions;
+static inline bs_FunctionTable* _preval_bs_getFunctions() {
+    static bs_FunctionTable functions;
 
     HMODULE module = NULL;
     GetModuleHandleExA(
@@ -73,6 +73,7 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bs_rectangleVsPoint = (PFN_bs_rectangleVsPoint)GetProcAddress(module, "_preval_bs_rectangleVsPoint");
     functions.bs_lineVsLine = (PFN_bs_lineVsLine)GetProcAddress(module, "_preval_bs_lineVsLine");
     functions.bs_populateVertexDeclaration = (PFN_bs_populateVertexDeclaration)GetProcAddress(module, "_preval_bs_populateVertexDeclaration");
+    functions.bs_beginComment = (PFN_bs_beginComment)GetProcAddress(module, "_preval_bs_beginComment");
     functions.bs_endComment = (PFN_bs_endComment)GetProcAddress(module, "_preval_bs_endComment");
     functions.bs_swapchainImage = (PFN_bs_swapchainImage)GetProcAddress(module, "_preval_bs_swapchainImage");
     functions.bs_clearStencil = (PFN_bs_clearStencil)GetProcAddress(module, "_preval_bs_clearStencil");
@@ -93,6 +94,7 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bs_destroyRayTracer = (PFN_bs_destroyRayTracer)GetProcAddress(module, "_preval_bs_destroyRayTracer");
     functions.bs_dispatchAsync = (PFN_bs_dispatchAsync)GetProcAddress(module, "_preval_bs_dispatchAsync");
     functions.bs_bufferSwaps = (PFN_bs_bufferSwaps)GetProcAddress(module, "_preval_bs_bufferSwaps");
+    functions.bs_nameBuffer = (PFN_bs_nameBuffer)GetProcAddress(module, "_preval_bs_nameBuffer");
     functions.bs_buffer = (PFN_bs_buffer)GetProcAddress(module, "_preval_bs_buffer");
     functions.bs_bufferIsMapped = (PFN_bs_bufferIsMapped)GetProcAddress(module, "_preval_bs_bufferIsMapped");
     functions.bs_bufferMap = (PFN_bs_bufferMap)GetProcAddress(module, "_preval_bs_bufferMap");
@@ -105,6 +107,7 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bs_copyAsync = (PFN_bs_copyAsync)GetProcAddress(module, "_preval_bs_copyAsync");
     functions.bs_setBufferAsync = (PFN_bs_setBufferAsync)GetProcAddress(module, "_preval_bs_setBufferAsync");
     functions.bs_batch = (PFN_bs_batch)GetProcAddress(module, "_preval_bs_batch");
+    functions.bs_queryAttribute = (PFN_bs_queryAttribute)GetProcAddress(module, "_preval_bs_queryAttribute");
     functions.bs_batchIsPushed = (PFN_bs_batchIsPushed)GetProcAddress(module, "_preval_bs_batchIsPushed");
     functions.bs_batchIsIndexed = (PFN_bs_batchIsIndexed)GetProcAddress(module, "_preval_bs_batchIsIndexed");
     functions.bs_minimizeBatch = (PFN_bs_minimizeBatch)GetProcAddress(module, "_preval_bs_minimizeBatch");
@@ -187,9 +190,11 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bs_image = (PFN_bs_image)GetProcAddress(module, "_preval_bs_image");
     functions.bs_imageSwapsCount = (PFN_bs_imageSwapsCount)GetProcAddress(module, "_preval_bs_imageSwapsCount");
     functions.bs_transition = (PFN_bs_transition)GetProcAddress(module, "_preval_bs_transition");
+    functions.bs_inspectPng = (PFN_bs_inspectPng)GetProcAddress(module, "_preval_bs_inspectPng");
     functions.bs_loadPngData = (PFN_bs_loadPngData)GetProcAddress(module, "_preval_bs_loadPngData");
     functions.bs_loadPng = (PFN_bs_loadPng)GetProcAddress(module, "_preval_bs_loadPng");
     functions.bs_bitmapImage = (PFN_bs_bitmapImage)GetProcAddress(module, "_preval_bs_bitmapImage");
+    functions.bs_savePng = (PFN_bs_savePng)GetProcAddress(module, "_preval_bs_savePng");
     functions.bs_encodePng = (PFN_bs_encodePng)GetProcAddress(module, "_preval_bs_encodePng");
     functions.bs_destroyImage = (PFN_bs_destroyImage)GetProcAddress(module, "_preval_bs_destroyImage");
     functions.bs_resizeImage = (PFN_bs_resizeImage)GetProcAddress(module, "_preval_bs_resizeImage");
@@ -198,12 +203,14 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bs_copyImageToBufferAsync = (PFN_bs_copyImageToBufferAsync)GetProcAddress(module, "_preval_bs_copyImageToBufferAsync");
     functions.bs_copyBufferToImage = (PFN_bs_copyBufferToImage)GetProcAddress(module, "_preval_bs_copyBufferToImage");
     functions.bs_blit = (PFN_bs_blit)GetProcAddress(module, "_preval_bs_blit");
+    functions.bs_loadImage = (PFN_bs_loadImage)GetProcAddress(module, "_preval_bs_loadImage");
     functions.bs_isStencilFormat = (PFN_bs_isStencilFormat)GetProcAddress(module, "_preval_bs_isStencilFormat");
     functions.bs_isDepthFormat = (PFN_bs_isDepthFormat)GetProcAddress(module, "_preval_bs_isDepthFormat");
     functions.bs_hasAlpha = (PFN_bs_hasAlpha)GetProcAddress(module, "_preval_bs_hasAlpha");
     functions.bs_nameImage = (PFN_bs_nameImage)GetProcAddress(module, "_preval_bs_nameImage");
     functions.bs_destroySampler = (PFN_bs_destroySampler)GetProcAddress(module, "_preval_bs_destroySampler");
     functions.bs_sampler = (PFN_bs_sampler)GetProcAddress(module, "_preval_bs_sampler");
+    functions.bs_loadAtlas = (PFN_bs_loadAtlas)GetProcAddress(module, "_preval_bs_loadAtlas");
     functions.bs_atlasCoordinates = (PFN_bs_atlasCoordinates)GetProcAddress(module, "_preval_bs_atlasCoordinates");
     functions.bs_mirrorUV = (PFN_bs_mirrorUV)GetProcAddress(module, "_preval_bs_mirrorUV");
     functions.bs_flipUV = (PFN_bs_flipUV)GetProcAddress(module, "_preval_bs_flipUV");
@@ -221,6 +228,7 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bsi_fetchDevice = (PFN_bsi_fetchDevice)GetProcAddress(module, "_preval_bsi_fetchDevice");
     functions.bs_resetQueue = (PFN_bs_resetQueue)GetProcAddress(module, "_preval_bs_resetQueue");
     functions.bs_pushQueue = (PFN_bs_pushQueue)GetProcAddress(module, "_preval_bs_pushQueue");
+    functions.bsi_nameHandle = (PFN_bsi_nameHandle)GetProcAddress(module, "_preval_bsi_nameHandle");
     functions.bs_beginEnumeration = (PFN_bs_beginEnumeration)GetProcAddress(module, "_preval_bs_beginEnumeration");
     functions.bs_enumerateJson = (PFN_bs_enumerateJson)GetProcAddress(module, "_preval_bs_enumerateJson");
     functions.bs_jsonRoot = (PFN_bs_jsonRoot)GetProcAddress(module, "_preval_bs_jsonRoot");
@@ -230,8 +238,12 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bs_emptyJson = (PFN_bs_emptyJson)GetProcAddress(module, "_preval_bs_emptyJson");
     functions.bs_emptyJsonArray = (PFN_bs_emptyJsonArray)GetProcAddress(module, "_preval_bs_emptyJsonArray");
     functions.bs_json = (PFN_bs_json)GetProcAddress(module, "_preval_bs_json");
+    functions.bs_loadJson = (PFN_bs_loadJson)GetProcAddress(module, "_preval_bs_loadJson");
     functions.bs_destroyJson = (PFN_bs_destroyJson)GetProcAddress(module, "_preval_bs_destroyJson");
     functions.bs_parseJsonValue = (PFN_bs_parseJsonValue)GetProcAddress(module, "_preval_bs_parseJsonValue");
+    functions.bs_fetchJson = (PFN_bs_fetchJson)GetProcAddress(module, "_preval_bs_fetchJson");
+    functions.bs_deleteJson = (PFN_bs_deleteJson)GetProcAddress(module, "_preval_bs_deleteJson");
+    functions.bs_ensureJson = (PFN_bs_ensureJson)GetProcAddress(module, "_preval_bs_ensureJson");
     functions.bs_jsonValueFromObject = (PFN_bs_jsonValueFromObject)GetProcAddress(module, "_preval_bs_jsonValueFromObject");
     functions.bs_jsonValueFromRoot = (PFN_bs_jsonValueFromRoot)GetProcAddress(module, "_preval_bs_jsonValueFromRoot");
     functions.bs_jsonValueFromBool = (PFN_bs_jsonValueFromBool)GetProcAddress(module, "_preval_bs_jsonValueFromBool");
@@ -246,7 +258,13 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bs_jsonVec3 = (PFN_bs_jsonVec3)GetProcAddress(module, "_preval_bs_jsonVec3");
     functions.bs_jsonVec4 = (PFN_bs_jsonVec4)GetProcAddress(module, "_preval_bs_jsonVec4");
     functions.bs_jsonRGBA = (PFN_bs_jsonRGBA)GetProcAddress(module, "_preval_bs_jsonRGBA");
+    functions.bs_logSection = (PFN_bs_logSection)GetProcAddress(module, "_preval_bs_logSection");
     functions.bs_logEndOfSection = (PFN_bs_logEndOfSection)GetProcAddress(module, "_preval_bs_logEndOfSection");
+    functions.bs_logWithTimestamp = (PFN_bs_logWithTimestamp)GetProcAddress(module, "_preval_bs_logWithTimestamp");
+    functions.bs_log = (PFN_bs_log)GetProcAddress(module, "_preval_bs_log");
+    functions.bs_info = (PFN_bs_info)GetProcAddress(module, "_preval_bs_info");
+    functions.bs_warn = (PFN_bs_warn)GetProcAddress(module, "_preval_bs_warn");
+    functions.bs_critical = (PFN_bs_critical)GetProcAddress(module, "_preval_bs_critical");
     functions.bs_instance = (PFN_bs_instance)GetProcAddress(module, "_preval_bs_instance");
     functions.bs_args = (PFN_bs_args)GetProcAddress(module, "_preval_bs_args");
     functions.bs_features = (PFN_bs_features)GetProcAddress(module, "_preval_bs_features");
@@ -254,11 +272,13 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bs_config = (PFN_bs_config)GetProcAddress(module, "_preval_bs_config");
     functions.bs_scope = (PFN_bs_scope)GetProcAddress(module, "_preval_bs_scope");
     functions.bs_io = (PFN_bs_io)GetProcAddress(module, "_preval_bs_io");
+    functions.bs_system = (PFN_bs_system)GetProcAddress(module, "_preval_bs_system");
     functions.bs_createThread = (PFN_bs_createThread)GetProcAddress(module, "_preval_bs_createThread");
     functions.bs_formatStringLength = (PFN_bs_formatStringLength)GetProcAddress(module, "_preval_bs_formatStringLength");
     functions.bs_checkStringPool = (PFN_bs_checkStringPool)GetProcAddress(module, "_preval_bs_checkStringPool");
     functions.bs_stringAlloc = (PFN_bs_stringAlloc)GetProcAddress(module, "_preval_bs_stringAlloc");
     functions.bs_emptyString = (PFN_bs_emptyString)GetProcAddress(module, "_preval_bs_emptyString");
+    functions.bs_string = (PFN_bs_string)GetProcAddress(module, "_preval_bs_string");
     functions.bs_toUpper = (PFN_bs_toUpper)GetProcAddress(module, "_preval_bs_toUpper");
     functions.bs_toLower = (PFN_bs_toLower)GetProcAddress(module, "_preval_bs_toLower");
     functions.bs_hash = (PFN_bs_hash)GetProcAddress(module, "_preval_bs_hash");
@@ -268,6 +288,7 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bs_lastChar = (PFN_bs_lastChar)GetProcAddress(module, "_preval_bs_lastChar");
     functions.bs_stringContainsChar = (PFN_bs_stringContainsChar)GetProcAddress(module, "_preval_bs_stringContainsChar");
     functions.bs_workingDirectory = (PFN_bs_workingDirectory)GetProcAddress(module, "_preval_bs_workingDirectory");
+    functions.bs_setWorkingDirectory = (PFN_bs_setWorkingDirectory)GetProcAddress(module, "_preval_bs_setWorkingDirectory");
     functions.bs_executablePath = (PFN_bs_executablePath)GetProcAddress(module, "_preval_bs_executablePath");
     functions.bs_appdataPath = (PFN_bs_appdataPath)GetProcAddress(module, "_preval_bs_appdataPath");
     functions.bs_shortenString = (PFN_bs_shortenString)GetProcAddress(module, "_preval_bs_shortenString");
@@ -284,7 +305,6 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bs_widen = (PFN_bs_widen)GetProcAddress(module, "_preval_bs_widen");
     functions.bs_unwiden = (PFN_bs_unwiden)GetProcAddress(module, "_preval_bs_unwiden");
     functions.bs_charStringV = (PFN_bs_charStringV)GetProcAddress(module, "_preval_bs_charStringV");
-    functions.bs_charStringF = (PFN_bs_charStringF)GetProcAddress(module, "_preval_bs_charStringF");
     functions.bs_free = (PFN_bs_free)GetProcAddress(module, "_preval_bs_free");
     functions.bs_malloc = (PFN_bs_malloc)GetProcAddress(module, "_preval_bs_malloc");
     functions.bs_calloc = (PFN_bs_calloc)GetProcAddress(module, "_preval_bs_calloc");
@@ -306,10 +326,18 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bs_guid = (PFN_bs_guid)GetProcAddress(module, "_preval_bs_guid");
     functions.bs_guidIsNull = (PFN_bs_guidIsNull)GetProcAddress(module, "_preval_bs_guidIsNull");
     functions.bs_numDigits = (PFN_bs_numDigits)GetProcAddress(module, "_preval_bs_numDigits");
+    functions.bs_directoryExists = (PFN_bs_directoryExists)GetProcAddress(module, "_preval_bs_directoryExists");
     functions.bs_fileExtension = (PFN_bs_fileExtension)GetProcAddress(module, "_preval_bs_fileExtension");
     functions.bs_fileExtensionIs = (PFN_bs_fileExtensionIs)GetProcAddress(module, "_preval_bs_fileExtensionIs");
     functions.bs_fileName = (PFN_bs_fileName)GetProcAddress(module, "_preval_bs_fileName");
+    functions.bs_appendFile = (PFN_bs_appendFile)GetProcAddress(module, "_preval_bs_appendFile");
+    functions.bs_saveFile = (PFN_bs_saveFile)GetProcAddress(module, "_preval_bs_saveFile");
+    functions.bs_convertWin32Path = (PFN_bs_convertWin32Path)GetProcAddress(module, "_preval_bs_convertWin32Path");
+    functions.bs_ensureDirectory = (PFN_bs_ensureDirectory)GetProcAddress(module, "_preval_bs_ensureDirectory");
+    functions.bs_fileModifiedDate = (PFN_bs_fileModifiedDate)GetProcAddress(module, "_preval_bs_fileModifiedDate");
+    functions.bs_setFileModifiedDate = (PFN_bs_setFileModifiedDate)GetProcAddress(module, "_preval_bs_setFileModifiedDate");
     functions.bs_fullPath = (PFN_bs_fullPath)GetProcAddress(module, "_preval_bs_fullPath");
+    functions.bs_fileExists = (PFN_bs_fileExists)GetProcAddress(module, "_preval_bs_fileExists");
     functions.bs_toLong = (PFN_bs_toLong)GetProcAddress(module, "_preval_bs_toLong");
     functions.bs_toULong = (PFN_bs_toULong)GetProcAddress(module, "_preval_bs_toULong");
     functions.bs_toDouble = (PFN_bs_toDouble)GetProcAddress(module, "_preval_bs_toDouble");
@@ -342,6 +370,7 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bs_destroyResource = (PFN_bs_destroyResource)GetProcAddress(module, "_preval_bs_destroyResource");
     functions.bs_queryResource = (PFN_bs_queryResource)GetProcAddress(module, "_preval_bs_queryResource");
     functions.bs_queryPackage = (PFN_bs_queryPackage)GetProcAddress(module, "_preval_bs_queryPackage");
+    functions.bs_loadResource = (PFN_bs_loadResource)GetProcAddress(module, "_preval_bs_loadResource");
     functions.bs_loadPackage = (PFN_bs_loadPackage)GetProcAddress(module, "_preval_bs_loadPackage");
     functions.bs_configureSource = (PFN_bs_configureSource)GetProcAddress(module, "_preval_bs_configureSource");
     functions.bs_exists = (PFN_bs_exists)GetProcAddress(module, "_preval_bs_exists");
@@ -407,12 +436,26 @@ static inline bs_FunctionTable _preval_bs_getFunctions() {
     functions.bs_advance = (PFN_bs_advance)GetProcAddress(module, "_preval_bs_advance");
     functions.bs_elapsedTime = (PFN_bs_elapsedTime)GetProcAddress(module, "_preval_bs_elapsedTime");
     functions.bs_resolution = (PFN_bs_resolution)GetProcAddress(module, "_preval_bs_resolution");
+    functions.bs_titleWindow = (PFN_bs_titleWindow)GetProcAddress(module, "_preval_bs_titleWindow");
     functions.bs_inFixedTick = (PFN_bs_inFixedTick)GetProcAddress(module, "_preval_bs_inFixedTick");
     functions.bs_setTargetFramerate = (PFN_bs_setTargetFramerate)GetProcAddress(module, "_preval_bs_setTargetFramerate");
     functions.bs_timer = (PFN_bs_timer)GetProcAddress(module, "_preval_bs_timer");
     functions.bs_checkTimer = (PFN_bs_checkTimer)GetProcAddress(module, "_preval_bs_checkTimer");
+    functions.bs_copyToClipboard = (PFN_bs_copyToClipboard)GetProcAddress(module, "_preval_bs_copyToClipboard");
+    functions.bs_appendString = (PFN_bs_appendString)GetProcAddress(module, "_preval_bs_appendString");
+    functions.bs_foreachFile = (PFN_bs_foreachFile)GetProcAddress(module, "_preval_bs_foreachFile");
+    functions.bs_foreachDirectory = (PFN_bs_foreachDirectory)GetProcAddress(module, "_preval_bs_foreachDirectory");
+    functions.bs_numFiles = (PFN_bs_numFiles)GetProcAddress(module, "_preval_bs_numFiles");
+    functions.bs_numDirectories = (PFN_bs_numDirectories)GetProcAddress(module, "_preval_bs_numDirectories");
+    functions.bs_loadFile = (PFN_bs_loadFile)GetProcAddress(module, "_preval_bs_loadFile");
+    functions.bs_loadFileChunk = (PFN_bs_loadFileChunk)GetProcAddress(module, "_preval_bs_loadFileChunk");
+    functions.bs_deleteFile = (PFN_bs_deleteFile)GetProcAddress(module, "_preval_bs_deleteFile");
+    functions.bs_deleteDirectoryContents = (PFN_bs_deleteDirectoryContents)GetProcAddress(module, "_preval_bs_deleteDirectoryContents");
+    functions.bs_deleteDirectory = (PFN_bs_deleteDirectory)GetProcAddress(module, "_preval_bs_deleteDirectory");
 
-    return functions;
+    return &functions;
 }
+
+const bs_FunctionTable* _preval_bs_setFunctions(const bs_FunctionTable* a, bs_FunctionTable* b);
 
 #endif

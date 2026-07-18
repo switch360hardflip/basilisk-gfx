@@ -34,8 +34,19 @@
 
 static bsmod_FunctionTable next = { 0 };
 
-void _preval_bsmod_setFunctions(const struct _preval_bsmod_FunctionTable* table) {
-    memcpy(&next, table, sizeof(next));
+const bsmod_FunctionTable* _preval_bsmod_setFunctions(const bsmod_FunctionTable* a, bsmod_FunctionTable* b) {
+    memcpy(&next, a, sizeof(next));
+
+	if (!b) return &next;
+
+    for (size_t offset = 0; offset < sizeof(bsmod_FunctionTable); offset += sizeof(void*)) {
+        bs_Callback* f_a = ((unsigned char*)&next) + offset;
+        bs_Callback* f_b = ((unsigned char*)b) + offset;
+        if (!*f_a) 
+            *f_a = *f_b;
+    }
+
+    return &next;
 }
 
 BSMODAPI void _preval_bsmod_copyHoveringDataToBuffer() {
@@ -64,10 +75,6 @@ BSMODAPI void _preval_bsmod_bindAtlases() {
 
 BSMODAPI void _preval_bsmod_onGfxRender() {
     next.bsmod_onGfxRender();
-}
-
-BSMODAPI void _preval_bsmod_onPostRender() {
-    next.bsmod_onPostRender();
 }
 
 BSMODAPI void _preval_bsmod_onTick() {
@@ -139,6 +146,22 @@ BSMODAPI bs_Result _preval_bsmod_packImageDirectory(char* directory_name, char* 
     return next.bsmod_packImageDirectory(directory_name, package_name, resource_name);
 }
 
+BSMODAPI bs_Result _preval_bsmod_packBMFont(char* package_name, char* bmfont_path, char* png_path, char* value, int value_length) {
+    BSMOD_VALIDATE(package_name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(bmfont_path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(png_path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_packBMFont(package_name, bmfont_path, png_path, value, value_length);
+}
+
+BSMODAPI bs_Result _preval_bsmod_packBMFontV(char* package_name, char* bmfont_path, char* png_path, char* format, va_list args) {
+    BSMOD_VALIDATE(package_name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(bmfont_path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(png_path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_packBMFontV(package_name, bmfont_path, png_path, format, args);
+}
+
 BSMODAPI void _preval_bsmod_scrollbar(const int* scroll, bsgfx_Scrollbar* out) {
     BSMOD_VALIDATE(scroll != NULL, ,);
     BSMOD_VALIDATE(out != NULL, ,);
@@ -175,6 +198,20 @@ BSMODAPI bs_Result _preval_bsmod_iniPackage(const char* package_name) {
     return next.bsmod_iniPackage(package_name);
 }
 
+BSMODAPI bs_Result _preval_bsmod_packResource(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, char* resource_name, int resource_name_length) {
+    BSMOD_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(package_name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(resource_name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_packResource(type, data, data_size, package_name, resource_name, resource_name_length);
+}
+
+BSMODAPI bs_Result _preval_bsmod_packResourceV(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, char* format, va_list args) {
+    BSMOD_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(package_name != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BSMOD_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_packResourceV(type, data, data_size, package_name, format, args);
+}
+
 BSMODAPI bs_Result _preval_bsmod_savePackage(const char* name) {
     BSMOD_VALIDATE(name != NULL, BS_RESULT_VALIDATION_ERROR,);
     return next.bsmod_savePackage(name);
@@ -201,14 +238,6 @@ BSMODAPI bs_Result _preval_bsmod_compileShader(char* path, char* name, char* pac
 
 BSMODAPI void _preval_bsmod_updateBindings() {
     next.bsmod_updateBindings();
-}
-
-BSMODAPI void _preval_bsmod_iniLisk() {
-    next.bsmod_iniLisk();
-}
-
-BSMODAPI void _preval_bsmod_tickLisk() {
-    next.bsmod_tickLisk();
 }
 
 BSMODAPI bs_Queue* _preval_bsmod_onQueue() {
@@ -258,6 +287,16 @@ BSMODAPI void _preval_bsmod_delete(bsgfx_TypeId type_id, int id) {
 
 BSMODAPI void _preval_bsmod_deleteSelected(bsgfx_TypeId type_id) {
     next.bsmod_deleteSelected(type_id);
+}
+
+BSMODAPI bs_Result _preval_bsmod_saveType(bsgfx_TypeId id, char* value, int value_length) {
+    BSMOD_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_saveType(id, value, value_length);
+}
+
+BSMODAPI bs_Result _preval_bsmod_saveTypeV(bsgfx_TypeId id, char* format, va_list args) {
+    BSMOD_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bsmod_saveTypeV(id, format, args);
 }
 
 BSMODAPI void* _preval_bsmod_add(bsgfx_TypeId id, void* data) {
@@ -452,8 +491,8 @@ BSMODAPI void _preval_bsmod_onDragTile(bsmod_DraggingParams params) {
     next.bsmod_onDragTile(params);
 }
 
-bsmod_FunctionTable _preval_bsmod_getFunctionTable() {
-    bsmod_FunctionTable functions;
+bsmod_FunctionTable* _preval_bsmod_getFunctionTable() {
+    bsmod_FunctionTable functions = { 0 };
 
     functions.bsmod_copyHoveringDataToBuffer = _preval_bsmod_copyHoveringDataToBuffer;
     functions.bsmod_onIni = _preval_bsmod_onIni;
@@ -462,7 +501,6 @@ bsmod_FunctionTable _preval_bsmod_getFunctionTable() {
     functions.bsmod_onLoad = _preval_bsmod_onLoad;
     functions.bsmod_bindAtlases = _preval_bsmod_bindAtlases;
     functions.bsmod_onGfxRender = _preval_bsmod_onGfxRender;
-    functions.bsmod_onPostRender = _preval_bsmod_onPostRender;
     functions.bsmod_onTick = _preval_bsmod_onTick;
     functions.bsmod_onMap = _preval_bsmod_onMap;
     functions.bsmod_onTrack = _preval_bsmod_onTrack;
@@ -478,6 +516,8 @@ bsmod_FunctionTable _preval_bsmod_getFunctionTable() {
     functions.bsmod_packAtlas = _preval_bsmod_packAtlas;
     functions.bsmod_createAtlasPacker = _preval_bsmod_createAtlasPacker;
     functions.bsmod_packImageDirectory = _preval_bsmod_packImageDirectory;
+    functions.bsmod_packBMFont = _preval_bsmod_packBMFont;
+    functions.bsmod_packBMFontV = _preval_bsmod_packBMFontV;
     functions.bsmod_scrollbar = _preval_bsmod_scrollbar;
     functions.bsmod_dividerWidget = _preval_bsmod_dividerWidget;
     functions.bsmod_iconWidget = _preval_bsmod_iconWidget;
@@ -485,14 +525,14 @@ bsmod_FunctionTable _preval_bsmod_getFunctionTable() {
     functions.bsmod_queryPackage = _preval_bsmod_queryPackage;
     functions.bsmod_ensurePackage = _preval_bsmod_ensurePackage;
     functions.bsmod_iniPackage = _preval_bsmod_iniPackage;
+    functions.bsmod_packResource = _preval_bsmod_packResource;
+    functions.bsmod_packResourceV = _preval_bsmod_packResourceV;
     functions.bsmod_savePackage = _preval_bsmod_savePackage;
     functions.bsmod_loadShaderReferences = _preval_bsmod_loadShaderReferences;
     functions.bsmod_updateShaderReferences = _preval_bsmod_updateShaderReferences;
     functions.bsmod_iniCompiler = _preval_bsmod_iniCompiler;
     functions.bsmod_compileShader = _preval_bsmod_compileShader;
     functions.bsmod_updateBindings = _preval_bsmod_updateBindings;
-    functions.bsmod_iniLisk = _preval_bsmod_iniLisk;
-    functions.bsmod_tickLisk = _preval_bsmod_tickLisk;
     functions.bsmod_onQueue = _preval_bsmod_onQueue;
     functions.bsmod_queueRasterize = _preval_bsmod_queueRasterize;
     functions.bsmod_pollRasterizer = _preval_bsmod_pollRasterizer;
@@ -504,6 +544,8 @@ bsmod_FunctionTable _preval_bsmod_getFunctionTable() {
     functions.bsmod_queryType = _preval_bsmod_queryType;
     functions.bsmod_delete = _preval_bsmod_delete;
     functions.bsmod_deleteSelected = _preval_bsmod_deleteSelected;
+    functions.bsmod_saveType = _preval_bsmod_saveType;
+    functions.bsmod_saveTypeV = _preval_bsmod_saveTypeV;
     functions.bsmod_add = _preval_bsmod_add;
     functions.bsmod_isSelected = _preval_bsmod_isSelected;
     functions.bsmod_select = _preval_bsmod_select;
@@ -546,6 +588,6 @@ bsmod_FunctionTable _preval_bsmod_getFunctionTable() {
     functions.bsmod_instanceTilePreview = _preval_bsmod_instanceTilePreview;
     functions.bsmod_onDragTile = _preval_bsmod_onDragTile;
 
-    return functions;
+    return &functions;
 }
 

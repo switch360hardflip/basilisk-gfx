@@ -34,8 +34,6 @@
 
 #include <basilisk-core.h>
 #include <bs_internal.h>
-#include <bs_prevalidation.gen.h>
-#include <bs_validation.gen.h>
 
 const char* validation_layers[] = {
     "VK_LAYER_KHRONOS_validation"
@@ -580,6 +578,7 @@ BSAPI void _bs_queryProcedures(bs_Procedure* procedures, int count, void* dll_ha
 
 void _bs_findExecutablePaths();
 BSAPI void _bs_ini() {
+    _bs_io_.log = bs_string(_bs_io_.log, "", 0);
     _bs_instance_ = _bs_calloc(1, sizeof(bs_Instance));
 
     _bs_configureAttribute("bs_Position", BS_FORMAT_R32_SFLOAT);
@@ -627,17 +626,4 @@ BSAPI void _bs_load(
         load_resources();
 
     _bs_scope_.queue = NULL;
-}
-
-void _bs_setFunctions(const struct _bs_FunctionTable* table);
-void _preval_bs_setFunctions(const struct _preval_bs_FunctionTable* table);
-
-BSAPI void bs_setupTrampoline() {
-    bs_FunctionTable definitions = _bs_getFunctions();
-    bs_FunctionTable preval_definitions = _preval_bs_getFunctions();
-    bs_FunctionTable val_definitions = _val_bs_getFunctions();
-
-    _bs_setFunctions(&preval_definitions);
-    _preval_bs_setFunctions(&val_definitions);
-    _preval_bs_setFunctions(&val_definitions);
 }

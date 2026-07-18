@@ -32,6 +32,8 @@
         
 #include <basilisk-core.h>
 #include <bs_internal.h>
+#include <bs_prevalidation.gen.h>
+#include <bs_validation.gen.h>
 #include <cglm/vec2.h>
 #include <cglm/vec3.h>
 #include <cglm/vec4.h>
@@ -44,8 +46,34 @@
 
 static bs_FunctionTable next = { 0 };
 
-void _bs_setFunctions(const struct _bs_FunctionTable* table) {
-    memcpy(&next, table, sizeof(next));
+const bs_FunctionTable* _bs_setFunctions(const bs_FunctionTable* a, bs_FunctionTable* b) {
+    memcpy(&next, a, sizeof(next));
+
+	if (!b) return &next;
+
+    for (size_t offset = 0; offset < sizeof(bs_FunctionTable); offset += sizeof(void*)) {
+        bs_Callback* f_a = ((unsigned char*)&next) + offset;
+        bs_Callback* f_b = ((unsigned char*)b) + offset;
+        if (!*f_a) 
+            *f_a = *f_b;
+    }
+
+    return &next;
+}
+
+void bs_enableValidation()
+{
+    bs_FunctionTable* definitions = _bs_getFunctions();
+    bs_FunctionTable* preval_definitions = _preval_bs_getFunctions();
+    bs_FunctionTable* val_definitions = _val_bs_getFunctions();
+    val_definitions = _bs_setFunctions(val_definitions, definitions);
+    preval_definitions = _preval_bs_setFunctions(preval_definitions, val_definitions);
+}
+
+void bs_disableValidation()
+{
+    bs_FunctionTable* definitions = _bs_getFunctions();
+    _bs_setFunctions(definitions, NULL);
 }
 
 void bs_v2Add(

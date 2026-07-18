@@ -27,7 +27,7 @@
         </xsl:call-template>
 
 
-        <!--
+		<!--
         <xsl:apply-templates select="registry/functions/function" mode="typedef"/>
         <xsl:text>&#xA;typedef struct {&#xA;</xsl:text>
         <xsl:apply-templates select="registry/functions/function" mode="table"/>
@@ -35,17 +35,18 @@
         <xsl:value-of select="$functionPrefix"/>
         <xsl:text>FunctionTable;&#xA;&#xA;</xsl:text>
             -->
-        <xsl:text>#endif&#xA;</xsl:text>
-    </xsl:template>
+		<xsl:text>#endif&#xA;</xsl:text>
+	</xsl:template>
 
-    <xsl:template match="registry/includes/validationHeader/include">
-        <xsl:text>#include &lt;</xsl:text>
-        <xsl:value-of select="."/>
-        <xsl:text>&gt;&#xA;</xsl:text>
-    </xsl:template>
+	<xsl:template match="registry/includes/validationHeader/include">
+		<xsl:text>#include &lt;</xsl:text>
+		<xsl:value-of select="."/>
+		<xsl:text>&gt;&#xA;</xsl:text>
+	</xsl:template>
+	<!--
 	
     <xsl:template match="function" mode="table">
-        <xsl:if test="not(body) or @type = 'allowBody'">
+        <xsl:if test="not(body)">
             <xsl:text>    PFN_</xsl:text>
             <xsl:value-of select="@name"/>
             <xsl:text> </xsl:text>
@@ -55,7 +56,7 @@
     </xsl:template>
 
     <xsl:template match="function" mode="typedef">
-        <xsl:if test="not(body) or @type = 'allowBody'">
+        <xsl:if test="not(body)">
             <xsl:text>typedef </xsl:text>
             <xsl:value-of select="return"/>
             <xsl:text>(__stdcall* PFN_</xsl:text>
@@ -79,5 +80,6 @@
         </xsl:if>
     </xsl:template>
 
+	-->
 
 </xsl:stylesheet>

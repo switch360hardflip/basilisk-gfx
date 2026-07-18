@@ -35,8 +35,8 @@
 
 #include <basilisk-mod.h>
 
-static inline bsmod_FunctionTable _val_bsmod_getFunctions() {
-    bsmod_FunctionTable functions;
+static inline bsmod_FunctionTable* _val_bsmod_getFunctions() {
+    static bsmod_FunctionTable functions;
 
     HMODULE module = NULL;
     GetModuleHandleExA(
@@ -51,7 +51,6 @@ static inline bsmod_FunctionTable _val_bsmod_getFunctions() {
     functions.bsmod_onLoad = (PFN_bsmod_onLoad)GetProcAddress(module, "_val_bsmod_onLoad");
     functions.bsmod_bindAtlases = (PFN_bsmod_bindAtlases)GetProcAddress(module, "_val_bsmod_bindAtlases");
     functions.bsmod_onGfxRender = (PFN_bsmod_onGfxRender)GetProcAddress(module, "_val_bsmod_onGfxRender");
-    functions.bsmod_onPostRender = (PFN_bsmod_onPostRender)GetProcAddress(module, "_val_bsmod_onPostRender");
     functions.bsmod_onTick = (PFN_bsmod_onTick)GetProcAddress(module, "_val_bsmod_onTick");
     functions.bsmod_onMap = (PFN_bsmod_onMap)GetProcAddress(module, "_val_bsmod_onMap");
     functions.bsmod_onTrack = (PFN_bsmod_onTrack)GetProcAddress(module, "_val_bsmod_onTrack");
@@ -67,6 +66,7 @@ static inline bsmod_FunctionTable _val_bsmod_getFunctions() {
     functions.bsmod_packAtlas = (PFN_bsmod_packAtlas)GetProcAddress(module, "_val_bsmod_packAtlas");
     functions.bsmod_createAtlasPacker = (PFN_bsmod_createAtlasPacker)GetProcAddress(module, "_val_bsmod_createAtlasPacker");
     functions.bsmod_packImageDirectory = (PFN_bsmod_packImageDirectory)GetProcAddress(module, "_val_bsmod_packImageDirectory");
+    functions.bsmod_packBMFont = (PFN_bsmod_packBMFont)GetProcAddress(module, "_val_bsmod_packBMFont");
     functions.bsmod_scrollbar = (PFN_bsmod_scrollbar)GetProcAddress(module, "_val_bsmod_scrollbar");
     functions.bsmod_dividerWidget = (PFN_bsmod_dividerWidget)GetProcAddress(module, "_val_bsmod_dividerWidget");
     functions.bsmod_iconWidget = (PFN_bsmod_iconWidget)GetProcAddress(module, "_val_bsmod_iconWidget");
@@ -74,14 +74,13 @@ static inline bsmod_FunctionTable _val_bsmod_getFunctions() {
     functions.bsmod_queryPackage = (PFN_bsmod_queryPackage)GetProcAddress(module, "_val_bsmod_queryPackage");
     functions.bsmod_ensurePackage = (PFN_bsmod_ensurePackage)GetProcAddress(module, "_val_bsmod_ensurePackage");
     functions.bsmod_iniPackage = (PFN_bsmod_iniPackage)GetProcAddress(module, "_val_bsmod_iniPackage");
+    functions.bsmod_packResource = (PFN_bsmod_packResource)GetProcAddress(module, "_val_bsmod_packResource");
     functions.bsmod_savePackage = (PFN_bsmod_savePackage)GetProcAddress(module, "_val_bsmod_savePackage");
     functions.bsmod_loadShaderReferences = (PFN_bsmod_loadShaderReferences)GetProcAddress(module, "_val_bsmod_loadShaderReferences");
     functions.bsmod_updateShaderReferences = (PFN_bsmod_updateShaderReferences)GetProcAddress(module, "_val_bsmod_updateShaderReferences");
     functions.bsmod_iniCompiler = (PFN_bsmod_iniCompiler)GetProcAddress(module, "_val_bsmod_iniCompiler");
     functions.bsmod_compileShader = (PFN_bsmod_compileShader)GetProcAddress(module, "_val_bsmod_compileShader");
     functions.bsmod_updateBindings = (PFN_bsmod_updateBindings)GetProcAddress(module, "_val_bsmod_updateBindings");
-    functions.bsmod_iniLisk = (PFN_bsmod_iniLisk)GetProcAddress(module, "_val_bsmod_iniLisk");
-    functions.bsmod_tickLisk = (PFN_bsmod_tickLisk)GetProcAddress(module, "_val_bsmod_tickLisk");
     functions.bsmod_onQueue = (PFN_bsmod_onQueue)GetProcAddress(module, "_val_bsmod_onQueue");
     functions.bsmod_queueRasterize = (PFN_bsmod_queueRasterize)GetProcAddress(module, "_val_bsmod_queueRasterize");
     functions.bsmod_pollRasterizer = (PFN_bsmod_pollRasterizer)GetProcAddress(module, "_val_bsmod_pollRasterizer");
@@ -93,6 +92,7 @@ static inline bsmod_FunctionTable _val_bsmod_getFunctions() {
     functions.bsmod_queryType = (PFN_bsmod_queryType)GetProcAddress(module, "_val_bsmod_queryType");
     functions.bsmod_delete = (PFN_bsmod_delete)GetProcAddress(module, "_val_bsmod_delete");
     functions.bsmod_deleteSelected = (PFN_bsmod_deleteSelected)GetProcAddress(module, "_val_bsmod_deleteSelected");
+    functions.bsmod_saveType = (PFN_bsmod_saveType)GetProcAddress(module, "_val_bsmod_saveType");
     functions.bsmod_add = (PFN_bsmod_add)GetProcAddress(module, "_val_bsmod_add");
     functions.bsmod_isSelected = (PFN_bsmod_isSelected)GetProcAddress(module, "_val_bsmod_isSelected");
     functions.bsmod_select = (PFN_bsmod_select)GetProcAddress(module, "_val_bsmod_select");
@@ -135,7 +135,7 @@ static inline bsmod_FunctionTable _val_bsmod_getFunctions() {
     functions.bsmod_instanceTilePreview = (PFN_bsmod_instanceTilePreview)GetProcAddress(module, "_val_bsmod_instanceTilePreview");
     functions.bsmod_onDragTile = (PFN_bsmod_onDragTile)GetProcAddress(module, "_val_bsmod_onDragTile");
 
-    return functions;
+    return &functions;
 }
 
 #endif

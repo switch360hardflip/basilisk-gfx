@@ -213,6 +213,18 @@ enum bsmod_SideMenuTabId {
   @return void
   */
 BSMODAPI void
+bsmod_enableValidation();
+
+ /**
+  @return void
+  */
+BSMODAPI void
+bsmod_disableValidation();
+
+ /**
+  @return void
+  */
+BSMODAPI void
 bsmod_copyHoveringDataToBuffer();
 
  /**
@@ -252,12 +264,6 @@ bsmod_bindAtlases();
   */
 BSMODAPI void
 bsmod_onGfxRender();
-
- /**
-  @return void
-  */
-BSMODAPI void
-bsmod_onPostRender();
 
  /**
   @return void
@@ -608,18 +614,6 @@ bsmod_compileShader(
   */
 BSMODAPI void
 bsmod_updateBindings();
-
- /**
-  @return void
-  */
-BSMODAPI void
-bsmod_iniLisk();
-
- /**
-  @return void
-  */
-BSMODAPI void
-bsmod_tickLisk();
 
  /**
   @return bs_Queue*

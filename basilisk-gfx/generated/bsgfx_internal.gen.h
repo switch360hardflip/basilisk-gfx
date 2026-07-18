@@ -38,6 +38,7 @@
 
 typedef bsgfx_Scene*(__stdcall* PFN_bsgfx_currentScene)();
 typedef void(__stdcall* PFN_bsgfx_loadScene)(const char* name);
+typedef int(__stdcall* PFN_bsgfx_windows)();
 typedef int(__stdcall* PFN_bsgfx_images)();
 typedef int(__stdcall* PFN_bsgfx_samplers)();
 typedef int(__stdcall* PFN_bsgfx_buffers)();
@@ -115,8 +116,6 @@ typedef void(__stdcall* PFN_bsgfx_computeShadowVolumes)();
 typedef bs_Model*(__stdcall* PFN_bsgfx_prefabModel)();
 typedef int(__stdcall* PFN_bsgfx_package)();
 typedef void(__stdcall* PFN_bsgfx_ini)(const char* name, bs_U32 width, bs_U32 height, int argc, char* argv[]);
-typedef void(__stdcall* PFN_bsgfx_checkGFSDK)(bs_U32 result);
-typedef void(__stdcall* PFN_bsgfx_logGFSDK)(bs_U32 result);
 typedef bsgfx_Application*(__stdcall* PFN_bsgfx_app)();
 typedef bsgfx_Callbacks*(__stdcall* PFN_bsgfx_callbacks)();
 typedef bsgfx_Settings*(__stdcall* PFN_bsgfx_settings)();
@@ -132,8 +131,6 @@ typedef int(__stdcall* PFN_bsgfx_id)(bsgfx_TypeId type_id, unsigned char* p);
 typedef int(__stdcall* PFN_bsgfx_rawId)(bsgfx_TypeId type_id, unsigned char* p);
 typedef void*(__stdcall* PFN_bsgfx_getRaw)(bsgfx_TypeId type_id, int id);
 typedef int(__stdcall* PFN_bsgfx_flexibleCount)(bsgfx_TypeId type_id, int id);
-typedef void*(__stdcall* PFN_bsmod_add)(bsgfx_TypeId id, void* data);
-typedef bsgfx_TypeId(__stdcall* PFN_bsmod_queryType)(const char* plural);
 typedef void(__stdcall* PFN_bsgfx_loadLights)(int package_id);
 typedef void(__stdcall* PFN_bsgfx_computePrefabShadows)();
 typedef void(__stdcall* PFN_bsgfx_renderPrefabShadowVolumes)();
@@ -176,6 +173,7 @@ typedef void(__stdcall* PFN_bsgfx_renderColorPickers)();
 typedef struct {
     PFN_bsgfx_currentScene bsgfx_currentScene;
     PFN_bsgfx_loadScene bsgfx_loadScene;
+    PFN_bsgfx_windows bsgfx_windows;
     PFN_bsgfx_images bsgfx_images;
     PFN_bsgfx_samplers bsgfx_samplers;
     PFN_bsgfx_buffers bsgfx_buffers;
@@ -253,8 +251,6 @@ typedef struct {
     PFN_bsgfx_prefabModel bsgfx_prefabModel;
     PFN_bsgfx_package bsgfx_package;
     PFN_bsgfx_ini bsgfx_ini;
-    PFN_bsgfx_checkGFSDK bsgfx_checkGFSDK;
-    PFN_bsgfx_logGFSDK bsgfx_logGFSDK;
     PFN_bsgfx_app bsgfx_app;
     PFN_bsgfx_callbacks bsgfx_callbacks;
     PFN_bsgfx_settings bsgfx_settings;
@@ -270,8 +266,6 @@ typedef struct {
     PFN_bsgfx_rawId bsgfx_rawId;
     PFN_bsgfx_getRaw bsgfx_getRaw;
     PFN_bsgfx_flexibleCount bsgfx_flexibleCount;
-    PFN_bsmod_add bsmod_add;
-    PFN_bsmod_queryType bsmod_queryType;
     PFN_bsgfx_loadLights bsgfx_loadLights;
     PFN_bsgfx_computePrefabShadows bsgfx_computePrefabShadows;
     PFN_bsgfx_renderPrefabShadowVolumes bsgfx_renderPrefabShadowVolumes;
@@ -314,6 +308,7 @@ typedef struct {
 
 BSGFXAPI bsgfx_Scene* _bsgfx_currentScene();
 BSGFXAPI void _bsgfx_loadScene(const char* name);
+BSGFXAPI int _bsgfx_windows();
 BSGFXAPI int _bsgfx_images();
 BSGFXAPI int _bsgfx_samplers();
 BSGFXAPI int _bsgfx_buffers();
@@ -391,8 +386,6 @@ BSGFXAPI void _bsgfx_computeShadowVolumes();
 BSGFXAPI bs_Model* _bsgfx_prefabModel();
 BSGFXAPI int _bsgfx_package();
 BSGFXAPI void _bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc, char* argv[]);
-BSGFXAPI void _bsgfx_checkGFSDK(bs_U32 result);
-BSGFXAPI void _bsgfx_logGFSDK(bs_U32 result);
 BSGFXAPI bsgfx_Application* _bsgfx_app();
 BSGFXAPI bsgfx_Callbacks* _bsgfx_callbacks();
 BSGFXAPI bsgfx_Settings* _bsgfx_settings();
@@ -408,8 +401,6 @@ BSGFXAPI int _bsgfx_id(bsgfx_TypeId type_id, unsigned char* p);
 BSGFXAPI int _bsgfx_rawId(bsgfx_TypeId type_id, unsigned char* p);
 BSGFXAPI void* _bsgfx_getRaw(bsgfx_TypeId type_id, int id);
 BSGFXAPI int _bsgfx_flexibleCount(bsgfx_TypeId type_id, int id);
-BSGFXAPI void* _bsmod_add(bsgfx_TypeId id, void* data);
-BSGFXAPI bsgfx_TypeId _bsmod_queryType(const char* plural);
 BSGFXAPI void _bsgfx_loadLights(int package_id);
 BSGFXAPI void _bsgfx_computePrefabShadows();
 BSGFXAPI void _bsgfx_renderPrefabShadowVolumes();
@@ -449,11 +440,12 @@ BSGFXAPI void _bsgfx_tileIndex(const bsgfx_Primitive* primitive, int axis, int x
 BSGFXAPI bool _bsgfx_instanceWidgets(bsgfx_Menu menu, bsgfx_TitleBar* title_bar, bsgfx_MenuTabBar* tab_bar);
 BSGFXAPI void _bsgfx_renderColorPickers();
 
-static inline bsgfx_FunctionTable _bsgfx_getFunctions() {
-    bsgfx_FunctionTable functions;
+static inline bsgfx_FunctionTable* _bsgfx_getFunctions() {
+    static bsgfx_FunctionTable functions;
 
     functions.bsgfx_currentScene = _bsgfx_currentScene;
     functions.bsgfx_loadScene = _bsgfx_loadScene;
+    functions.bsgfx_windows = _bsgfx_windows;
     functions.bsgfx_images = _bsgfx_images;
     functions.bsgfx_samplers = _bsgfx_samplers;
     functions.bsgfx_buffers = _bsgfx_buffers;
@@ -531,8 +523,6 @@ static inline bsgfx_FunctionTable _bsgfx_getFunctions() {
     functions.bsgfx_prefabModel = _bsgfx_prefabModel;
     functions.bsgfx_package = _bsgfx_package;
     functions.bsgfx_ini = _bsgfx_ini;
-    functions.bsgfx_checkGFSDK = _bsgfx_checkGFSDK;
-    functions.bsgfx_logGFSDK = _bsgfx_logGFSDK;
     functions.bsgfx_app = _bsgfx_app;
     functions.bsgfx_callbacks = _bsgfx_callbacks;
     functions.bsgfx_settings = _bsgfx_settings;
@@ -548,8 +538,6 @@ static inline bsgfx_FunctionTable _bsgfx_getFunctions() {
     functions.bsgfx_rawId = _bsgfx_rawId;
     functions.bsgfx_getRaw = _bsgfx_getRaw;
     functions.bsgfx_flexibleCount = _bsgfx_flexibleCount;
-    functions.bsmod_add = _bsmod_add;
-    functions.bsmod_queryType = _bsmod_queryType;
     functions.bsgfx_loadLights = _bsgfx_loadLights;
     functions.bsgfx_computePrefabShadows = _bsgfx_computePrefabShadows;
     functions.bsgfx_renderPrefabShadowVolumes = _bsgfx_renderPrefabShadowVolumes;
@@ -589,7 +577,7 @@ static inline bsgfx_FunctionTable _bsgfx_getFunctions() {
     functions.bsgfx_instanceWidgets = _bsgfx_instanceWidgets;
     functions.bsgfx_renderColorPickers = _bsgfx_renderColorPickers;
 
-    return functions;
+    return &functions;
 }
 
 #endif

@@ -1522,8 +1522,8 @@ BSAPI bs_Result _bs_deleteDirectory(char* path, int path_length);
 BSAPI bs_Result _bs_deleteDirectoryV(char* format, va_list args);
 BSAPI bs_Result _bs_deleteDirectoryF(char* format,  ...);
 
-static inline bs_FunctionTable _bs_getFunctions() {
-    bs_FunctionTable functions;
+static inline bs_FunctionTable* _bs_getFunctions() {
+    static bs_FunctionTable functions;
 
     functions.bs_v2Mid = _bs_v2Mid;
     functions.bs_v3Mid = _bs_v3Mid;
@@ -2019,7 +2019,7 @@ static inline bs_FunctionTable _bs_getFunctions() {
     functions.bs_deleteDirectoryV = _bs_deleteDirectoryV;
     functions.bs_deleteDirectoryF = _bs_deleteDirectoryF;
 
-    return functions;
+    return &functions;
 }
 
 #endif

@@ -26,13 +26,13 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             </xsl:choose>
         </function>
 
-        <function name="{@name}V" type="allowBody">
+        <function name="{@name}V" type="allowBody" variadic="V">
             <xsl:copy-of select="return | param"/>
             <param><type>char*</type><name>format</name></param>
             <param><type>va_list</type><name>args</name></param>
         </function>
 
-        <function name="{@name}F" type="allowBody">
+        <function name="{@name}F" type="allowBody" variadic="F">
             <xsl:copy-of select="return | param"/>
             <param><type>char*</type><name>format</name></param>
             <param><name>...</name></param>

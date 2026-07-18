@@ -32,13 +32,41 @@
         
 #include <basilisk-gfx.h>
 #include <bsgfx_internal.gen.h>
+#include <bsgfx_prevalidation.gen.h>
+#include <bsgfx_validation.gen.h>
 #include <math.h>
 #include <stdio.h>
 
 static bsgfx_FunctionTable next = { 0 };
 
-void _bsgfx_setFunctions(const struct _bsgfx_FunctionTable* table) {
-    memcpy(&next, table, sizeof(next));
+const bsgfx_FunctionTable* _bsgfx_setFunctions(const bsgfx_FunctionTable* a, bsgfx_FunctionTable* b) {
+    memcpy(&next, a, sizeof(next));
+
+	if (!b) return &next;
+
+    for (size_t offset = 0; offset < sizeof(bsgfx_FunctionTable); offset += sizeof(void*)) {
+        bs_Callback* f_a = ((unsigned char*)&next) + offset;
+        bs_Callback* f_b = ((unsigned char*)b) + offset;
+        if (!*f_a) 
+            *f_a = *f_b;
+    }
+
+    return &next;
+}
+
+void bsgfx_enableValidation()
+{
+    bsgfx_FunctionTable* definitions = _bsgfx_getFunctions();
+    bsgfx_FunctionTable* preval_definitions = _preval_bsgfx_getFunctions();
+    bsgfx_FunctionTable* val_definitions = _val_bsgfx_getFunctions();
+    val_definitions = _bsgfx_setFunctions(val_definitions, definitions);
+    preval_definitions = _preval_bsgfx_setFunctions(preval_definitions, val_definitions);
+}
+
+void bsgfx_disableValidation()
+{
+    bsgfx_FunctionTable* definitions = _bsgfx_getFunctions();
+    _bsgfx_setFunctions(definitions, NULL);
 }
 
 bsgfx_Scene* bsgfx_currentScene()
@@ -50,6 +78,11 @@ void bsgfx_loadScene(
     const char* name)
 {
     next.bsgfx_loadScene(name);
+}
+
+int bsgfx_windows()
+{
+    return next.bsgfx_windows();
 }
 
 int bsgfx_images()
@@ -604,18 +637,6 @@ void bsgfx_ini(
     next.bsgfx_ini(name, width, height, argc, argv);
 }
 
-void bsgfx_checkGFSDK(
-    bs_U32 result)
-{
-    next.bsgfx_checkGFSDK(result);
-}
-
-void bsgfx_logGFSDK(
-    bs_U32 result)
-{
-    next.bsgfx_logGFSDK(result);
-}
-
 bsgfx_Application* bsgfx_app()
 {
     return next.bsgfx_app();
@@ -718,19 +739,6 @@ int bsgfx_flexibleCount(
     int id)
 {
     return next.bsgfx_flexibleCount(type_id, id);
-}
-
-void* bsmod_add(
-    bsgfx_TypeId id, 
-    void* data)
-{
-    return next.bsmod_add(id, data);
-}
-
-bsgfx_TypeId bsmod_queryType(
-    const char* plural)
-{
-    return next.bsmod_queryType(plural);
 }
 
 void bsgfx_loadLights(

@@ -43,7 +43,6 @@ typedef void(__stdcall* PFN_bsmod_onCreateQuadSubtypes)(bs_Range range);
 typedef void(__stdcall* PFN_bsmod_onLoad)();
 typedef void(__stdcall* PFN_bsmod_bindAtlases)();
 typedef void(__stdcall* PFN_bsmod_onGfxRender)();
-typedef void(__stdcall* PFN_bsmod_onPostRender)();
 typedef void(__stdcall* PFN_bsmod_onTick)();
 typedef void(__stdcall* PFN_bsmod_onMap)(bsgfx_TypeId type_id, int id);
 typedef void(__stdcall* PFN_bsmod_onTrack)();
@@ -78,8 +77,6 @@ typedef void(__stdcall* PFN_bsmod_updateShaderReferences)();
 typedef void(__stdcall* PFN_bsmod_iniCompiler)();
 typedef bs_Result(__stdcall* PFN_bsmod_compileShader)(char* path, char* name, char* package);
 typedef void(__stdcall* PFN_bsmod_updateBindings)();
-typedef void(__stdcall* PFN_bsmod_iniLisk)();
-typedef void(__stdcall* PFN_bsmod_tickLisk)();
 typedef bs_Queue*(__stdcall* PFN_bsmod_onQueue)();
 typedef void(__stdcall* PFN_bsmod_queueRasterize)(const char* package, const char* name, bs_Callback callback);
 typedef void(__stdcall* PFN_bsmod_pollRasterizer)();
@@ -144,7 +141,6 @@ typedef struct {
     PFN_bsmod_onLoad bsmod_onLoad;
     PFN_bsmod_bindAtlases bsmod_bindAtlases;
     PFN_bsmod_onGfxRender bsmod_onGfxRender;
-    PFN_bsmod_onPostRender bsmod_onPostRender;
     PFN_bsmod_onTick bsmod_onTick;
     PFN_bsmod_onMap bsmod_onMap;
     PFN_bsmod_onTrack bsmod_onTrack;
@@ -179,8 +175,6 @@ typedef struct {
     PFN_bsmod_iniCompiler bsmod_iniCompiler;
     PFN_bsmod_compileShader bsmod_compileShader;
     PFN_bsmod_updateBindings bsmod_updateBindings;
-    PFN_bsmod_iniLisk bsmod_iniLisk;
-    PFN_bsmod_tickLisk bsmod_tickLisk;
     PFN_bsmod_onQueue bsmod_onQueue;
     PFN_bsmod_queueRasterize bsmod_queueRasterize;
     PFN_bsmod_pollRasterizer bsmod_pollRasterizer;
@@ -245,7 +239,6 @@ BSMODAPI void _bsmod_onCreateQuadSubtypes(bs_Range range);
 BSMODAPI void _bsmod_onLoad();
 BSMODAPI void _bsmod_bindAtlases();
 BSMODAPI void _bsmod_onGfxRender();
-BSMODAPI void _bsmod_onPostRender();
 BSMODAPI void _bsmod_onTick();
 BSMODAPI void _bsmod_onMap(bsgfx_TypeId type_id, int id);
 BSMODAPI void _bsmod_onTrack();
@@ -280,8 +273,6 @@ BSMODAPI void _bsmod_updateShaderReferences();
 BSMODAPI void _bsmod_iniCompiler();
 BSMODAPI bs_Result _bsmod_compileShader(char* path, char* name, char* package);
 BSMODAPI void _bsmod_updateBindings();
-BSMODAPI void _bsmod_iniLisk();
-BSMODAPI void _bsmod_tickLisk();
 BSMODAPI bs_Queue* _bsmod_onQueue();
 BSMODAPI void _bsmod_queueRasterize(const char* package, const char* name, bs_Callback callback);
 BSMODAPI void _bsmod_pollRasterizer();
@@ -338,8 +329,8 @@ BSMODAPI void _bsmod_pushTileMenuWidgets(bs_List* widgets, bs_vec2 background_si
 BSMODAPI bool _bsmod_instanceTilePreview(bsgfx_Widget* widget, bs_vec2* position, int id, bool hovering);
 BSMODAPI void _bsmod_onDragTile(bsmod_DraggingParams params);
 
-static inline bsmod_FunctionTable _bsmod_getFunctions() {
-    bsmod_FunctionTable functions;
+static inline bsmod_FunctionTable* _bsmod_getFunctions() {
+    static bsmod_FunctionTable functions;
 
     functions.bsmod_copyHoveringDataToBuffer = _bsmod_copyHoveringDataToBuffer;
     functions.bsmod_onIni = _bsmod_onIni;
@@ -348,7 +339,6 @@ static inline bsmod_FunctionTable _bsmod_getFunctions() {
     functions.bsmod_onLoad = _bsmod_onLoad;
     functions.bsmod_bindAtlases = _bsmod_bindAtlases;
     functions.bsmod_onGfxRender = _bsmod_onGfxRender;
-    functions.bsmod_onPostRender = _bsmod_onPostRender;
     functions.bsmod_onTick = _bsmod_onTick;
     functions.bsmod_onMap = _bsmod_onMap;
     functions.bsmod_onTrack = _bsmod_onTrack;
@@ -383,8 +373,6 @@ static inline bsmod_FunctionTable _bsmod_getFunctions() {
     functions.bsmod_iniCompiler = _bsmod_iniCompiler;
     functions.bsmod_compileShader = _bsmod_compileShader;
     functions.bsmod_updateBindings = _bsmod_updateBindings;
-    functions.bsmod_iniLisk = _bsmod_iniLisk;
-    functions.bsmod_tickLisk = _bsmod_tickLisk;
     functions.bsmod_onQueue = _bsmod_onQueue;
     functions.bsmod_queueRasterize = _bsmod_queueRasterize;
     functions.bsmod_pollRasterizer = _bsmod_pollRasterizer;
@@ -441,7 +429,7 @@ static inline bsmod_FunctionTable _bsmod_getFunctions() {
     functions.bsmod_instanceTilePreview = _bsmod_instanceTilePreview;
     functions.bsmod_onDragTile = _bsmod_onDragTile;
 
-    return functions;
+    return &functions;
 }
 
 #endif

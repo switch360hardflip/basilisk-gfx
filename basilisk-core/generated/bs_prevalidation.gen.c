@@ -35,8 +35,19 @@
 
 static bs_FunctionTable next = { 0 };
 
-void _preval_bs_setFunctions(const struct _preval_bs_FunctionTable* table) {
-    memcpy(&next, table, sizeof(next));
+const bs_FunctionTable* _preval_bs_setFunctions(const bs_FunctionTable* a, bs_FunctionTable* b) {
+    memcpy(&next, a, sizeof(next));
+
+	if (!b) return &next;
+
+    for (size_t offset = 0; offset < sizeof(bs_FunctionTable); offset += sizeof(void*)) {
+        bs_Callback* f_a = ((unsigned char*)&next) + offset;
+        bs_Callback* f_b = ((unsigned char*)b) + offset;
+        if (!*f_a) 
+            *f_a = *f_b;
+    }
+
+    return &next;
 }
 
 BSAPI void _preval_bs_v2Mid(const bs_vec2* a, const bs_vec2* b, bs_vec2* out) {
@@ -225,6 +236,16 @@ BSAPI void _preval_bs_populateVertexDeclaration(bs_VertexDeclaration* declaratio
     next.bs_populateVertexDeclaration(declaration, attributes, attributes_count);
 }
 
+BSAPI void _preval_bs_beginComment(char* value, int value_length) {
+    BS_VALIDATE(value != NULL, ,);
+    next.bs_beginComment(value, value_length);
+}
+
+BSAPI void _preval_bs_beginCommentV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, ,);
+    next.bs_beginCommentV(format, args);
+}
+
 BSAPI void _preval_bs_endComment() {
     next.bs_endComment();
 }
@@ -263,13 +284,13 @@ BSAPI void _preval_bs_setLineWidth(float width) {
 
 BSAPI int _preval_bs_batchSize(bs_Batch* batch) {
     BS_VALIDATE(batch != NULL, 0,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, 0,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, 0,);
     return next.bs_batchSize(batch);
 }
 
 BSAPI void _preval_bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offset, bs_U32 vertex_count, bs_U32 first_instance, bs_U32 num_instances) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(pipeline != NULL, ,);
     next.bs_render(batch, pipeline, vertex_offset, vertex_count, first_instance, num_instances);
 }
@@ -280,7 +301,7 @@ BSAPI void _preval_bs_barrier(bs_U32 dependency_flags, bs_U32 src, bs_U32 dst, b
 
 BSAPI void _preval_bs_rayTrace(bs_RayTracer* ray_tracer, bs_Pipeline* pipeline, bs_U32 width, bs_U32 height, bs_U32 depth) {
     BS_VALIDATE(ray_tracer != NULL, ,);
-    BS_VALIDATE(ray_tracer->head.source_id != BS_OBJECT_RAY_TRACER, ,);
+    BS_VALIDATE(ray_tracer->head.source_id == BS_OBJECT_RAY_TRACER, ,);
     BS_VALIDATE(pipeline != NULL, ,);
     next.bs_rayTrace(ray_tracer, pipeline, width, height, depth);
 }
@@ -293,27 +314,27 @@ BSAPI bs_Result _preval_bs_rayTracer(bs_Object* object, bs_U32 flags, bs_Shader*
 
 BSAPI void _preval_bs_accelerateAabb(bs_RayTracer* ray_tracer, bs_Aabb aabb) {
     BS_VALIDATE(ray_tracer != NULL, ,);
-    BS_VALIDATE(ray_tracer->head.source_id != BS_OBJECT_RAY_TRACER, ,);
+    BS_VALIDATE(ray_tracer->head.source_id == BS_OBJECT_RAY_TRACER, ,);
     next.bs_accelerateAabb(ray_tracer, aabb);
 }
 
 BSAPI void _preval_bs_accelerateBatch(bs_RayTracer* ray_tracer, bs_Batch* batch) {
     BS_VALIDATE(ray_tracer != NULL, ,);
-    BS_VALIDATE(ray_tracer->head.source_id != BS_OBJECT_RAY_TRACER, ,);
+    BS_VALIDATE(ray_tracer->head.source_id == BS_OBJECT_RAY_TRACER, ,);
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     next.bs_accelerateBatch(ray_tracer, batch);
 }
 
 BSAPI bs_Result _preval_bs_build(bs_RayTracer* ray_tracer) {
     BS_VALIDATE(ray_tracer != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(ray_tracer->head.source_id != BS_OBJECT_RAY_TRACER, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(ray_tracer->head.source_id == BS_OBJECT_RAY_TRACER, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_build(ray_tracer);
 }
 
 BSAPI void _preval_bs_destroyRayTracer(bs_RayTracer* ray_tracer) {
     BS_VALIDATE(ray_tracer != NULL, ,);
-    BS_VALIDATE(ray_tracer->head.source_id != BS_OBJECT_RAY_TRACER, ,);
+    BS_VALIDATE(ray_tracer->head.source_id == BS_OBJECT_RAY_TRACER, ,);
     next.bs_destroyRayTracer(ray_tracer);
 }
 
@@ -324,8 +345,22 @@ BSAPI void _preval_bs_dispatchAsync(bs_Pipeline* pipeline, bs_U32 x, bs_U32 y, b
 
 BSAPI int _preval_bs_bufferSwaps(bs_Buffer* buffer) {
     BS_VALIDATE(buffer != NULL, 0,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, 0,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, 0,);
     return next.bs_bufferSwaps(buffer);
+}
+
+BSAPI void _preval_bs_nameBuffer(bs_Buffer* buffer, char* value, int value_length) {
+    BS_VALIDATE(buffer != NULL, ,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, ,);
+    BS_VALIDATE(value != NULL, ,);
+    next.bs_nameBuffer(buffer, value, value_length);
+}
+
+BSAPI void _preval_bs_nameBufferV(bs_Buffer* buffer, char* format, va_list args) {
+    BS_VALIDATE(buffer != NULL, ,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, ,);
+    BS_VALIDATE(format != NULL, ,);
+    next.bs_nameBufferV(buffer, format, args);
 }
 
 BSAPI bs_Result _preval_bs_buffer(bs_Object* object, bs_U32 num_bytes, bs_BufferUsageFlags usage_flags, bs_MemoryPropertyFlags memory_flags, bs_BufferBits flags) {
@@ -335,65 +370,65 @@ BSAPI bs_Result _preval_bs_buffer(bs_Object* object, bs_U32 num_bytes, bs_Buffer
 
 BSAPI bool _preval_bs_bufferIsMapped(bs_Buffer* buffer) {
     BS_VALIDATE(buffer != NULL, false,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, false,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, false,);
     return next.bs_bufferIsMapped(buffer);
 }
 
 BSAPI char* _preval_bs_bufferMap(bs_Buffer* buffer) {
     BS_VALIDATE(buffer != NULL, NULL,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, NULL,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, NULL,);
     return next.bs_bufferMap(buffer);
 }
 
 BSAPI bs_Result _preval_bs_mapBuffer(bs_Buffer* buffer, bs_U32 num_bytes) {
     BS_VALIDATE(buffer != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_mapBuffer(buffer, num_bytes);
 }
 
 BSAPI void _preval_bs_unmapBuffer(bs_Buffer* buffer) {
     BS_VALIDATE(buffer != NULL, ,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, ,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, ,);
     next.bs_unmapBuffer(buffer);
 }
 
 BSAPI void _preval_bs_stageNull(bs_Buffer* buffer) {
     BS_VALIDATE(buffer != NULL, ,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, ,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, ,);
     next.bs_stageNull(buffer);
 }
 
 BSAPI void _preval_bs_stageList(bs_Buffer* buffer, bs_List* list) {
     BS_VALIDATE(buffer != NULL, ,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, ,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, ,);
     BS_VALIDATE(list != NULL, ,);
     next.bs_stageList(buffer, list);
 }
 
 BSAPI void _preval_bs_stageImage(bs_Buffer* buffer, bs_Format format, bs_ivec2 dim, const char* data) {
     BS_VALIDATE(buffer != NULL, ,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, ,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, ,);
     BS_VALIDATE(data != NULL, ,);
     next.bs_stageImage(buffer, format, dim, data);
 }
 
 BSAPI void _preval_bs_destroyBuffer(bs_Buffer* buffer) {
     BS_VALIDATE(buffer != NULL, ,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, ,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, ,);
     next.bs_destroyBuffer(buffer);
 }
 
 BSAPI void _preval_bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 src_offset, bs_U32 dst_offset, bs_U32 num_bytes) {
     BS_VALIDATE(src != NULL, ,);
-    BS_VALIDATE(src->head.source_id != BS_OBJECT_BUFFER, ,);
+    BS_VALIDATE(src->head.source_id == BS_OBJECT_BUFFER, ,);
     BS_VALIDATE(dst != NULL, ,);
-    BS_VALIDATE(dst->head.source_id != BS_OBJECT_BUFFER, ,);
+    BS_VALIDATE(dst->head.source_id == BS_OBJECT_BUFFER, ,);
     next.bs_copyAsync(src, dst, src_offset, dst_offset, num_bytes);
 }
 
 BSAPI void _preval_bs_setBufferAsync(bs_Buffer* buffer, bs_U32 offset, bs_U32 num_bytes, bs_U32 value) {
     BS_VALIDATE(buffer != NULL, ,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, ,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, ,);
     next.bs_setBufferAsync(buffer, offset, num_bytes, value);
 }
 
@@ -403,45 +438,59 @@ BSAPI bs_Result _preval_bs_batch(bs_Object* object, int index_size, bs_Shader* v
     return next.bs_batch(object, index_size, vertex_shader, flags);
 }
 
+BSAPI bs_Attribute* _preval_bs_queryAttribute(bs_Batch* batch, char* name, int name_length) {
+    BS_VALIDATE(batch != NULL, NULL,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, NULL,);
+    BS_VALIDATE(name != NULL, NULL,);
+    return next.bs_queryAttribute(batch, name, name_length);
+}
+
+BSAPI bs_Attribute* _preval_bs_queryAttributeV(bs_Batch* batch, char* format, va_list args) {
+    BS_VALIDATE(batch != NULL, NULL,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, NULL,);
+    BS_VALIDATE(format != NULL, NULL,);
+    return next.bs_queryAttributeV(batch, format, args);
+}
+
 BSAPI bool _preval_bs_batchIsPushed(bs_Batch* batch) {
     BS_VALIDATE(batch != NULL, false,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, false,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, false,);
     return next.bs_batchIsPushed(batch);
 }
 
 BSAPI bool _preval_bs_batchIsIndexed(bs_Batch* batch) {
     BS_VALIDATE(batch != NULL, false,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, false,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, false,);
     return next.bs_batchIsIndexed(batch);
 }
 
 BSAPI void _preval_bs_minimizeBatch(bs_Batch* batch) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     next.bs_minimizeBatch(batch);
 }
 
 BSAPI bs_Result _preval_bs_pushBatch(bs_Batch* batch, bs_U32 num_index_bytes, bs_U32 num_vertex_bytes) {
     BS_VALIDATE(batch != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_pushBatch(batch, num_index_bytes, num_vertex_bytes);
 }
 
 BSAPI void _preval_bs_unpushBatch(bs_Batch* batch) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     next.bs_unpushBatch(batch);
 }
 
 BSAPI void _preval_bs_destroyBatch(bs_Batch* batch) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     next.bs_destroyBatch(batch);
 }
 
 BSAPI void _preval_bs_ensureBatchSize(bs_Batch* batch, bs_U32 num_indices, bs_U32 num_vertices) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     next.bs_ensureBatchSize(batch, num_indices, num_vertices);
 }
 
@@ -453,51 +502,51 @@ BSAPI void _preval_bs_batchVertex(bs_VertexDeclaration* declaration, const unsig
 
 BSAPI bs_Range _preval_bs_batchRange(bs_Batch* batch, bs_U32 offset) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     return next.bs_batchRange(batch, offset);
 }
 
 BSAPI void _preval_bs_pushIndex(bs_Batch* batch, int index) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     next.bs_pushIndex(batch, index);
 }
 
 BSAPI void _preval_bs_pushIndices(bs_Batch* batch, int indices[], int indices_count) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     next.bs_pushIndices(batch, indices, indices_count);
 }
 
 BSAPI void _preval_bs_batchCube(bs_Batch* batch, bs_U32* offset, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
     next.bs_batchCube(batch, offset, color);
 }
 
 BSAPI bs_Range _preval_bs_pushCube(bs_Batch* batch, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     return next.bs_pushCube(batch, color);
 }
 
 BSAPI void _preval_bs_batchCone(bs_Batch* batch, bs_U32* offset, int segments, float height, float radius, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
     next.bs_batchCone(batch, offset, segments, height, radius, color);
 }
 
 BSAPI bs_Range _preval_bs_pushCone(bs_Batch* batch, int segments, float height, float radius, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     return next.bs_pushCone(batch, segments, height, radius, color);
 }
 
 BSAPI void _preval_bs_batchQuad(bs_Batch* batch, bs_U32* offset, const bs_Quad* quad, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
     BS_VALIDATE(quad != NULL, ,);
     next.bs_batchQuad(batch, offset, quad, color);
@@ -505,53 +554,53 @@ BSAPI void _preval_bs_batchQuad(bs_Batch* batch, bs_U32* offset, const bs_Quad* 
 
 BSAPI bs_Range _preval_bs_pushQuad(bs_Batch* batch, const bs_Quad* quad, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     BS_VALIDATE(quad != NULL, (bs_Range) { 0 },);
     return next.bs_pushQuad(batch, quad, color);
 }
 
 BSAPI void _preval_bs_batchTriangle(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
     next.bs_batchTriangle(batch, offset, a, b, c, color);
 }
 
 BSAPI bs_Range _preval_bs_pushTriangle(bs_Batch* batch, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     return next.bs_pushTriangle(batch, a, b, c, color);
 }
 
 BSAPI void _preval_bs_batchLine(bs_Batch* batch, bs_U32* offset, bs_vec3 start, bs_vec3 end, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
     next.bs_batchLine(batch, offset, start, end, color);
 }
 
 BSAPI bs_Range _preval_bs_pushLine(bs_Batch* batch, bs_vec3 start, bs_vec3 end, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     return next.bs_pushLine(batch, start, end, color);
 }
 
 BSAPI void _preval_bs_batchPoint(bs_Batch* batch, bs_U32* offset, bs_vec3 position, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
     next.bs_batchPoint(batch, offset, position, color);
 }
 
 BSAPI bs_Range _preval_bs_pushPoint(bs_Batch* batch, bs_vec3 position, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     return next.bs_pushPoint(batch, position, color);
 }
 
 BSAPI void _preval_bs_batchAabb(bs_Batch* batch, bs_U32* offset, bs_Aabb* aabb, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
     BS_VALIDATE(aabb != NULL, ,);
     next.bs_batchAabb(batch, offset, aabb, color);
@@ -559,53 +608,53 @@ BSAPI void _preval_bs_batchAabb(bs_Batch* batch, bs_U32* offset, bs_Aabb* aabb, 
 
 BSAPI bs_Range _preval_bs_pushAabb(bs_Batch* batch, bs_Aabb* aabb, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     BS_VALIDATE(aabb != NULL, (bs_Range) { 0 },);
     return next.bs_pushAabb(batch, aabb, color);
 }
 
 BSAPI void _preval_bs_batchSphere(bs_Batch* batch, bs_U32* offset, bs_vec3 position, float radius, bs_U32 lats, bs_U32 longs, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
     next.bs_batchSphere(batch, offset, position, radius, lats, longs, color);
 }
 
 BSAPI bs_Range _preval_bs_pushSphere(bs_Batch* batch, bs_vec3 position, float radius, bs_U32 lats, bs_U32 longs, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     return next.bs_pushSphere(batch, position, radius, lats, longs, color);
 }
 
 BSAPI void _preval_bs_batchPyramid(bs_Batch* batch, bs_U32* offset, bs_vec3 pos, float width, float height, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
     next.bs_batchPyramid(batch, offset, pos, width, height, color);
 }
 
 BSAPI bs_Range _preval_bs_pushPyramid(bs_Batch* batch, bs_vec3 pos, float width, float height, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     return next.bs_pushPyramid(batch, pos, width, height, color);
 }
 
 BSAPI void _preval_bs_batchBipyramid(bs_Batch* batch, bs_U32* offset, bs_vec3 pos, float width, float height, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
     next.bs_batchBipyramid(batch, offset, pos, width, height, color);
 }
 
 BSAPI bs_Range _preval_bs_pushBipyramid(bs_Batch* batch, bs_vec3 pos, float width, float height, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     return next.bs_pushBipyramid(batch, pos, width, height, color);
 }
 
 BSAPI void _preval_bs_batchPrimitive(bs_Batch* batch, bs_U32* offset, bs_Primitive* primitive) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
     BS_VALIDATE(primitive != NULL, ,);
     next.bs_batchPrimitive(batch, offset, primitive);
@@ -613,14 +662,14 @@ BSAPI void _preval_bs_batchPrimitive(bs_Batch* batch, bs_U32* offset, bs_Primiti
 
 BSAPI bs_Range _preval_bs_pushPrimitive(bs_Batch* batch, bs_Primitive* primitive) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     BS_VALIDATE(primitive != NULL, (bs_Range) { 0 },);
     return next.bs_pushPrimitive(batch, primitive);
 }
 
 BSAPI void _preval_bs_batchMesh(bs_Batch* batch, bs_U32* offset, bs_Mesh* mesh) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
     BS_VALIDATE(mesh != NULL, ,);
     next.bs_batchMesh(batch, offset, mesh);
@@ -628,14 +677,14 @@ BSAPI void _preval_bs_batchMesh(bs_Batch* batch, bs_U32* offset, bs_Mesh* mesh) 
 
 BSAPI bs_Range _preval_bs_pushMesh(bs_Batch* batch, bs_Mesh* mesh) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     BS_VALIDATE(mesh != NULL, (bs_Range) { 0 },);
     return next.bs_pushMesh(batch, mesh);
 }
 
 BSAPI void _preval_bs_batchModel(bs_Batch* batch, bs_U32* offset, bs_Model* model) {
     BS_VALIDATE(batch != NULL, ,);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
     BS_VALIDATE(model != NULL, ,);
     next.bs_batchModel(batch, offset, model);
@@ -643,14 +692,14 @@ BSAPI void _preval_bs_batchModel(bs_Batch* batch, bs_U32* offset, bs_Model* mode
 
 BSAPI bs_Range _preval_bs_pushModel(bs_Batch* batch, bs_Model* model) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
-    BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, (bs_Range) { 0 },);
     BS_VALIDATE(model != NULL, (bs_Range) { 0 },);
     return next.bs_pushModel(batch, model);
 }
 
 BSAPI int _preval_bs_rendererSwapsCount(bs_Renderer* renderer) {
     BS_VALIDATE(renderer != NULL, 0,);
-    BS_VALIDATE(renderer->head.source_id != BS_OBJECT_RENDERER, 0,);
+    BS_VALIDATE(renderer->head.source_id == BS_OBJECT_RENDERER, 0,);
     return next.bs_rendererSwapsCount(renderer);
 }
 
@@ -661,67 +710,67 @@ BSAPI bs_Result _preval_bs_renderer(bs_Object* object, bs_RendererBits flags) {
 
 BSAPI void _preval_bs_output(bs_Renderer* renderer, bs_Output output) {
     BS_VALIDATE(renderer != NULL, ,);
-    BS_VALIDATE(renderer->head.source_id != BS_OBJECT_RENDERER, ,);
+    BS_VALIDATE(renderer->head.source_id == BS_OBJECT_RENDERER, ,);
     next.bs_output(renderer, output);
 }
 
 BSAPI void _preval_bs_input(bs_Renderer* renderer, bs_Input input) {
     BS_VALIDATE(renderer != NULL, ,);
-    BS_VALIDATE(renderer->head.source_id != BS_OBJECT_RENDERER, ,);
+    BS_VALIDATE(renderer->head.source_id == BS_OBJECT_RENDERER, ,);
     next.bs_input(renderer, input);
 }
 
 BSAPI void _preval_bs_dependency(bs_Renderer* renderer, bs_U32 src_subpass, bs_U32 dst_subpass, bs_DependencyFlags flags, bs_PipelineStage src_stage, bs_PipelineStage dst_stage, bs_AccessMask src_access, bs_AccessMask dst_access) {
     BS_VALIDATE(renderer != NULL, ,);
-    BS_VALIDATE(renderer->head.source_id != BS_OBJECT_RENDERER, ,);
+    BS_VALIDATE(renderer->head.source_id == BS_OBJECT_RENDERER, ,);
     next.bs_dependency(renderer, src_subpass, dst_subpass, flags, src_stage, dst_stage, src_access, dst_access);
 }
 
 BSAPI bs_Result _preval_bs_renderPass(bs_Renderer* renderer) {
     BS_VALIDATE(renderer != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(renderer->head.source_id != BS_OBJECT_RENDERER, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(renderer->head.source_id == BS_OBJECT_RENDERER, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_renderPass(renderer);
 }
 
 BSAPI bs_Result _preval_bs_framebuffer(bs_Renderer* renderer, bs_ivec2 resolution) {
     BS_VALIDATE(renderer != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(renderer->head.source_id != BS_OBJECT_RENDERER, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(renderer->head.source_id == BS_OBJECT_RENDERER, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_framebuffer(renderer, resolution);
 }
 
 BSAPI void _preval_bs_runPass(bs_Renderer* renderer, bs_Callback callbacks[], int callbacks_count) {
     BS_VALIDATE(renderer != NULL, ,);
-    BS_VALIDATE(renderer->head.source_id != BS_OBJECT_RENDERER, ,);
+    BS_VALIDATE(renderer->head.source_id == BS_OBJECT_RENDERER, ,);
     next.bs_runPass(renderer, callbacks, callbacks_count);
 }
 
 BSAPI bool _preval_bs_rendererIsDynamic(bs_Renderer* renderer) {
     BS_VALIDATE(renderer != NULL, false,);
-    BS_VALIDATE(renderer->head.source_id != BS_OBJECT_RENDERER, false,);
+    BS_VALIDATE(renderer->head.source_id == BS_OBJECT_RENDERER, false,);
     return next.bs_rendererIsDynamic(renderer);
 }
 
 BSAPI void _preval_bs_beginRender(bs_Renderer* renderer) {
     BS_VALIDATE(renderer != NULL, ,);
-    BS_VALIDATE(renderer->head.source_id != BS_OBJECT_RENDERER, ,);
+    BS_VALIDATE(renderer->head.source_id == BS_OBJECT_RENDERER, ,);
     next.bs_beginRender(renderer);
 }
 
 BSAPI void _preval_bs_endRender(bs_Renderer* renderer) {
     BS_VALIDATE(renderer != NULL, ,);
-    BS_VALIDATE(renderer->head.source_id != BS_OBJECT_RENDERER, ,);
+    BS_VALIDATE(renderer->head.source_id == BS_OBJECT_RENDERER, ,);
     next.bs_endRender(renderer);
 }
 
 BSAPI void _preval_bs_destroyRenderer(bs_Renderer* renderer) {
     BS_VALIDATE(renderer != NULL, ,);
-    BS_VALIDATE(renderer->head.source_id != BS_OBJECT_RENDERER, ,);
+    BS_VALIDATE(renderer->head.source_id == BS_OBJECT_RENDERER, ,);
     next.bs_destroyRenderer(renderer);
 }
 
 BSAPI void _preval_bs_resizeRenderer(bs_Renderer* renderer, bs_ivec2 resolution) {
     BS_VALIDATE(renderer != NULL, ,);
-    BS_VALIDATE(renderer->head.source_id != BS_OBJECT_RENDERER, ,);
+    BS_VALIDATE(renderer->head.source_id == BS_OBJECT_RENDERER, ,);
     next.bs_resizeRenderer(renderer, resolution);
 }
 
@@ -735,7 +784,7 @@ BSAPI bs_I32 _preval_bs_queueFamily(bs_QueueBits flags) {
 
 BSAPI void _preval_bs_present(bs_Queue* queue, bs_Queue* wait_queues[], int wait_queues_count) {
     BS_VALIDATE(queue != NULL, ,);
-    BS_VALIDATE(queue->head.source_id != BS_OBJECT_QUEUE, ,);
+    BS_VALIDATE(queue->head.source_id == BS_OBJECT_QUEUE, ,);
     BS_VALIDATE(wait_queues != NULL, ,);
     next.bs_present(queue, wait_queues, wait_queues_count);
 }
@@ -746,13 +795,13 @@ BSAPI void _preval_bs_acquire() {
 
 BSAPI int _preval_bs_queueSwap(bs_Queue* queue) {
     BS_VALIDATE(queue != NULL, 0,);
-    BS_VALIDATE(queue->head.source_id != BS_OBJECT_QUEUE, 0,);
+    BS_VALIDATE(queue->head.source_id == BS_OBJECT_QUEUE, 0,);
     return next.bs_queueSwap(queue);
 }
 
 BSAPI void _preval_bs_awaitQueue(bs_Queue* queue, bs_PipelineStage stage) {
     BS_VALIDATE(queue != NULL, ,);
-    BS_VALIDATE(queue->head.source_id != BS_OBJECT_QUEUE, ,);
+    BS_VALIDATE(queue->head.source_id == BS_OBJECT_QUEUE, ,);
     next.bs_awaitQueue(queue, stage);
 }
 
@@ -762,7 +811,7 @@ BSAPI void _preval_bs_awaitAcquisition() {
 
 BSAPI void _preval_bs_enqueue(bs_Queue* queue, bs_Callback function) {
     BS_VALIDATE(queue != NULL, ,);
-    BS_VALIDATE(queue->head.source_id != BS_OBJECT_QUEUE, ,);
+    BS_VALIDATE(queue->head.source_id == BS_OBJECT_QUEUE, ,);
     next.bs_enqueue(queue, function);
 }
 
@@ -772,7 +821,7 @@ BSAPI int _preval_bs_imageIndex() {
 
 BSAPI int _preval_bs_queueSwapsCount(bs_Queue* queue) {
     BS_VALIDATE(queue != NULL, 0,);
-    BS_VALIDATE(queue->head.source_id != BS_OBJECT_QUEUE, 0,);
+    BS_VALIDATE(queue->head.source_id == BS_OBJECT_QUEUE, 0,);
     return next.bs_queueSwapsCount(queue);
 }
 
@@ -783,7 +832,7 @@ BSAPI bs_Result _preval_bs_queue(bs_Object* object, bs_QueueBits flags) {
 
 BSAPI void _preval_bs_destroyQueue(bs_Queue* queue) {
     BS_VALIDATE(queue != NULL, ,);
-    BS_VALIDATE(queue->head.source_id != BS_OBJECT_QUEUE, ,);
+    BS_VALIDATE(queue->head.source_id == BS_OBJECT_QUEUE, ,);
     next.bs_destroyQueue(queue);
 }
 
@@ -793,19 +842,19 @@ BSAPI void _preval_bs_stallGPU() {
 
 BSAPI void _preval_bs_stallQueue(bs_Queue* queue) {
     BS_VALIDATE(queue != NULL, ,);
-    BS_VALIDATE(queue->head.source_id != BS_OBJECT_QUEUE, ,);
+    BS_VALIDATE(queue->head.source_id == BS_OBJECT_QUEUE, ,);
     next.bs_stallQueue(queue);
 }
 
 BSAPI bs_Result _preval_bs_stall(bs_Queue* queue) {
     BS_VALIDATE(queue != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(queue->head.source_id != BS_OBJECT_QUEUE, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(queue->head.source_id == BS_OBJECT_QUEUE, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_stall(queue);
 }
 
 BSAPI bs_Result _preval_bs_poll(bs_Queue* queue) {
     BS_VALIDATE(queue != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(queue->head.source_id != BS_OBJECT_QUEUE, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(queue->head.source_id == BS_OBJECT_QUEUE, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_poll(queue);
 }
 
@@ -856,22 +905,22 @@ BSAPI void _preval_bs_readKernTable(bs_TTF* ttf) {
 
 BSAPI void _preval_bs_bindFont(bs_Font* font, bs_Sampler* sampler, int bind_set, int bind_point) {
     BS_VALIDATE(font != NULL, ,);
-    BS_VALIDATE(font->head.source_id != BS_OBJECT_FONT, ,);
+    BS_VALIDATE(font->head.source_id == BS_OBJECT_FONT, ,);
     BS_VALIDATE(sampler != NULL, ,);
-    BS_VALIDATE(sampler->head.source_id != BS_OBJECT_SAMPLER, ,);
+    BS_VALIDATE(sampler->head.source_id == BS_OBJECT_SAMPLER, ,);
     next.bs_bindFont(font, sampler, bind_set, bind_point);
 }
 
 BSAPI bs_vec2 _preval_bs_textDimensions(bs_Font* font, char* name, int length) {
     BS_VALIDATE(font != NULL, (bs_vec2) { 0 },);
-    BS_VALIDATE(font->head.source_id != BS_OBJECT_FONT, (bs_vec2) { 0 },);
+    BS_VALIDATE(font->head.source_id == BS_OBJECT_FONT, (bs_vec2) { 0 },);
     BS_VALIDATE(name != NULL, (bs_vec2) { 0 },);
     return next.bs_textDimensions(font, name, length);
 }
 
 BSAPI void _preval_bs_destroyFont(bs_Font* font) {
     BS_VALIDATE(font != NULL, ,);
-    BS_VALIDATE(font->head.source_id != BS_OBJECT_FONT, ,);
+    BS_VALIDATE(font->head.source_id == BS_OBJECT_FONT, ,);
     next.bs_destroyFont(font);
 }
 
@@ -889,14 +938,26 @@ BSAPI bs_Result _preval_bs_image(bs_Object* object, bs_ivec2 dim, int num_indice
 
 BSAPI int _preval_bs_imageSwapsCount(bs_Image* image) {
     BS_VALIDATE(image != NULL, 0,);
-    BS_VALIDATE(image->head.source_id != BS_OBJECT_IMAGE, 0,);
+    BS_VALIDATE(image->head.source_id == BS_OBJECT_IMAGE, 0,);
     return next.bs_imageSwapsCount(image);
 }
 
 BSAPI void _preval_bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout, bs_ImageLayout new_layout) {
     BS_VALIDATE(image != NULL, ,);
-    BS_VALIDATE(image->head.source_id != BS_OBJECT_IMAGE, ,);
+    BS_VALIDATE(image->head.source_id == BS_OBJECT_IMAGE, ,);
     next.bs_transition(image, index, old_layout, new_layout);
+}
+
+BSAPI bs_Result _preval_bs_inspectPng(bs_PngData* out_png_data, char* path, int path_length) {
+    BS_VALIDATE(out_png_data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_inspectPng(out_png_data, path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_inspectPngV(bs_PngData* out_png_data, char* format, va_list args) {
+    BS_VALIDATE(out_png_data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_inspectPngV(out_png_data, format, args);
 }
 
 BSAPI bs_Result _preval_bs_loadPngData(char* data, size_t size, int channels_count, bs_PngData* out_png_data) {
@@ -917,6 +978,18 @@ BSAPI bs_Result _preval_bs_bitmapImage(bs_Object* existing_object, unsigned char
     return next.bs_bitmapImage(existing_object, image_data, dim, format, flags);
 }
 
+BSAPI bs_Result _preval_bs_savePng(char* data, bs_ivec2 resolution, bs_PngType type, char* path, int path_length) {
+    BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_savePng(data, resolution, type, path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_savePngV(char* data, bs_ivec2 resolution, bs_PngType type, char* format, va_list args) {
+    BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_savePngV(data, resolution, type, format, args);
+}
+
 BSAPI bs_Result _preval_bs_encodePng(size_t* out_size, const unsigned char* data, bs_ivec2 size, bs_PngType type, unsigned char** out) {
     BS_VALIDATE(out_size != NULL, BS_RESULT_VALIDATION_ERROR,);
     BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
@@ -926,26 +999,26 @@ BSAPI bs_Result _preval_bs_encodePng(size_t* out_size, const unsigned char* data
 
 BSAPI void _preval_bs_destroyImage(bs_Image* image) {
     BS_VALIDATE(image != NULL, ,);
-    BS_VALIDATE(image->head.source_id != BS_OBJECT_IMAGE, ,);
+    BS_VALIDATE(image->head.source_id == BS_OBJECT_IMAGE, ,);
     next.bs_destroyImage(image);
 }
 
 BSAPI bs_Result _preval_bs_resizeImage(bs_Image* image, bs_ivec2 size, int indices_count) {
     BS_VALIDATE(image != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(image->head.source_id != BS_OBJECT_IMAGE, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(image->head.source_id == BS_OBJECT_IMAGE, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_resizeImage(image, size, indices_count);
 }
 
 BSAPI bs_Result _preval_bs_queryImageIndexHash(bs_Image* image, bs_U64 name_hash, int* out) {
     BS_VALIDATE(image != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(image->head.source_id != BS_OBJECT_IMAGE, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(image->head.source_id == BS_OBJECT_IMAGE, BS_RESULT_VALIDATION_ERROR,);
     BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_queryImageIndexHash(image, name_hash, out);
 }
 
 BSAPI bs_Result _preval_bs_queryImageIndex(bs_Image* image, char* name, int* out) {
     BS_VALIDATE(image != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(image->head.source_id != BS_OBJECT_IMAGE, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(image->head.source_id == BS_OBJECT_IMAGE, BS_RESULT_VALIDATION_ERROR,);
     BS_VALIDATE(name != NULL, BS_RESULT_VALIDATION_ERROR,);
     BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_queryImageIndex(image, name, out);
@@ -953,22 +1026,34 @@ BSAPI bs_Result _preval_bs_queryImageIndex(bs_Image* image, char* name, int* out
 
 BSAPI void _preval_bs_copyImageToBufferAsync(bs_Image* image, bs_Buffer* buffer, int image_index, bs_ImageLayout layout, bs_U64 buffer_offset, bs_ivec2 offset, bs_ivec2 resolution) {
     BS_VALIDATE(image != NULL, ,);
-    BS_VALIDATE(image->head.source_id != BS_OBJECT_IMAGE, ,);
+    BS_VALIDATE(image->head.source_id == BS_OBJECT_IMAGE, ,);
     BS_VALIDATE(buffer != NULL, ,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, ,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, ,);
     next.bs_copyImageToBufferAsync(image, buffer, image_index, layout, buffer_offset, offset, resolution);
 }
 
 BSAPI void _preval_bs_copyBufferToImage(bs_Buffer* buffer, bs_Image* image, int index, bs_ImageLayout layout) {
     BS_VALIDATE(buffer != NULL, ,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, ,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, ,);
     BS_VALIDATE(image != NULL, ,);
-    BS_VALIDATE(image->head.source_id != BS_OBJECT_IMAGE, ,);
+    BS_VALIDATE(image->head.source_id == BS_OBJECT_IMAGE, ,);
     next.bs_copyBufferToImage(buffer, image, index, layout);
 }
 
 BSAPI void _preval_bs_blit(bs_BlitOperation operation) {
     next.bs_blit(operation);
+}
+
+BSAPI bs_Result _preval_bs_loadImage(bs_Object* object, int package_id, bs_ImageBits flags, char* path, int path_length) {
+    BS_VALIDATE(object != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_loadImage(object, package_id, flags, path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_loadImageV(bs_Object* object, int package_id, bs_ImageBits flags, char* format, va_list args) {
+    BS_VALIDATE(object != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_loadImageV(object, package_id, flags, format, args);
 }
 
 BSAPI bool _preval_bs_isStencilFormat(bs_Format format) {
@@ -985,14 +1070,14 @@ BSAPI bool _preval_bs_hasAlpha(bs_Format format) {
 
 BSAPI void _preval_bs_nameImage(bs_Image* image, const char* name) {
     BS_VALIDATE(image != NULL, ,);
-    BS_VALIDATE(image->head.source_id != BS_OBJECT_IMAGE, ,);
+    BS_VALIDATE(image->head.source_id == BS_OBJECT_IMAGE, ,);
     BS_VALIDATE(name != NULL, ,);
     next.bs_nameImage(image, name);
 }
 
 BSAPI void _preval_bs_destroySampler(bs_Sampler* sampler) {
     BS_VALIDATE(sampler != NULL, ,);
-    BS_VALIDATE(sampler->head.source_id != BS_OBJECT_SAMPLER, ,);
+    BS_VALIDATE(sampler->head.source_id == BS_OBJECT_SAMPLER, ,);
     next.bs_destroySampler(sampler);
 }
 
@@ -1001,9 +1086,21 @@ BSAPI bs_Result _preval_bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_
     return next.bs_sampler(object, filter, flags);
 }
 
+BSAPI bs_Result _preval_bs_loadAtlas(bs_Object* object, int package_id, bs_U32 flags, char* path, int path_length) {
+    BS_VALIDATE(object != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_loadAtlas(object, package_id, flags, path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_loadAtlasV(bs_Object* object, int package_id, bs_U32 flags, char* format, va_list args) {
+    BS_VALIDATE(object != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_loadAtlasV(object, package_id, flags, format, args);
+}
+
 BSAPI bs_vec4 _preval_bs_atlasCoordinates(bs_Atlas* atlas, int texture_id) {
     BS_VALIDATE(atlas != NULL, (bs_vec4) { 0 },);
-    BS_VALIDATE(atlas->head.source_id != BS_OBJECT_ATLAS, (bs_vec4) { 0 },);
+    BS_VALIDATE(atlas->head.source_id == BS_OBJECT_ATLAS, (bs_vec4) { 0 },);
     return next.bs_atlasCoordinates(atlas, texture_id);
 }
 
@@ -1017,26 +1114,26 @@ BSAPI bs_vec4 _preval_bs_flipUV(bs_vec4 uv) {
 
 BSAPI bs_vec2 _preval_bs_atlasSize(bs_Atlas* atlas, int texture) {
     BS_VALIDATE(atlas != NULL, (bs_vec2) { 0 },);
-    BS_VALIDATE(atlas->head.source_id != BS_OBJECT_ATLAS, (bs_vec2) { 0 },);
+    BS_VALIDATE(atlas->head.source_id == BS_OBJECT_ATLAS, (bs_vec2) { 0 },);
     return next.bs_atlasSize(atlas, texture);
 }
 
 BSAPI int _preval_bs_queryAtlasHash(bs_Atlas* atlas, bs_U64 hash) {
     BS_VALIDATE(atlas != NULL, 0,);
-    BS_VALIDATE(atlas->head.source_id != BS_OBJECT_ATLAS, 0,);
+    BS_VALIDATE(atlas->head.source_id == BS_OBJECT_ATLAS, 0,);
     return next.bs_queryAtlasHash(atlas, hash);
 }
 
 BSAPI int _preval_bs_queryAtlas(bs_Atlas* atlas, const char* name) {
     BS_VALIDATE(atlas != NULL, 0,);
-    BS_VALIDATE(atlas->head.source_id != BS_OBJECT_ATLAS, 0,);
+    BS_VALIDATE(atlas->head.source_id == BS_OBJECT_ATLAS, 0,);
     BS_VALIDATE(name != NULL, 0,);
     return next.bs_queryAtlas(atlas, name);
 }
 
 BSAPI void _preval_bs_destroyAtlas(bs_Atlas* atlas) {
     BS_VALIDATE(atlas != NULL, ,);
-    BS_VALIDATE(atlas->head.source_id != BS_OBJECT_ATLAS, ,);
+    BS_VALIDATE(atlas->head.source_id == BS_OBJECT_ATLAS, ,);
     next.bs_destroyAtlas(atlas);
 }
 
@@ -1081,14 +1178,24 @@ BSAPI struct VkDevice_T* _preval_bsi_fetchDevice() {
 
 BSAPI bs_Result _preval_bs_resetQueue(bs_Queue* queue) {
     BS_VALIDATE(queue != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(queue->head.source_id != BS_OBJECT_QUEUE, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(queue->head.source_id == BS_OBJECT_QUEUE, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_resetQueue(queue);
 }
 
 BSAPI bs_Result _preval_bs_pushQueue(bs_Queue* queue) {
     BS_VALIDATE(queue != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(queue->head.source_id != BS_OBJECT_QUEUE, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(queue->head.source_id == BS_OBJECT_QUEUE, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_pushQueue(queue);
+}
+
+BSAPI void _preval_bsi_nameHandle(bs_U64 handle, bs_U32 type, char* value, int value_length) {
+    BS_VALIDATE(value != NULL, ,);
+    next.bsi_nameHandle(handle, type, value, value_length);
+}
+
+BSAPI void _preval_bsi_nameHandleV(bs_U64 handle, bs_U32 type, char* format, va_list args) {
+    BS_VALIDATE(format != NULL, ,);
+    next.bsi_nameHandleV(handle, type, format, args);
 }
 
 BSAPI bs_JsonEnumeration _preval_bs_beginEnumeration(bs_Json* json) {
@@ -1137,6 +1244,18 @@ BSAPI bs_Result _preval_bs_json(char* raw, int len, bs_Json* out) {
     return next.bs_json(raw, len, out);
 }
 
+BSAPI bs_Result _preval_bs_loadJson(bs_Json* out, char* path, int path_length) {
+    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_loadJson(out, path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_loadJsonV(bs_Json* out, char* format, va_list args) {
+    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_loadJsonV(out, format, args);
+}
+
 BSAPI void _preval_bs_destroyJson(bs_Json* json) {
     BS_VALIDATE(json != NULL, ,);
     next.bs_destroyJson(json);
@@ -1145,6 +1264,42 @@ BSAPI void _preval_bs_destroyJson(bs_Json* json) {
 BSAPI bs_JsonValue _preval_bs_parseJsonValue(char* raw) {
     BS_VALIDATE(raw != NULL, (bs_JsonValue) { 0 },);
     return next.bs_parseJsonValue(raw);
+}
+
+BSAPI bs_JsonValue _preval_bs_fetchJson(bs_Json* root, bs_JsonType expect, char* path, int path_length) {
+    BS_VALIDATE(root != NULL, (bs_JsonValue) { 0 },);
+    BS_VALIDATE(path != NULL, (bs_JsonValue) { 0 },);
+    return next.bs_fetchJson(root, expect, path, path_length);
+}
+
+BSAPI bs_JsonValue _preval_bs_fetchJsonV(bs_Json* root, bs_JsonType expect, char* format, va_list args) {
+    BS_VALIDATE(root != NULL, (bs_JsonValue) { 0 },);
+    BS_VALIDATE(format != NULL, (bs_JsonValue) { 0 },);
+    return next.bs_fetchJsonV(root, expect, format, args);
+}
+
+BSAPI void _preval_bs_deleteJson(bs_Json* root, char* path, int path_length) {
+    BS_VALIDATE(root != NULL, ,);
+    BS_VALIDATE(path != NULL, ,);
+    next.bs_deleteJson(root, path, path_length);
+}
+
+BSAPI void _preval_bs_deleteJsonV(bs_Json* root, char* format, va_list args) {
+    BS_VALIDATE(root != NULL, ,);
+    BS_VALIDATE(format != NULL, ,);
+    next.bs_deleteJsonV(root, format, args);
+}
+
+BSAPI bs_Result _preval_bs_ensureJson(bs_Json* root, bs_JsonValue value, char* path, int path_length) {
+    BS_VALIDATE(root != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_ensureJson(root, value, path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_ensureJsonV(bs_Json* root, bs_JsonValue value, char* format, va_list args) {
+    BS_VALIDATE(root != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_ensureJsonV(root, value, format, args);
 }
 
 BSAPI bs_JsonValue _preval_bs_jsonValueFromObject(bs_JsonObject x) {
@@ -1210,8 +1365,70 @@ BSAPI bs_JsonValue _preval_bs_jsonRGBA(bs_RGBA color) {
     return next.bs_jsonRGBA(color);
 }
 
+BSAPI char* _preval_bs_logSection(char* value, int value_length) {
+    BS_VALIDATE(value != NULL, NULL,);
+    return next.bs_logSection(value, value_length);
+}
+
+BSAPI char* _preval_bs_logSectionV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, NULL,);
+    return next.bs_logSectionV(format, args);
+}
+
 BSAPI char* _preval_bs_logEndOfSection() {
     return next.bs_logEndOfSection();
+}
+
+BSAPI char* _preval_bs_logWithTimestamp(const char* type, int type_len, char* value, int value_length) {
+    BS_VALIDATE(type != NULL, NULL,);
+    BS_VALIDATE(value != NULL, NULL,);
+    return next.bs_logWithTimestamp(type, type_len, value, value_length);
+}
+
+BSAPI char* _preval_bs_logWithTimestampV(const char* type, int type_len, char* format, va_list args) {
+    BS_VALIDATE(type != NULL, NULL,);
+    BS_VALIDATE(format != NULL, NULL,);
+    return next.bs_logWithTimestampV(type, type_len, format, args);
+}
+
+BSAPI char* _preval_bs_log(char* message, int message_length) {
+    BS_VALIDATE(message != NULL, NULL,);
+    return next.bs_log(message, message_length);
+}
+
+BSAPI char* _preval_bs_logV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, NULL,);
+    return next.bs_logV(format, args);
+}
+
+BSAPI char* _preval_bs_info(char* message, int message_length) {
+    BS_VALIDATE(message != NULL, NULL,);
+    return next.bs_info(message, message_length);
+}
+
+BSAPI char* _preval_bs_infoV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, NULL,);
+    return next.bs_infoV(format, args);
+}
+
+BSAPI char* _preval_bs_warn(char* message, int message_length) {
+    BS_VALIDATE(message != NULL, NULL,);
+    return next.bs_warn(message, message_length);
+}
+
+BSAPI char* _preval_bs_warnV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, NULL,);
+    return next.bs_warnV(format, args);
+}
+
+BSAPI void _preval_bs_critical(char* message, int message_length) {
+    BS_VALIDATE(message != NULL, ,);
+    next.bs_critical(message, message_length);
+}
+
+BSAPI void _preval_bs_criticalV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, ,);
+    next.bs_criticalV(format, args);
 }
 
 BSAPI bs_Instance* _preval_bs_instance() {
@@ -1242,6 +1459,16 @@ BSAPI bs_IO* _preval_bs_io() {
     return next.bs_io();
 }
 
+BSAPI void _preval_bs_system(char* value, int value_length) {
+    BS_VALIDATE(value != NULL, ,);
+    next.bs_system(value, value_length);
+}
+
+BSAPI void _preval_bs_systemV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, ,);
+    next.bs_systemV(format, args);
+}
+
 BSAPI void _preval_bs_createThread(bs_ThreadFunction function, void* param) {
     BS_VALIDATE(param != NULL, ,);
     next.bs_createThread(function, param);
@@ -1266,6 +1493,18 @@ BSAPI bs_String* _preval_bs_stringAlloc(bs_String* old, int len) {
 BSAPI bs_String* _preval_bs_emptyString(bs_String* old) {
     BS_VALIDATE(old != NULL, NULL,);
     return next.bs_emptyString(old);
+}
+
+BSAPI bs_String* _preval_bs_string(bs_String* old, char* value, int value_length) {
+    BS_VALIDATE(old != NULL, NULL,);
+    BS_VALIDATE(value != NULL, NULL,);
+    return next.bs_string(old, value, value_length);
+}
+
+BSAPI bs_String* _preval_bs_stringV(bs_String* old, char* format, va_list args) {
+    BS_VALIDATE(old != NULL, NULL,);
+    BS_VALIDATE(format != NULL, NULL,);
+    return next.bs_stringV(old, format, args);
 }
 
 BSAPI void _preval_bs_toUpper(char* string, int len) {
@@ -1312,6 +1551,16 @@ BSAPI bool _preval_bs_stringContainsChar(char* string, char c) {
 
 BSAPI bs_String* _preval_bs_workingDirectory() {
     return next.bs_workingDirectory();
+}
+
+BSAPI bs_Result _preval_bs_setWorkingDirectory(char* path, int path_length) {
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_setWorkingDirectory(path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_setWorkingDirectoryV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_setWorkingDirectoryV(format, args);
 }
 
 BSAPI bs_String* _preval_bs_executablePath() {
@@ -1500,6 +1749,16 @@ BSAPI int _preval_bs_numDigits(int n) {
     return next.bs_numDigits(n);
 }
 
+BSAPI bool _preval_bs_directoryExists(char* path, int path_length) {
+    BS_VALIDATE(path != NULL, false,);
+    return next.bs_directoryExists(path, path_length);
+}
+
+BSAPI bool _preval_bs_directoryExistsV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, false,);
+    return next.bs_directoryExistsV(format, args);
+}
+
 BSAPI char* _preval_bs_fileExtension(const char* path) {
     BS_VALIDATE(path != NULL, NULL,);
     return next.bs_fileExtension(path);
@@ -1516,10 +1775,88 @@ BSAPI char* _preval_bs_fileName(const char* path) {
     return next.bs_fileName(path);
 }
 
+BSAPI bs_Result _preval_bs_appendFile(char* data, bs_U32 data_len, char* value, int value_length) {
+    BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_appendFile(data, data_len, value, value_length);
+}
+
+BSAPI bs_Result _preval_bs_appendFileV(char* data, bs_U32 data_len, char* format, va_list args) {
+    BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_appendFileV(data, data_len, format, args);
+}
+
+BSAPI bs_Result _preval_bs_saveFile(char* data, bs_U32 data_len, char* path, int path_length) {
+    BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_saveFile(data, data_len, path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_saveFileV(char* data, bs_U32 data_len, char* format, va_list args) {
+    BS_VALIDATE(data != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_saveFileV(data, data_len, format, args);
+}
+
+BSAPI void _preval_bs_convertWin32Path(char* path, int path_length) {
+    BS_VALIDATE(path != NULL, ,);
+    next.bs_convertWin32Path(path, path_length);
+}
+
+BSAPI void _preval_bs_convertWin32PathV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, ,);
+    next.bs_convertWin32PathV(format, args);
+}
+
+BSAPI bs_Result _preval_bs_ensureDirectory(char* path, int path_length) {
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_ensureDirectory(path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_ensureDirectoryV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_ensureDirectoryV(format, args);
+}
+
+BSAPI bs_Result _preval_bs_fileModifiedDate(bs_DateTime* out, char* path, int path_length) {
+    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_fileModifiedDate(out, path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_fileModifiedDateV(bs_DateTime* out, char* format, va_list args) {
+    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_fileModifiedDateV(out, format, args);
+}
+
+BSAPI bs_Result _preval_bs_setFileModifiedDate(bs_DateTime* date, char* path, int path_length) {
+    BS_VALIDATE(date != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_setFileModifiedDate(date, path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_setFileModifiedDateV(bs_DateTime* date, char* format, va_list args) {
+    BS_VALIDATE(date != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_setFileModifiedDateV(date, format, args);
+}
+
 BSAPI bs_String* _preval_bs_fullPath(bs_String* old, const char* path, int path_len) {
     BS_VALIDATE(old != NULL, NULL,);
     BS_VALIDATE(path != NULL, NULL,);
     return next.bs_fullPath(old, path, path_len);
+}
+
+BSAPI bool _preval_bs_fileExists(char* path, int path_length) {
+    BS_VALIDATE(path != NULL, false,);
+    return next.bs_fileExists(path, path_length);
+}
+
+BSAPI bool _preval_bs_fileExistsV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, false,);
+    return next.bs_fileExistsV(format, args);
 }
 
 BSAPI bs_I64 _preval_bs_toLong(const char* str) {
@@ -1696,6 +2033,18 @@ BSAPI bs_Result _preval_bs_queryPackage(const char* name, int* out) {
     return next.bs_queryPackage(name, out);
 }
 
+BSAPI bs_Result _preval_bs_loadResource(int package_id, bs_U32 flags, bs_Resource** out, char* value, int value_length) {
+    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_loadResource(package_id, flags, out, value, value_length);
+}
+
+BSAPI bs_Result _preval_bs_loadResourceV(int package_id, bs_U32 flags, bs_Resource** out, char* format, va_list args) {
+    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_loadResourceV(package_id, flags, out, format, args);
+}
+
 BSAPI bs_Result _preval_bs_loadPackage(const char* path, int* out) {
     BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
     BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
@@ -1785,9 +2134,9 @@ BSAPI bs_Result _preval_bs_binding(bs_U32 bind_set_slot, bs_U32 bind_point_slot,
 
 BSAPI bs_Result _preval_bs_bindImage(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Image* image, bs_Sampler* sampler, bs_ImageLayout layout) {
     BS_VALIDATE(image != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(image->head.source_id != BS_OBJECT_IMAGE, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(image->head.source_id == BS_OBJECT_IMAGE, BS_RESULT_VALIDATION_ERROR,);
     BS_VALIDATE(sampler != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(sampler->head.source_id != BS_OBJECT_SAMPLER, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(sampler->head.source_id == BS_OBJECT_SAMPLER, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_bindImage(bind_set_slot, bind_point_slot, image, sampler, layout);
 }
 
@@ -1798,7 +2147,7 @@ BSAPI bs_Result _preval_bs_bindImages(bs_U32 bind_set_slot, bs_U32 bind_point_sl
 
 BSAPI bs_Result _preval_bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Buffer* buffer) {
     BS_VALIDATE(buffer != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(buffer->head.source_id != BS_OBJECT_BUFFER, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_bindBuffer(bind_set_slot, bind_point_slot, buffer);
 }
 
@@ -1809,7 +2158,7 @@ BSAPI bs_Result _preval_bs_bindBuffers(bs_U32 bind_set_slot, bs_U32 bind_point_s
 
 BSAPI bs_Result _preval_bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer* ray_tracer) {
     BS_VALIDATE(ray_tracer != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(ray_tracer->head.source_id != BS_OBJECT_RAY_TRACER, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(ray_tracer->head.source_id == BS_OBJECT_RAY_TRACER, BS_RESULT_VALIDATION_ERROR,);
     return next.bs_bindAccelerationStructure(bind_set_slot, bind_point_slot, ray_tracer);
 }
 
@@ -1995,6 +2344,16 @@ BSAPI bs_ivec2 _preval_bs_resolution() {
     return next.bs_resolution();
 }
 
+BSAPI void _preval_bs_titleWindow(char* name, int name_length) {
+    BS_VALIDATE(name != NULL, ,);
+    next.bs_titleWindow(name, name_length);
+}
+
+BSAPI void _preval_bs_titleWindowV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, ,);
+    next.bs_titleWindowV(format, args);
+}
+
 BSAPI bool _preval_bs_inFixedTick() {
     return next.bs_inFixedTick();
 }
@@ -2012,8 +2371,128 @@ BSAPI void _preval_bs_checkTimer(bs_Timer* timer) {
     next.bs_checkTimer(timer);
 }
 
-bs_FunctionTable _preval_bs_getFunctionTable() {
-    bs_FunctionTable functions;
+BSAPI void _preval_bs_copyToClipboard(char* value, int value_length) {
+    BS_VALIDATE(value != NULL, ,);
+    next.bs_copyToClipboard(value, value_length);
+}
+
+BSAPI void _preval_bs_copyToClipboardV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, ,);
+    next.bs_copyToClipboardV(format, args);
+}
+
+BSAPI bs_String* _preval_bs_appendString(bs_String* destination, char* value, int value_length) {
+    BS_VALIDATE(destination != NULL, NULL,);
+    BS_VALIDATE(value != NULL, NULL,);
+    return next.bs_appendString(destination, value, value_length);
+}
+
+BSAPI bs_String* _preval_bs_appendStringV(bs_String* destination, char* format, va_list args) {
+    BS_VALIDATE(destination != NULL, NULL,);
+    BS_VALIDATE(format != NULL, NULL,);
+    return next.bs_appendStringV(destination, format, args);
+}
+
+BSAPI bs_Result _preval_bs_foreachFile(bs_ForeachDocumentFunction x, void* param, char* value, int value_length) {
+    BS_VALIDATE(param != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(value != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_foreachFile(x, param, value, value_length);
+}
+
+BSAPI bs_Result _preval_bs_foreachFileV(bs_ForeachDocumentFunction x, void* param, char* format, va_list args) {
+    BS_VALIDATE(param != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_foreachFileV(x, param, format, args);
+}
+
+BSAPI bs_Result _preval_bs_foreachDirectory(bs_ForeachDocumentFunction x, void* param, char* path, int path_length) {
+    BS_VALIDATE(param != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_foreachDirectory(x, param, path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_foreachDirectoryV(bs_ForeachDocumentFunction x, void* param, char* format, va_list args) {
+    BS_VALIDATE(param != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_foreachDirectoryV(x, param, format, args);
+}
+
+BSAPI int _preval_bs_numFiles(char* path, int path_length) {
+    BS_VALIDATE(path != NULL, 0,);
+    return next.bs_numFiles(path, path_length);
+}
+
+BSAPI int _preval_bs_numFilesV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, 0,);
+    return next.bs_numFilesV(format, args);
+}
+
+BSAPI int _preval_bs_numDirectories(char* path, int path_length) {
+    BS_VALIDATE(path != NULL, 0,);
+    return next.bs_numDirectories(path, path_length);
+}
+
+BSAPI int _preval_bs_numDirectoriesV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, 0,);
+    return next.bs_numDirectoriesV(format, args);
+}
+
+BSAPI bs_Result _preval_bs_loadFile(bs_String** out, char* path, int path_length) {
+    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_loadFile(out, path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_loadFileV(bs_String** out, char* format, va_list args) {
+    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_loadFileV(out, format, args);
+}
+
+BSAPI bs_Result _preval_bs_loadFileChunk(long offset, size_t size, bs_String** out, char* path, int path_length) {
+    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_loadFileChunk(offset, size, out, path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_loadFileChunkV(long offset, size_t size, bs_String** out, char* format, va_list args) {
+    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_loadFileChunkV(offset, size, out, format, args);
+}
+
+BSAPI bs_Result _preval_bs_deleteFile(char* path, int path_length) {
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_deleteFile(path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_deleteFileV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_deleteFileV(format, args);
+}
+
+BSAPI bs_Result _preval_bs_deleteDirectoryContents(char* path, int path_length) {
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_deleteDirectoryContents(path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_deleteDirectoryContentsV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_deleteDirectoryContentsV(format, args);
+}
+
+BSAPI bs_Result _preval_bs_deleteDirectory(char* path, int path_length) {
+    BS_VALIDATE(path != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_deleteDirectory(path, path_length);
+}
+
+BSAPI bs_Result _preval_bs_deleteDirectoryV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, BS_RESULT_VALIDATION_ERROR,);
+    return next.bs_deleteDirectoryV(format, args);
+}
+
+bs_FunctionTable* _preval_bs_getFunctionTable() {
+    bs_FunctionTable functions = { 0 };
 
     functions.bs_v2Mid = _preval_bs_v2Mid;
     functions.bs_v3Mid = _preval_bs_v3Mid;
@@ -2044,6 +2523,8 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_rectangleVsPoint = _preval_bs_rectangleVsPoint;
     functions.bs_lineVsLine = _preval_bs_lineVsLine;
     functions.bs_populateVertexDeclaration = _preval_bs_populateVertexDeclaration;
+    functions.bs_beginComment = _preval_bs_beginComment;
+    functions.bs_beginCommentV = _preval_bs_beginCommentV;
     functions.bs_endComment = _preval_bs_endComment;
     functions.bs_swapchainImage = _preval_bs_swapchainImage;
     functions.bs_clearStencil = _preval_bs_clearStencil;
@@ -2064,6 +2545,8 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_destroyRayTracer = _preval_bs_destroyRayTracer;
     functions.bs_dispatchAsync = _preval_bs_dispatchAsync;
     functions.bs_bufferSwaps = _preval_bs_bufferSwaps;
+    functions.bs_nameBuffer = _preval_bs_nameBuffer;
+    functions.bs_nameBufferV = _preval_bs_nameBufferV;
     functions.bs_buffer = _preval_bs_buffer;
     functions.bs_bufferIsMapped = _preval_bs_bufferIsMapped;
     functions.bs_bufferMap = _preval_bs_bufferMap;
@@ -2076,6 +2559,8 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_copyAsync = _preval_bs_copyAsync;
     functions.bs_setBufferAsync = _preval_bs_setBufferAsync;
     functions.bs_batch = _preval_bs_batch;
+    functions.bs_queryAttribute = _preval_bs_queryAttribute;
+    functions.bs_queryAttributeV = _preval_bs_queryAttributeV;
     functions.bs_batchIsPushed = _preval_bs_batchIsPushed;
     functions.bs_batchIsIndexed = _preval_bs_batchIsIndexed;
     functions.bs_minimizeBatch = _preval_bs_minimizeBatch;
@@ -2158,9 +2643,13 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_image = _preval_bs_image;
     functions.bs_imageSwapsCount = _preval_bs_imageSwapsCount;
     functions.bs_transition = _preval_bs_transition;
+    functions.bs_inspectPng = _preval_bs_inspectPng;
+    functions.bs_inspectPngV = _preval_bs_inspectPngV;
     functions.bs_loadPngData = _preval_bs_loadPngData;
     functions.bs_loadPng = _preval_bs_loadPng;
     functions.bs_bitmapImage = _preval_bs_bitmapImage;
+    functions.bs_savePng = _preval_bs_savePng;
+    functions.bs_savePngV = _preval_bs_savePngV;
     functions.bs_encodePng = _preval_bs_encodePng;
     functions.bs_destroyImage = _preval_bs_destroyImage;
     functions.bs_resizeImage = _preval_bs_resizeImage;
@@ -2169,12 +2658,16 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_copyImageToBufferAsync = _preval_bs_copyImageToBufferAsync;
     functions.bs_copyBufferToImage = _preval_bs_copyBufferToImage;
     functions.bs_blit = _preval_bs_blit;
+    functions.bs_loadImage = _preval_bs_loadImage;
+    functions.bs_loadImageV = _preval_bs_loadImageV;
     functions.bs_isStencilFormat = _preval_bs_isStencilFormat;
     functions.bs_isDepthFormat = _preval_bs_isDepthFormat;
     functions.bs_hasAlpha = _preval_bs_hasAlpha;
     functions.bs_nameImage = _preval_bs_nameImage;
     functions.bs_destroySampler = _preval_bs_destroySampler;
     functions.bs_sampler = _preval_bs_sampler;
+    functions.bs_loadAtlas = _preval_bs_loadAtlas;
+    functions.bs_loadAtlasV = _preval_bs_loadAtlasV;
     functions.bs_atlasCoordinates = _preval_bs_atlasCoordinates;
     functions.bs_mirrorUV = _preval_bs_mirrorUV;
     functions.bs_flipUV = _preval_bs_flipUV;
@@ -2192,6 +2685,8 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bsi_fetchDevice = _preval_bsi_fetchDevice;
     functions.bs_resetQueue = _preval_bs_resetQueue;
     functions.bs_pushQueue = _preval_bs_pushQueue;
+    functions.bsi_nameHandle = _preval_bsi_nameHandle;
+    functions.bsi_nameHandleV = _preval_bsi_nameHandleV;
     functions.bs_beginEnumeration = _preval_bs_beginEnumeration;
     functions.bs_enumerateJson = _preval_bs_enumerateJson;
     functions.bs_jsonRoot = _preval_bs_jsonRoot;
@@ -2201,8 +2696,16 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_emptyJson = _preval_bs_emptyJson;
     functions.bs_emptyJsonArray = _preval_bs_emptyJsonArray;
     functions.bs_json = _preval_bs_json;
+    functions.bs_loadJson = _preval_bs_loadJson;
+    functions.bs_loadJsonV = _preval_bs_loadJsonV;
     functions.bs_destroyJson = _preval_bs_destroyJson;
     functions.bs_parseJsonValue = _preval_bs_parseJsonValue;
+    functions.bs_fetchJson = _preval_bs_fetchJson;
+    functions.bs_fetchJsonV = _preval_bs_fetchJsonV;
+    functions.bs_deleteJson = _preval_bs_deleteJson;
+    functions.bs_deleteJsonV = _preval_bs_deleteJsonV;
+    functions.bs_ensureJson = _preval_bs_ensureJson;
+    functions.bs_ensureJsonV = _preval_bs_ensureJsonV;
     functions.bs_jsonValueFromObject = _preval_bs_jsonValueFromObject;
     functions.bs_jsonValueFromRoot = _preval_bs_jsonValueFromRoot;
     functions.bs_jsonValueFromBool = _preval_bs_jsonValueFromBool;
@@ -2217,7 +2720,19 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_jsonVec3 = _preval_bs_jsonVec3;
     functions.bs_jsonVec4 = _preval_bs_jsonVec4;
     functions.bs_jsonRGBA = _preval_bs_jsonRGBA;
+    functions.bs_logSection = _preval_bs_logSection;
+    functions.bs_logSectionV = _preval_bs_logSectionV;
     functions.bs_logEndOfSection = _preval_bs_logEndOfSection;
+    functions.bs_logWithTimestamp = _preval_bs_logWithTimestamp;
+    functions.bs_logWithTimestampV = _preval_bs_logWithTimestampV;
+    functions.bs_log = _preval_bs_log;
+    functions.bs_logV = _preval_bs_logV;
+    functions.bs_info = _preval_bs_info;
+    functions.bs_infoV = _preval_bs_infoV;
+    functions.bs_warn = _preval_bs_warn;
+    functions.bs_warnV = _preval_bs_warnV;
+    functions.bs_critical = _preval_bs_critical;
+    functions.bs_criticalV = _preval_bs_criticalV;
     functions.bs_instance = _preval_bs_instance;
     functions.bs_args = _preval_bs_args;
     functions.bs_features = _preval_bs_features;
@@ -2225,11 +2740,15 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_config = _preval_bs_config;
     functions.bs_scope = _preval_bs_scope;
     functions.bs_io = _preval_bs_io;
+    functions.bs_system = _preval_bs_system;
+    functions.bs_systemV = _preval_bs_systemV;
     functions.bs_createThread = _preval_bs_createThread;
     functions.bs_formatStringLength = _preval_bs_formatStringLength;
     functions.bs_checkStringPool = _preval_bs_checkStringPool;
     functions.bs_stringAlloc = _preval_bs_stringAlloc;
     functions.bs_emptyString = _preval_bs_emptyString;
+    functions.bs_string = _preval_bs_string;
+    functions.bs_stringV = _preval_bs_stringV;
     functions.bs_toUpper = _preval_bs_toUpper;
     functions.bs_toLower = _preval_bs_toLower;
     functions.bs_hash = _preval_bs_hash;
@@ -2239,6 +2758,8 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_lastChar = _preval_bs_lastChar;
     functions.bs_stringContainsChar = _preval_bs_stringContainsChar;
     functions.bs_workingDirectory = _preval_bs_workingDirectory;
+    functions.bs_setWorkingDirectory = _preval_bs_setWorkingDirectory;
+    functions.bs_setWorkingDirectoryV = _preval_bs_setWorkingDirectoryV;
     functions.bs_executablePath = _preval_bs_executablePath;
     functions.bs_appdataPath = _preval_bs_appdataPath;
     functions.bs_shortenString = _preval_bs_shortenString;
@@ -2276,10 +2797,26 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_guid = _preval_bs_guid;
     functions.bs_guidIsNull = _preval_bs_guidIsNull;
     functions.bs_numDigits = _preval_bs_numDigits;
+    functions.bs_directoryExists = _preval_bs_directoryExists;
+    functions.bs_directoryExistsV = _preval_bs_directoryExistsV;
     functions.bs_fileExtension = _preval_bs_fileExtension;
     functions.bs_fileExtensionIs = _preval_bs_fileExtensionIs;
     functions.bs_fileName = _preval_bs_fileName;
+    functions.bs_appendFile = _preval_bs_appendFile;
+    functions.bs_appendFileV = _preval_bs_appendFileV;
+    functions.bs_saveFile = _preval_bs_saveFile;
+    functions.bs_saveFileV = _preval_bs_saveFileV;
+    functions.bs_convertWin32Path = _preval_bs_convertWin32Path;
+    functions.bs_convertWin32PathV = _preval_bs_convertWin32PathV;
+    functions.bs_ensureDirectory = _preval_bs_ensureDirectory;
+    functions.bs_ensureDirectoryV = _preval_bs_ensureDirectoryV;
+    functions.bs_fileModifiedDate = _preval_bs_fileModifiedDate;
+    functions.bs_fileModifiedDateV = _preval_bs_fileModifiedDateV;
+    functions.bs_setFileModifiedDate = _preval_bs_setFileModifiedDate;
+    functions.bs_setFileModifiedDateV = _preval_bs_setFileModifiedDateV;
     functions.bs_fullPath = _preval_bs_fullPath;
+    functions.bs_fileExists = _preval_bs_fileExists;
+    functions.bs_fileExistsV = _preval_bs_fileExistsV;
     functions.bs_toLong = _preval_bs_toLong;
     functions.bs_toULong = _preval_bs_toULong;
     functions.bs_toDouble = _preval_bs_toDouble;
@@ -2312,6 +2849,8 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_destroyResource = _preval_bs_destroyResource;
     functions.bs_queryResource = _preval_bs_queryResource;
     functions.bs_queryPackage = _preval_bs_queryPackage;
+    functions.bs_loadResource = _preval_bs_loadResource;
+    functions.bs_loadResourceV = _preval_bs_loadResourceV;
     functions.bs_loadPackage = _preval_bs_loadPackage;
     functions.bs_configureSource = _preval_bs_configureSource;
     functions.bs_exists = _preval_bs_exists;
@@ -2377,11 +2916,35 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_advance = _preval_bs_advance;
     functions.bs_elapsedTime = _preval_bs_elapsedTime;
     functions.bs_resolution = _preval_bs_resolution;
+    functions.bs_titleWindow = _preval_bs_titleWindow;
+    functions.bs_titleWindowV = _preval_bs_titleWindowV;
     functions.bs_inFixedTick = _preval_bs_inFixedTick;
     functions.bs_setTargetFramerate = _preval_bs_setTargetFramerate;
     functions.bs_timer = _preval_bs_timer;
     functions.bs_checkTimer = _preval_bs_checkTimer;
+    functions.bs_copyToClipboard = _preval_bs_copyToClipboard;
+    functions.bs_copyToClipboardV = _preval_bs_copyToClipboardV;
+    functions.bs_appendString = _preval_bs_appendString;
+    functions.bs_appendStringV = _preval_bs_appendStringV;
+    functions.bs_foreachFile = _preval_bs_foreachFile;
+    functions.bs_foreachFileV = _preval_bs_foreachFileV;
+    functions.bs_foreachDirectory = _preval_bs_foreachDirectory;
+    functions.bs_foreachDirectoryV = _preval_bs_foreachDirectoryV;
+    functions.bs_numFiles = _preval_bs_numFiles;
+    functions.bs_numFilesV = _preval_bs_numFilesV;
+    functions.bs_numDirectories = _preval_bs_numDirectories;
+    functions.bs_numDirectoriesV = _preval_bs_numDirectoriesV;
+    functions.bs_loadFile = _preval_bs_loadFile;
+    functions.bs_loadFileV = _preval_bs_loadFileV;
+    functions.bs_loadFileChunk = _preval_bs_loadFileChunk;
+    functions.bs_loadFileChunkV = _preval_bs_loadFileChunkV;
+    functions.bs_deleteFile = _preval_bs_deleteFile;
+    functions.bs_deleteFileV = _preval_bs_deleteFileV;
+    functions.bs_deleteDirectoryContents = _preval_bs_deleteDirectoryContents;
+    functions.bs_deleteDirectoryContentsV = _preval_bs_deleteDirectoryContentsV;
+    functions.bs_deleteDirectory = _preval_bs_deleteDirectory;
+    functions.bs_deleteDirectoryV = _preval_bs_deleteDirectoryV;
 
-    return functions;
+    return &functions;
 }
 

@@ -38,10 +38,11 @@ BSGFXAPI bsgfx_Scene* _bsgfx_currentScene() {
     return &_bsgfx_current_scene;
 }
 
-int _bsgfx_images_ = -1, _bsgfx_samplers_ = -1, _bsgfx_buffers_ = -1,
+int _bsgfx_windows_ = -1, _bsgfx_images_ = -1, _bsgfx_samplers_ = -1, _bsgfx_buffers_ = -1,
     _bsgfx_batches_ = -1, _bsgfx_renderers_ = -1, _bsgfx_ray_tracers_ = -1,
     _bsgfx_queues_ = -1, _bsgfx_atlases_ = -1, _bsgfx_fonts_ = -1;
 
+BSGFXAPI int _bsgfx_windows() { return _bsgfx_windows_; }
 BSGFXAPI int _bsgfx_images() { return _bsgfx_images_; }
 BSGFXAPI int _bsgfx_samplers() { return _bsgfx_samplers_; }
 BSGFXAPI int _bsgfx_buffers() { return _bsgfx_buffers_; }

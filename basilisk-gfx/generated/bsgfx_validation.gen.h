@@ -36,8 +36,8 @@
 #include <basilisk-gfx.h>
 #include <windows.h>
 
-static inline bsgfx_FunctionTable _val_bsgfx_getFunctions() {
-    bsgfx_FunctionTable functions;
+static inline bsgfx_FunctionTable* _val_bsgfx_getFunctions() {
+    static bsgfx_FunctionTable functions;
 
     HMODULE module = NULL;
     GetModuleHandleExA(
@@ -47,6 +47,7 @@ static inline bsgfx_FunctionTable _val_bsgfx_getFunctions() {
 
     functions.bsgfx_currentScene = (PFN_bsgfx_currentScene)GetProcAddress(module, "_val_bsgfx_currentScene");
     functions.bsgfx_loadScene = (PFN_bsgfx_loadScene)GetProcAddress(module, "_val_bsgfx_loadScene");
+    functions.bsgfx_windows = (PFN_bsgfx_windows)GetProcAddress(module, "_val_bsgfx_windows");
     functions.bsgfx_images = (PFN_bsgfx_images)GetProcAddress(module, "_val_bsgfx_images");
     functions.bsgfx_samplers = (PFN_bsgfx_samplers)GetProcAddress(module, "_val_bsgfx_samplers");
     functions.bsgfx_buffers = (PFN_bsgfx_buffers)GetProcAddress(module, "_val_bsgfx_buffers");
@@ -65,6 +66,7 @@ static inline bsgfx_FunctionTable _val_bsgfx_getFunctions() {
     functions.bsgfx_fetchMaterial = (PFN_bsgfx_fetchMaterial)GetProcAddress(module, "_val_bsgfx_fetchMaterial");
     functions.bsgfx_queryMaterial = (PFN_bsgfx_queryMaterial)GetProcAddress(module, "_val_bsgfx_queryMaterial");
     functions.bsgfx_loadMaterials = (PFN_bsgfx_loadMaterials)GetProcAddress(module, "_val_bsgfx_loadMaterials");
+    functions.bsgfx_material = (PFN_bsgfx_material)GetProcAddress(module, "_val_bsgfx_material");
     functions.bsgfx_highlightMaterial = (PFN_bsgfx_highlightMaterial)GetProcAddress(module, "_val_bsgfx_highlightMaterial");
     functions.bsgfx_unhighlightMaterial = (PFN_bsgfx_unhighlightMaterial)GetProcAddress(module, "_val_bsgfx_unhighlightMaterial");
     functions.bsgfx_tickMaterials = (PFN_bsgfx_tickMaterials)GetProcAddress(module, "_val_bsgfx_tickMaterials");
@@ -111,6 +113,7 @@ static inline bsgfx_FunctionTable _val_bsgfx_getFunctions() {
     functions.bsgfx_instanceDepthlessCircle = (PFN_bsgfx_instanceDepthlessCircle)GetProcAddress(module, "_val_bsgfx_instanceDepthlessCircle");
     functions.bsgfx_instanceAtlas = (PFN_bsgfx_instanceAtlas)GetProcAddress(module, "_val_bsgfx_instanceAtlas");
     functions.bsgfx_instanceAtlasFlipped = (PFN_bsgfx_instanceAtlasFlipped)GetProcAddress(module, "_val_bsgfx_instanceAtlasFlipped");
+    functions.bsgfx_instanceText = (PFN_bsgfx_instanceText)GetProcAddress(module, "_val_bsgfx_instanceText");
     functions.bsgfx_matrix = (PFN_bsgfx_matrix)GetProcAddress(module, "_val_bsgfx_matrix");
     functions.bsgfx_renderFineShadowVolumes = (PFN_bsgfx_renderFineShadowVolumes)GetProcAddress(module, "_val_bsgfx_renderFineShadowVolumes");
     functions.bsgfx_renderShadowVolumes = (PFN_bsgfx_renderShadowVolumes)GetProcAddress(module, "_val_bsgfx_renderShadowVolumes");
@@ -118,8 +121,6 @@ static inline bsgfx_FunctionTable _val_bsgfx_getFunctions() {
     functions.bsgfx_prefabModel = (PFN_bsgfx_prefabModel)GetProcAddress(module, "_val_bsgfx_prefabModel");
     functions.bsgfx_package = (PFN_bsgfx_package)GetProcAddress(module, "_val_bsgfx_package");
     functions.bsgfx_ini = (PFN_bsgfx_ini)GetProcAddress(module, "_val_bsgfx_ini");
-    functions.bsgfx_checkGFSDK = (PFN_bsgfx_checkGFSDK)GetProcAddress(module, "_val_bsgfx_checkGFSDK");
-    functions.bsgfx_logGFSDK = (PFN_bsgfx_logGFSDK)GetProcAddress(module, "_val_bsgfx_logGFSDK");
     functions.bsgfx_app = (PFN_bsgfx_app)GetProcAddress(module, "_val_bsgfx_app");
     functions.bsgfx_callbacks = (PFN_bsgfx_callbacks)GetProcAddress(module, "_val_bsgfx_callbacks");
     functions.bsgfx_settings = (PFN_bsgfx_settings)GetProcAddress(module, "_val_bsgfx_settings");
@@ -135,8 +136,6 @@ static inline bsgfx_FunctionTable _val_bsgfx_getFunctions() {
     functions.bsgfx_rawId = (PFN_bsgfx_rawId)GetProcAddress(module, "_val_bsgfx_rawId");
     functions.bsgfx_getRaw = (PFN_bsgfx_getRaw)GetProcAddress(module, "_val_bsgfx_getRaw");
     functions.bsgfx_flexibleCount = (PFN_bsgfx_flexibleCount)GetProcAddress(module, "_val_bsgfx_flexibleCount");
-    functions.bsmod_add = (PFN_bsmod_add)GetProcAddress(module, "_val_bsmod_add");
-    functions.bsmod_queryType = (PFN_bsmod_queryType)GetProcAddress(module, "_val_bsmod_queryType");
     functions.bsgfx_loadLights = (PFN_bsgfx_loadLights)GetProcAddress(module, "_val_bsgfx_loadLights");
     functions.bsgfx_computePrefabShadows = (PFN_bsgfx_computePrefabShadows)GetProcAddress(module, "_val_bsgfx_computePrefabShadows");
     functions.bsgfx_renderPrefabShadowVolumes = (PFN_bsgfx_renderPrefabShadowVolumes)GetProcAddress(module, "_val_bsgfx_renderPrefabShadowVolumes");
@@ -176,7 +175,7 @@ static inline bsgfx_FunctionTable _val_bsgfx_getFunctions() {
     functions.bsgfx_instanceWidgets = (PFN_bsgfx_instanceWidgets)GetProcAddress(module, "_val_bsgfx_instanceWidgets");
     functions.bsgfx_renderColorPickers = (PFN_bsgfx_renderColorPickers)GetProcAddress(module, "_val_bsgfx_renderColorPickers");
 
-    return functions;
+    return &functions;
 }
 
 #endif

@@ -32,13 +32,41 @@
         
 #include <basilisk-mod.h>
 #include <bsmod_internal.gen.h>
+#include <bsmod_prevalidation.gen.h>
+#include <bsmod_validation.gen.h>
 #include <math.h>
 #include <stdio.h>
 
 static bsmod_FunctionTable next = { 0 };
 
-void _bsmod_setFunctions(const struct _bsmod_FunctionTable* table) {
-    memcpy(&next, table, sizeof(next));
+const bsmod_FunctionTable* _bsmod_setFunctions(const bsmod_FunctionTable* a, bsmod_FunctionTable* b) {
+    memcpy(&next, a, sizeof(next));
+
+	if (!b) return &next;
+
+    for (size_t offset = 0; offset < sizeof(bsmod_FunctionTable); offset += sizeof(void*)) {
+        bs_Callback* f_a = ((unsigned char*)&next) + offset;
+        bs_Callback* f_b = ((unsigned char*)b) + offset;
+        if (!*f_a) 
+            *f_a = *f_b;
+    }
+
+    return &next;
+}
+
+void bsmod_enableValidation()
+{
+    bsmod_FunctionTable* definitions = _bsmod_getFunctions();
+    bsmod_FunctionTable* preval_definitions = _preval_bsmod_getFunctions();
+    bsmod_FunctionTable* val_definitions = _val_bsmod_getFunctions();
+    val_definitions = _bsmod_setFunctions(val_definitions, definitions);
+    preval_definitions = _preval_bsmod_setFunctions(preval_definitions, val_definitions);
+}
+
+void bsmod_disableValidation()
+{
+    bsmod_FunctionTable* definitions = _bsmod_getFunctions();
+    _bsmod_setFunctions(definitions, NULL);
 }
 
 void bsmod_copyHoveringDataToBuffer()
@@ -75,11 +103,6 @@ void bsmod_bindAtlases()
 void bsmod_onGfxRender()
 {
     next.bsmod_onGfxRender();
-}
-
-void bsmod_onPostRender()
-{
-    next.bsmod_onPostRender();
 }
 
 void bsmod_onTick()
@@ -331,16 +354,6 @@ bs_Result bsmod_compileShader(
 void bsmod_updateBindings()
 {
     next.bsmod_updateBindings();
-}
-
-void bsmod_iniLisk()
-{
-    next.bsmod_iniLisk();
-}
-
-void bsmod_tickLisk()
-{
-    next.bsmod_tickLisk();
 }
 
 bs_Queue* bsmod_onQueue()

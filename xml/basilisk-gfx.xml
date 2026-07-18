@@ -10,6 +10,8 @@
 		<trampoline>
 			<include>basilisk-gfx.h</include>
 			<include>bsgfx_internal.gen.h</include>
+			<include>bsgfx_prevalidation.gen.h</include>
+			<include>bsgfx_validation.gen.h</include>
 			<include>math.h</include>
 			<include>stdio.h</include>
 		</trampoline>
@@ -448,6 +450,7 @@
             <line>X(BSGFX_FONT_ARIAL_48)</line>
         </macro>
 
+        <macro><name>#define BSGFX_WINDOWS</name><line>bsgfx_windows()</line></macro>
         <macro><name>#define BSGFX_IMAGES</name><line>bsgfx_images()</line></macro>
         <macro><name>#define BSGFX_SAMPLERS</name><line>bsgfx_samplers()</line></macro>
         <macro><name>#define BSGFX_BUFFERS</name><line>bsgfx_buffers()</line></macro>
@@ -1279,6 +1282,8 @@
 	</structures>
 
 	<functions>
+		<validationTemplate/>
+
 		<function name="bsgfx_currentScene">
 			<return>bsgfx_Scene*</return>
 		</function>
@@ -1286,6 +1291,7 @@
 			<return>void</return>
 			<param><type>const char*</type><name>name</name></param>
 		</function>
+		<function name="bsgfx_windows"><return>int</return></function>
 		<function name="bsgfx_images"><return>int</return></function>
 		<function name="bsgfx_samplers"><return>int</return></function>
 		<function name="bsgfx_buffers"><return>int</return></function>
@@ -1610,14 +1616,6 @@
 			<param><type>int</type><name>argc</name></param>
 			<param><type>char*</type><name>argv</name><size></size></param>
 		</function>
-		<function name="bsgfx_checkGFSDK">
-			<return>void</return>
-			<param><type>bs_U32</type><name>result</name></param>
-		</function>
-		<function name="bsgfx_logGFSDK">
-			<return>void</return>
-			<param><type>bs_U32</type><name>result</name></param>
-		</function>
 		<function name="bsgfx_app"><return>bsgfx_Application*</return></function>
 		<function name="bsgfx_callbacks"><return>bsgfx_Callbacks*</return></function>
 		<function name="bsgfx_settings"><return>bsgfx_Settings*</return></function>
@@ -1685,16 +1683,6 @@
 			<param><type>bsgfx_TypeId</type><name>type_id</name></param>
 			<param><type>int</type><name>id</name></param>
 		</function>
-		<function name="bsmod_add" comment="Creates an object of a given type (data can be NULL)">
-			<return>void*</return>
-			<param><type>bsgfx_TypeId</type><name>id</name></param>
-			<param><type>void*</type><name>data</name></param>
-		</function>
-		<function name="bsmod_queryType">
-			<return>bsgfx_TypeId</return>
-			<param><type>const char*</type><name>plural</name></param>
-		</function>
-
 		<function name="bsgfx_loadLights">
 			<return>void</return>
 			<param><type>int</type><name>package_id</name></param>
