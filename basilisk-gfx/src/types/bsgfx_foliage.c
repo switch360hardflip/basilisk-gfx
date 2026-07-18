@@ -23,9 +23,9 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-gfx.h>
+#include <bsgfx_internal.h>
 /*
-static void bsgfx_mapFoliage(const bsgfx_RawFoliage* unmapped, bsgfx_Foliage* mapped) {
+static void _bsgfx_mapFoliage(const bsgfx_RawFoliage* unmapped, bsgfx_Foliage* mapped) {
     *mapped = (bsgfx_Foliage){
         .density = unmapped->density,
         .guid = unmapped->guid,
@@ -40,7 +40,7 @@ static void bsgfx_mapFoliage(const bsgfx_RawFoliage* unmapped, bsgfx_Foliage* ma
     }
 }
 
-static void bsgfx_loadFoliage(bsgfx_Foliage* foliage, bs_String* binary) {
+static void _bsgfx_loadFoliage(bsgfx_Foliage* foliage, bs_String* binary) {
     bs_Batch* batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_FOLIAGE)->batch;
     bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 
@@ -106,14 +106,14 @@ static void bsgfx_loadFoliage(bsgfx_Foliage* foliage, bs_String* binary) {
     }
 }
 
-void bsgfx_loadFoliages(int package_id) {
+void _bsgfx_loadFoliages(int package_id) {
     bs_except(BSX_FAILED_TO_QUERY);
-    bsgfx_type(
+    _bsgfx_type(
         BSGFX_TYPE_FOLIAGE,
         BSGFX_FOLIAGE_VERSION,
         package_id,
         "foliages", "foliage",
-        sizeof(bsgfx_RawFoliage), sizeof(bsgfx_Foliage), bsgfx_mapFoliage,
+        sizeof(bsgfx_RawFoliage), sizeof(bsgfx_Foliage), _bsgfx_mapFoliage,
         offsetof(bsgfx_RawFoliage, textures_count), offsetof(bsgfx_Foliage, textures_count),
         sizeof(struct bsgfx_RawFoliageTexture), sizeof(struct bsgfx_FoliageTexture));
     if (bs_caught())
@@ -123,15 +123,15 @@ void bsgfx_loadFoliages(int package_id) {
     char* path = bs_charStringF("resources/levels/%s/foliage/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX.bin", _bsgfx_current_scene.name);
     bs_Batch* batch = bs_batch(BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_FOLIAGE, 0), sizeof(bs_U32), $vs_bsgfx_foliage(), BS_BATCH_FORCE_DESTROY)->batch;
 
-    for (int i = 0; i < bsgfx_count(BSGFX_TYPE_FOLIAGE); i++) {
-        bsgfx_Foliage* foliage = bsgfx_get(BSGFX_TYPE_FOLIAGE, i);
+    for (int i = 0; i < _bsgfx_count(BSGFX_TYPE_FOLIAGE); i++) {
+        bsgfx_Foliage* foliage = _bsgfx_get(BSGFX_TYPE_FOLIAGE, i);
 
         char* start = path + sizeof("resources/levels/foliage/") + level_name_len;
         bs_guidToString(&foliage->guid, start);
         strcpy(start + 36, ".bin");
 
         bs_except(BSX_FAILED_TO_QUERY);
-        bsgfx_queryPrimitive(&foliage->guid);
+        _bsgfx_queryPrimitive(&foliage->guid);
         if (bs_caught()) {
             bs_warnF("%s does not belong to any primitive!\n", path);
             continue;
@@ -143,7 +143,7 @@ void bsgfx_loadFoliages(int package_id) {
             continue;
         }
 
-        bsgfx_loadFoliage(foliage, binary);
+        _bsgfx_loadFoliage(foliage, binary);
         bs_free(binary);
     }
 
@@ -152,9 +152,9 @@ void bsgfx_loadFoliages(int package_id) {
     bs_pushBatch(batch, BS_U32_MAX, BS_U32_MAX);
 }
 
-int bsgfx_queryFoliage(bs_GUID* guid) {
-    for (int i = 0; i < bsgfx_count(BSGFX_TYPE_FOLIAGE); i++) {
-        bsgfx_Foliage* foliage = bsgfx_get(BSGFX_TYPE_FOLIAGE, i);
+int _bsgfx_queryFoliage(bs_GUID* guid) {
+    for (int i = 0; i < _bsgfx_count(BSGFX_TYPE_FOLIAGE); i++) {
+        bsgfx_Foliage* foliage = _bsgfx_get(BSGFX_TYPE_FOLIAGE, i);
         if (bs_sameGuid(&foliage->guid, guid))
             return i;
     }

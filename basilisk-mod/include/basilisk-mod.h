@@ -27,7 +27,6 @@
 #define BASILISK_MOD_H
 
 #include <basilisk-mod.gen.h>
-#include <bsmod_cache.h>
 
 #define BSMOD_VALIDATE(condition, ret, format, ...)                  \
     if (!(condition)) {                                              \

@@ -315,9 +315,9 @@ BSAPI void _bs_blendPose(bs_Armature* armature, bs_Animation* animation_a, bs_An
             bs_vec4 rotation;
             bs_vec3 scale;
 
-            _bs_v3Lerp(&interpolated_translation_a, &interpolated_translation_b, factor, &translation);
-            _bs_qSlerp(&interpolated_rotation_a, &interpolated_rotation_b, factor, &rotation);
-            _bs_v3Lerp(&interpolated_scale_a, &interpolated_scale_b, factor, &scale);
+            bs_v3Lerp(&interpolated_translation_a, &interpolated_translation_b, factor, &translation);
+            bs_qSlerp(&interpolated_rotation_a, &interpolated_rotation_b, factor, &rotation);
+            bs_v3Lerp(&interpolated_scale_a, &interpolated_scale_b, factor, &scale);
 
             bs_mat4 transform = BS_MAT4_IDENTITY;
             bs_m4Translate(&transform, &translation, &transform);
@@ -373,8 +373,8 @@ BSAPI void _bs_fabrik(bs_Armature* armature, int end_effector_id, bs_vec3 target
         bs_vec3 position = _bs_worldSpaceJoint(armature, bone->id);
 
         bs_vec3 direction;
-        _bs_v3Sub(&position, &current, &direction);
-        _bs_v3Normalize(&direction, &direction);
+        bs_v3Sub(&position, &current, &direction);
+        bs_v3Normalize(&direction, &direction);
 
         armature->bones[num].ik_id = bone->id;
         armature->bones[num].ik_length = chain[num];
@@ -391,17 +391,17 @@ BSAPI void _bs_fabrik(bs_Armature* armature, int end_effector_id, bs_vec3 target
     current = _bs_worldSpaceJoint(armature, last_bone_id);
     for (int i = num - 1; i >= 0; i--) {
         bs_vec3 direction;
-        _bs_v3Sub(&armature->bones[i].ik_position, &current, &direction);
-        _bs_v3Normalize(&direction, &direction);
+        bs_v3Sub(&armature->bones[i].ik_position, &current, &direction);
+        bs_v3Normalize(&direction, &direction);
 
         bs_vec3 up = BS_V3(0, 1, 0);
         bs_vec3 axis;
-        _bs_v3Cross(&up, &direction, &axis);
+        bs_v3Cross(&up, &direction, &axis);
 
-        float dot = _bs_v3Dot(&up, &direction);
-        float w = sqrt(bs_v3MagnitudeSqrd(&up) * _bs_v3MagnitudeSqrd(&direction)) + dot;
+        float dot = bs_v3Dot(&up, &direction);
+        float w = sqrt(bs_v3MagnitudeSqrd(&up) * bs_v3MagnitudeSqrd(&direction)) + dot;
         bs_vec4 rotation = { axis.x, axis.y, axis.z, w };
-        _bs_qNormalize(&rotation, &rotation);
+        bs_qNormalize(&rotation, &rotation);
 
         bs_mat4 transform = BS_MAT4_IDENTITY;
         bs_m4Translate(&transform, &current, &transform);

@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 #include <bsmod_cache.h>
 
 #include <direct.h>
@@ -37,7 +37,7 @@
 bool _bsmod_instance_grid_menu_ = false;
 bs_String* _bsmod_search_input_ = NULL;
 
-static void bsmod_onCloseGridMenu() {
+static void _bsmod_onCloseGridMenu() {
     _bsmod_instance_grid_menu_ = false;
 }
 
@@ -57,21 +57,21 @@ typedef enum {
     BSMOD_DIRECTORY_COUNT
 } bsmod_Directory;
 
-static bsmod_Directory bsmod_selected_directory;
-static void bsmod_onHoverDirectoryWidget(bsgfx_Widget* widget) {
+static bsmod_Directory _bsmod_selected_directory;
+static void _bsmod_onHoverDirectoryWidget(bsgfx_Widget* widget) {
     if (bs_leftClickOnce()) {
-        bsmod_selected_directory = *(bsmod_Directory*)widget->params;
+        _bsmod_selected_directory = *(bsmod_Directory*)widget->params;
     }
 }
 
-static void bsmod_directoryWidget(bs_List* widgets, const char* name, int indent, bsmod_Directory* directory) {
+static void _bsmod_directoryWidget(bs_List* widgets, const char* name, int indent, bsmod_Directory* directory) {
     const int z_offset = 4;
     // these icons are all different sizes so manually shifting them a couple of pixels
     const int minimize_icon_y_offset = 0;
     const int folder_icon_y_offset = 0;
     const float align_height = 16.0;
 
-    bool is_selected = bsmod_selected_directory == *directory;
+    bool is_selected = _bsmod_selected_directory == *directory;
 
     bs_pushBack(widgets, &(bsgfx_Widget) {
        // .name = "",
@@ -82,7 +82,7 @@ static void bsmod_directoryWidget(bs_List* widgets, const char* name, int indent
             .atlas_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_UI],
             .type = BSGFX_ICON_ATLAS,
             .name = "minimize",
-            .hover = bsmod_onHoverDirectoryWidget,
+            .hover = _bsmod_onHoverDirectoryWidget,
             .material_id = BSMOD_UI_BASE_TEXT_MATERIAL()->id,
         },
         .params = directory,
@@ -100,7 +100,7 @@ static void bsmod_directoryWidget(bs_List* widgets, const char* name, int indent
             .atlas_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_UI],
             .type = BSGFX_ICON_ATLAS,
             .name = "folder",
-            .hover = bsmod_onHoverDirectoryWidget,
+            .hover = _bsmod_onHoverDirectoryWidget,
         },
         .params = directory,
         .offset = { indent, folder_icon_y_offset, z_offset },
@@ -130,7 +130,7 @@ static void bsmod_directoryWidget(bs_List* widgets, const char* name, int indent
         .align_height = align_height,
         .string = {
             .value = name,
-            .on_hover = bsmod_onHoverDirectoryWidget,
+            .on_hover = _bsmod_onHoverDirectoryWidget,
         },
         .params = directory,
         .offset = { indent, 0, z_offset },
@@ -142,7 +142,7 @@ static void bsmod_directoryWidget(bs_List* widgets, const char* name, int indent
     last_widget->advance_flags |= BSGFX_WIDGET_ADVANCE_DOWN | BSGFX_WIDGET_ADVANCE_RESET_X;
 }
 
-static void bsmod_instanceDirectoryMenu(bs_vec3 center, bs_vec2 dimensions) {
+static void _bsmod_instanceDirectoryMenu(bs_vec3 center, bs_vec2 dimensions) {
     static bs_List widgets = { .unit_size = sizeof(bsgfx_Widget), .increment = 16 };
     widgets.count = 0;
 
@@ -206,7 +206,7 @@ static void bsmod_instanceDirectoryMenu(bs_vec3 center, bs_vec2 dimensions) {
             continue;
         directories[i].id = i;
 
-        bsmod_directoryWidget(&widgets, directories[i].name, directories[i].indent, &directories[i].id);
+        _bsmod_directoryWidget(&widgets, directories[i].name, directories[i].indent, &directories[i].id);
     }
 
      /**
@@ -270,7 +270,7 @@ static void bsmod_instanceDirectoryMenu(bs_vec3 center, bs_vec2 dimensions) {
     //    .button_unavailable_material_id = $bsmod_grey_148()->id,
     //    .button_material_id = $bsmod_grey_61()->id,
     //    .button_shadow_material_id = $bsmod_grey_112()->id,
-    //    .on_close = bsmod_onCloseGridMenu,
+    //    .on_close = _bsmod_onCloseGridMenu,
     //}, 
     &(bsgfx_MenuTabBar) {
         .tabs_count = tabs.count,
@@ -286,14 +286,14 @@ static void bsmod_instanceDirectoryMenu(bs_vec3 center, bs_vec2 dimensions) {
         _bsmod_.ui_blocked = hovering;
 }
 
-static bool bsmod_instanceGridPreview(bsgfx_Widget* widget, bsgfx_GridParams grid) {
+static bool _bsmod_instanceGridPreview(bsgfx_Widget* widget, bsgfx_GridParams grid) {
     bs_vec2 cursor = bs_cursorPosition();
     bool hovering = bs_rectangleVsPoint(grid.position, &widget->grid.size, &cursor);
 
-    switch (bsmod_selected_directory) {
-    case BSMOD_DIRECTORY_PRIMITIVES: bsmod_instancePrimitivePreview(widget, grid.position, grid.index, hovering); break;
-    case BSMOD_DIRECTORY_PREFABS: bsmod_instancePrefabPreview(widget, grid.position, grid.index, hovering); break;
-    case BSMOD_DIRECTORY_TILES: bsmod_instanceTilePreview(widget, grid.position, grid.index, hovering); break;
+    switch (_bsmod_selected_directory) {
+    case BSMOD_DIRECTORY_PRIMITIVES: _bsmod_instancePrimitivePreview(widget, grid.position, grid.index, hovering); break;
+    case BSMOD_DIRECTORY_PREFABS: _bsmod_instancePrefabPreview(widget, grid.position, grid.index, hovering); break;
+    case BSMOD_DIRECTORY_TILES: _bsmod_instanceTilePreview(widget, grid.position, grid.index, hovering); break;
     default:
         return false;
     }
@@ -325,7 +325,7 @@ typedef struct {
     bs_U32 object_id;
 } bsmod_GridPreviewParams;
 
-static void bsmod_checkHoverGrid(bsgfx_Widget* widget, bsgfx_GridParams* grid) {
+static void _bsmod_checkHoverGrid(bsgfx_Widget* widget, bsgfx_GridParams* grid) {
     bs_vec2 cursor = bs_cursorPosition();
 
     bsmod_GridPreviewParams* params = widget->params;
@@ -335,7 +335,7 @@ static void bsmod_checkHoverGrid(bsgfx_Widget* widget, bsgfx_GridParams* grid) {
         if (bs_leftClickOnce()) {
             _bsmod_.dragging_id = grid->index;
 
-            bsmod_setSideMenuTab(params->tab_id, (bsmod_GridClickParams) {
+            _bsmod_setSideMenuTab(params->tab_id, (bsmod_GridClickParams) {
                 .atlas_id = grid->index,
             });
         }
@@ -359,7 +359,7 @@ static void bsmod_checkHoverGrid(bsgfx_Widget* widget, bsgfx_GridParams* grid) {
     }
 }
 
-static bool bsmod_instanceAtlasPreview(bsgfx_Widget* widget, bsgfx_GridParams grid) {
+static bool _bsmod_instanceAtlasPreview(bsgfx_Widget* widget, bsgfx_GridParams grid) {
 
     bsmod_GridPreviewParams* params = widget->params;
     grid.index = params->sorted_ids[grid.index].id;
@@ -404,12 +404,12 @@ static bool bsmod_instanceAtlasPreview(bsgfx_Widget* widget, bsgfx_GridParams gr
         bs_atlasCoordinates(atlas, grid.index),
         0, 0, 0);
 
-    bsmod_checkHoverGrid(widget, &grid);
+    _bsmod_checkHoverGrid(widget, &grid);
 
     return true;
 }
 
-static bool bsmod_instanceImageArrayPreview(bsgfx_Widget* widget, bsgfx_GridParams grid) {
+static bool _bsmod_instanceImageArrayPreview(bsgfx_Widget* widget, bsgfx_GridParams grid) {
     bsmod_GridPreviewParams* params = widget->params;
     grid.index = params->sorted_ids[grid.index].id;
 
@@ -425,19 +425,19 @@ static bool bsmod_instanceImageArrayPreview(bsgfx_Widget* widget, bsgfx_GridPara
         BS_V4(0.0, 0.0, 1.0, 1.0),
         0, 0, 0);
 
-    bsmod_checkHoverGrid(widget, &grid);
+    _bsmod_checkHoverGrid(widget, &grid);
 
     return true;
 }
 
-static int bsmod_compareCategories(const bsmod_IdCategory* a, const bsmod_IdCategory* b) {
+static int _bsmod_compareCategories(const bsmod_IdCategory* a, const bsmod_IdCategory* b) {
     if (a->category == b->category) return 0;
     else if (a->category < b->category) return -1;
     else return 1;
 }
 
 BSMODAPI void _bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
-    bsmod_instanceDirectoryMenu(position, dimensions);
+    _bsmod_instanceDirectoryMenu(position, dimensions);
 
     bs_vec2 size = { dimensions.x - (BSMOD_DIRECTORY_BACKGROUND_DIMENSIONS.x + BSMOD_DIRECTORY_BACKGROUND_PADDING), dimensions.y };
 
@@ -452,11 +452,11 @@ BSMODAPI void _bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
             .always_active = true,
             .total_size = size,
             .count = BSGFX_PRIMITIVE_TYPE_COUNT,
-            .action = bsmod_instanceGridPreview,
+            .action = _bsmod_instanceGridPreview,
         },
         .params = &params,
     };
-    bsmod_scrollbar(&scroll, &widget.grid.scrollbar);
+    _bsmod_scrollbar(&scroll, &widget.grid.scrollbar);
 
     widget.grid.count = 0;
     widget.grid.action = NULL;
@@ -465,12 +465,12 @@ BSMODAPI void _bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
     bs_Atlas* atlas = NULL;
     bs_Image* image_array = NULL;
     float scale = 1.0;
-    switch (bsmod_selected_directory) {
+    switch (_bsmod_selected_directory) {
   //  case BSMOD_DIRECTORY_PREFABS: widget.grid.count = bsgfx_prefabModel()->meshes_count; break;
   //  case BSMOD_DIRECTORY_TILES: widget.grid.count = bsgfx_tileTypes()->count; break;
     case BSMOD_DIRECTORY_PREFABS:
         atlas = bs_fetch(_bsmod_atlases_, params.object_id = BSMOD_ATLAS_PREFAB_ICONS)->head;
-        widget.grid.action = bsmod_instanceAtlasPreview;
+        widget.grid.action = _bsmod_instanceAtlasPreview;
         widget.grid.count = atlas->count;
         params.subtype = _bsmod_subtypes_[BSMOD_SUBTYPE_PREFAB_ICON];
 
@@ -479,14 +479,14 @@ BSMODAPI void _bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
         //bs_Atlas* atlas = bs_fetch(BSMOD_ATLAS_MATERIAL_ICONS)->head;
         atlas = bs_fetch(_bsmod_atlases_, params.object_id = BSMOD_ATLAS_PRIMITIVE_ICONS)->head;
         widget.grid.count = atlas->count;
-        widget.grid.action = bsmod_instanceAtlasPreview;
+        widget.grid.action = _bsmod_instanceAtlasPreview;
         params.subtype = _bsmod_subtypes_[BSMOD_SUBTYPE_PRIMITIVE_ICON];
 
         break;
     case BSMOD_DIRECTORY_TILES: 
         image_array = bs_fetch(BSGFX_IMAGES, BSGFX_IMAGE_TILE)->image;
         widget.grid.count = image_array->num_indices;
-        widget.grid.action = bsmod_instanceImageArrayPreview;
+        widget.grid.action = _bsmod_instanceImageArrayPreview;
         widget.grid.padding = 8.0;
         params.subtype = _bsmod_subtypes_[BSGFX_SUBTYPE_TILE];
         params.object_id = BSGFX_IMAGE_TILE;
@@ -497,7 +497,7 @@ BSMODAPI void _bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
 
         if (atlas_object) {
             widget.grid.count = atlas_object->atlas->count;
-            widget.grid.action = bsmod_instanceAtlasPreview;
+            widget.grid.action = _bsmod_instanceAtlasPreview;
             params.subtype = _bsmod_subtypes_[BSMOD_SUBTYPE_MATERIAL_ICON];
             params.tab_id = BSMOD_TAB_MATERIAL;
             params.object_id = BSMOD_ATLAS_MATERIAL_ICONS;
@@ -529,7 +529,7 @@ BSMODAPI void _bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions) {
             };
         }
 
-        qsort(params.sorted_ids, widget.grid.count, sizeof(bsmod_IdCategory), bsmod_compareCategories);
+        qsort(params.sorted_ids, widget.grid.count, sizeof(bsmod_IdCategory), _bsmod_compareCategories);
     }
 
     position.x += BSMOD_DIRECTORY_BACKGROUND_DIMENSIONS.x + BSMOD_DIRECTORY_BACKGROUND_PADDING;

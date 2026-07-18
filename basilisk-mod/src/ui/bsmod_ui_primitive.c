@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 #include <bsmod_cache.h>
 
 BSMODAPI bool _bsmod_instancePrimitivePreview(bsgfx_Widget* widget, bs_vec2* position, int id, bool hovering) {
@@ -78,14 +78,14 @@ BSMODAPI void _bsmod_onDragPrimitive(bsmod_DraggingParams params) {
     bsgfx_instancePrimitive(subtype, matrix, 0, 0, $bsmod_light_blue()->id);
 
     if (bs_leftClickUpOnce()) {
-        bsgfx_RawPrimitive* primitive = bsmod_add(BSGFX_TYPE_PRIMITIVE, &(bsgfx_RawPrimitive) {
+        bsgfx_RawPrimitive* primitive = _bsmod_add(BSGFX_TYPE_PRIMITIVE, &(bsgfx_RawPrimitive) {
             .position = tile_position,
             .rotation = euler_rotation,
             .scale = { 1, 1, 1 },
             .type = _bsmod_.dragging_id,
             .guid = bs_guid(),
         });
-        bsmod_saveType(BSGFX_TYPE_PRIMITIVE, BS_CONSTANT_STRING("Created primitive"));
+        _bsmod_saveType(BSGFX_TYPE_PRIMITIVE, BS_CONSTANT_STRING("Created primitive"));
     }
 }
 
@@ -131,7 +131,7 @@ BSMODAPI void _bsmod_rasterizePrimitiveIcons() {
 
         int instance = 0;
 
-        bsmod_beginRasterize(render_size, output_size);
+        _bsmod_beginRasterize(render_size, output_size);
 
         bsgfx_Material* material = $bsmod_light_blue();
 
@@ -161,9 +161,9 @@ BSMODAPI void _bsmod_rasterizePrimitiveIcons() {
             push_const.model = bs_m4x3(&transform);
 
             instance = bsgfx_instancePrimitive(subtype, transform, 0, 0, 0);
-            bsmod_rasterizeInstance(hash, subtype, instance, material->category, material->name, render_size.x, render_size.y, sizeof(push_const), &push_const);
+            _bsmod_rasterizeInstance(hash, subtype, instance, material->category, material->name, render_size.x, render_size.y, sizeof(push_const), &push_const);
         }
 
-        bsmod_endRasterize();
+        _bsmod_endRasterize();
     }
 }

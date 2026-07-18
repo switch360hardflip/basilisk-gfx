@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-gfx.h>
+#include <bsgfx_internal.h>
 
 #include <windows.h>
 #include <complex.h>
@@ -76,7 +76,7 @@ BSGFXAPI struct Poser* _poser() {
     return _poser_;
 }
 
-static void bsgfx_configure() {
+static void _bsgfx_configure() {
     _bsgfx_images_ = bs_configureSource(BS_OBJECT_IMAGE, BSGFX_IMAGES_COUNT, (const char*[]) { BSGFX_IMAGE_IDS(BS_STRING_GEN) });
     _bsgfx_samplers_ = bs_configureSource(BS_OBJECT_SAMPLER, BSGFX_SAMPLERS_COUNT, (const char* []) { BSGFX_SAMPLER_IDS(BS_STRING_GEN) });
     _bsgfx_buffers_ = bs_configureSource(BS_OBJECT_BUFFER, BSGFX_BUFFERS_COUNT, (const char* []) { BSGFX_BUFFER_IDS(BS_STRING_GEN) });
@@ -95,7 +95,7 @@ static void bsgfx_configure() {
    //     bs_nameId(i, strs[i]);
 }
 
-static void bsgfx_resize() {
+static void _bsgfx_resize() {
     bs_Renderer* lo_res = bs_fetch(BSGFX_RENDERERS, BSGFX_RENDERER_LO_RES)->renderer;
     if (lo_res) {
         bs_ivec2 lo_resolution = bs_resolution();
@@ -111,8 +111,8 @@ static void bsgfx_resize() {
     }
 }
 
-void bsgfx_tickMaterials();
-static void bsgfx_tick() {
+void _bsgfx_tickMaterials();
+static void _bsgfx_tick() {
     _poser_->menu_blocked = false;
 
     static int timer;
@@ -142,43 +142,43 @@ static void bsgfx_tick() {
     bs_lookAt(&(bs_vec3) { 0 }, &(bs_vec3) { 0.0, 0.0, -1.0 }, &(bs_vec3) { 0.0, 1.0, 0.0 }, &screen_camera_view);
     bs_m4Mul(&screen_camera_proj, &screen_camera_view, &_poser_->screen_camera.result);
 
-    bsgfx_instancePrimitives();
+    _bsgfx_instancePrimitives();
     if (_bsgfx_prefab_model__)
-        bsgfx_instancePrefabs();
-    bsgfx_instanceTiles();
+        _bsgfx_instancePrefabs();
+    _bsgfx_instanceTiles();
 
 
     //if (bs_charDown(' '))
     //    bs_advance();
     //bsgfx_instanceEntities();
 
-//    if (bsgfx_scene != BSGFX_SCENE_MENU)
-//        bsgfx_instanceMinimap();
+//    if (_bsgfx_scene != BSGFX_SCENE_MENU)
+//        _bsgfx_instanceMinimap();
 
     //if (_bsgfx_procs_.bsmod_onGfxRender)
     //    _bsgfx_procs_.bsmod_onGfxRender();
     if (_bsgfx_callbacks_.tick)
         _bsgfx_callbacks_.tick();
 
-    bsgfx_tickInstances();
+    _bsgfx_tickInstances();
 
-    bsgfx_pipeline();
-    bsgfx_tickMaterials();
+    _bsgfx_pipeline();
+    _bsgfx_tickMaterials();
 }
 
-static void bsgfx_fixedTick() {
- //   bsgfx_tickItems();
+static void _bsgfx_fixedTick() {
+ //   _bsgfx_tickItems();
 
     if (_bsgfx_callbacks_.fixedTick)
         _bsgfx_callbacks_.fixedTick();
 }
 
 /*
-static void bsgfx_onGpuCrash(const void* crash_dump, const bs_U32 crash_dump_size, void* params) {
+static void _bsgfx_onGpuCrash(const void* crash_dump, const bs_U32 crash_dump_size, void* params) {
     bs_saveFile("aftermath.nv-gpudmp", crash_dump, crash_dump_size);
 }
 
-static void bsgfx_onShaderDebugInfo(const void* info, const uint32_t size, void* params) {
+static void _bsgfx_onShaderDebugInfo(const void* info, const uint32_t size, void* params) {
     GFSDK_Aftermath_ShaderDebugInfoIdentifier identifier = { 0 };
     GFSDK_Aftermath_Result result = GFSDK_Aftermath_GetShaderDebugInfoIdentifier(GFSDK_Aftermath_Version_API, info, size, &identifier);
 
@@ -187,7 +187,7 @@ static void bsgfx_onShaderDebugInfo(const void* info, const uint32_t size, void*
     }
 }
 
-void bsgfx_onGpuCrashDescription(PFN_GFSDK_Aftermath_AddGpuCrashDumpDescription add_description, void* params) {
+void _bsgfx_onGpuCrashDescription(PFN_GFSDK_Aftermath_AddGpuCrashDumpDescription add_description, void* params) {
    // add_description(GFSDK_Aftermath_GpuCrashDumpDescriptionKey_ApplicationName, "Hello Nsight Aftermath");
 }
 
@@ -224,12 +224,12 @@ static inline const char* bsgfx_GFSDK_resultName(GFSDK_Aftermath_Result result) 
 }
 
 
-void bsgfx_logGFSDK(GFSDK_Aftermath_Result result) {
+void _bsgfx_logGFSDK(GFSDK_Aftermath_Result result) {
     if (result != GFSDK_Aftermath_Result_Success)
         bs_infoF("GFSDK Aftermath error:\n%s\n", bsgfx_GFSDK_resultName(result));
 }
 
-void bsgfx_checkGFSDK(GFSDK_Aftermath_Result result) {
+void _bsgfx_checkGFSDK(GFSDK_Aftermath_Result result) {
     if (result != GFSDK_Aftermath_Result_Success) {
         bs_throwBasilisk(BSX_GENERAL);
     }
@@ -262,16 +262,16 @@ BSGFXAPI void _bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc
     bs_parseArgs(sizeof(args) / sizeof(char*), args);
 #endif
     
-    bs_window(width, height, name);
+    bs_window(NULL, width, height, name);// TODO
 
     /*
     GFSDK_Aftermath_Result result = GFSDK_Aftermath_EnableGpuCrashDumps(
         GFSDK_Aftermath_Version_API,
         GFSDK_Aftermath_GpuCrashDumpWatchedApiFlags_Vulkan,
         GFSDK_Aftermath_GpuCrashDumpFeatureFlags_Default,
-        bsgfx_onGpuCrash,
-        bsgfx_onShaderDebugInfo,
-        bsgfx_onGpuCrashDescription,
+        _bsgfx_onGpuCrash,
+        _bsgfx_onShaderDebugInfo,
+        _bsgfx_onGpuCrashDescription,
         NULL,
         NULL);
     */
@@ -297,7 +297,7 @@ BSGFXAPI void _bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc
 #endif
 */
 
-    bsgfx_configure();
+    _bsgfx_configure();
     bs_ini();
     bs_iniAudio();
     bs_loadBindings(_bsgfx_package_, "bindings");
@@ -307,7 +307,7 @@ BSGFXAPI void _bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc
     if (_bsgfx_callbacks_.ini)
         _bsgfx_callbacks_.ini();
 
-    bs_tick(NULL, bsgfx_tick, bsgfx_fixedTick);// TODO
+    bs_tick(NULL, _bsgfx_tick, _bsgfx_fixedTick);// TODO
 
     if (bs_exists(BSGFX_RAY_TRACERS, BSGFX_RAY_TRACER_MAIN))
         bs_destroyRayTracer(bs_fetch(BSGFX_RAY_TRACERS, BSGFX_RAY_TRACER_MAIN)->ray_tracer);

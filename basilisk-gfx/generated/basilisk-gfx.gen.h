@@ -507,6 +507,7 @@ typedef bs_Queue* (__stdcall* PFN_bsmod_onQueue)();
 typedef bs_U32 bsgfx_PrimitiveFlags;
 typedef bs_U32 bsgfx_SpawnerFlags;
 typedef void (__stdcall* PFN_bsgfx_TypeMapper)(void*, void*);
+typedef bool (__stdcall* PFN_bsgfx_ButtonWidgetCallback)(const bsgfx_ButtonParams*);
 struct bsgfx_Text {
     bs_vec4 position;
     float scale;
@@ -664,7 +665,7 @@ struct bsgfx_Type {
     int package_id;
     const char* plural;
     const char* singular;
-    void (*mapper)(void*, void*);
+    PFN_bsgfx_TypeMapper mapper;
     int* unmapped_accessors;
     int* mapped_accessors;
     unsigned char* mapped;
@@ -930,7 +931,7 @@ struct bsgfx_Widget {
             int material;
             int selected_material;
             bs_vec2 size;
-            bool (*tick)(bsgfx_ButtonParams);
+            PFN_bsgfx_ButtonWidgetCallback tick;
             struct {
                 int* active_index;
                 int this_index;
@@ -1458,7 +1459,7 @@ BSGFXAPI void
 bsgfx_worldToScreen(
     const bs_vec3* position,
     const bs_mat4* camera,
-    const bs_vec3* resolution,
+    const bs_vec2* resolution,
     bs_vec2* out);
 
  /**
@@ -1563,12 +1564,6 @@ bsgfx_tickMaterials();
   @return void
   */
 BSGFXAPI void
-bsgfx_shadowPipe();
-
- /**
-  @return void
-  */
-BSGFXAPI void
 bsgfx_pipeline();
 
  /**
@@ -1604,7 +1599,7 @@ bsgfx_collider(
 BSGFXAPI void
 bsgfx_applyCollisions(
     bsgfx_Collider* collider,
-    bs_vec3 position,
+    const bs_vec3* position,
     bs_vec3* velocity);
 
  /**
@@ -1630,7 +1625,7 @@ bsgfx_instanceSweepCollisions();
 BSGFXAPI void
 bsgfx_instanceCollider(
     bsgfx_Collider* collider,
-    bs_vec3 position,
+    const bs_vec3* position,
     bs_vec3* velocity);
 
  /**
@@ -2119,20 +2114,6 @@ bsgfx_matrix(
   @return void
   */
 BSGFXAPI void
-bsgfx_renderFontSubtypes();
-
- /**
-  @param result
-  @return void
-  */
-BSGFXAPI void
-bsgfx_settingsEditor(
-    bs_List* result);
-
- /**
-  @return void
-  */
-BSGFXAPI void
 bsgfx_renderFineShadowVolumes();
 
  /**
@@ -2174,12 +2155,6 @@ bsgfx_ini(
     bs_U32 height,
     int argc,
     char* argv[]);
-
- /**
-  @return HINSTANCE
-  */
-BSGFXAPI HINSTANCE
-bsgfx_bsmodDll();
 
  /**
   @param result
@@ -2368,22 +2343,6 @@ bsmod_queryType(
   @return void
   */
 BSGFXAPI void
-bsgfx_loadFoliages(
-    int package_id);
-
- /**
-  @param guid
-  @return int
-  */
-BSGFXAPI int
-bsgfx_queryFoliage(
-    bs_GUID* guid);
-
- /**
-  @param package_id
-  @return void
-  */
-BSGFXAPI void
 bsgfx_loadLights(
     int package_id);
 
@@ -2406,12 +2365,6 @@ bsgfx_renderPrefabShadowVolumes();
 BSGFXAPI bsgfx_PrefabMetadata*
 bsgfx_prefabMetadata(
     int mesh_id);
-
- /**
-  @return void
-  */
-BSGFXAPI void
-bsgfx_savePrefabs();
 
  /**
   @param package_id
@@ -2488,14 +2441,6 @@ BSGFXAPI void
 bsgfx_renderPrefabPrimitives(
     bs_Pipeline* pipeline,
     int key_start);
-
- /**
-  @param coords
-  @return bsgfx_RawPrefab*
-  */
-BSGFXAPI bsgfx_RawPrefab*
-bsgfx_tilePrefab(
-    bs_vec2 coords);
 
  /**
   @param guid
@@ -2606,12 +2551,6 @@ bsgfx_spawn(
     bsgfx_Spawner* spawner);
 
  /**
-  @return void
-  */
-BSGFXAPI void
-bsgfx_instanceSpawners();
-
- /**
   @param package_id
   @param force_destroy
   @return void
@@ -2639,7 +2578,7 @@ bsgfx_instanceTiles();
 BSGFXAPI void
 bsgfx_pushTile(
     const bs_Batch* batch,
-    bs_Quad quad,
+    const bs_Quad* quad,
     bs_vec3 normal,
     bs_U32 index,
     int image_index,
@@ -2658,7 +2597,7 @@ BSGFXAPI void
 bsgfx_batchTile(
     const bs_Batch* batch,
     const bs_U32* offset,
-    bs_Quad quad,
+    const bs_Quad* quad,
     bs_vec3 normal,
     bs_U32 index,
     int image_index);
@@ -2718,8 +2657,8 @@ bsgfx_tileEulerRotation(
   */
 BSGFXAPI void
 bsgfx_pushTileAt(
-    bs_Batch* batch,
-    bsgfx_Primitive* primitive,
+    const bs_Batch* batch,
+    const bsgfx_Primitive* primitive,
     int axis,
     int x,
     int y,
@@ -2736,7 +2675,7 @@ bsgfx_pushTileAt(
   */
 BSGFXAPI void
 bsgfx_tileCoordinate(
-    bsgfx_Primitive* primitive,
+    const bsgfx_Primitive* primitive,
     int axis,
     int index,
     bs_ivec2* out);

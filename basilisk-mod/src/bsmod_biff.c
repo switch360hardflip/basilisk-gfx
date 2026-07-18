@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 
 #include <string.h>
 #include <assert.h>
@@ -50,7 +50,7 @@ typedef struct {
 	size_t total_name_lengths;
 } bsmod_FileGatherParams;
 
-static void bsmod_gatherFileInfo(bs_FileInfo info, bsmod_FileGatherParams* param) {
+static void _bsmod_gatherFileInfo(bs_FileInfo info, bsmod_FileGatherParams* param) {
 	char* file_extension = bs_fileExtension(info.path);
 
 	if (strcmp(file_extension, "png") == 0) {
@@ -102,7 +102,7 @@ BSMODAPI bs_Result _bsmod_packImageDirectory(char* directory_name, char* package
 		.resource_name = resource_name,
 	};
 
-	result = bs_foreachFile(bsmod_gatherFileInfo, &param, directory_name, strlen(directory_name));
+	result = bs_foreachFile(_bsmod_gatherFileInfo, &param, directory_name, strlen(directory_name));
 	if (result != BS_RESULT_OK)
 		return result;
 
@@ -145,7 +145,7 @@ BSMODAPI bs_Result _bsmod_packImageDirectory(char* directory_name, char* package
 
 	bs_destroyList(&images);
 
-	result = bsmod_packResource(BS_RESOURCE_IMAGE, biff, total_size, package_name, resource_name, strlen(resource_name));
+	result = _bsmod_packResource(BS_RESOURCE_IMAGE, biff, total_size, package_name, resource_name, strlen(resource_name));
 	bs_free(biff);
 	if (result != BS_RESULT_OK)
 		return result;

@@ -344,7 +344,7 @@ BSAPI bs_Result _val_bs_bindImages(bs_U32 bind_set_slot, bs_U32 bind_point_slot,
 
     BS_VALIDATE(_bs_validateBinding(bind_set_slot, bind_point_slot, images_count) == BS_RESULT_OK, BS_RESULT_VALIDATION_ERROR, );
 
-    _bs_bindImages(bind_set_slot, bind_point_slot, in_descriptors, images_count);
+    return _bs_bindImages(bind_set_slot, bind_point_slot, in_descriptors, images_count);
 }
 
 BSAPI bs_Result _bs_bindImages(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_ImageDescriptor* in_descriptors, int images_count) {
@@ -376,7 +376,7 @@ BSAPI bs_Result _val_bs_bindImage(bs_U32 bind_set_slot, bs_U32 bind_point_slot, 
 }
 
 BSAPI bs_Result _bs_bindImage(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Image* image, bs_Sampler* sampler, bs_ImageLayout layout) {
-    _bs_bindImages(bind_set_slot, bind_point_slot, &(bs_ImageDescriptor) {
+    return _bs_bindImages(bind_set_slot, bind_point_slot, &(bs_ImageDescriptor) {
         .sampler = sampler,
         .layout = layout,
         .image = image,
@@ -419,7 +419,7 @@ BSAPI bs_Result _bs_bindBuffers(bs_U32 bind_set_slot, bs_U32 slot, bs_Buffer** b
 }
 
 BSAPI bs_Result _val_bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Buffer* buffer) {
-    BS_VALIDATE(_bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK,,);
+    BS_VALIDATE(_bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK, BS_RESULT_VALIDATION_ERROR,);
     return _bs_bindBuffer(bind_set_slot, bind_point_slot, buffer);
 }
 
@@ -432,7 +432,7 @@ BSAPI bs_Result _bs_bindBuffer(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_
   Bind acceleration structures
   */
 BSAPI bs_Result _val_bs_bindAccelerationStructures(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer** ray_tracers, int ray_tracers_count) {
-    BS_VALIDATE(_bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK,,);
+    BS_VALIDATE(_bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK, BS_RESULT_VALIDATION_ERROR,);
     return _bs_bindAccelerationStructures(bind_set_slot, bind_point_slot, ray_tracers, ray_tracers_count);
 }
 
@@ -442,7 +442,7 @@ BSAPI bs_Result _bs_bindAccelerationStructures(bs_U32 bind_set_slot, bs_U32 bind
 }
 
 BSAPI bs_Result _val_bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_RayTracer* ray_tracer) {
-    BS_VALIDATE(_bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK,,);
+    BS_VALIDATE(_bs_validateBinding(bind_set_slot, bind_point_slot, 1) == BS_RESULT_OK, BS_RESULT_VALIDATION_ERROR,);
     return _bs_bindAccelerationStructure(bind_set_slot, bind_point_slot, ray_tracer);
 }
 
@@ -486,7 +486,7 @@ BSAPI bs_Binding* _postval_bs_queryBinding(bs_BindSet* bind_set, bs_U32 id, bs_B
     return _bs_queryBinding(bind_set, id);
 }
 
-BSAPI bs_Binding* _bs_queryBinding(bs_BindSet* bind_set, bs_U32 id) {
+BSAPI bs_Binding* _bs_queryBinding(const bs_BindSet* bind_set, bs_U32 id) {
     int binding = _bs_instance_->descriptor_lookup[bind_set->slot].bindings[id];
     if (binding < 0) {
         _bs_warnF("Failed to query binding %d\n", id);
@@ -551,7 +551,7 @@ BSAPI void _bs_loadBindings(int package_id, const char* path) {
 
         bs_Json root = _bs_jsonRoot(&json, e.value.as_object);
 
-        bs_BindType bind_type = _bs_deserializeBindType(_bs_fetchJson(&root, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string);
+        bs_BindType bind_type = bs_deserializeBindType(_bs_fetchJson(&root, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string);
         if (bind_type == BS_BIND_TYPE_PUSH_CONSTANT)
             continue;
 
@@ -567,7 +567,7 @@ BSAPI void _bs_loadBindings(int package_id, const char* path) {
 
         bs_JsonValue stages = _bs_fetchJson(&root, BS_JSON_ARRAY, BS_CONSTANT_STRING("stages"));
         for (int j = 0; j < stages.size; j++)
-            binding->stages |= _bs_deserializeShaderType(stages.as_array.as_strings[j]);
+            binding->stages |= bs_deserializeShaderType(stages.as_array.as_strings[j]);
 
         _bs_free(stages.as_array.as_strings);
     }
@@ -660,7 +660,7 @@ static void _bs_readBuffer(bs_Shader* shader, bs_Json* root, const char* name) {
         bs_Json object = _bs_jsonRoot(root, objects.as_array.as_objects[i]);
 
         char* name = _bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string;
-        bs_BindType type = _bs_deserializeBindType(_bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string);
+        bs_BindType type = bs_deserializeBindType(_bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string);
         int set = _bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("set")).as_number;
         int point = _bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("point")).as_number;
 
@@ -786,7 +786,7 @@ BSAPI bs_Result _bs_shader(int package_id, const char* name, bs_U32 flags, bs_Re
     }
 
     bs_Shader shader = {
-        .type = _bs_deserializeShaderType(type),
+        .type = bs_deserializeShaderType(type),
        // .name = strdup(path),
         .spirv = spirv,
         .spirv_length = code_len,

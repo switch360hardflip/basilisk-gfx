@@ -30,7 +30,7 @@
   the code is regenerated.
   */
         
-#include <basilisk-core.gen.h>
+#include <basilisk-core.h>
 #include <bs_internal.h>
 
 static bs_FunctionTable next = { 0 };
@@ -495,16 +495,18 @@ BSAPI bs_Range _preval_bs_pushCone(bs_Batch* batch, int segments, float height, 
     return next.bs_pushCone(batch, segments, height, radius, color);
 }
 
-BSAPI void _preval_bs_batchQuad(bs_Batch* batch, bs_U32* offset, bs_Quad quad, bs_RGBA color) {
+BSAPI void _preval_bs_batchQuad(bs_Batch* batch, bs_U32* offset, const bs_Quad* quad, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, ,);
     BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, ,);
     BS_VALIDATE(offset != NULL, ,);
+    BS_VALIDATE(quad != NULL, ,);
     next.bs_batchQuad(batch, offset, quad, color);
 }
 
-BSAPI bs_Range _preval_bs_pushQuad(bs_Batch* batch, bs_Quad quad, bs_RGBA color) {
+BSAPI bs_Range _preval_bs_pushQuad(bs_Batch* batch, const bs_Quad* quad, bs_RGBA color) {
     BS_VALIDATE(batch != NULL, (bs_Range) { 0 },);
     BS_VALIDATE(batch->head.source_id != BS_OBJECT_BATCH, (bs_Range) { 0 },);
+    BS_VALIDATE(quad != NULL, (bs_Range) { 0 },);
     return next.bs_pushQuad(batch, quad, color);
 }
 
@@ -1236,6 +1238,10 @@ BSAPI bs_Scope* _preval_bs_scope() {
     return next.bs_scope();
 }
 
+BSAPI bs_IO* _preval_bs_io() {
+    return next.bs_io();
+}
+
 BSAPI void _preval_bs_createThread(bs_ThreadFunction function, void* param) {
     BS_VALIDATE(param != NULL, ,);
     next.bs_createThread(function, param);
@@ -1388,11 +1394,6 @@ BSAPI bs_Result _preval_bs_unwiden(wchar_t* src, char* dst, bs_U32 dst_size) {
 BSAPI char* _preval_bs_charStringV(const char* format, va_list args) {
     BS_VALIDATE(format != NULL, NULL,);
     return next.bs_charStringV(format, args);
-}
-
-BSAPI char* _preval_bs_charStringF(const char* format,  ...) {
-    BS_VALIDATE(format != NULL, NULL,);
-    return next.bs_charStringF(format, ...);
 }
 
 BSAPI void* _preval_bs_free(void* p) {
@@ -2223,6 +2224,7 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_props = _preval_bs_props;
     functions.bs_config = _preval_bs_config;
     functions.bs_scope = _preval_bs_scope;
+    functions.bs_io = _preval_bs_io;
     functions.bs_createThread = _preval_bs_createThread;
     functions.bs_formatStringLength = _preval_bs_formatStringLength;
     functions.bs_checkStringPool = _preval_bs_checkStringPool;
@@ -2253,7 +2255,6 @@ bs_FunctionTable _preval_bs_getFunctionTable() {
     functions.bs_widen = _preval_bs_widen;
     functions.bs_unwiden = _preval_bs_unwiden;
     functions.bs_charStringV = _preval_bs_charStringV;
-    functions.bs_charStringF = _preval_bs_charStringF;
     functions.bs_free = _preval_bs_free;
     functions.bs_malloc = _preval_bs_malloc;
     functions.bs_calloc = _preval_bs_calloc;

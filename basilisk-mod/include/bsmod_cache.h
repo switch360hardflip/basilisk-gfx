@@ -26,9 +26,8 @@
 #ifndef BSMOD_CACHE_H
 #define BSMOD_CACHE_H
 
-#include <basilisk-mod.h>
-#include <bsgfx_cache.h>
 #include <bsmod_internal.h>
+#include <bsgfx_cache.h>
 
 #define BSGFX_PACKAGE _bsmod_.package
 

@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-gfx.h>
+#include <bsgfx_internal.h>
 #include <bsgfx_cache.h>
 #include <../bsgfx_contracts.h>
 
@@ -33,7 +33,7 @@
    * Helpers
    *============================================================================*/
 
-static const bsgfx_TileAxis bsgfx_tile_axes[6] = {
+static const bsgfx_TileAxis _bsgfx_tile_axes[6] = {
     {
         .normal = { -1,  0,  0 },
         .right = {  0,  0,  1 },
@@ -85,7 +85,7 @@ static const bsgfx_TileAxis bsgfx_tile_axes[6] = {
 };
 
 BSGFXAPI const bsgfx_TileAxis* _bsgfx_tileAxes() {
-    return bsgfx_tile_axes;
+    return _bsgfx_tile_axes;
 }
 
  /**
@@ -94,14 +94,14 @@ BSGFXAPI const bsgfx_TileAxis* _bsgfx_tileAxes() {
 BSGFXAPI void _val_bsgfx_tileCoordinate(const bsgfx_Primitive* primitive, int axis, int index, bs_ivec2* out) {
     BSGFX_VALIDATE((index - primitive->first_tile) >= 0,,);
 
-    bsgfx_tileCoordinate(primitive, axis, index, out);
+    _bsgfx_tileCoordinate(primitive, axis, index, out);
 }
 
 BSGFXAPI void _bsgfx_tileCoordinate(const bsgfx_Primitive* primitive, int axis, int index, bs_ivec2* out) {
     int local = index - primitive->first_tile;
 
     for (int a = 0; a < axis; a++) {
-        bsgfx_TileAxis* ax_prev = &bsgfx_tile_axes[a];
+        bsgfx_TileAxis* ax_prev = &_bsgfx_tile_axes[a];
 
         int w_prev = (int)(primitive->scale.a[ax_prev->width_axis] * 2.0f);
         int h_prev = (int)(primitive->scale.a[ax_prev->height_axis] * 2.0f);
@@ -109,7 +109,7 @@ BSGFXAPI void _bsgfx_tileCoordinate(const bsgfx_Primitive* primitive, int axis, 
         local -= (w_prev * h_prev);
     }
 
-    bsgfx_TileAxis* ax = &bsgfx_tile_axes[axis];
+    bsgfx_TileAxis* ax = &_bsgfx_tile_axes[axis];
 
     int width = (int)(primitive->scale.a[ax->width_axis] * 2.0f);
 
@@ -122,14 +122,14 @@ BSGFXAPI void _bsgfx_tileCoordinate(const bsgfx_Primitive* primitive, int axis, 
 BSGFXAPI void _val_bsgfx_tileAxis(const bsgfx_Primitive* primitive, int index, int* out) {
     BSGFX_VALIDATE((index - primitive->first_tile) >= 0, , );
 
-    bsgfx_tileAxis(primitive, index, out);
+    _bsgfx_tileAxis(primitive, index, out);
 }
 
 BSGFXAPI void _bsgfx_tileAxis(const bsgfx_Primitive* primitive, int index, int* out) {
     int local = index - primitive->first_tile;
 
     for (int axis = 0; axis < 6; axis++) {
-        bsgfx_TileAxis* ax = &bsgfx_tile_axes[axis];
+        bsgfx_TileAxis* ax = &_bsgfx_tile_axes[axis];
 
         int width = (int)(primitive->scale.a[ax->width_axis] * 2.0f);
         int height = (int)(primitive->scale.a[ax->height_axis] * 2.0f);
@@ -154,7 +154,7 @@ BSGFXAPI void _val_bsgfx_tileIndex(const bsgfx_Primitive* primitive, int axis, i
     *out = 0;
     BSGFX_VALIDATE(axis < 6,,);
 
-    bsgfx_tileIndex(primitive, axis, x, y, out);
+    _bsgfx_tileIndex(primitive, axis, x, y, out);
 }
 
 BSGFXAPI void _bsgfx_tileIndex(const bsgfx_Primitive* primitive, int axis, int x, int y, bs_U32* out) {
@@ -167,7 +167,7 @@ BSGFXAPI void _bsgfx_tileIndex(const bsgfx_Primitive* primitive, int axis, int x
     bs_U32 index = primitive->first_tile;
 
     for (int a = 0; a < axis; a++) {
-        bsgfx_TileAxis* ax_prev = &bsgfx_tile_axes[a];
+        bsgfx_TileAxis* ax_prev = &_bsgfx_tile_axes[a];
 
         int w_prev = (int)(scale_vec.a[ax_prev->width_axis] * 2.0f);
         int h_prev = (int)(scale_vec.a[ax_prev->height_axis] * 2.0f);
@@ -175,7 +175,7 @@ BSGFXAPI void _bsgfx_tileIndex(const bsgfx_Primitive* primitive, int axis, int x
         index += (w_prev * h_prev);
     }
 
-    bsgfx_TileAxis* ax = &bsgfx_tile_axes[axis];
+    bsgfx_TileAxis* ax = &_bsgfx_tile_axes[axis];
 
     int width = (int)(scale_vec.a[ax->width_axis] * 2.0f);
     int height = (int)(scale_vec.a[ax->height_axis] * 2.0f);
@@ -191,7 +191,7 @@ BSGFXAPI void _bsgfx_tileIndex(const bsgfx_Primitive* primitive, int axis, int x
 }
 
 BSGFXAPI void _bsgfx_tilePosition(const bsgfx_Primitive* primitive, int axis, int x, int y, bs_vec3* out) {
-    bsgfx_TileAxis* ax = &bsgfx_tile_axes[axis];
+    bsgfx_TileAxis* ax = &_bsgfx_tile_axes[axis];
 
     bs_vec3 right, up, start;
     bs_qRotateV3(&primitive->rotation, &ax->right, &right);
@@ -216,7 +216,7 @@ BSGFXAPI void _bsgfx_tilePosition(const bsgfx_Primitive* primitive, int axis, in
 }
 
 BSGFXAPI void _bsgfx_tileRotation(int axis, bs_vec4* out) {
-    bsgfx_TileAxis* ax = &bsgfx_tile_axes[axis];
+    bsgfx_TileAxis* ax = &_bsgfx_tile_axes[axis];
 
     bs_vec3 right = ax->right;
     bs_vec3 up = ax->normal;
@@ -251,7 +251,7 @@ BSGFXAPI void _bsgfx_tileEulerRotation(int axis, bs_vec3* out) {
    * Batching
    *============================================================================*/
 
-BSGFXAPI void _bsgfx_batchTile(const bs_Batch* batch, const bs_U32* offset, bs_Quad quad, bs_vec3 normal, bs_U32 index, int image_index) {
+BSGFXAPI void _bsgfx_batchTile(const bs_Batch* batch, const bs_U32* offset, const bs_Quad* quad, bs_vec3 normal, bs_U32 index, int image_index) {
     BS_VERTEX_DECLARATION(
         declaration, batch, offset,
         bs_vec3, bs_Position,
@@ -260,13 +260,13 @@ BSGFXAPI void _bsgfx_batchTile(const bs_Batch* batch, const bs_U32* offset, bs_Q
         uint, bsgfx_Index
     );
 
-    bs_batchVertex(&declaration, &(bs_Vertex) { quad.a, normal, BS_V3(quad.ca.x, quad.ca.y, image_index), index });
-    bs_batchVertex(&declaration, &(bs_Vertex) { quad.b, normal, BS_V3(quad.cb.x, quad.cb.y, image_index), index });
-    bs_batchVertex(&declaration, &(bs_Vertex) { quad.c, normal, BS_V3(quad.cc.x, quad.cc.y, image_index), index });
-    bs_batchVertex(&declaration, &(bs_Vertex) { quad.d, normal, BS_V3(quad.cd.x, quad.cd.y, image_index), index });
+    bs_batchVertex(&declaration, &(bs_Vertex) { quad->a, normal, BS_V3(quad->ca.x, quad->ca.y, image_index), index });
+    bs_batchVertex(&declaration, &(bs_Vertex) { quad->b, normal, BS_V3(quad->cb.x, quad->cb.y, image_index), index });
+    bs_batchVertex(&declaration, &(bs_Vertex) { quad->c, normal, BS_V3(quad->cc.x, quad->cc.y, image_index), index });
+    bs_batchVertex(&declaration, &(bs_Vertex) { quad->d, normal, BS_V3(quad->cd.x, quad->cd.y, image_index), index });
 }
 
-BSGFXAPI void _bsgfx_pushTile(const bs_Batch* batch, bs_Quad quad, bs_vec3 normal, bs_U32 index, int image_index, bs_Range* out_range) {
+BSGFXAPI void _bsgfx_pushTile(const bs_Batch* batch, const bs_Quad* quad, bs_vec3 normal, bs_U32 index, int image_index, bs_Range* out_range) {
     int index_offset = batch->indices.count;
 
     int indices[] = {
@@ -275,7 +275,7 @@ BSGFXAPI void _bsgfx_pushTile(const bs_Batch* batch, bs_Quad quad, bs_vec3 norma
 
     bs_ensureBatchSize(batch, 6, 4);
     bs_pushIndices(batch, indices, sizeof(indices) / sizeof(*indices));
-    bsgfx_batchTile(batch, &batch->vertices.count, quad, normal, index, image_index);
+    _bsgfx_batchTile(batch, &batch->vertices.count, quad, normal, index, image_index);
 
     *out_range = bs_batchRange(batch, index_offset);
 }
@@ -290,7 +290,7 @@ BSGFXAPI void _bsgfx_pushTileAt(
     int image_index, 
     bs_U32* out)
 {
-    bsgfx_TileAxis* ax = &bsgfx_tile_axes[axis];
+    bsgfx_TileAxis* ax = &_bsgfx_tile_axes[axis];
 
     bs_vec3 right, up, normal, start;
     bs_qRotateV3(&primitive->rotation, &ax->right, &right);
@@ -331,18 +331,18 @@ BSGFXAPI void _bsgfx_pushTileAt(
 
     bs_U32 idx = bsgfx_index24(index, axis);
     bs_Range range;
-    bsgfx_pushTile(batch, quad, normal, idx, image_index, &range);
+    _bsgfx_pushTile(batch, &quad, normal, idx, image_index, &range);
 
     *out = index + 1;
 }
 
-static bs_U32 bsgfx_pushTileAxis(
+static bs_U32 _bsgfx_pushTileAxis(
     bs_Batch* batch,
     bsgfx_Primitive* primitive,
     int axis,
     bs_U32 index)
 {
-    bsgfx_TileAxis* ax = &bsgfx_tile_axes[axis];
+    bsgfx_TileAxis* ax = &_bsgfx_tile_axes[axis];
 
     float sx = primitive->scale.x;
     float sy = primitive->scale.y;
@@ -355,7 +355,7 @@ static bs_U32 bsgfx_pushTileAxis(
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            bsgfx_pushTileAt(batch, primitive, axis, x, y, index, 0, &index);
+            _bsgfx_pushTileAt(batch, primitive, axis, x, y, index, 0, &index);
         }
     }
 
@@ -368,10 +368,10 @@ static bs_U32 bsgfx_pushTileAxis(
    * Loading Tile Resources
    *============================================================================*/
 
-static void bsgfx_loadTileTextures(int package_id) {
+static void _bsgfx_loadTileTextures(int package_id) {
     bs_Result result;
 
-    if (bsgfx_count(BSGFX_TYPE_PRIMITIVE) == 0) // todo better check
+    if (_bsgfx_count(BSGFX_TYPE_PRIMITIVE) == 0) // todo better check
         return;
 
     bs_Object* tile_image = BS_IMAGE(BSGFX_IMAGES, BSGFX_IMAGE_TILE, BS_OBJECT_FORCE_DESTROY);
@@ -399,7 +399,7 @@ static void bsgfx_loadTileTextures(int package_id) {
     if (result != BS_RESULT_OK)
         return;
 
-   // bs_foreachFile(bsgfx_loadTileTexture, &offset, "textures/tiles/");
+   // bs_foreachFile(_bsgfx_loadTileTexture, &offset, "textures/tiles/");
 
     result = bs_bindImages(BSGFX_SET_34_24, BSGFX_BINDING_34_24, &(bs_ImageDescriptor) {
         .image = tile_image->image,
@@ -414,8 +414,8 @@ static void bsgfx_loadTileTextures(int package_id) {
     bs_info(BS_CONSTANT_STRING("Loaded tile textures\n"));
 }
 
-static void bsgfx_mapTile(const bsgfx_RawTile* unmapped, bsgfx_Tile* mapped) {
-    const int tile_count = bsgfx_count(BSGFX_TYPE_TILE);
+static void _bsgfx_mapTile(const bsgfx_RawTile* unmapped, bsgfx_Tile* mapped) {
+    const int tile_count = _bsgfx_count(BSGFX_TYPE_TILE);
 
     bs_Image* image = bs_fetch(BSGFX_IMAGES, BSGFX_IMAGE_TILE)->image;
 
@@ -429,25 +429,25 @@ static void bsgfx_mapTile(const bsgfx_RawTile* unmapped, bsgfx_Tile* mapped) {
         // .tile_type = unmapped->tile_type,
     };
 
-    int primitive_id = bsgfx_queryPrimitive(&unmapped->primitive);
+    int primitive_id = _bsgfx_queryPrimitive(&unmapped->primitive);
     if (primitive_id >= 0) {
-        bsgfx_RawPrimitive* raw_primitive = bsgfx_getRaw(BSGFX_TYPE_PRIMITIVE, primitive_id);
-        bsgfx_RawPrimitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, primitive_id);
-        bsgfx_tileIndex(primitive, mapped->axis, mapped->coords.x, mapped->coords.y, &mapped->index);
+        bsgfx_RawPrimitive* raw_primitive = _bsgfx_getRaw(BSGFX_TYPE_PRIMITIVE, primitive_id);
+        bsgfx_RawPrimitive* primitive = _bsgfx_get(BSGFX_TYPE_PRIMITIVE, primitive_id);
+        _bsgfx_tileIndex(primitive, mapped->axis, mapped->coords.x, mapped->coords.y, &mapped->index);
     }
 }
 
 BSGFXAPI void _bsgfx_loadTiles(int package_id, bool force_destroy) {
     bs_Result result;
 
-    bsgfx_loadTileTextures(package_id);
+    _bsgfx_loadTileTextures(package_id);
 
-    bsgfx_type(
+    _bsgfx_type(
         BSGFX_TYPE_TILE,
         package_id,
         BSGFX_TILE_VERSION,
         "tiles", "tile",
-        sizeof(bsgfx_RawTile), sizeof(bsgfx_Tile), bsgfx_mapTile,
+        sizeof(bsgfx_RawTile), sizeof(bsgfx_Tile), _bsgfx_mapTile,
         0, 0, 0, 0);
 
     bs_Object* primitive_tiles_object = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_PRIMITIVE_TILES, force_destroy ? BS_OBJECT_FORCE_DESTROY : 0);
@@ -460,46 +460,46 @@ BSGFXAPI void _bsgfx_loadTiles(int package_id, bool force_destroy) {
 
     int red_material = $red_material()->id;
 
-    for (int i = 0; i < bsgfx_count(BSGFX_TYPE_TILE); i++) {
-        bsgfx_RawTile* raw_tile = bsgfx_getRaw(BSGFX_TYPE_TILE, i);
-        bsgfx_Tile* tile = bsgfx_get(BSGFX_TYPE_TILE, i);
-        int primitive_id = bsgfx_queryPrimitive(&raw_tile->primitive);
-        bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, primitive_id);
+    for (int i = 0; i < _bsgfx_count(BSGFX_TYPE_TILE); i++) {
+        bsgfx_RawTile* raw_tile = _bsgfx_getRaw(BSGFX_TYPE_TILE, i);
+        bsgfx_Tile* tile = _bsgfx_get(BSGFX_TYPE_TILE, i);
+        int primitive_id = _bsgfx_queryPrimitive(&raw_tile->primitive);
+        bsgfx_Primitive* primitive = _bsgfx_get(BSGFX_TYPE_PRIMITIVE, primitive_id);
 
         bs_U32 tile_index;
-        bsgfx_pushTileAt(primitive_tiles_object->batch, primitive, tile->axis, tile->coords.x, tile->coords.y, tile->index, tile->image_index, &tile_index);
+        _bsgfx_pushTileAt(primitive_tiles_object->batch, primitive, tile->axis, tile->coords.x, tile->coords.y, tile->index, tile->image_index, &tile_index);
     }
 
     /*
-    for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
-        bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
+    for (int i = 0; i < _bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
+        bsgfx_Primitive* primitive = _bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
 
         if (primitive->type != BSGFX_PRIMITIVE_TYPE_BOX)
             continue;
 
         primitive->first_tile = index;
-        for (int j = 0; j < bsgfx_count(BSGFX_TYPE_TILE); j++) {
-            bsgfx_RawTile* raw_tile = bsgfx_getRaw(BSGFX_TYPE_TILE, j);
-            bsgfx_Tile* tile = bsgfx_get(BSGFX_TYPE_TILE, j);
-            int tile_primitive_id = bsgfx_queryPrimitive(&raw_tile->primitive);
+        for (int j = 0; j < _bsgfx_count(BSGFX_TYPE_TILE); j++) {
+            bsgfx_RawTile* raw_tile = _bsgfx_getRaw(BSGFX_TYPE_TILE, j);
+            bsgfx_Tile* tile = _bsgfx_get(BSGFX_TYPE_TILE, j);
+            int tile_primitive_id = _bsgfx_queryPrimitive(&raw_tile->primitive);
             if (tile_primitive_id != i)
                 continue;
 
-            bsgfx_pushTileAt(batch, primitive, tile->axis, tile->coords.x, tile->coords.y, tile->index, tile->image_index);
+            _bsgfx_pushTileAt(batch, primitive, tile->axis, tile->coords.x, tile->coords.y, tile->index, tile->image_index);
         }
         primitive->last_tile = index;
     }
     */
 
     bs_U32 index = 0;
-    for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
-        bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
+    for (int i = 0; i < _bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
+        bsgfx_Primitive* primitive = _bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
 
         if (primitive->type != BSGFX_PRIMITIVE_TYPE_BOX)
             continue;
 
         for (int j = 0; j < 6; j++) {
-            index = bsgfx_pushTileAxis(primitive_tiles_object->batch, primitive, j, index);
+            index = _bsgfx_pushTileAxis(primitive_tiles_object->batch, primitive, j, index);
         }
     }
     bs_pushBatch(primitive_tiles_object->batch, BS_U32_MAX, BS_U32_MAX);

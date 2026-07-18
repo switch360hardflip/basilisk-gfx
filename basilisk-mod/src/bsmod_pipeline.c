@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 #include <bsmod_cache.h>
 
 #define BSGFX_TRANSPARENT_OPTIONS                                   \
@@ -34,7 +34,7 @@
     .color_op = BS_BLEND_OP_ADD,                                    \
     .alpha_op = BS_BLEND_OP_ADD
 
-static void bsmod_renderDepthlessLines() {
+static void _bsmod_renderDepthlessLines() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
     
@@ -59,7 +59,7 @@ static void bsmod_renderDepthlessLines() {
     }
 }
 
-static void bsmod_renderLines() {
+static void _bsmod_renderLines() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -83,7 +83,7 @@ static void bsmod_renderLines() {
     }
 }
 
-static void bsmod_renderPoints() {
+static void _bsmod_renderPoints() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -103,7 +103,7 @@ static void bsmod_renderPoints() {
     }
 }
 
-static void bsmod_renderCones() {
+static void _bsmod_renderCones() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -134,7 +134,7 @@ static void bsmod_renderCones() {
     }
 }
 
-static void bsmod_renderPreviousPass() {
+static void _bsmod_renderPreviousPass() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -168,7 +168,7 @@ static void bsmod_renderPreviousPass() {
     }
 }
 
-static void bsmod_renderUIPost() {
+static void _bsmod_renderUIPost() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -201,7 +201,7 @@ static void bsmod_renderUIPost() {
     }
 }
 
-static void bsmod_renderSelectedTile() {
+static void _bsmod_renderSelectedTile() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -229,7 +229,7 @@ static void bsmod_renderSelectedTile() {
     }
 }
 
-static void bsmod_renderTiles() {
+static void _bsmod_renderTiles() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -257,7 +257,7 @@ static void bsmod_renderTiles() {
     }
 }
 
-static void bsmod_renderFontSubtype(int subtype, bsgfx_Id font_id, bs_Shader* fragment_shader) {
+static void _bsmod_renderFontSubtype(int subtype, bsgfx_Id font_id, bs_Shader* fragment_shader) {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -278,7 +278,7 @@ static void bsmod_renderFontSubtype(int subtype, bsgfx_Id font_id, bs_Shader* fr
     }
 }
 
-static void bsmod_renderPrefabOutlines() {
+static void _bsmod_renderPrefabOutlines() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -315,7 +315,7 @@ static void bsmod_renderPrefabOutlines() {
 
 }
 
-static void bsmod_renderRoundedQuads() {
+static void _bsmod_renderRoundedQuads() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -366,7 +366,7 @@ static void bsmod_renderRoundedQuads() {
     }
 }
 
-static void bsmod_renderUI() {
+static void _bsmod_renderUI() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -401,7 +401,7 @@ static void bsmod_renderUI() {
     }
 }
 
-static void bsmod_renderUISolid() {
+static void _bsmod_renderUISolid() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -433,7 +433,7 @@ static void bsmod_renderUISolid() {
     bs_endComment();
 }
 
-static void bsmod_renderUIStencil() {
+static void _bsmod_renderUIStencil() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -472,7 +472,7 @@ static void bsmod_renderUIStencil() {
     bs_endComment();
 }
 
-static void bsmod_renderDither() {
+static void _bsmod_renderDither() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -503,7 +503,7 @@ static void bsmod_renderDither() {
     bs_endComment();
 }
 
-static void bsmod_renderGradients() {
+static void _bsmod_renderGradients() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -551,7 +551,7 @@ static void bsmod_renderGradients() {
     }
 }
 
-static void bsmod_renderMeshSubtypes() {
+static void _bsmod_renderMeshSubtypes() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -585,7 +585,7 @@ static void bsmod_renderMeshSubtypes() {
     }
 }
 
-static void bsmod_renderMaterialTextureQuads() {
+static void _bsmod_renderMaterialTextureQuads() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
     
@@ -613,7 +613,7 @@ static void bsmod_renderMaterialTextureQuads() {
     }
 }
 
-static void bsmod_renderIcons(const char* comment, int binding, int subtype) {
+static void _bsmod_renderIcons(const char* comment, int binding, int subtype) {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -652,7 +652,7 @@ static void bsmod_renderIcons(const char* comment, int binding, int subtype) {
     }
 }
 
-static void bsmod_renderTileIcons() {
+static void _bsmod_renderTileIcons() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -671,7 +671,7 @@ static void bsmod_renderTileIcons() {
     }
 }
 
-static void bsmod_renderPrefabs() {
+static void _bsmod_renderPrefabs() {
     bs_PipelineHash hash;
     bs_Pipeline* pipeline;
 
@@ -703,52 +703,52 @@ static void bsmod_renderPrefabs() {
     }
 }
 
-static void bsmod_onRenderUI() {
+static void _bsmod_onRenderUI() {
     bs_pushDescriptors();
 
-    bsmod_renderPreviousPass();
-    bsmod_renderDepthlessLines();
-    bsmod_renderPoints();
-    bsmod_renderCones();
-    bsmod_renderSelectedTile();
+    _bsmod_renderPreviousPass();
+    _bsmod_renderDepthlessLines();
+    _bsmod_renderPoints();
+    _bsmod_renderCones();
+    _bsmod_renderSelectedTile();
     if (bsgfx_prefabModel())
-        bsmod_renderPrefabOutlines();
-    bsmod_renderGradients();
-    bsmod_renderRoundedQuads();
+        _bsmod_renderPrefabOutlines();
+    _bsmod_renderGradients();
+    _bsmod_renderRoundedQuads();
     bsgfx_renderColorPickers();
-    bsmod_renderUISolid();
-    bsmod_renderUI();
-    bsmod_renderUIStencil();
-    bsmod_renderMaterialTextureQuads();
-    bsmod_renderDither();
-    bsmod_renderFontSubtype(_bsmod_subtypes_[BSMOD_SUBTYPE_FONT_CONSOLAS], BSGFX_FONT_ARIAL_16, $fs_bsgfx_font_arial());
+    _bsmod_renderUISolid();
+    _bsmod_renderUI();
+    _bsmod_renderUIStencil();
+    _bsmod_renderMaterialTextureQuads();
+    _bsmod_renderDither();
+    _bsmod_renderFontSubtype(_bsmod_subtypes_[BSMOD_SUBTYPE_FONT_CONSOLAS], BSGFX_FONT_ARIAL_16, $fs_bsgfx_font_arial());
     bs_clearDepth(0, bs_fetch(BSMOD_IMAGES, BSMOD_IMAGE_DEPTH)->image->dim, 1.0);
-    bsmod_renderTiles();
+    _bsmod_renderTiles();
     if (bsgfx_prefabModel())
-        bsmod_renderMeshSubtypes();
+        _bsmod_renderMeshSubtypes();
     bsgfx_renderPrimitives(poser()->screen_camera.result);
 
-    bsmod_renderIcons("Material Icons", BSMOD_ATLAS_ICONS_MATERIALS_BINDING, _bsmod_subtypes_[BSMOD_SUBTYPE_MATERIAL_ICON]);
-    bsmod_renderIcons("Primitive Icons", BSMOD_ATLAS_ICONS_PRIMITIVES_BINDING, _bsmod_subtypes_[BSMOD_SUBTYPE_PRIMITIVE_ICON]);
-    bsmod_renderIcons("Prefab Icons", BSMOD_ATLAS_ICONS_PREFABS_BINDING, _bsmod_subtypes_[BSMOD_SUBTYPE_PREFAB_ICON]);
-    bsmod_renderTileIcons();
+    _bsmod_renderIcons("Material Icons", BSMOD_ATLAS_ICONS_MATERIALS_BINDING, _bsmod_subtypes_[BSMOD_SUBTYPE_MATERIAL_ICON]);
+    _bsmod_renderIcons("Primitive Icons", BSMOD_ATLAS_ICONS_PRIMITIVES_BINDING, _bsmod_subtypes_[BSMOD_SUBTYPE_PRIMITIVE_ICON]);
+    _bsmod_renderIcons("Prefab Icons", BSMOD_ATLAS_ICONS_PREFABS_BINDING, _bsmod_subtypes_[BSMOD_SUBTYPE_PREFAB_ICON]);
+    _bsmod_renderTileIcons();
 }
 
-static void bsmod_onRender3D() {
+static void _bsmod_onRender3D() {
     if (bsgfx_prefabModel()) {
-        bsmod_renderPrefabs();
+        _bsmod_renderPrefabs();
     }
-    bsmod_renderLines();
-    bsmod_renderBillboards();
+    _bsmod_renderLines();
+    _bsmod_renderBillboards();
 }
 
-static void bsmod_runRenderPass() {
+static void _bsmod_runRenderPass() {
     // bsgfx_processCursorReads();
      //bsgfx_fenceCapture();
     bs_pushDescriptors();
 
     bsgfx_resetInstances();
-    bsmod_onTick();
+    _bsmod_onTick();
     bsgfx_tickInstances();
 
     bs_Image* src_depth = bs_fetch(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_0_DEPTH)->image;
@@ -763,8 +763,8 @@ static void bsmod_runRenderPass() {
         .destination_scale = dst_depth->dim,
     });
 
-    const bs_Callback callbacks_2d[] = { bsmod_onRenderUI };
-    const bs_Callback callbacks_3d[] = { bsmod_onRender3D };
+    const bs_Callback callbacks_2d[] = { _bsmod_onRenderUI };
+    const bs_Callback callbacks_3d[] = { _bsmod_onRender3D };
 
     bs_runPass(bs_fetch(BSMOD_RENDERERS, BSMOD_RENDERER)->renderer, callbacks_2d, sizeof(callbacks_2d) / sizeof(*callbacks_2d));
 
@@ -786,22 +786,22 @@ BSMODAPI bs_Queue* _bsmod_onQueue() {
     bs_Queue* bsgfx_queue = bs_fetch(BSGFX_QUEUES, BSGFX_QUEUE_GRAPHICS)->queue;
 
     bs_awaitQueue(bsgfx_queue, BS_PIPELINE_STAGE_VERTEX_INPUT_BIT);
-    bs_enqueue(queue, bsmod_runRenderPass);
+    bs_enqueue(queue, _bsmod_runRenderPass);
 
     result = bs_stall(queue);
     //if (result == BS_RESULT_DEVICE_LOST)
     //    bsgfx_onDeviceLost();
 
     if (bs_keyDownOnce(BS_KEY_G))
-        bsmod_queueRasterize(BSMOD_CONTENT_PATH, "material_icons", bsmod_rasterizeMaterialIcons);
+        _bsmod_queueRasterize(BSMOD_CONTENT_PATH, "material_icons", _bsmod_rasterizeMaterialIcons);
 
     if (bs_keyDownOnce(BS_KEY_K))
-        bsmod_queueRasterize(BSMOD_CONTENT_PATH, "primitive_icons", bsmod_rasterizePrimitiveIcons);
+        _bsmod_queueRasterize(BSMOD_CONTENT_PATH, "primitive_icons", _bsmod_rasterizePrimitiveIcons);
 
     if (bs_keyDownOnce(BS_KEY_L))
-        bsmod_queueRasterize(BSMOD_CONTENT_PATH, "prefab_icons", bsmod_rasterizePrefabIcons);
+        _bsmod_queueRasterize(BSMOD_CONTENT_PATH, "prefab_icons", _bsmod_rasterizePrefabIcons);
 
-    bsmod_pollRasterizer();
+    _bsmod_pollRasterizer();
 
     return queue;
 }

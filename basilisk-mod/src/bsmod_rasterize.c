@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 #include <bsmod_cache.h>
 
 typedef struct {
@@ -41,10 +41,10 @@ typedef struct {
     char push_constant[128];
 } bsmod_Rasterization;
 
-static bs_List bsmod_rasterizations = { .unit_size = sizeof(bsmod_Rasterization), .increment = 32 };
+static bs_List _bsmod_rasterizations = { .unit_size = sizeof(bsmod_Rasterization), .increment = 32 };
 static bs_ivec2 render_size = { 0 };
 static bs_ivec2 output_size = { 0 };
-static void bsmod_renderToImage() {
+static void _bsmod_renderToImage() {
 
 }
 
@@ -54,10 +54,10 @@ BSMODAPI void _bsmod_beginRasterize(bs_ivec2 _render_size, bs_ivec2 _output_size
 
     bs_pushDescriptors();
     bsgfx_resetInstances();
-    bsmod_rasterizations.count = 0;
+    _bsmod_rasterizations.count = 0;
 }
 
-static void bsmod_destroyRasterizer(bsmod_Rasterization* rasterization) {
+static void _bsmod_destroyRasterizer(bsmod_Rasterization* rasterization) {
     if (rasterization->renderer)
         bs_destroyRenderer(rasterization->renderer);
     if (rasterization->image)
@@ -92,7 +92,7 @@ BSMODAPI bs_Result _val_bsmod_rasterizeInstance(
 
     // BSGFX_VALIDATE(push_constant_size < BS_MAX_PUSH_CONSTANT_SIZE,); // TODO: check _bs_settings_ or something
 
-    return bsmod_rasterizeInstance(pipeline_hash, subtype, instance_id, category, name, width, height, push_constant_size, push_constant);
+    return _bsmod_rasterizeInstance(pipeline_hash, subtype, instance_id, category, name, width, height, push_constant_size, push_constant);
 }
 
 BSMODAPI bs_Result _bsmod_rasterizeInstance(
@@ -108,7 +108,7 @@ BSMODAPI bs_Result _bsmod_rasterizeInstance(
 {
     bs_Result result;
 
-    bsmod_Rasterization* rasterization = bs_pushBack(&bsmod_rasterizations, &(bsmod_Rasterization) {
+    bsmod_Rasterization* rasterization = bs_pushBack(&_bsmod_rasterizations, &(bsmod_Rasterization) {
         .instance_id = instance_id,
         .subtype = subtype,
         .pipeline_hash = pipeline_hash,
@@ -171,7 +171,7 @@ BSMODAPI bs_Result _bsmod_rasterizeInstance(
 
     return BS_RESULT_OK;
 fail:
-    bsmod_destroyRasterizer(rasterization);
+    _bsmod_destroyRasterizer(rasterization);
     return result;
 }
 
@@ -182,8 +182,8 @@ BSMODAPI void _bsmod_endRasterize() {
     bsgfx_tickInstances();
     bs_pushDescriptors();
 
-    for (int i = 0; i < bsmod_rasterizations.count; i++) {
-        bsmod_Rasterization* rasterization = bs_fetchUnit(&bsmod_rasterizations, i);
+    for (int i = 0; i < _bsmod_rasterizations.count; i++) {
+        bsmod_Rasterization* rasterization = bs_fetchUnit(&_bsmod_rasterizations, i);
 
         bs_beginRender(rasterization->renderer);
 
@@ -227,7 +227,7 @@ BSMODAPI void _bsmod_endRasterize() {
 static struct {
     const char* package;
     const char* name;
-} bsmod_queued_rasterization = { 0 };
+} _bsmod_queued_rasterization = { 0 };
 
 BSMODAPI void _bsmod_queueRasterize(const char* package, const char* name, bs_Callback callback) {
     bs_Queue* post_queue = bs_fetch(_bsmod_queues_, BSMOD_QUEUE_GRAPHICS_RASTERIZATION)->queue;
@@ -238,26 +238,26 @@ BSMODAPI void _bsmod_queueRasterize(const char* package, const char* name, bs_Ca
    // if (bs_caught())
    //     bsgfx_onDeviceLost();
 
-    bsmod_queued_rasterization.package = package;
-    bsmod_queued_rasterization.name = name;
+    _bsmod_queued_rasterization.package = package;
+    _bsmod_queued_rasterization.name = name;
 }
 
 BSMODAPI void _bsmod_pollRasterizer() {
     bs_Queue* post_queue = bs_fetch(_bsmod_queues_, BSMOD_QUEUE_GRAPHICS_RASTERIZATION)->queue;
 
     if (bs_poll(post_queue) != BS_RESULT_WAITING) { // idk if it should check BS_RESULT_OK or not
-        bsmod_AtlasPacker packer = bsmod_createAtlasPacker();
+        bsmod_AtlasPacker packer = _bsmod_createAtlasPacker();
 
-        for (int i = 0; i < bsmod_rasterizations.count; i++) {
-            bsmod_Rasterization* rasterization = bs_fetchUnit(&bsmod_rasterizations, i);
+        for (int i = 0; i < _bsmod_rasterizations.count; i++) {
+            bsmod_Rasterization* rasterization = bs_fetchUnit(&_bsmod_rasterizations, i);
 
             if (bs_mapBuffer(rasterization->buffer, BS_U32_MAX) == BS_RESULT_OK) {
                 unsigned char* map = bs_bufferMap(rasterization->buffer);
-                bsmod_packAtlasTexture(&packer, rasterization->name, map, rasterization->scaled_image->dim.x, rasterization->scaled_image->dim.y, rasterization->category);
+                _bsmod_packAtlasTexture(&packer, rasterization->name, map, rasterization->scaled_image->dim.x, rasterization->scaled_image->dim.y, rasterization->category);
                 // bs_savePngF(map, bs_iv2(rasterization->scaled_image->dim.x, rasterization->scaled_image->dim.y), BS_PNG_RGBA, "test%d.png", i);
             }
         }
 
-        bsmod_packAtlas(&packer, 2048, 2048, bsmod_queued_rasterization.package, bsmod_queued_rasterization.name);
+        _bsmod_packAtlas(&packer, 2048, 2048, _bsmod_queued_rasterization.package, _bsmod_queued_rasterization.name);
     }
 }

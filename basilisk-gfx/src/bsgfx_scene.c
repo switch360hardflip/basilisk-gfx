@@ -24,7 +24,7 @@
   */ 
 
 #include <bsgfx_cache.h>
-#include <basilisk-gfx.h>
+#include <bsgfx_internal.h>
 #include <bsgfx_internal.gen.h>
 
 #include <assert.h>
@@ -52,7 +52,7 @@ BSGFXAPI int _bsgfx_queues() { return _bsgfx_queues_; }
 BSGFXAPI int _bsgfx_atlases() { return _bsgfx_atlases_; }
 BSGFXAPI int _bsgfx_fonts() { return _bsgfx_fonts_; }
 
-static void bsgfx_createRenderers() {
+static void _bsgfx_createRenderers() {
    /**
     high resolution renderer
     */
@@ -246,8 +246,8 @@ static void bsgfx_createRenderers() {
     }
 }
 
-void bsgfx_allocateMaterials();
-static void bsgfx_loadResources() {
+void _bsgfx_allocateMaterials();
+static void _bsgfx_loadResources() {
     bs_Result result;
 
     bs_queue(BS_QUEUE(BSGFX_QUEUES, BSGFX_QUEUE_GRAPHICS, BS_OBJECT_HAS_SWAPS_BIT), BS_QUEUE_GRAPHICS_BIT);
@@ -267,7 +267,7 @@ static void bsgfx_loadResources() {
         bs_bindBuffer(BSGFX_SET_JOINTS, BSGFX_BINDING_JOINTS, jonts_buffer->buffer);
     }
 
-    bsgfx_iniInstances();
+    _bsgfx_iniInstances();
     
     // batches
     bs_Object* screen_batch = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_SCREEN, 0);
@@ -293,36 +293,41 @@ static void bsgfx_loadResources() {
     bs_batch(bone_instance_batch, sizeof(bs_U32), $vs_bsgfx_bone_instanced(), BS_BATCH_RAY_TRACEABLE);
 
     if (mesh_instance_batch && !bs_batchIsPushed(mesh_instance_batch)) {
-        bsgfx_instanceType(BSGFX_INSTANCE_TYPE_MESH, BSGFX_MESH_INSTANCE_COUNT, BSGFX_SET_MESH_INSTANCES, BSGFX_BINDING_MESH_INSTANCES);
-        bsgfx_instanceType(BSGFX_INSTANCE_TYPE_MESH_STATIC, BSGFX_MESH_STATIC_INSTANCE_COUNT, BSGFX_SET_MESH_STATIC_INSTANCES, BSGFX_BINDING_MESH_STATIC_INSTANCES);
+        _bsgfx_instanceType(BSGFX_INSTANCE_TYPE_MESH, BSGFX_MESH_INSTANCE_COUNT, BSGFX_SET_MESH_INSTANCES, BSGFX_BINDING_MESH_INSTANCES);
+        _bsgfx_instanceType(BSGFX_INSTANCE_TYPE_MESH_STATIC, BSGFX_MESH_STATIC_INSTANCE_COUNT, BSGFX_SET_MESH_STATIC_INSTANCES, BSGFX_BINDING_MESH_STATIC_INSTANCES);
     }
 
     if (sphere_batch && !bs_batchIsPushed(sphere_batch->batch)) {
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_CONE_MESH] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, sphere_batch->batch, 0, bs_pushCone(sphere_batch->batch, 10, 2.0, 1.0, BS_WHITE));
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_SPHERE_MESH] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, sphere_batch->batch, 0, bs_pushSphere(sphere_batch->batch, (bs_vec3) { 0 }, 1.0, 8, 8, BS_WHITE));
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_CONE_MESH] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, sphere_batch->batch, 0, bs_pushCone(sphere_batch->batch, 10, 2.0, 1.0, BS_WHITE));
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_SPHERE_MESH] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, sphere_batch->batch, 0, bs_pushSphere(sphere_batch->batch, (bs_vec3) { 0 }, 1.0, 8, 8, BS_WHITE));
     }
 
+    bs_Quad quad;
+    bs_quad(&(bs_vec3) { 0 }, & (bs_vec2) { 1.0, 1.0 }, & quad);
+
     if (quad_instance_batch && !bs_batchIsPushed(quad_instance_batch->batch)) {
-        bsgfx_instanceType(BSGFX_INSTANCE_TYPE_QUAD, BSGFX_QUAD_INSTANCE_COUNT, BSGFX_SET_QUAD_INSTANCES, BSGFX_BINDING_QUAD_INSTANCES);
-        bs_Range range = bs_pushQuad(quad_instance_batch->batch, bs_quad((bs_vec3) { 0 }, (bs_vec2) { 1.0, 1.0 }), BS_WHITE);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_CORNER_GRADIENT] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_UI] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_UI_COLOR] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_UI_STENCIL] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_COLOR_PICKER] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_COLOR_PICKER_HUE] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_COLOR_PICKER_ALPHA] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_DITHER] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_QUAD_MATERIAL_TEXTURE] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_ICON] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_PREFAB] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_PREFAB_TRANSPARENT] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_TILE] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_TILE_2] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_TILE_ICON] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_64_HI] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_256_HI] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_instanceType(BSGFX_INSTANCE_TYPE_QUAD, BSGFX_QUAD_INSTANCE_COUNT, BSGFX_SET_QUAD_INSTANCES, BSGFX_BINDING_QUAD_INSTANCES);
+
+        bs_Range range = bs_pushQuad(quad_instance_batch->batch, &quad, BS_WHITE);
+
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_CORNER_GRADIENT] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_UI] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_UI_COLOR] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_UI_STENCIL] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_COLOR_PICKER] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_COLOR_PICKER_HUE] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_COLOR_PICKER_ALPHA] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_DITHER] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_QUAD_MATERIAL_TEXTURE] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_ICON] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_PREFAB] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS_PREFAB_TRANSPARENT] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_ATLAS] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_TILE] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_TILE_2] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_TILE_ICON] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_64_HI] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_256_HI] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_QUAD, quad_instance_batch->batch, 0, range);
 
        // if (_bsgfx_procs_.bsmod_onCreateQuadSubtypes)
        //     _bsgfx_procs_.bsmod_onCreateQuadSubtypes(range);
@@ -332,14 +337,16 @@ static void bsgfx_loadResources() {
 
     if (!bs_batchIsPushed(volume_batch->batch)) {
         bs_ensureBatchSize(volume_batch->batch, 0, BSGFX_NUM_SHADOW_VERTICES);
-        bs_pushQuad(volume_screen_batch->batch, bs_quad((bs_vec3) { 0 }, (bs_vec2) { 1.0, 1.0 }), BSGFX_SHADOW_COLOR);
+
+        bs_pushQuad(volume_screen_batch->batch, &quad, BSGFX_SHADOW_COLOR);
+
         bs_pushBatch(volume_batch->batch, 0, BSGFX_NUM_SHADOW_VERTICES);
         bs_bindBuffer(BSGFX_SET_VOLUME_OUT_VERTICES, BSGFX_BINDING_VOLUME_OUT_VERTICES, volume_batch->batch->vertex_buffer->buffer);
     }
 
     if (!bs_batchIsPushed(screen_batch->batch)) {
-        bs_pushQuad(screen_batch->batch, bs_quad((bs_vec3) { 0 }, (bs_vec2) { 1.0, 1.0 }), BS_WHITE);
-        bs_pushQuad(screen_batch->batch, bs_quad((bs_vec3) { 0 }, (bs_vec2) { 1.0, 1.0 }), BS_WHITE);
+        bs_pushQuad(screen_batch->batch, &quad, BS_WHITE);
+        bs_pushQuad(screen_batch->batch, &quad, BS_WHITE);
        // const float offset = 0.75;
        // bs_pushQuad(screen_batch, bs_quad(BS_V3(0.125, 0.125, 0.0), bs_v2V1(offset)), BS_WHITE);
         bs_pushBatch(screen_batch->batch, BS_U32_MAX, BS_U32_MAX);
@@ -356,9 +363,9 @@ static void bsgfx_loadResources() {
     //bs_loadAllResources(BSGFX_RESOURCE_SCRIPT, 0);
     //bsgfx_loadModels(NULL, 0);
     //bsgfx_loadMinimap();
-    bsgfx_allocateMaterials();
+    _bsgfx_allocateMaterials();
 
-  //  bsgfx_loadMaterials();
+  //  _bsgfx_loadMaterials();
 
     bs_ivec2 resolution = bs_resolution();
     resolution.x /= BSGFX_PIXEL_SCALE;
@@ -375,8 +382,8 @@ static void bsgfx_loadResources() {
     }
 
     bs_RayTracer* ray_tracer = bs_rayTracer(BSGFX_RAY_TRACER_MAIN, 0, $rgen_main(), $rmiss_main(), NULL)->ray_tracer;
-    for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
-        bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
+    for (int i = 0; i < _bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
+        bsgfx_Primitive* primitive = _bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
         bs_Aabb aabb = {
             .min = bs_v3Add(primitive->position, bs_v3MulS(primitive->scale, -1)),
             .max = bs_v3Add(primitive->position, primitive->scale),
@@ -390,26 +397,26 @@ static void bsgfx_loadResources() {
     */
 
     if (bone_instance_batch->batch && !bs_batchIsPushed(bone_instance_batch->batch)) {
-        bsgfx_instanceType(BSGFX_INSTANCE_TYPE_BONE, BSGFX_BONE_INSTANCE_COUNT, BSGFX_SET_BONE_INSTANCES, BSGFX_BINDING_BONE_INSTANCES);
+        _bsgfx_instanceType(BSGFX_INSTANCE_TYPE_BONE, BSGFX_BONE_INSTANCE_COUNT, BSGFX_SET_BONE_INSTANCES, BSGFX_BINDING_BONE_INSTANCES);
     }
 
     if (mesh_instance_batch) {
         bs_Range pyramid = bs_pushBipyramid(mesh_instance_batch->batch, (bs_vec3) { 0 }, 0.75, 1.0, BS_WHITE);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_BIPYRAMID] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, mesh_instance_batch->batch, BSGFX_SUBTYPE_HAS_SHADOWS, pyramid);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_BIPYRAMID] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, mesh_instance_batch->batch, BSGFX_SUBTYPE_HAS_SHADOWS, pyramid);
     }
 
     if (point_batch && !bs_batchIsPushed(point_batch->batch) && bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)) {
-        bsgfx_instanceType(BSGFX_INSTANCE_TYPE_POINT, BSGFX_POINT_INSTANCE_COUNT, BSGFX_SET_POINT_INSTANCES, BSGFX_BINDING_POINT_INSTANCES);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_POINT] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_POINT, point_batch->batch, 0, bs_pushPoint(point_batch->batch, (bs_vec3) { 0 }, BS_WHITE));
+        _bsgfx_instanceType(BSGFX_INSTANCE_TYPE_POINT, BSGFX_POINT_INSTANCE_COUNT, BSGFX_SET_POINT_INSTANCES, BSGFX_BINDING_POINT_INSTANCES);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_POINT] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_POINT, point_batch->batch, 0, bs_pushPoint(point_batch->batch, (bs_vec3) { 0 }, BS_WHITE));
     }
 
     if (line_batch && !bs_batchIsPushed(line_batch->batch) && bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)) {
-        bsgfx_instanceType(BSGFX_INSTANCE_TYPE_LINE, BSGFX_LINE_INSTANCE_COUNT, BSGFX_SET_LINE_INSTANCES, BSGFX_BINDING_LINE_INSTANCES);
+        _bsgfx_instanceType(BSGFX_INSTANCE_TYPE_LINE, BSGFX_LINE_INSTANCE_COUNT, BSGFX_SET_LINE_INSTANCES, BSGFX_BINDING_LINE_INSTANCES);
 
         bs_Range range = bs_pushLine(line_batch->batch, (bs_vec3) { 0 }, BS_V3(0, 1.0, 0.0), BS_WHITE);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_LINE_2D] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_LINE, line_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_LINE] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_LINE, line_batch->batch, 0, range);
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_LINE_DEPTHLESS] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_LINE, line_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_LINE_2D] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_LINE, line_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_LINE] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_LINE, line_batch->batch, 0, range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_LINE_DEPTHLESS] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_LINE, line_batch->batch, 0, range);
     }
 
      /**
@@ -444,7 +451,7 @@ static void bsgfx_loadResources() {
        // bs_bindBuffer(BSGFX_SET_VOLUME_IN_INDICES, BSGFX_BINDING_VOLUME_IN_INDICES_BONE, bone_instance_batch->batch->index_buffer->buffer);
     }
 
-    bsgfx_createRenderers();
+    _bsgfx_createRenderers();
 
     if (bs_exists(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)) {
         bs_Sampler* sampler = bs_fetch(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)->sampler;
@@ -490,7 +497,7 @@ static void bsgfx_loadResources() {
 
     bs_pushBindings();
     bs_pushDescriptors();
-    // bsgfx_preComputeInstanceVolumes();
+    // _bsgfx_preComputeInstanceVolumes();
 }
 
 BSGFXAPI void _bsgfx_loadScene(const char* name) {
@@ -504,21 +511,21 @@ BSGFXAPI void _bsgfx_loadScene(const char* name) {
     bs_Scope scope = *bs_getScope();
     bs_setScope(&(bs_Scope) { 0 });
 
-	bs_load(bsgfx_loadResources);
+	bs_load(_bsgfx_loadResources);
 
    // if (_bsgfx_procs_.bsmod_onLoad)
    //     bs_runSingle(_bsgfx_procs_.bsmod_onLoad);
 
-    //bs_runSingle(bsgfx_computePrefabShadows);
+    //bs_runSingle(_bsgfx_computePrefabShadows);
 
-    bs_logObjectDiff();
-    bs_logUnchangedObjects();
-    bs_logBindings();
+    //bs_logObjectDiff();
+    //bs_logUnchangedObjects();
+    //bs_logBindings();
 
     if (_bsgfx_prefab_model_) {
         bs_Object* queue_object = BS_QUEUE(-1, 0, 0);
         if (bs_queue(queue_object, BS_QUEUE_COMPUTE_BIT) == BS_RESULT_OK) {
-            bs_enqueue(queue_object->queue, bsgfx_computePrefabShadows);
+            bs_enqueue(queue_object->queue, _bsgfx_computePrefabShadows);
             bs_stallGPU();
         }
         
@@ -526,7 +533,7 @@ BSGFXAPI void _bsgfx_loadScene(const char* name) {
 
     }
 
-   // bsgfx_despawnAllItems();
+   // _bsgfx_despawnAllItems();
     bs_setScope(&scope);
 
     bs_logEndOfSection();

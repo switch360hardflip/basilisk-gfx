@@ -33,7 +33,7 @@
 #ifndef BS_VALIDATION_H
 #define BS_VALIDATION_H
 
-#include <basilisk-core.gen.h>
+#include <basilisk-core.h>
 #include <bs_internal.h>
 
 static inline bs_FunctionTable _val_bs_getFunctions() {
@@ -254,6 +254,7 @@ static inline bs_FunctionTable _val_bs_getFunctions() {
     functions.bs_props = (PFN_bs_props)GetProcAddress(module, "_val_bs_props");
     functions.bs_config = (PFN_bs_config)GetProcAddress(module, "_val_bs_config");
     functions.bs_scope = (PFN_bs_scope)GetProcAddress(module, "_val_bs_scope");
+    functions.bs_io = (PFN_bs_io)GetProcAddress(module, "_val_bs_io");
     functions.bs_createThread = (PFN_bs_createThread)GetProcAddress(module, "_val_bs_createThread");
     functions.bs_formatStringLength = (PFN_bs_formatStringLength)GetProcAddress(module, "_val_bs_formatStringLength");
     functions.bs_checkStringPool = (PFN_bs_checkStringPool)GetProcAddress(module, "_val_bs_checkStringPool");

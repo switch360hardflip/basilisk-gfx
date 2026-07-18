@@ -23,9 +23,8 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
-#include <bsmod_cache.h>
 #include <bsmod_internal.h>
+#include <bsmod_cache.h>
 #include <stdio.h>
 
 Bsmod _bsmod_ = {
@@ -54,7 +53,7 @@ volatile long _bsmod_has_performed_tracked_changes_ = 1;
 
 int _bsmod_subtypes_[BSMOD_SUBTYPE_COUNT] = { 0 };
 
-static void bsmod_instanceAxisFace(
+static void _bsmod_instanceAxisFace(
     bsgfx_Primitive* primitive,
     int axis,
     bs_RGBA color,
@@ -96,32 +95,32 @@ BSMODAPI void _bsmod_onTick() {
   //  lisk_time += bs_elapsedTime();
   //  if (lisk_time > 0.1) {
   //      if (bs_arguments()->use_lisk)
-  //          bsmod_tickLisk();
+  //          _bsmod_tickLisk();
   //      lisk_time = 0.0;
   //  }
 
     if (InterlockedCompareExchange(&_bsmod_has_performed_tracked_changes_, 1, 1) == 1) {
 
-        bsmod_savePackage(BSMOD_CONTENT_PATH);
-        bsmod_savePackage(BSGFX_CONTENT_PATH);
+        _bsmod_savePackage(BSMOD_CONTENT_PATH);
+        _bsmod_savePackage(BSGFX_CONTENT_PATH);
         if (_bsmod_config_.doc)
-            bsmod_savePackage(bsmod_applicationContentPath());
+            _bsmod_savePackage(_bsmod_applicationContentPath());
 
     }
 
-    bsmod_readHoveringOutputs();
-    bsmod_readHoveringInstanceData();
-    bsmod_readHoveringVertex();
-    bsmod_instanceUI();
+    _bsmod_readHoveringOutputs();
+    _bsmod_readHoveringInstanceData();
+    _bsmod_readHoveringVertex();
+    _bsmod_instanceUI();
     if (!_bsmod_.ui_blocked)
-        bsmod_instanceTransform();
+        _bsmod_instanceTransform();
     if (!_bsmod_.ui_blocked)
-        bsmod_selectHoveringTypes();
+        _bsmod_selectHoveringTypes();
     if (!_bsmod_.ui_blocked)
-        bsmod_editSelectedType();
+        _bsmod_editSelectedType();
 
     if (bs_keyDown(BS_KEY_LEFT_CONTROL) && bs_keyDownOnce(BS_KEY_C))
-        bsmod_deselectAll();
+        _bsmod_deselectAll();
 
     static int last_selected_count = 0;
     static int last_selected_type = 0;
@@ -162,7 +161,7 @@ BSMODAPI void _bsmod_onTick() {
                 for (int j = 0; j < _bsmod_.selected_tiles.count; j++) {
                     int id = *(int*)bs_fetchUnit(&_bsmod_.selected_tiles, j);
                     if (tile->index == id) {
-                        bsmod_select(&_bsmod_.selected_ids, BSGFX_TYPE_TILE, i);
+                        _bsmod_select(&_bsmod_.selected_ids, BSGFX_TYPE_TILE, i);
                     }
                 }
             }
@@ -177,7 +176,7 @@ BSMODAPI void _bsmod_onTick() {
         bs_Aabb aabb = { .min = { -1, -1, -1 }, .max = { 1, 1, 1 } };
         //bsgfx_instanceObb(&aabb, BS_WHITE, &transform); //TODO:
 
-        bsmod_instanceAxisFace(primitive, _bsmod_.selected_tile_axis, BS_RGBA(130, 245, 245, 255), &BS_MAT4_IDENTITY);
+        _bsmod_instanceAxisFace(primitive, _bsmod_.selected_tile_axis, BS_RGBA(130, 245, 245, 255), &BS_MAT4_IDENTITY);
 
         last_selected_count = _bsmod_.selected_tiles.count;
         last_selected_type = _bsmod_.selected_type;
@@ -228,7 +227,7 @@ BSMODAPI void _bsmod_onMap(bsgfx_TypeId type_id, int id) {
     }
 }
 
-static void bsmod_computeFlyCamera() {
+static void _bsmod_computeFlyCamera() {
     bs_vec2 resolution = {
         .x = (float)bs_resolution().x,
         .y = (float)bs_resolution().y
@@ -344,21 +343,21 @@ BSMODAPI void _bsmod_onGfxRender() {
 
     if (override_camera) {
         bs_lockCursorPosition(false);
-        bsmod_computeFlyCamera();
+        _bsmod_computeFlyCamera();
         bs_disableUserInputs(true);
     }
 }
 
-static DWORD WINAPI bsmod_tickAsync(void* param) {
+static DWORD WINAPI _bsmod_tickAsync(void* param) {
     while (1) {
         InterlockedExchange(&_bsmod_has_performed_tracked_changes_, 0);
-        bsmod_onTrack();
+        _bsmod_onTrack();
         InterlockedExchange(&_bsmod_has_performed_tracked_changes_, 1);
         Sleep(1000);
     }
 }
 
-static void bsmod_onLoadVariables() {
+static void _bsmod_onLoadVariables() {
     if (_bsmod_config_.doc)
         bs_destroyJson(&_bsmod_config_);
 
@@ -371,6 +370,11 @@ static void bsmod_onLoadVariables() {
 BSMODAPI void _bsmod_onIni() {
     bs_Result result;
 
+    GetModuleHandleExA(
+        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+        (LPCSTR)(&_bsmod_onIni),
+        &_bsmod_.module);
+
     _bsmod_images_ = bs_configureSource(BS_OBJECT_IMAGE, BSMOD_IMAGES_COUNT, (const char* []) { BSMOD_IMAGE_IDS(BS_STRING_GEN) });
     _bsmod_samplers_ = bs_configureSource(BS_OBJECT_SAMPLER, BSMOD_SAMPLERS_COUNT, (const char* []) { BSMOD_SAMPLER_IDS(BS_STRING_GEN) });
     _bsmod_buffers_ = bs_configureSource(BS_OBJECT_BUFFER, BSMOD_BUFFERS_COUNT, (const char* []) { BSMOD_BUFFER_IDS(BS_STRING_GEN) });
@@ -381,8 +385,8 @@ BSMODAPI void _bsmod_onIni() {
     _bsmod_fonts_ = bs_configureSource(BS_OBJECT_FONT, BSMOD_FONTS_COUNT, (const char* []) { BSMOD_FONT_IDS(BS_STRING_GEN) });
     _bsmod_atlases_ = bs_configureSource(BS_OBJECT_ATLAS, BSMOD_ATLASES_COUNT, (const char* []) { BSMOD_ATLAS_IDS(BS_STRING_GEN) });
 
-    bsmod_onLoadVariables();
-    bsmod_loadShaderReferences();
+    _bsmod_onLoadVariables();
+    _bsmod_loadShaderReferences();
 
     result = bs_loadPackage(BSGFX_CONTENT_PATH, &_bsmod_.bsgfx_package);
 
@@ -399,11 +403,11 @@ BSMODAPI void _bsmod_onIni() {
     if (!_bsmod_.bindings_json.doc)
         _bsmod_.bindings_json = bs_emptyJson();
 
-    bsmod_iniPackage(BSMOD_CONTENT_PATH);
-    bsmod_iniPackage(BSGFX_CONTENT_PATH);
-    bsmod_iniPackage(bsmod_applicationContentPath());
-    // bsmod_iniLisk();
-    bsmod_iniCompiler();
+    _bsmod_iniPackage(BSMOD_CONTENT_PATH);
+    _bsmod_iniPackage(BSGFX_CONTENT_PATH);
+    _bsmod_iniPackage(_bsmod_applicationContentPath());
+    // _bsmod_iniLisk();
+    _bsmod_iniCompiler();
 
     bs_configureSource(BS_OBJECT_IMAGE, BSMOD_IMAGES_COUNT, (const char* []) { BSMOD_IMAGE_IDS(BS_STRING_GEN) });
     bs_configureSource(BS_OBJECT_SAMPLER, BSMOD_SAMPLERS_COUNT, (const char* []) { BSMOD_SAMPLER_IDS(BS_STRING_GEN) });
@@ -419,14 +423,14 @@ BSMODAPI void _bsmod_onIni() {
 BSMODAPI void _bsmod_onLateIni() { // ugly, called after first track
     bs_Result result;
 
-    bsmod_savePackage(BSMOD_CONTENT_PATH);
-    bsmod_savePackage(BSGFX_CONTENT_PATH);
-    bsmod_savePackage(bsmod_applicationContentPath());
+    _bsmod_savePackage(BSMOD_CONTENT_PATH);
+    _bsmod_savePackage(BSGFX_CONTENT_PATH);
+    _bsmod_savePackage(_bsmod_applicationContentPath());
 
     result = bs_loadPackage(BSMOD_CONTENT_PATH, &_bsmod_.package);
 
     if (bs_args()->track_changes)
-        CreateThread(NULL, 0, bsmod_tickAsync, NULL, 0, NULL);
+        CreateThread(NULL, 0, _bsmod_tickAsync, NULL, 0, NULL);
 }
 
 BSMODAPI void _bsmod_onCreateQuadSubtypes(bs_Range range) {
@@ -498,7 +502,10 @@ BSMODAPI void _bsmod_onLoad() {
     result = bs_batch(tile_batch_object, sizeof(int), $vs_bsgfx_tile_static(), BS_BATCH_KEEP_DATA);
     if (result == BS_RESULT_OK && !bs_batchIsPushed(tile_batch_object->batch)) {
         bs_Range range;
-        bsgfx_pushTile(tile_batch_object->batch, bs_quad(BS_V3(0, 0, 0), BS_V2(1, 1)), BS_V3(0, 0, 0), 0, 0, &range);
+        bs_Quad quad;
+        bs_quad(&BS_V3(0, 0, 0), &BS_V2(1, 1), &quad);
+
+        bsgfx_pushTile(tile_batch_object->batch, &quad, BS_V3(0, 0, 0), 0, 0, &range);
         bs_pushBatch(tile_batch_object->batch, BS_U32_MAX, BS_U32_MAX);
     }
 
@@ -599,5 +606,5 @@ BSMODAPI void _bsmod_onLoad() {
     bs_loadAtlas(primitive_icons, _bsmod_.package, 0, BS_CONSTANT_STRING("primitive_icons"));
     bs_loadAtlas(prefab_icons, _bsmod_.package, 0, BS_CONSTANT_STRING("prefab_icons"));
 
-    bsmod_bindAtlases();
+    _bsmod_bindAtlases();
 }

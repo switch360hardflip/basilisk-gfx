@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-gfx.h>
+#include <bsgfx_internal.h>
 
 enum {
     BSGFX_SHADOW_COMPUTATION_MESH,
@@ -44,7 +44,7 @@ enum {
    * Robust Shadow Volume Computation
    *============================================================================*/
 
-static inline void bsgfx_awaitComputeWrite() {
+static inline void _bsgfx_awaitComputeWrite() {
     bs_barrier(0,
         BS_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
         BS_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
@@ -101,7 +101,7 @@ BSGFXAPI void _bsgfx_computeShadowVolumes() {
         push_constant.include_flag = BSGFX_SUBTYPE_HAS_SHADOWS;
         push_constant.exclude_flag = BSGFX_SUBTYPE_HAS_FINE_SHADOWS;
 
-        bsgfx_awaitComputeWrite();
+        _bsgfx_awaitComputeWrite();
         bs_pushConstant(pipeline, 0, sizeof(push_constant), &push_constant);
         bs_dispatchAsync(pipeline, 1, 1, 1);
     }
@@ -113,7 +113,7 @@ BSGFXAPI void _bsgfx_computeShadowVolumes() {
         push_constant.include_flag = BSGFX_SUBTYPE_HAS_SHADOWS;
         push_constant.exclude_flag = BSGFX_SUBTYPE_HAS_FINE_SHADOWS;
 
-        bsgfx_awaitComputeWrite();
+        _bsgfx_awaitComputeWrite();
         bs_pushConstant(pipeline, 0, sizeof(push_constant), &push_constant);
         bs_dispatchAsync(pipeline, 1, 1, 1);
     }
@@ -125,7 +125,7 @@ BSGFXAPI void _bsgfx_computeShadowVolumes() {
         push_constant.include_flag = BSGFX_SUBTYPE_HAS_FINE_SHADOWS;
         push_constant.exclude_flag = 0;
 
-        bsgfx_awaitComputeWrite();
+        _bsgfx_awaitComputeWrite();
         bs_pushConstant(pipeline, 0, sizeof(push_constant), &push_constant);
         bs_dispatchAsync(pipeline, 1, 1, 1);
     }
@@ -218,7 +218,7 @@ BSGFXAPI void _bsgfx_renderShadowVolumes() {
     */
 }
 
-static int bsgfx_comparePrefabDepths(const bsgfx_Prefab** ap, const bsgfx_Prefab** bp) {
+static int _bsgfx_comparePrefabDepths(const bsgfx_Prefab** ap, const bsgfx_Prefab** bp) {
     const bsgfx_Prefab* a = *ap, * b = *bp;
     if (a->position.z != b->position.z)
         return (a->position.z < b->position.z) ? -1 : 1;
@@ -344,10 +344,10 @@ BSGFXAPI void _bsgfx_renderFineShadowVolumes() {
         int instance_id = metadata->textured_volumes[metadata->textured_volumes_count - call].texture;
         bsgfx_InstanceBuffer* instance = first_instance + instance_id;
         int prefab_id = instance->header.id;
-        bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, prefab_id);
+        bsgfx_Prefab* prefab = _bsgfx_get(BSGFX_TYPE_PREFAB, prefab_id);
         bs_pushBack(&sorted_prefabs, &prefab);
     }
-    // qsort(sorted_prefabs.data, sorted_prefabs.count, sizeof(bsgfx_Prefab*), bsgfx_comparePrefabDepths);
+    // qsort(sorted_prefabs.data, sorted_prefabs.count, sizeof(bsgfx_Prefab*), _bsgfx_comparePrefabDepths);
 
     int count = total_index_count / volume_index_count;
 
@@ -361,8 +361,8 @@ BSGFXAPI void _bsgfx_renderFineShadowVolumes() {
         bsgfx_InstanceBuffer* instance = first_instance + instance_id;
 
         int prefab_id = instance->header.id;
-        bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, prefab_id);
-        bsgfx_RawPrefab* raw_prefab = bsgfx_getRaw(BSGFX_TYPE_PREFAB, prefab_id);
+        bsgfx_Prefab* prefab = _bsgfx_get(BSGFX_TYPE_PREFAB, prefab_id);
+        bsgfx_RawPrefab* raw_prefab = _bsgfx_getRaw(BSGFX_TYPE_PREFAB, prefab_id);
 
         if (!(raw_prefab->flags & BSGFX_PREFAB_TEXTURED_SHADOWS))
             continue;
@@ -401,8 +401,8 @@ BSGFXAPI void _bsgfx_renderFineShadowVolumes() {
         bsgfx_InstanceBuffer* instance = first_instance + instance_id;
 
         int prefab_id = instance->header.id;
-        bsgfx_Prefab* prefab = bsgfx_get(BSGFX_TYPE_PREFAB, prefab_id);
-        bsgfx_RawPrefab* raw_prefab = bsgfx_getRaw(BSGFX_TYPE_PREFAB, prefab_id);
+        bsgfx_Prefab* prefab = _bsgfx_get(BSGFX_TYPE_PREFAB, prefab_id);
+        bsgfx_RawPrefab* raw_prefab = _bsgfx_getRaw(BSGFX_TYPE_PREFAB, prefab_id);
         bs_Mesh* mesh = _bsgfx_prefab_model_->meshes + prefab->mesh_id;
 
         if (!(raw_prefab->flags & BSGFX_PREFAB_TEXTURED_SHADOWS))

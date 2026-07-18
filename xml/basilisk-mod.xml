@@ -10,32 +10,35 @@
 		<trampoline>
 			<include>basilisk-mod.h</include>
 			<include>bsmod_internal.gen.h</include>
+			<include>math.h</include>
 			<include>stdio.h</include>
 		</trampoline>
 		<trampolineHeader>
 			<include>basilisk-core.h</include>
 			<include>basilisk-gfx.h</include>
 		</trampolineHeader>
+		<internal>
+			<include>bsmod_internal.h</include>
+			<include>stdarg.h</include>
+			<include>stdio.h</include>
+		</internal>
 		<internalHeader>
 			<include>basilisk-mod.h</include>
 			<include>windows.h</include>
 		</internalHeader>
 		<prevalidation>
-			<include>basilisk-mod.h</include>
-			<include>bsmod_internal.gen.h</include>
+			<include>bsmod_internal.h</include>
 		</prevalidation>
 		<prevalidationHeader>
-			<include>bsmod_internal.gen.h</include>
+			<include>basilisk-mod.h</include>
 		</prevalidationHeader>
 		<validationHeader>
-			<include>bsmod_internal.gen.h</include>
-			<include>windows.h</include>
+			<include>basilisk-mod.h</include>
 		</validationHeader>
 	</includes>
 
 	<typedefs>
 		<typedef><type>void</type><name>(__stdcall* PFN_void)()</name></typedef>
-		<typedef><type>bool</type><name>(__stdcall* PFN_bsmod_PushContextMenuButton)(bsgfx_Widget*)</name></typedef>
 		<typedef><type>const char*</type><name>(__stdcall* PFN_bsmod_GridMenu)(bs_List* widgets)</name></typedef>
 		<typedef><type>void</type><name>(__stdcall* PFN_bsmod_GridMenuCallback)(struct bsgfx_DebugMenuWidget*, int)</name></typedef>
 	</typedefs>
@@ -172,76 +175,6 @@
 			<field><type>void</type><name>(*on_click)(bsmod_GridClickParams)</name></field>
 		</structure>
 		
-		<structure name="Bsmod">
-			<field><type>int</type><name>package</name></field>
-			<field><type>int</type><name>bsgfx_package</name></field>
-			<field><type>int</type><name>selected_tile_primitive</name></field>
-			<field><type>int</type><name>selected_tile_axis</name></field>
-
-			<structure instance=" hovering">
-				<field><type>bs_RGBA</type><name>color</name></field>
-				<field><type>bs_vec3</type><name>normal</name></field>
-				<field><type>bs_U32</type><name>index</name></field>
-				<field><type>bs_U32</type><name>flags</name></field>
-				<field><type>bs_vec3</type><name>position</name></field>
-				<field><type>int</type><name>instance_type</name></field>
-				<field><type>int</type><name>instance_id</name></field>
-				<field><type>int</type><name>subtype</name></field>
-				<field><type>int</type><name>closest_primitive</name></field>
-				<field><type>bs_vec3</type><name>closest_vertex</name></field>
-				<field><type>bool</type><name>billboard</name></field>
-				<field><type>int</type><name>primitive</name></field>
-				<field><type>int</type><name>prefab</name></field>
-				<field><type>int</type><name>tile</name></field>
-				<field><type>int</type><name>tile_axis</name></field>
-			</structure>
-
-			<field><type>bs_List</type><name>selected_ids</name></field>
-			<field><type>bs_List</type><name>selected_tiles</name></field>
-			<field><type>int</type><name>editor_resource_type</name></field>
-			<field><type>int</type><name>editor_resource_id</name></field>
-			<field><type>bs_String*</type><name>foliage_density_input</name></field>
-			<field><type>bs_String*</type><name>primitive_angle_input</name></field>
-			<field><type>bs_vec2</type><name>selected_tile_size</name></field>
-			<field><type>bool</type><name>draw_menu</name></field>
-			<field><type>bool</type><name>active</name></field>
-			<field><type>bool</type><name>ui_blocked</name></field>
-			<field><type>int</type><name>overlay</name></field>
-			<field><type>PFN_bsmod_GridMenu</type><name>grid_menu</name></field>
-			<field><type>PFN_bsmod_GridMenuCallback</type><name>grid_menu_callback</name></field>
-			<field><type>void*</type><name>grid_menu_params</name></field>
-			<field><type>int</type><name>clicked_type</name></field>
-			<field><type>int</type><name>clicked_id</name></field>
-			<field><type>bsgfx_TypeId</type><name>selected_type</name></field>
-			<field><type>int</type><name>axis</name></field>
-			<field><type>bs_I64</type><name>history</name></field>
-
-			<structure instance=" settings">
-				<field><type>bool</type><name>draw_hidden_primitives</name></field>
-			</structure>
-
-			<structure instance=" queue">
-				<field><type>int</type><name>isolated_subtype</name></field>
-				<field><type>int</type><name>isolated_id</name></field>
-				<field><type>bool</type><name>screenshot</name></field>
-				<field><type>bool</type><name>load_fonts</name></field>
-				<field><type>bool</type><name>load_shaders</name></field>
-				<field><type>bool</type><name>load_materials</name></field>
-				<field><type>bool</type><name>load_textures</name></field>
-				<field><type>bool</type><name>load_scripts</name></field>
-				<field><type>bool</type><name>skip_mesh_index_write</name></field>
-			</structure>
-
-			<field><type>int</type><name>dragging_object_id</name></field>
-			<field><type>int</type><name>dragging_subtype</name></field>
-			<field><type>int</type><name>dragging_id</name></field>
-			<field><type>bsmod_EditType</type><name>edit_type</name></field>
-			<field><type>bsmod_EditType</type><name>edit_type_old</name></field>
-			<field><type>bs_Json</type><name>track_json</name></field>
-			<field><type>bs_Json</type><name>bindings_json</name></field>
-			<field><type>bs_String*</type><name>variadic</name></field>
-			<field><type>bs_List</type><name>queue_load</name></field>
-		</structure>
 	</structures>
 
 	<externs>
@@ -256,7 +189,6 @@
 		<extern><type>int</type><name>bsmod_ray_tracers</name></extern>
 		<extern><type>int</type><name>bsmod_fonts</name></extern>
 		<extern><type>int</type><name>bsmod_atlases</name></extern>
-		<extern><type>Bsmod</type><name>bsmod</name></extern>
 		<extern><type>bool</type><name>bsmod_instance_grid_menu</name></extern>
 		<extern><type>bs_String*</type><name>bsmod_search_input</name></extern>
 		<extern><type>bsmod_SideMenuTab</type><name>bsmod_side_menu_tabs</name><size>BSMOD_TABS_COUNT</size></extern>
@@ -368,6 +300,7 @@
 		</variadicStringTemplate>
 
 		<function name="bsmod_scrollbar">
+			<return>void</return>
 			<param><type>const int*</type><name>scroll</name></param>
 			<param><type>bsgfx_Scrollbar*</type><name>out</name></param>
 		</function>
@@ -618,7 +551,7 @@
 			<param><type>bsgfx_AtlasCache*</type><name>icon</name></param>
 			<param><type>const char*</type><name>name</name></param>
 			<param><type>int</type><name>indent</name></param>
-			<param><type>PFN_bsmod_PushContextMenuButton</type><name>action</name></param>
+			<param><type>PFN_bsgfx_ButtonWidgetCallback</type><name>action</name></param>
 			<param><type>bool</type><name>expandable</name></param>
 		</function>
 
@@ -631,11 +564,6 @@
 		<function name="bsmod_instanceLightBillboards">
 			<return>void</return>
 		</function>
-		<function name="bsmod_onAddLightTick">
-			<return>bool</return>
-			<param><type>bsgfx_ButtonParams</type><name>params</name></param>
-		</function>
-
 		<function name="bsmod_pushMaterialWidgets">
 			<return>void</return>
 			<param><type>bs_List*</type><name>widgets</name></param>

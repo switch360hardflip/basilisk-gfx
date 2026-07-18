@@ -24,7 +24,7 @@
   */ 
 
 #include <bsgfx_cache.h>
-#include <basilisk-gfx.h>
+#include <bsgfx_internal.h>
 
 #include <inttypes.h>
 
@@ -60,7 +60,7 @@ BSGFXAPI bsgfx_Material* _bsgfx_queryMaterialHash(bs_U64 hash) {
 }
 
 BSGFXAPI bsgfx_Material* _bsgfx_queryMaterial(const char* name) {
-    return bsgfx_queryMaterialHash(bs_stringHash(name));
+    return _bsgfx_queryMaterialHash(bs_stringHash(name));
 }
 
 BSGFXAPI bsgfx_Material* _bsgfx_fetchMaterial(int id) {
@@ -73,14 +73,14 @@ BSGFXAPI bsgfx_Material* _bsgfx_fetchMaterial(int id) {
 BSGFXAPI bsgfx_Material* _val_bsgfx_material(char* name, int name_length) {
     BSGFX_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS), NULL,);
 
-    return bsgfx_material(name, name_length);
+    return _bsgfx_material(name, name_length);
 }
 
 BSGFXAPI bsgfx_Material* _bsgfx_material(char* name, int name_length) {
     bs_Buffer* materials_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS)->buffer;
     bsgfx_MaterialContract* contract = bs_bufferMap(bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS)->buffer);
 
-    bsgfx_Material* existing = bsgfx_queryMaterial(name);
+    bsgfx_Material* existing = _bsgfx_queryMaterial(name);
 
     if (existing)
         return existing;
@@ -94,7 +94,7 @@ BSGFXAPI bsgfx_Material* _bsgfx_material(char* name, int name_length) {
     });
 }
 
-void bsgfx_allocateMaterials() {
+void _bsgfx_allocateMaterials() {
     bs_Result result;
     
     result = bs_buffer(BS_BUFFER(BSGFX_BUFFERS, BSGFX_BUFFER_MATERIALS, false), BSGFX_MAX_MATERIALS_COUNT * sizeof(bsgfx_MaterialContract),
@@ -113,7 +113,7 @@ void bsgfx_allocateMaterials() {
 
     bs_bindBuffer(BSGFX_SET_MATERIALS, BSGFX_BINDING_MATERIALS, materials_buffer);
 
-    bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials_, bsgfx_material(BS_CONSTANT_STRING("blank"))->id);
+    bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials_, _bsgfx_material(BS_CONSTANT_STRING("blank"))->id);
     material->contract->color = BS_V4(1.0, 1.0, 1.0, 1.0);
 }
 
@@ -137,12 +137,12 @@ BSGFXAPI void _bsgfx_loadMaterials() {
 
         char* material_name = bs_fetchJson(&material_json, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string;
 
-        bsgfx_Material* material = bsgfx_material(material_name, strlen(material_name));
+        bsgfx_Material* material = _bsgfx_material(material_name, strlen(material_name));
         material->json_index = i;
         material->editable = true;
         *material->contract = (bsgfx_MaterialContract){
             .color = color ? BSGFX_RGBA(color[0], color[1], color[2], color[3]) : (bs_vec4) { 1.0, 1.0, 1.0, 1.0 },
-           // .image = image_size ? bsgfx_queryTexture(image_size, bs_fetchJson(&material_json, BS_JSON_STRING, "image.name").as_string) : 0,
+           // .image = image_size ? _bsgfx_queryTexture(image_size, bs_fetchJson(&material_json, BS_JSON_STRING, "image.name").as_string) : 0,
            // .scale = image_size,
         };
     }
@@ -186,6 +186,6 @@ BSGFXAPI void _bsgfx_tickMaterials() {
     for (int i = 0; i < _bsgfx_materials_.count; i++) {
         bsgfx_Material* material = bs_fetchUnit(&_bsgfx_materials_, i);
         if (material->highlighted && material->auto_unhighlight)
-            bsgfx_unhighlightMaterial(i);
+            _bsgfx_unhighlightMaterial(i);
     }
 }

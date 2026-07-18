@@ -24,7 +24,7 @@
   */ 
 
 #include <bsgfx_cache.h>
-#include <basilisk-gfx.h>
+#include <bsgfx_internal.h>
 
 bsgfx_Type _bsgfx_types_[BSGFX_TYPE_COUNT] = { 0 };
 
@@ -47,8 +47,8 @@ BSGFXAPI int _bsgfx_rawId(bsgfx_TypeId type_id, unsigned char* p) {
     return (p - type->unmapped) / type->unmapped_unit_size;
 }
 
-static inline bool bsgfx_validateTypeBounds(bsgfx_TypeId type_id, int id) {
-    int count = bsgfx_count(type_id);
+static inline bool _bsgfx_validateTypeBounds(bsgfx_TypeId type_id, int id) {
+    int count = _bsgfx_count(type_id);
     if (id >= count) {
         bs_warnF("\"%s\" %d >= %d", _bsgfx_types_[type_id].singular, id, count); // TODO: bsgfx warn
         return false;
@@ -61,10 +61,10 @@ static inline bool bsgfx_validateTypeBounds(bsgfx_TypeId type_id, int id) {
   Get type
   */
 BSGFXAPI void* _val_bsgfx_get(bsgfx_TypeId type_id, bs_U32 id) {
-    if (!bsgfx_validateTypeBounds(type_id, id))
+    if (!_bsgfx_validateTypeBounds(type_id, id))
         return NULL;
 
-    return bsgfx_get(type_id, id);
+    return _bsgfx_get(type_id, id);
 }
 
 BSGFXAPI void* _bsgfx_get(bsgfx_TypeId type_id, bs_U32 id) {
@@ -76,10 +76,10 @@ BSGFXAPI void* _bsgfx_get(bsgfx_TypeId type_id, bs_U32 id) {
   Get raw type
   */
 BSGFXAPI void* _val_bsgfx_getRaw(bsgfx_TypeId type_id, int id) {
-    if (!bsgfx_validateTypeBounds(type_id, id))
+    if (!_bsgfx_validateTypeBounds(type_id, id))
         return NULL;
 
-    return bsgfx_getRaw(type_id, id);
+    return _bsgfx_getRaw(type_id, id);
 }
 
 BSGFXAPI void* _bsgfx_getRaw(bsgfx_TypeId type_id, int id) {
@@ -90,17 +90,17 @@ BSGFXAPI void* _bsgfx_getRaw(bsgfx_TypeId type_id, int id) {
  /**
   Flexible count
   */
-static int bsgfx_flexibleCountPointer(int flexible_offset, unsigned char* p) {
+static int _bsgfx_flexibleCountPointer(int flexible_offset, unsigned char* p) {
     return flexible_offset == 0 ? 0 :*(int*)(p + flexible_offset);
 }
 
 BSGFXAPI int _bsgfx_flexibleCount(bsgfx_TypeId type_id, int id) {
-    return bsgfx_flexibleCountPointer(_bsgfx_types_[type_id].unmapped_flexible_offset, bsgfx_getRaw(type_id, id));
+    return _bsgfx_flexibleCountPointer(_bsgfx_types_[type_id].unmapped_flexible_offset, _bsgfx_getRaw(type_id, id));
 }
 
-//void bsgfx_addFlexible(bsgfx_TypeId type_id, int id) {
-//    bsgfx_Type* type = bsgfx_types + type_id;
-//    unsigned char* p = bsgfx_get(type_id, id);
+//void _bsgfx_addFlexible(bsgfx_TypeId type_id, int id) {
+//    bsgfx_Type* type = _bsgfx_types + type_id;
+//    unsigned char* p = _bsgfx_get(type_id, id);
 //    if (!p)
 //        return;
 //
@@ -115,20 +115,20 @@ BSGFXAPI int _bsgfx_flexibleCount(bsgfx_TypeId type_id, int id) {
   */
 BSGFXAPI void _val_bsgfx_map(bsgfx_TypeId type_id, int id) {
     BSGFX_VALIDATE(id >= 0,,);
-    BSGFX_VALIDATE(id < bsgfx_count(type_id),,);
+    BSGFX_VALIDATE(id < _bsgfx_count(type_id),,);
 
     bsgfx_Type* type = _bsgfx_types_ + type_id;
     BSGFX_VALIDATE(type->mapped != NULL,,);
 
-    bsgfx_map(type_id, id);
+    _bsgfx_map(type_id, id);
 }
 
 BSGFXAPI void _bsgfx_map(bsgfx_TypeId type_id, int id) {
     bsgfx_Type* type = _bsgfx_types_ + type_id;
 
     type->mapper(
-        bsgfx_getRaw(type_id, id),
-        bsgfx_get(type_id, id)
+        _bsgfx_getRaw(type_id, id),
+        _bsgfx_get(type_id, id)
     );
 
    // if (_bsgfx_procs_.bsmod_onMap) // TODO: maybe put in postval
@@ -138,7 +138,7 @@ BSGFXAPI void _bsgfx_map(bsgfx_TypeId type_id, int id) {
 BSGFXAPI void _bsgfx_remap(bsgfx_TypeId type_id) {
     bsgfx_Type* type = _bsgfx_types_ + type_id;
     for (int i = 0; i < type->count; i++)
-        bsgfx_map(type_id, i);
+        _bsgfx_map(type_id, i);
 }
 
 BSGFXAPI void _bsgfx_type(
@@ -149,7 +149,7 @@ BSGFXAPI void _bsgfx_type(
     const char* singular,
     size_t unmapped_size,
     size_t mapped_size,
-    void(*mapper)(void*, void*),
+    PFN_bsgfx_TypeMapper mapper,
     size_t unmapped_flexible_offset,
     size_t mapped_flexible_offset,
     size_t unmapped_flexible_size,
@@ -217,7 +217,7 @@ BSGFXAPI void _bsgfx_type(
         unmapped_data = (unsigned char*)(data->accessors + data->count);
 
         for (int i = 0, unmapped_offset = 0, mapped_offset = 0; i < data->count; i++) {
-            int flexible_count = unmapped_flexible_offset == 0 ? 0 : bsgfx_flexibleCountPointer(unmapped_flexible_offset, unmapped_data + unmapped_offset);
+            int flexible_count = unmapped_flexible_offset == 0 ? 0 : _bsgfx_flexibleCountPointer(unmapped_flexible_offset, unmapped_data + unmapped_offset);
             type->mapped_accessors[i] = mapped_offset;
             type->flexible_count += flexible_count;
             unmapped_offset += unmapped_size + unmapped_flexible_size * flexible_count;
@@ -245,7 +245,7 @@ BSGFXAPI void _bsgfx_type(
 
     if (type->unmapped) {
         for (int i = 0; i < type->count; i++)
-            mapper(bsgfx_getRaw(id, i), bsgfx_get(id, i));
+            mapper(_bsgfx_getRaw(id, i), _bsgfx_get(id, i));
     }
 
 //#ifndef _DEBUG

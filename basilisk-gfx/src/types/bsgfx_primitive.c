@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-gfx.h>
+#include <bsgfx_internal.h>
 #include <../bsgfx_contracts.h>
 #include <bsgfx_cache.h>
 
@@ -37,14 +37,14 @@ BSGFXAPI void _bsgfx_primitivePosition(const bsgfx_RawPrimitive* primitive, bs_v
     bs_v3Add(&primitive->position, &rotated_scale, out);
 }
 
-static void bsgfx_mapPrimitive(bsgfx_RawPrimitive* unmapped, bsgfx_Primitive* mapped) {
+static void _bsgfx_mapPrimitive(bsgfx_RawPrimitive* unmapped, bsgfx_Primitive* mapped) {
     mapped->collision = unmapped->collision;
     mapped->guid = unmapped->guid;
     mapped->scale = unmapped->scale;
     mapped->flags = unmapped->flags;
     mapped->type = unmapped->type;
 
-    bsgfx_primitivePosition(unmapped, &mapped->position);
+    _bsgfx_primitivePosition(unmapped, &mapped->position);
 
     bs_eulToQ(&BS_V3_TO_RADIANS(unmapped->rotation), &mapped->rotation);
 
@@ -55,12 +55,12 @@ static void bsgfx_mapPrimitive(bsgfx_RawPrimitive* unmapped, bsgfx_Primitive* ma
 }
 
 BSGFXAPI void _bsgfx_loadPrimitives(int package_id) {
-    bsgfx_type(
+    _bsgfx_type(
         BSGFX_TYPE_PRIMITIVE,
         package_id,
         BSGFX_PRIMITIVE_VERSION,
         "primitives", "primitive",
-        sizeof(bsgfx_RawPrimitive), sizeof(bsgfx_Primitive), bsgfx_mapPrimitive,
+        sizeof(bsgfx_RawPrimitive), sizeof(bsgfx_Primitive), _bsgfx_mapPrimitive,
         0, 0, 0, 0);
 
     if (bs_exists(BSGFX_BATCHES, BSGFX_BATCH_MESH_INSTANCED)) {
@@ -71,22 +71,22 @@ BSGFXAPI void _bsgfx_loadPrimitives(int package_id) {
             bs_Range sphere_range = bs_pushSphere(mesh_instanced_batch, BS_V3(0, 0, 0), 1.0, 16, 16, BS_WHITE);
             bs_Range sphere_high_quality_range = bs_pushSphere(mesh_instanced_batch, BS_V3(0, 0, 0), 1.0, 64, 64, BS_WHITE);
 
-            _bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_BOX] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, mesh_instanced_batch, BSGFX_SUBTYPE_HAS_SHADOWS, box_range);
-            _bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_SPHERE] = bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, mesh_instanced_batch, BSGFX_SUBTYPE_HAS_SHADOWS, sphere_range);
+            _bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_BOX] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, mesh_instanced_batch, BSGFX_SUBTYPE_HAS_SHADOWS, box_range);
+            _bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_SPHERE] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, mesh_instanced_batch, BSGFX_SUBTYPE_HAS_SHADOWS, sphere_range);
         }
     }
 
     bs_U32 index = 0;
 
-    for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
-        bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
+    for (int i = 0; i < _bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
+        bsgfx_Primitive* primitive = _bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
 
         if (primitive->type != BSGFX_PRIMITIVE_TYPE_BOX)
             continue;
 
         primitive->first_tile = index;
         for (int j = 0; j < 6; j++) {
-            bsgfx_TileAxis* ax = &bsgfx_tileAxes()[j];
+            bsgfx_TileAxis* ax = &_bsgfx_tileAxes()[j];
 
             int width = (int)(primitive->scale.a[ax->width_axis] * 2.0f);
             int height = (int)(primitive->scale.a[ax->height_axis] * 2.0f);
@@ -96,7 +96,7 @@ BSGFXAPI void _bsgfx_loadPrimitives(int package_id) {
         primitive->last_tile = index;
     }
 
-   // bsgfx_instancePrimitives();
+   // _bsgfx_instancePrimitives();
 }
 
 BSGFXAPI int _bsgfx_primitiveSubtype(bsgfx_PrimitiveType type) {
@@ -109,12 +109,12 @@ BSGFXAPI int _bsgfx_primitiveSubtype(bsgfx_PrimitiveType type) {
 }
 
 BSGFXAPI int _bsgfx_instancePrimitive(int subtype, bs_mat4 transform, bs_U32 flags, int id, int material) {
-    return bsgfx_instance(subtype, &transform, sizeof(bs_mat4), flags, 0, id, material);
+    return _bsgfx_instance(subtype, &transform, sizeof(bs_mat4), flags, 0, id, material);
 }
 
 BSGFXAPI int _bsgfx_queryTilePrimitive(int tile_id) {
-    for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
-        bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
+    for (int i = 0; i < _bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
+        bsgfx_Primitive* primitive = _bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
         if (tile_id >= primitive->first_tile && tile_id <= primitive->last_tile) {
             return i;
         }
@@ -133,8 +133,8 @@ BSGFXAPI void _bsgfx_instancePrimitives() {
     bs_vec4 white_coords = bs_atlasCoordinates(atlas, white);
     int red_material = $red_material()->id;
 
-    for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
-        bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
+    for (int i = 0; i < _bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
+        bsgfx_Primitive* primitive = _bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
         if (primitive->flags & BSGFX_PRIMITIVE_HIDDEN)
             continue;
 
@@ -151,7 +151,7 @@ BSGFXAPI void _bsgfx_instancePrimitives() {
         //if (primitive->type == BSGFX_PRIMITIVE_TYPE_BOX) // tiles are rendered over these
         //    continue;
 
-        bsgfx_instance(_bsgfx_subtypes_[primitive->subtype_index], &transform, sizeof(bs_mat4), flags, 0, i, 0);
+        _bsgfx_instance(_bsgfx_subtypes_[primitive->subtype_index], &transform, sizeof(bs_mat4), flags, 0, i, 0);
     }
 }
 
@@ -182,13 +182,13 @@ BSGFXAPI void _bsgfx_renderPrimitives(bs_mat4 camera) {
     bs_pipeline(&hash, &pipeline);
 
     bs_pushConstant(pipeline, 0, sizeof(&push_const), &push_const);
-    bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_BOX], pipeline);
-    bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_SPHERE], pipeline);
+    _bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_BOX], pipeline);
+    _bsgfx_renderSubtype(_bsgfx_subtypes_[BSGFX_SUBTYPE_PRIMITIVE_SPHERE], pipeline);
 }
 
 BSGFXAPI int _bsgfx_queryPrimitive(bs_GUID* guid) {
-    for (int i = 0; i < bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
-        bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
+    for (int i = 0; i < _bsgfx_count(BSGFX_TYPE_PRIMITIVE); i++) {
+        bsgfx_Primitive* primitive = _bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
         if (bs_sameGuid(guid, &primitive->guid))
             return i;
     }

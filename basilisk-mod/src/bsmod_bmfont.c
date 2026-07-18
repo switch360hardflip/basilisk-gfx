@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 #include <direct.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,15 +56,15 @@ typedef struct {
     int base;
 } bsmod_BMFont;
 
-static void bsmod_parseCharLine(const char* line, bsmod_BMChar* c) {
+static void _bsmod_parseCharLine(const char* line, bsmod_BMChar* c) {
     sscanf(line, "char id=%d x=%d y=%d width=%d height=%d xoffset=%d yoffset=%d xadvance=%d", &c->id, &c->x, &c->y, &c->width, &c->height, &c->x_offset, &c->y_offset, &c->x_advance);
 }
 
-static void bsmod_parseKerningLine(const char* line, bsmod_BMKerning* k) {
+static void _bsmod_parseKerningLine(const char* line, bsmod_BMKerning* k) {
     sscanf(line, "kerning first=%d second=%d amount=%d", &k->first, &k->second, &k->amount);
 }
 
-static bs_Result bsmod_loadBMFont(const char* path, bsmod_BMFont* out) {
+static bs_Result _bsmod_loadBMFont(const char* path, bsmod_BMFont* out) {
     bsmod_BMFont font = { 0 };
 
     FILE* f = fopen(path, "r");
@@ -91,9 +91,9 @@ static bs_Result bsmod_loadBMFont(const char* path, bsmod_BMFont* out) {
             font.kerning_pairs = calloc(font.kerning_pairs_count, sizeof(bsmod_BMKerning));
         }
         else if (strncmp(line, "char ", 5) == 0)
-            bsmod_parseCharLine(line, &font.chars[charIdx++]);
+            _bsmod_parseCharLine(line, &font.chars[charIdx++]);
         else if (strncmp(line, "kerning ", 8) == 0)
-            bsmod_parseKerningLine(line, &font.kerning_pairs[kernIdx++]);
+            _bsmod_parseKerningLine(line, &font.kerning_pairs[kernIdx++]);
     }
 
     fclose(f);
@@ -108,7 +108,7 @@ BSMODAPI bs_Result _bsmod_packBMFont(char* package_name, char* bmfont_path, char
     const int channels_count = 4;
 
     bsmod_BMFont font;
-    result = bsmod_loadBMFont(bmfont_path, &font);
+    result = _bsmod_loadBMFont(bmfont_path, &font);
     if (result != BS_RESULT_OK)
         return result;
 
@@ -198,7 +198,7 @@ BSMODAPI bs_Result _bsmod_packBMFont(char* package_name, char* bmfont_path, char
     memcpy(offset, png_data.data, atlas_size);
     memcpy(bfnt, &header, sizeof(bs_BfntHeader));
 
-    result = bsmod_packResource(BS_RESOURCE_FONT, bfnt, total_size, package_name, resource_name, resource_name_length);
+    result = _bsmod_packResource(BS_RESOURCE_FONT, bfnt, total_size, package_name, resource_name, resource_name_length);
 
     free(font.kerning_pairs);
     free(font.chars);

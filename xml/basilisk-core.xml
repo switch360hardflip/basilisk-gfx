@@ -8,7 +8,7 @@
 
 	<includes>
 		<trampoline>
-			<include>basilisk-core.gen.h</include>
+			<include>basilisk-core.h</include>
 			<include>bs_internal.h</include>
 			<include>cglm/vec2.h</include>
 			<include>cglm/vec3.h</include>
@@ -26,23 +26,25 @@
 			<include>stdbool.h</include>
 		</trampolineHeader>
 		<internal>
-			<include>bs_internal.gen.h</include>
+			<include>bs_internal.h</include>
 			<include>stdio.h</include>
+			<include>stdarg.h</include>
 		</internal>
 		<internalHeader>
-			<include>basilisk-core.gen.h</include>
+			<include>basilisk-core.h</include>
 			<include>wtypes.h</include>
 			<include>vulkan.h</include>
+			<include>stdarg.h</include>
 		</internalHeader>
 		<prevalidation>
-			<include>basilisk-core.gen.h</include>
+			<include>basilisk-core.h</include>
 			<include>bs_internal.h</include>
 		</prevalidation>
 		<prevalidationHeader>
 			<include>bs_internal.h</include>
 		</prevalidationHeader>
 		<validationHeader>
-			<include>basilisk-core.gen.h</include>
+			<include>basilisk-core.h</include>
 			<include>bs_internal.h</include>
 		</validationHeader>
     </includes>
@@ -792,28 +794,6 @@
 	</enums>
 
     <macros>
-        <ifdef cond="_WIN32">
-            <macro>
-                <name>#define bs_alloca</name>
-                <line>_alloca</line>
-            </macro>
-        </ifdef>
-        <else>
-            <macro>
-                <name>#define bs_alloca</name>
-                <line>alloca</line>
-            </macro>
-        </else>
-        <endif/>
-
-        <ifdef cond="_WIN32">
-            <macro>
-                <name>#define BS_WARN_WIN32_PATH(function, path)</name>
-                <line>bs_warnF("%s: %s failed for \"%s\" (Win32 error %lu = \"%s\")\n", __func__, function, path, GetLastError(), bs_serializeWin32Error(GetLastError()))</line>
-            </macro>
-        </ifdef>
-        <endif/>
-
 		<macro>
 			<name>#define BS_RGBA(r, g, b, a)</name>
 			<line>(bs_RGBA) { r, g, b, a }</line>
@@ -822,34 +802,6 @@
 		<macro>
             <name>#define BS_FLT_MAX</name>
             <line>3.402823466e+38F</line>
-        </macro>
-
-        <macro>
-            <name>#define BS_WARN_ERRNO_PATH(function, path)</name>
-            <line>bs_warnF("%s: %s failed for \"%s\" (errno %d = \"%s\")\n", __func__, function, path, errno, bs_serializeErrno())</line>
-        </macro>
-
-        <macro>
-            <name>#define BS_VALIDATE(condition, ret, format, ...)</name>
-            <line>if (!(condition)) {</line>
-            <line>    bs_warnF(BS_PRINT_COLOR("[CORE] [VAL]", BS_PRINT_RED) " %s: %s\n" __VA_OPT__(format) "\n", __func__, #condition __VA_OPT__(,) __VA_ARGS__);</line>
-            <line>    return ret; </line>
-            <line>}</line>
-        </macro>
-
-        <macro>
-            <name>#define BS_WARN_VULKAN_ERROR(function, code, format, ...)</name>
-            <line>bs_warnF("%s: %s failed" __VA_OPT__(", ") format " (Vulkan result %d\n", __func__, function __VA_OPT__(,) __VA_ARGS__, code)</line>
-        </macro>
-
-        <macro>
-            <name>#define BS_CRITICAL_VULKAN_ERROR(function, code, format, ...)</name>
-            <line>bs_warnF("%s: %s failed" __VA_OPT__(", ") format " (Vulkan result %d)\n", __func__, function __VA_OPT__(,) __VA_ARGS__, code)</line>
-        </macro>
-
-        <macro>
-            <name>#define BS_VALIDATE_OBJECT_TYPE(object, source_id, _return)</name>
-            <line>BS_VALIDATE(((bs_ObjectSource*)bs_fetchUnit(bs_objectSources(), source_id))-&gt;type == source_id, _return,,)</line>
         </macro>
 
         <macro><name>#define BS_CONSTANT_STRING(s)</name><line>s, sizeof(s) - 1</line></macro>
@@ -1157,7 +1109,7 @@
         <macro><name>#define BS_INFO_HEADER</name><line>BS_PRINT_COLOR("[INF] ", BS_PRINT_CYAN)</line></macro>
         <macro>
             <name>#define BS_STACK_LIST(type, c)</name>
-            <line>    { .capacity = c, .data = _alloca(c * sizeof(type)), .unit_size = sizeof(type) }</line>
+            <line>    { .capacity = c, .data = bs_alloca(c * sizeof(type)), .unit_size = sizeof(type) }</line>
         </macro>
         <macro><name>#define BS_SWAP_SIZE(type)</name><line>(sizeof(*((type*)NULL)-&gt;_))</line></macro>
         <macro><name>#define BS_SWAPS_COUNT(flags)</name><line>((flags &amp; BS_OBJECT_HAS_SWAPS_BIT) ? bs_scope()->window-&gt;frames_in_flight : 1)</line></macro>
@@ -3170,7 +3122,7 @@
             <param><type>bs_RGBA</type><name>color</name></param>
         </batchFunctionTemplate>
         <batchFunctionTemplate name="Quad">
-            <param><type>bs_Quad</type><name>quad</name></param>
+            <param><type>const bs_Quad*</type><name>quad</name></param>
             <param><type>bs_RGBA</type><name>color</name></param>
         </batchFunctionTemplate>
         <batchFunctionTemplate name="Triangle">
@@ -3786,24 +3738,13 @@
         <variadicStringTemplate name="bs_critical" string="message">
             <return>void</return>
         </variadicStringTemplate>
-        <function name="bs_instance" section="bs_mem.h">
-            <return>bs_Instance*</return>
-        </function>
-        <function name="bs_args">
-            <return>bs_Args*</return>
-        </function>
-        <function name="bs_features">
-            <return>bs_Features*</return>
-        </function>
-        <function name="bs_props">
-            <return>bs_Props*</return>
-        </function>
-        <function name="bs_config">
-            <return>bs_Config*</return>
-        </function>
-		<function name="bs_scope">
-            <return>bs_Scope*</return>
-        </function>
+        <function name="bs_instance" section="bs_mem.h"><return>bs_Instance*</return></function>
+        <function name="bs_args"><return>bs_Args*</return></function>
+        <function name="bs_features"><return>bs_Features*</return></function>
+        <function name="bs_props"><return>bs_Props*</return></function>
+        <function name="bs_config"><return>bs_Config*</return></function>
+		<function name="bs_scope"><return>bs_Scope*</return></function>
+		<function name="bs_io"><return>bs_IO*</return></function>
         <variadicStringTemplate name="bs_system">
             <return>void</return>
         </variadicStringTemplate>

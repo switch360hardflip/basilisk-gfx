@@ -52,7 +52,7 @@
         return model;                                                                           \
     }
 
-static inline bs_vec4 bsgfx_convertColor(bs_RGBA color) {
+static inline bs_vec4 _bsgfx_convertColor(bs_RGBA color) {
     return BS_V4((float)color.r / 255.0, (float)color.g / 255.0, (float)color.b / 255.0, (float)color.a / 255.0);
 }
 
@@ -63,7 +63,7 @@ static inline bs_vec4 bsgfx_convertColor(bs_RGBA color) {
             id = bsgfx_material(BS_CONSTANT_STRING(#name))->id;                     \
             bsgfx_Material* material = bs_fetchUnit(bsgfx_materials(), id);         \
             material->category = BSGFX_CATEGORY;                                    \
-            material->contract->color = bsgfx_convertColor(_color);                 \
+            material->contract->color = _bsgfx_convertColor(_color);                \
         }                                                                           \
         bsgfx_Material* material = bs_fetchUnit(bsgfx_materials(), id);             \
         return material;                                                            \

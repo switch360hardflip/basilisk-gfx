@@ -47,7 +47,6 @@ typedef struct bsmod_Resource bsmod_Resource;
 typedef struct bsmod_DraggingParams bsmod_DraggingParams;
 typedef struct bsmod_GridClickParams bsmod_GridClickParams;
 typedef struct bsmod_SideMenuTab bsmod_SideMenuTab;
-typedef struct Bsmod Bsmod;
 
 typedef enum bsmod_EditType bsmod_EditType;
 typedef enum bsmod_DraggingType bsmod_DraggingType;
@@ -119,7 +118,6 @@ enum {                                                               \
     &_bsmod_.selected_tiles
 
 typedef void (__stdcall* PFN_void)();
-typedef bool (__stdcall* PFN_bsmod_PushContextMenuButton)(bsgfx_Widget*);
 typedef const char* (__stdcall* PFN_bsmod_GridMenu)(bs_List* widgets);
 typedef void (__stdcall* PFN_bsmod_GridMenuCallback)(struct bsgfx_DebugMenuWidget*, int);
 struct bsmod_TrackParams {
@@ -184,72 +182,6 @@ struct bsmod_SideMenuTab {
     bsgfx_AtlasCache* (*cache)();
     void (*push_widgets)(bs_List*, bs_vec2);
     void (*on_click)(bsmod_GridClickParams);
-};
-
-struct Bsmod {
-    int package;
-    int bsgfx_package;
-    int selected_tile_primitive;
-    int selected_tile_axis;
-    struct {
-        bs_RGBA color;
-        bs_vec3 normal;
-        bs_U32 index;
-        bs_U32 flags;
-        bs_vec3 position;
-        int instance_type;
-        int instance_id;
-        int subtype;
-        int closest_primitive;
-        bs_vec3 closest_vertex;
-        bool billboard;
-        int primitive;
-        int prefab;
-        int tile;
-        int tile_axis;
-    } hovering;
-    bs_List selected_ids;
-    bs_List selected_tiles;
-    int editor_resource_type;
-    int editor_resource_id;
-    bs_String* foliage_density_input;
-    bs_String* primitive_angle_input;
-    bs_vec2 selected_tile_size;
-    bool draw_menu;
-    bool active;
-    bool ui_blocked;
-    int overlay;
-    PFN_bsmod_GridMenu grid_menu;
-    PFN_bsmod_GridMenuCallback grid_menu_callback;
-    void* grid_menu_params;
-    int clicked_type;
-    int clicked_id;
-    bsgfx_TypeId selected_type;
-    int axis;
-    bs_I64 history;
-    struct {
-        bool draw_hidden_primitives;
-    } settings;
-    struct {
-        int isolated_subtype;
-        int isolated_id;
-        bool screenshot;
-        bool load_fonts;
-        bool load_shaders;
-        bool load_materials;
-        bool load_textures;
-        bool load_scripts;
-        bool skip_mesh_index_write;
-    } queue;
-    int dragging_object_id;
-    int dragging_subtype;
-    int dragging_id;
-    bsmod_EditType edit_type;
-    bsmod_EditType edit_type_old;
-    bs_Json track_json;
-    bs_Json bindings_json;
-    bs_String* variadic;
-    bs_List queue_load;
 };
 
 enum bsmod_EditType {
@@ -514,9 +446,9 @@ bsmod_packBMFontF(
  /**
   @param scroll
   @param out
-  @return 
+  @return void
   */
-BSMODAPI 
+BSMODAPI void
 bsmod_scrollbar(
     const int* scroll,
     bsgfx_Scrollbar* out);
@@ -1064,7 +996,7 @@ bsmod_pushContextMenuButton(
     bsgfx_AtlasCache* icon,
     const char* name,
     int indent,
-    PFN_bsmod_PushContextMenuButton action,
+    PFN_bsgfx_ButtonWidgetCallback action,
     bool expandable);
 
  /**
@@ -1082,14 +1014,6 @@ bsmod_instanceGridMenu(
   */
 BSMODAPI void
 bsmod_instanceLightBillboards();
-
- /**
-  @param params
-  @return bool
-  */
-BSMODAPI bool
-bsmod_onAddLightTick(
-    bsgfx_ButtonParams params);
 
  /**
   @param widgets
@@ -1252,7 +1176,6 @@ BSMODAPI extern int _bsmod_queues_;
 BSMODAPI extern int _bsmod_ray_tracers_;
 BSMODAPI extern int _bsmod_fonts_;
 BSMODAPI extern int _bsmod_atlases_;
-BSMODAPI extern Bsmod _bsmod_;
 BSMODAPI extern bool _bsmod_instance_grid_menu_;
 BSMODAPI extern bs_String* _bsmod_search_input_;
 BSMODAPI extern bsmod_SideMenuTab _bsmod_side_menu_tabs_[BSMOD_TABS_COUNT];

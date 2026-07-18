@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 /*
 BSMODAPI void _bsmod_saveHistory(bsgfx_TypeId type_id) {
     //    bsgfx_Type* type = bsgfx_types + type_id;
@@ -44,7 +44,7 @@ BSMODAPI void _bsmod_saveHistory(bsgfx_TypeId type_id) {
     //    bs_free(name);
 }
 
-static void bsmod_findClosestHistory(bs_FileInfo info, struct { bsgfx_TypeId previous_type, next_type; bs_I64 previous, next; } *params) {
+static void _bsmod_findClosestHistory(bs_FileInfo info, struct { bsgfx_TypeId previous_type, next_type; bs_I64 previous, next; } *params) {
     info.path = bs_fileName(info.path);
 
     char* date_start = strchr(info.path, '_');
@@ -56,7 +56,7 @@ static void bsmod_findClosestHistory(bs_FileInfo info, struct { bsgfx_TypeId pre
     date_start[0] = '\0';
 
     bs_I64 time = bs_toLong(date_start + 1);
-    bsgfx_TypeId type = bsmod_queryType(info.path);
+    bsgfx_TypeId type = _bsmod_queryType(info.path);
 
     end[0] = '.';
     date_start[0] = '\0';
@@ -82,14 +82,14 @@ BSMODAPI void _bsmod_loadPreviousHistory() {
     };
 
     bs_foreachFileF(
-        bsmod_findClosestHistory,
+        _bsmod_findClosestHistory,
         &params,
         "%s/.woc/history", // todo get game name
         appdata);
 
     if (params.previous != 0) {
         if (_bsmod_.history == BS_I64_MAX)
-            bsmod_saveHistory(params.previous_type);
+            _bsmod_saveHistory(params.previous_type);
 
         _bsmod_.history = params.previous;
         //bsmod_queueLoadType(params.previous_type);
@@ -108,7 +108,7 @@ BSMODAPI void _bsmod_loadNextHistory() {
     };
 
     bs_foreachFileF(
-        bsmod_findClosestHistory,
+        _bsmod_findClosestHistory,
         &params,
         "%s/.woc/history", // todo get game name
         appdata);

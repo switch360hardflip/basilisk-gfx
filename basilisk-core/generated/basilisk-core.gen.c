@@ -30,7 +30,7 @@
   the code is regenerated.
   */
         
-#include <basilisk-core.gen.h>
+#include <basilisk-core.h>
 #include <bs_internal.h>
 #include <cglm/vec2.h>
 #include <cglm/vec3.h>
@@ -1339,7 +1339,7 @@ bs_Range bs_pushCone(
 void bs_batchQuad(
     bs_Batch* batch, 
     bs_U32* offset, 
-    bs_Quad quad, 
+    const bs_Quad* quad, 
     bs_RGBA color)
 {
     next.bs_batchQuad(batch, offset, quad, color);
@@ -1347,7 +1347,7 @@ void bs_batchQuad(
 
 bs_Range bs_pushQuad(
     bs_Batch* batch, 
-    bs_Quad quad, 
+    const bs_Quad* quad, 
     bs_RGBA color)
 {
     return next.bs_pushQuad(batch, quad, color);
@@ -2708,6 +2708,11 @@ bs_Config* bs_config()
 bs_Scope* bs_scope()
 {
     return next.bs_scope();
+}
+
+bs_IO* bs_io()
+{
+    return next.bs_io();
 }
 
 void bs_system(

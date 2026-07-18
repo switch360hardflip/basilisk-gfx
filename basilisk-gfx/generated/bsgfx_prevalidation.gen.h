@@ -33,7 +33,7 @@
 #ifndef BSGFX_PREVALIDATION_H
 #define BSGFX_PREVALIDATION_H
 
-#include <bsgfx_internal.gen.h>
+#include <basilisk-gfx.h>
 
 static inline bsgfx_FunctionTable _preval_bsgfx_getFunctions() {
     bsgfx_FunctionTable functions;
@@ -67,7 +67,6 @@ static inline bsgfx_FunctionTable _preval_bsgfx_getFunctions() {
     functions.bsgfx_highlightMaterial = (PFN_bsgfx_highlightMaterial)GetProcAddress(module, "_preval_bsgfx_highlightMaterial");
     functions.bsgfx_unhighlightMaterial = (PFN_bsgfx_unhighlightMaterial)GetProcAddress(module, "_preval_bsgfx_unhighlightMaterial");
     functions.bsgfx_tickMaterials = (PFN_bsgfx_tickMaterials)GetProcAddress(module, "_preval_bsgfx_tickMaterials");
-    functions.bsgfx_shadowPipe = (PFN_bsgfx_shadowPipe)GetProcAddress(module, "_preval_bsgfx_shadowPipe");
     functions.bsgfx_pipeline = (PFN_bsgfx_pipeline)GetProcAddress(module, "_preval_bsgfx_pipeline");
     functions.bsgfx_sweepCollisions = (PFN_bsgfx_sweepCollisions)GetProcAddress(module, "_preval_bsgfx_sweepCollisions");
     functions.bsgfx_collider = (PFN_bsgfx_collider)GetProcAddress(module, "_preval_bsgfx_collider");
@@ -112,15 +111,12 @@ static inline bsgfx_FunctionTable _preval_bsgfx_getFunctions() {
     functions.bsgfx_instanceAtlas = (PFN_bsgfx_instanceAtlas)GetProcAddress(module, "_preval_bsgfx_instanceAtlas");
     functions.bsgfx_instanceAtlasFlipped = (PFN_bsgfx_instanceAtlasFlipped)GetProcAddress(module, "_preval_bsgfx_instanceAtlasFlipped");
     functions.bsgfx_matrix = (PFN_bsgfx_matrix)GetProcAddress(module, "_preval_bsgfx_matrix");
-    functions.bsgfx_renderFontSubtypes = (PFN_bsgfx_renderFontSubtypes)GetProcAddress(module, "_preval_bsgfx_renderFontSubtypes");
-    functions.bsgfx_settingsEditor = (PFN_bsgfx_settingsEditor)GetProcAddress(module, "_preval_bsgfx_settingsEditor");
     functions.bsgfx_renderFineShadowVolumes = (PFN_bsgfx_renderFineShadowVolumes)GetProcAddress(module, "_preval_bsgfx_renderFineShadowVolumes");
     functions.bsgfx_renderShadowVolumes = (PFN_bsgfx_renderShadowVolumes)GetProcAddress(module, "_preval_bsgfx_renderShadowVolumes");
     functions.bsgfx_computeShadowVolumes = (PFN_bsgfx_computeShadowVolumes)GetProcAddress(module, "_preval_bsgfx_computeShadowVolumes");
     functions.bsgfx_prefabModel = (PFN_bsgfx_prefabModel)GetProcAddress(module, "_preval_bsgfx_prefabModel");
     functions.bsgfx_package = (PFN_bsgfx_package)GetProcAddress(module, "_preval_bsgfx_package");
     functions.bsgfx_ini = (PFN_bsgfx_ini)GetProcAddress(module, "_preval_bsgfx_ini");
-    functions.bsgfx_bsmodDll = (PFN_bsgfx_bsmodDll)GetProcAddress(module, "_preval_bsgfx_bsmodDll");
     functions.bsgfx_checkGFSDK = (PFN_bsgfx_checkGFSDK)GetProcAddress(module, "_preval_bsgfx_checkGFSDK");
     functions.bsgfx_logGFSDK = (PFN_bsgfx_logGFSDK)GetProcAddress(module, "_preval_bsgfx_logGFSDK");
     functions.bsgfx_app = (PFN_bsgfx_app)GetProcAddress(module, "_preval_bsgfx_app");
@@ -140,13 +136,10 @@ static inline bsgfx_FunctionTable _preval_bsgfx_getFunctions() {
     functions.bsgfx_flexibleCount = (PFN_bsgfx_flexibleCount)GetProcAddress(module, "_preval_bsgfx_flexibleCount");
     functions.bsmod_add = (PFN_bsmod_add)GetProcAddress(module, "_preval_bsmod_add");
     functions.bsmod_queryType = (PFN_bsmod_queryType)GetProcAddress(module, "_preval_bsmod_queryType");
-    functions.bsgfx_loadFoliages = (PFN_bsgfx_loadFoliages)GetProcAddress(module, "_preval_bsgfx_loadFoliages");
-    functions.bsgfx_queryFoliage = (PFN_bsgfx_queryFoliage)GetProcAddress(module, "_preval_bsgfx_queryFoliage");
     functions.bsgfx_loadLights = (PFN_bsgfx_loadLights)GetProcAddress(module, "_preval_bsgfx_loadLights");
     functions.bsgfx_computePrefabShadows = (PFN_bsgfx_computePrefabShadows)GetProcAddress(module, "_preval_bsgfx_computePrefabShadows");
     functions.bsgfx_renderPrefabShadowVolumes = (PFN_bsgfx_renderPrefabShadowVolumes)GetProcAddress(module, "_preval_bsgfx_renderPrefabShadowVolumes");
     functions.bsgfx_prefabMetadata = (PFN_bsgfx_prefabMetadata)GetProcAddress(module, "_preval_bsgfx_prefabMetadata");
-    functions.bsgfx_savePrefabs = (PFN_bsgfx_savePrefabs)GetProcAddress(module, "_preval_bsgfx_savePrefabs");
     functions.bsgfx_loadPrefabs = (PFN_bsgfx_loadPrefabs)GetProcAddress(module, "_preval_bsgfx_loadPrefabs");
     functions.bsgfx_prefabTransform = (PFN_bsgfx_prefabTransform)GetProcAddress(module, "_preval_bsgfx_prefabTransform");
     functions.bsgfx_instancePrefabModel = (PFN_bsgfx_instancePrefabModel)GetProcAddress(module, "_preval_bsgfx_instancePrefabModel");
@@ -155,7 +148,6 @@ static inline bsgfx_FunctionTable _preval_bsgfx_getFunctions() {
     functions.bsgfx_renderPrefabs = (PFN_bsgfx_renderPrefabs)GetProcAddress(module, "_preval_bsgfx_renderPrefabs");
     functions.bsgfx_renderScenePrefabs = (PFN_bsgfx_renderScenePrefabs)GetProcAddress(module, "_preval_bsgfx_renderScenePrefabs");
     functions.bsgfx_renderPrefabPrimitives = (PFN_bsgfx_renderPrefabPrimitives)GetProcAddress(module, "_preval_bsgfx_renderPrefabPrimitives");
-    functions.bsgfx_tilePrefab = (PFN_bsgfx_tilePrefab)GetProcAddress(module, "_preval_bsgfx_tilePrefab");
     functions.bsgfx_queryPrefabId = (PFN_bsgfx_queryPrefabId)GetProcAddress(module, "_preval_bsgfx_queryPrefabId");
     functions.bsgfx_closestPrefab = (PFN_bsgfx_closestPrefab)GetProcAddress(module, "_preval_bsgfx_closestPrefab");
     functions.bsgfx_primitivePosition = (PFN_bsgfx_primitivePosition)GetProcAddress(module, "_preval_bsgfx_primitivePosition");
@@ -168,7 +160,6 @@ static inline bsgfx_FunctionTable _preval_bsgfx_getFunctions() {
     functions.bsgfx_queryPrimitive = (PFN_bsgfx_queryPrimitive)GetProcAddress(module, "_preval_bsgfx_queryPrimitive");
     functions.bsgfx_loadSpawners = (PFN_bsgfx_loadSpawners)GetProcAddress(module, "_preval_bsgfx_loadSpawners");
     functions.bsgfx_spawn = (PFN_bsgfx_spawn)GetProcAddress(module, "_preval_bsgfx_spawn");
-    functions.bsgfx_instanceSpawners = (PFN_bsgfx_instanceSpawners)GetProcAddress(module, "_preval_bsgfx_instanceSpawners");
     functions.bsgfx_loadTiles = (PFN_bsgfx_loadTiles)GetProcAddress(module, "_preval_bsgfx_loadTiles");
     functions.bsgfx_instanceTiles = (PFN_bsgfx_instanceTiles)GetProcAddress(module, "_preval_bsgfx_instanceTiles");
     functions.bsgfx_pushTile = (PFN_bsgfx_pushTile)GetProcAddress(module, "_preval_bsgfx_pushTile");

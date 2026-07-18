@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 #include <direct.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +32,7 @@
 #define STB_RECT_PACK_IMPLEMENTATION
 #include <stb_rect_pack/stb_rect_pack.h>
 
-static bs_List bsmod_string_pool = { .unit_size = sizeof(bs_StringPoolEntry), .increment = 64 };
+static bs_List _bsmod_string_pool = { .unit_size = sizeof(bs_StringPoolEntry), .increment = 64 };
 
 struct bsmod_Hook {
 	char* path;
@@ -45,7 +45,7 @@ struct bsmod_Hook {
 };
 
 // todo make this reloadable
-static bs_List* bsmod_loadHooks() {
+static bs_List* _bsmod_loadHooks() {
 	bs_Result result;
 
 	static bs_List hooks = { .unit_size = sizeof(struct bsmod_Hook), .increment = 16 };
@@ -79,7 +79,7 @@ static bs_List* bsmod_loadHooks() {
 		bs_JsonValue entries = bs_fetchJson(&root, BS_JSON_UNDEFINED, BS_CONSTANT_STRING("entries"));
 		for (int i = 0; i < entries.size; i++) {
 			char* string = entries.as_array.as_strings[i];
-			string = bs_checkStringPool(&bsmod_string_pool, string);
+			string = bs_checkStringPool(&_bsmod_string_pool, string);
 			bs_pushBack(&dir.entries, &string);
 		}
 
@@ -98,7 +98,7 @@ static bs_List* bsmod_loadHooks() {
 	return &hooks;
 }
 
-static void bsmod_saveHooks(bs_List* hooks) {
+static void _bsmod_saveHooks(bs_List* hooks) {
 	bs_Result result;
 
 	bs_Json json = bs_emptyJson();
@@ -173,7 +173,7 @@ BSMODAPI bs_Result _bsmod_packBindings() {
 	if (result != BS_RESULT_OK)
 		return result;
 
-	result = bsmod_packResource(BS_RESOURCE_BINARY, raw, strlen(raw), BSGFX_CONTENT_PATH, BS_CONSTANT_STRING("bindings"));
+	result = _bsmod_packResource(BS_RESOURCE_BINARY, raw, strlen(raw), BSGFX_CONTENT_PATH, BS_CONSTANT_STRING("bindings"));
 	bs_free(raw);
 	if (result != BS_RESULT_OK)
 		return result;
@@ -212,7 +212,7 @@ BSMODAPI void _bsmod_onConvertBMFont(bsmod_TrackParams params) {
 	char* name = bs_fileName(params.path);
 	int name_length = strlen(name);
 	ext[-1] = '.';
-	bsmod_packBMFontF(params.package, fnt_path, png_path, "%s%.*s", params.prefix, name_length, name);
+	_bsmod_packBMFontF(params.package, fnt_path, png_path, "%s%.*s", params.prefix, name_length, name);
 }
 
 BSMODAPI void _bsmod_onLoadTTF(bsmod_TrackParams params) {
@@ -342,7 +342,7 @@ BSMODAPI void _bsmod_onLoadTTF(bsmod_TrackParams params) {
 	if (result != BS_RESULT_OK)
 		return;
 
-	result = bsmod_packResourceF(BS_RESOURCE_BINARY, raw, strlen(raw), params.package, "atlas/%s.json", file_name);
+	result = _bsmod_packResourceF(BS_RESOURCE_BINARY, raw, strlen(raw), params.package, "atlas/%s.json", file_name);
 	bs_free(raw);
 	if (result != BS_RESULT_OK)
 		return;
@@ -351,7 +351,7 @@ BSMODAPI void _bsmod_onLoadTTF(bsmod_TrackParams params) {
 	//	_bsmod_procs.bsgfx_loadFonts();
 }
 
-static void bsmod_onPackAtlasTexture(bs_FileInfo info, bsmod_AtlasPacker* packer) {
+static void _bsmod_onPackAtlasTexture(bs_FileInfo info, bsmod_AtlasPacker* packer) {
 	char* name = bs_fileName(info.path);
 	char* ext = bs_fileExtension(name);
 
@@ -361,24 +361,24 @@ static void bsmod_onPackAtlasTexture(bs_FileInfo info, bsmod_AtlasPacker* packer
 	bs_PngData png_data;
 	if (bs_loadPng(info.path, 4, &png_data) == BS_RESULT_OK) {
 		ext[-1] = '\0';
-		bsmod_packAtlasTexture(packer, name, png_data.data, width, height, 0);
+		_bsmod_packAtlasTexture(packer, name, png_data.data, width, height, 0);
 		ext[-1] = '.';
 	}
 
 }
 
 BSMODAPI void _bsmod_onPackAtlas(bsmod_TrackParams params) {
-	bsmod_AtlasPacker packer = bsmod_createAtlasPacker();
+	bsmod_AtlasPacker packer = _bsmod_createAtlasPacker();
 
 	char* file_name = bs_fileName(params.path);
 	char* extension = bs_fileExtension(params.path);
 
 	file_name[-1] = '\0';
 	char* directory_name = bs_fileName(params.path); // hacky
-	bs_foreachFile(bsmod_onPackAtlasTexture, &packer, params.path, strlen(params.path));
+	bs_foreachFile(_bsmod_onPackAtlasTexture, &packer, params.path, strlen(params.path));
 
 	extension[-1] = '\0';
-	bsmod_packAtlas(&packer, 1024, 1024, params.package, directory_name);
+	_bsmod_packAtlas(&packer, 1024, 1024, params.package, directory_name);
 	extension[-1] = '.';
 	file_name[-1] = '/';
 }
@@ -487,7 +487,7 @@ BSMODAPI void _bsmod_onPackModels(bsmod_TrackParams params) {
 			return;
 	}
 
-	result = bsmod_packResourceF(BS_RESOURCE_MODEL, glb->value, glb->len, params.package, "models/%.*s", strlen(name) - strlen(ext) - 1, name);
+	result = _bsmod_packResourceF(BS_RESOURCE_MODEL, glb->value, glb->len, params.package, "models/%.*s", strlen(name) - strlen(ext) - 1, name);
 	bs_free(glb);
 	if (result != BS_RESULT_OK)
 		return;
@@ -503,7 +503,7 @@ BSMODAPI void _bsmod_onPackBinary(bsmod_TrackParams params) {
 
 	char* ext = bs_fileExtension(params.path);
 	ext[-1] = '\0';
-	result = bsmod_packResourceF(BS_RESOURCE_BINARY, data->value, data->len, params.package, "%s%s", params.prefix, bs_fileName(params.path));
+	result = _bsmod_packResourceF(BS_RESOURCE_BINARY, data->value, data->len, params.package, "%s%s", params.prefix, bs_fileName(params.path));
 	ext[-1] = '.';
 	bs_free(data);
 	if (result != BS_RESULT_OK)
@@ -514,7 +514,7 @@ BSMODAPI void _bsmod_onPackTextureArray(bsmod_TrackParams params) {
 	char* file_name = bs_fileName(params.path);
 
 	file_name[-1] = '\0';
-	bsmod_packImageDirectory(params.path, params.package, params.prefix); // TODO: prefix will change to name prolly
+	_bsmod_packImageDirectory(params.path, params.package, params.prefix); // TODO: prefix will change to name prolly
 	file_name[-1] = '/';
 }
 
@@ -524,7 +524,7 @@ BSMODAPI void _bsmod_onPackTextureArray(bsmod_TrackParams params) {
    * Tracker
    *============================================================================*/
 
-static void bsmod_findLastModifiedFile(bs_FileInfo info, struct { bs_DateTime original_date; bs_DateTime date; const bs_List* added_entries; bs_List* changed_entries; bs_List* entries; }*out) {
+static void _bsmod_findLastModifiedFile(bs_FileInfo info, struct { bs_DateTime original_date; bs_DateTime date; const bs_List* added_entries; bs_List* changed_entries; bs_List* entries; }*out) {
 	bs_Result result;
 
 	bs_DateTime date_time;
@@ -532,7 +532,7 @@ static void bsmod_findLastModifiedFile(bs_FileInfo info, struct { bs_DateTime or
 	if (result != BS_RESULT_OK)
 		return;
 
-	char* cached = bs_checkStringPool(&bsmod_string_pool, info.path);
+	char* cached = bs_checkStringPool(&_bsmod_string_pool, info.path);
 	bs_pushBack(out->entries, &cached);
 
 	if (bs_isLaterThan(&date_time, &out->original_date)) {
@@ -544,11 +544,11 @@ static void bsmod_findLastModifiedFile(bs_FileInfo info, struct { bs_DateTime or
 	}
 }
 
-static void bsmod_findLastModifiedDirectory(bs_FileInfo info, struct { bs_DateTime date; const bs_List* added_entries; bs_List* changed_entries; bs_List* entries; }*result) {
-	bs_foreachFile(bsmod_findLastModifiedFile, result, info.path, strlen(info.path));
+static void _bsmod_findLastModifiedDirectory(bs_FileInfo info, struct { bs_DateTime date; const bs_List* added_entries; bs_List* changed_entries; bs_List* entries; }*result) {
+	bs_foreachFile(_bsmod_findLastModifiedFile, result, info.path, strlen(info.path));
 }
 
-static void bsmod_trackDirectoryDifferences(const bs_List* changed, const bs_List* a, const bs_List* b, bs_List* out_differences) {
+static void _bsmod_trackDirectoryDifferences(const bs_List* changed, const bs_List* a, const bs_List* b, bs_List* out_differences) {
 	for (int i = 0; i < a->count; i++) {
 		char* new_entry = *(char**)bs_fetchUnit(a, i);
 
@@ -567,7 +567,7 @@ static void bsmod_trackDirectoryDifferences(const bs_List* changed, const bs_Lis
 	}
 }
 
-static bool bsmod_isFile(const char* path) {
+static bool _bsmod_isFile(const char* path) {
 	char* dot = strrchr(path, '.');
 	if (!dot || dot == path || dot[1] == '/' || dot[1] == '\\') {
 		return false;
@@ -589,7 +589,7 @@ BSMODAPI void _bsmod_onTrack() {
 
 	bs_infoF(BS_PRINT_COLOR("track\n", BS_PRINT_RED));
 
-	bs_List* hooks = bsmod_loadHooks();
+	bs_List* hooks = _bsmod_loadHooks();
 
 	static bool reload_all = false; // temp
 	for (int i = 0; i < hooks->count; i++) {
@@ -597,7 +597,7 @@ BSMODAPI void _bsmod_onTrack() {
 
 		if (reload_all)
 			bs_logSectionF("Directory \"%s\"", dir->path);
-		if (bsmod_isFile(dir->path)) {
+		if (_bsmod_isFile(dir->path)) {
 
 			bs_DateTime last_modified;
 			if (bs_fileModifiedDate(&last_modified, dir->path, strlen(dir->path)) != BS_RESULT_OK) {
@@ -607,7 +607,7 @@ BSMODAPI void _bsmod_onTrack() {
 			if (reload_all || bs_isLaterThan(&last_modified, &dir->last_modified)) {
 				dir->last_modified = last_modified;
 
-				PFN_void function = GetProcAddress(bsgfx_bsmodDll(), dir->function);
+				FARPROC function = GetProcAddress(_bsmod_.module, dir->function);
 				if (function) {
 					function((bsmod_TrackParams) {
 						.path = dir->path,
@@ -617,7 +617,7 @@ BSMODAPI void _bsmod_onTrack() {
 					});
 				}
 
-				bsmod_saveHooks(hooks);
+				_bsmod_saveHooks(hooks);
 			}
 		}
 		else {
@@ -641,10 +641,10 @@ BSMODAPI void _bsmod_onTrack() {
 				.entries = &entries,
 			};
 
-			bs_foreachFile(bsmod_findLastModifiedFile, &result, dir->path, strlen(dir->path));
-			bs_foreachDirectory(bsmod_findLastModifiedDirectory, &result, dir->path, strlen(dir->path)); // TODO: this blows up the stack
-			bsmod_trackDirectoryDifferences(&changed_entries, result.entries, &dir->entries, &added_entries);
-			bsmod_trackDirectoryDifferences(&changed_entries, &dir->entries, result.entries, &removed_entries);
+			bs_foreachFile(_bsmod_findLastModifiedFile, &result, dir->path, strlen(dir->path));
+			bs_foreachDirectory(_bsmod_findLastModifiedDirectory, &result, dir->path, strlen(dir->path)); // TODO: this blows up the stack
+			_bsmod_trackDirectoryDifferences(&changed_entries, result.entries, &dir->entries, &added_entries);
+			_bsmod_trackDirectoryDifferences(&changed_entries, &dir->entries, result.entries, &removed_entries);
 
 			bool later = bs_isLaterThan(&result.date, &dir->last_modified);
 			bool changed = added_entries.count > 0 || removed_entries.count > 0;
@@ -652,7 +652,7 @@ BSMODAPI void _bsmod_onTrack() {
 			// TODO: this code is getting pretty ugly
 
 			if (reload_all) {
-				PFN_void function = GetProcAddress(bsgfx_bsmodDll(), dir->function); // todo not pfn void
+				FARPROC function = GetProcAddress(_bsmod_.module, dir->function);
 				if (function) {
 					int count = dir->call_once ? bs_clamp(result.entries->count, 0, 1) : result.entries->count;
 
@@ -670,7 +670,7 @@ BSMODAPI void _bsmod_onTrack() {
 				dir->last_modified = result.date;
 				// dir->entries = result.entries->count;
 
-				PFN_void function = GetProcAddress(bsgfx_bsmodDll(), dir->function); // todo not pfn void
+				FARPROC function = GetProcAddress(_bsmod_.module, dir->function);
 				if (function) {
 					int count = dir->call_once ? bs_clamp(result.changed_entries->count, 0, 1) : result.changed_entries->count;
 
@@ -718,7 +718,7 @@ BSMODAPI void _bsmod_onTrack() {
 					*result = path;
 				}
 
-				bsmod_saveHooks(hooks);
+				_bsmod_saveHooks(hooks);
 			}
 		}
 	}

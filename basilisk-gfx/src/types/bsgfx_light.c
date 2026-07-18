@@ -23,9 +23,9 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-gfx.h>
+#include <bsgfx_internal.h>
 
-static void bsgfx_mapLight(const bsgfx_RawLight* unmapped, bsgfx_Light* mapped) {
+static void _bsgfx_mapLight(const bsgfx_RawLight* unmapped, bsgfx_Light* mapped) {
     *mapped = (bsgfx_Light) {
         .position = unmapped->position,
         .type = unmapped->type,
@@ -37,11 +37,11 @@ static void bsgfx_mapLight(const bsgfx_RawLight* unmapped, bsgfx_Light* mapped) 
 }
 
 BSGFXAPI void _bsgfx_loadLights(int package_id) {
-    bsgfx_type(
+    _bsgfx_type(
         BSGFX_TYPE_LIGHT,
         package_id,
         BSGFX_LIGHT_VERSION,
         "lights", "light",
-        sizeof(bsgfx_RawLight), sizeof(bsgfx_Light), bsgfx_mapLight,
+        sizeof(bsgfx_RawLight), sizeof(bsgfx_Light), _bsgfx_mapLight,
         0, 0, 0, 0);
 }

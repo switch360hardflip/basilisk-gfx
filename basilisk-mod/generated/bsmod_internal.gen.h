@@ -62,7 +62,7 @@ typedef bs_Result(__stdcall* PFN_bsmod_packImageDirectory)(char* directory_name,
 typedef bs_Result(__stdcall* PFN_bsmod_packBMFont)(char* package_name, char* bmfont_path, char* png_path, char* value, int value_length);
 typedef bs_Result(__stdcall* PFN_bsmod_packBMFontV)(char* package_name, char* bmfont_path, char* png_path, char* format, va_list args);
 typedef bs_Result(__stdcall* PFN_bsmod_packBMFontF)(char* package_name, char* bmfont_path, char* png_path, char* format, ...);
-typedef (__stdcall* PFN_bsmod_scrollbar)(const int* scroll, bsgfx_Scrollbar* out);
+typedef void(__stdcall* PFN_bsmod_scrollbar)(const int* scroll, bsgfx_Scrollbar* out);
 typedef void(__stdcall* PFN_bsmod_dividerWidget)(float width, int indent, bsgfx_Widget* out);
 typedef void(__stdcall* PFN_bsmod_iconWidget)(const bsgfx_AtlasCache* cache, float align_height, bs_vec3 offset, bs_U32 advance_flags, bsgfx_Widget* out);
 typedef bs_List*(__stdcall* PFN_bsmod_packages)();
@@ -116,10 +116,9 @@ typedef void(__stdcall* PFN_bsmod_pushVecNWidget)(bs_List* widgets, const char* 
 typedef void(__stdcall* PFN_bsmod_pushInputWidget)(bs_List* widgets, void* value, bs_vec3 offset, float width, int name_padding, bool skip_advance, bool is_last, bool has_buttons, const char* name);
 typedef void(__stdcall* PFN_bsmod_instanceTileContextMenu)(bs_vec3 position, bs_vec2 size);
 typedef void(__stdcall* PFN_bsmod_instanceContextMenu)(bs_List* widgets, bs_vec3 position, bs_vec2 size);
-typedef void(__stdcall* PFN_bsmod_pushContextMenuButton)(bs_List* widgets, bs_vec2 menu_size, bs_vec3 icon_offset, bsgfx_AtlasCache* icon, const char* name, int indent, PFN_bsmod_PushContextMenuButton action, bool expandable);
+typedef void(__stdcall* PFN_bsmod_pushContextMenuButton)(bs_List* widgets, bs_vec2 menu_size, bs_vec3 icon_offset, bsgfx_AtlasCache* icon, const char* name, int indent, PFN_bsgfx_ButtonWidgetCallback action, bool expandable);
 typedef void(__stdcall* PFN_bsmod_instanceGridMenu)(bs_vec3 position, bs_vec2 dimensions);
 typedef void(__stdcall* PFN_bsmod_instanceLightBillboards)();
-typedef bool(__stdcall* PFN_bsmod_onAddLightTick)(bsgfx_ButtonParams params);
 typedef void(__stdcall* PFN_bsmod_pushMaterialWidgets)(bs_List* widgets, bs_vec2 background_size);
 typedef void(__stdcall* PFN_bsmod_onDragMaterial)(bsmod_DraggingParams params);
 typedef void(__stdcall* PFN_bsmod_onClickMaterialMenu)(bsmod_GridClickParams params);
@@ -221,7 +220,6 @@ typedef struct {
     PFN_bsmod_pushContextMenuButton bsmod_pushContextMenuButton;
     PFN_bsmod_instanceGridMenu bsmod_instanceGridMenu;
     PFN_bsmod_instanceLightBillboards bsmod_instanceLightBillboards;
-    PFN_bsmod_onAddLightTick bsmod_onAddLightTick;
     PFN_bsmod_pushMaterialWidgets bsmod_pushMaterialWidgets;
     PFN_bsmod_onDragMaterial bsmod_onDragMaterial;
     PFN_bsmod_onClickMaterialMenu bsmod_onClickMaterialMenu;
@@ -266,7 +264,7 @@ BSMODAPI bs_Result _bsmod_packImageDirectory(char* directory_name, char* package
 BSMODAPI bs_Result _bsmod_packBMFont(char* package_name, char* bmfont_path, char* png_path, char* value, int value_length);
 BSMODAPI bs_Result _bsmod_packBMFontV(char* package_name, char* bmfont_path, char* png_path, char* format, va_list args);
 BSMODAPI bs_Result _bsmod_packBMFontF(char* package_name, char* bmfont_path, char* png_path, char* format,  ...);
-BSMODAPI  _bsmod_scrollbar(const int* scroll, bsgfx_Scrollbar* out);
+BSMODAPI void _bsmod_scrollbar(const int* scroll, bsgfx_Scrollbar* out);
 BSMODAPI void _bsmod_dividerWidget(float width, int indent, bsgfx_Widget* out);
 BSMODAPI void _bsmod_iconWidget(const bsgfx_AtlasCache* cache, float align_height, bs_vec3 offset, bs_U32 advance_flags, bsgfx_Widget* out);
 BSMODAPI bs_List* _bsmod_packages();
@@ -320,10 +318,9 @@ BSMODAPI void _bsmod_pushVecNWidget(bs_List* widgets, const char* name, bs_vec3 
 BSMODAPI void _bsmod_pushInputWidget(bs_List* widgets, void* value, bs_vec3 offset, float width, int name_padding, bool skip_advance, bool is_last, bool has_buttons, const char* name);
 BSMODAPI void _bsmod_instanceTileContextMenu(bs_vec3 position, bs_vec2 size);
 BSMODAPI void _bsmod_instanceContextMenu(bs_List* widgets, bs_vec3 position, bs_vec2 size);
-BSMODAPI void _bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, bs_vec3 icon_offset, bsgfx_AtlasCache* icon, const char* name, int indent, PFN_bsmod_PushContextMenuButton action, bool expandable);
+BSMODAPI void _bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, bs_vec3 icon_offset, bsgfx_AtlasCache* icon, const char* name, int indent, PFN_bsgfx_ButtonWidgetCallback action, bool expandable);
 BSMODAPI void _bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimensions);
 BSMODAPI void _bsmod_instanceLightBillboards();
-BSMODAPI bool _bsmod_onAddLightTick(bsgfx_ButtonParams params);
 BSMODAPI void _bsmod_pushMaterialWidgets(bs_List* widgets, bs_vec2 background_size);
 BSMODAPI void _bsmod_onDragMaterial(bsmod_DraggingParams params);
 BSMODAPI void _bsmod_onClickMaterialMenu(bsmod_GridClickParams params);
@@ -427,7 +424,6 @@ static inline bsmod_FunctionTable _bsmod_getFunctions() {
     functions.bsmod_pushContextMenuButton = _bsmod_pushContextMenuButton;
     functions.bsmod_instanceGridMenu = _bsmod_instanceGridMenu;
     functions.bsmod_instanceLightBillboards = _bsmod_instanceLightBillboards;
-    functions.bsmod_onAddLightTick = _bsmod_onAddLightTick;
     functions.bsmod_pushMaterialWidgets = _bsmod_pushMaterialWidgets;
     functions.bsmod_onDragMaterial = _bsmod_onDragMaterial;
     functions.bsmod_onClickMaterialMenu = _bsmod_onClickMaterialMenu;

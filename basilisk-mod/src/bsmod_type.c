@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 #include "../bsgfx_contracts.h"
 
 BSMODAPI bsgfx_TypeId _bsmod_queryType(const char* plural) {
@@ -56,9 +56,9 @@ BSMODAPI void _bsmod_delete(bsgfx_TypeId type_id, int id) {
 		memcpy(raw_instance, next_raw_instance, type->unmapped_unit_size);
 	}
 	type->count--;
-	bsmod_deselectAll();
+	_bsmod_deselectAll();
 
-	bsmod_saveType(type_id, "Deleted %s", type->singular);
+	_bsmod_saveType(type_id, "Deleted %s", type->singular);
 }
 
 BSMODAPI void _bsmod_deleteSelected(bsgfx_TypeId type_id) {
@@ -92,12 +92,12 @@ BSMODAPI void _bsmod_deleteSelected(bsgfx_TypeId type_id) {
 		type->count--;
 	}
 
-	bsmod_deselectAll();
+	_bsmod_deselectAll();
 
 	if (count == 1)
-		bsmod_saveTypeF(type_id, "Deleted %s", type->singular);
+		_bsmod_saveTypeF(type_id, "Deleted %s", type->singular);
 	else
-		bsmod_saveTypeF(type_id, "Deleted %d %s", count, type->plural);
+		_bsmod_saveTypeF(type_id, "Deleted %d %s", count, type->plural);
 }
 
 /*
@@ -153,7 +153,7 @@ BSMODAPI bs_Result _bsmod_saveType(bsgfx_TypeId id, char* comment, int comment_l
 	bsgfx_remap(id); // debugging purposes
 
 	// TODO: get application package name
-	result = bsmod_packResourceF(resource_type, data, size, bsmod_applicationContentPath(), "levels/%s_%s", bsgfx_currentScene()->name, type->plural);
+	result = _bsmod_packResourceF(resource_type, data, size, _bsmod_applicationContentPath(), "levels/%s_%s", bsgfx_currentScene()->name, type->plural);
 	// bs_saveFileF(data, size, "resources/levels/%s/%s.bin", bsgfx_fetchLevel(poser()->current_level)->name, type->plural);
 	bs_free(data);
 	if (result != BS_RESULT_OK)
@@ -166,7 +166,7 @@ BSMODAPI bs_Result _bsmod_saveType(bsgfx_TypeId id, char* comment, int comment_l
 }
 
 // remove if data is NULL, otherwise insert
-static void* bsmod_shiftFlexible(bsgfx_TypeId type_id, int id, void* data) {
+static void* _bsmod_shiftFlexible(bsgfx_TypeId type_id, int id, void* data) {
 	bsgfx_Type* type = bsgfx_getType(type_id);
 
 	int unmapped_offset = 0, mapped_offset = 0;
@@ -229,7 +229,7 @@ static void* bsmod_shiftFlexible(bsgfx_TypeId type_id, int id, void* data) {
 BSMODAPI void* _bsmod_addFlexible(bsgfx_TypeId type_id, int id, void* data) {
 	bsgfx_Type* type = bsgfx_getType(type_id);
 
-	void* result = bsmod_shiftFlexible(type_id, id, data);
+	void* result = _bsmod_shiftFlexible(type_id, id, data);
 
 	bsgfx_map(type_id, id);
 
@@ -239,7 +239,7 @@ BSMODAPI void* _bsmod_addFlexible(bsgfx_TypeId type_id, int id, void* data) {
 BSMODAPI void* _bsmod_removeFlexible(bsgfx_TypeId type_id, int id) {
 	bsgfx_Type* type = bsgfx_getType(type_id);
 
-	void* result = bsmod_shiftFlexible(type_id, id, NULL);
+	void* result = _bsmod_shiftFlexible(type_id, id, NULL);
 
 	bsgfx_map(type_id, id);
 
@@ -314,11 +314,11 @@ BSMODAPI bool _bsmod_isSelected(bs_List* list, bsgfx_TypeId type, int id) {
 
 BSMODAPI void _bsmod_select(bs_List* list, bsgfx_TypeId type, int id) {
 	if (_bsmod_.selected_type != type) {
-		bsmod_deselectAll();
+		_bsmod_deselectAll();
 		_bsmod_.selected_type = type;
 	}
 
-	if (bsmod_isSelected(list, type, id))
+	if (_bsmod_isSelected(list, type, id))
 		return;
 
 	if (list == BSMOD_IDS)
@@ -333,7 +333,7 @@ BSMODAPI void _bsmod_select(bs_List* list, bsgfx_TypeId type, int id) {
 	bs_pushBack(list, &id);
 }
 
-static void bsmod_clearTiles() {
+static void _bsmod_clearTiles() {
 	bs_Batch* batch = bs_fetch(BSMOD_BATCHES, BSMOD_BATCH_TILE)->batch;
 	bs_Scope last = *bs_getScope();
 	bs_setScope(&(bs_Scope) { .queue = bs_singleTimesQueue() });
@@ -347,7 +347,7 @@ BSMODAPI void _bsmod_deselectAll() {
 		bs_infoF("Deselected all %s\n", bsgfx_getType(_bsmod_.selected_type)->plural);
 
 	if (_bsmod_.selected_type == BSGFX_TYPE_TILE)
-		bsmod_clearTiles();
+		_bsmod_clearTiles();
 
 	_bsmod_.selected_tiles.count = 0;
 	_bsmod_.selected_ids.count = 0;
@@ -368,13 +368,13 @@ BSMODAPI void _bsmod_deselectRange(bs_List* list, int first, int count) {
 	list->count -= count;
 
 	if (list->count == 0)
-		bsmod_deselectAll();
+		_bsmod_deselectAll();
 }
 
 BSMODAPI void _val_bsmod_deselectIndex(bs_List* list, int id) {
 	BSGFX_VALIDATE(id >= 0,,);
 
-	bsmod_deselectIndex(list, id);
+	_bsmod_deselectIndex(list, id);
 }
 
 BSMODAPI void _bsmod_deselectIndex(bs_List* list, int id) {
@@ -386,7 +386,7 @@ BSMODAPI void _bsmod_deselectIndex(bs_List* list, int id) {
 
 	bs_infoF("Deselected %s %d\n", bsgfx_getType(_bsmod_.selected_type)->singular, id);
 	if (--list->count == 0)
-		bsmod_deselectAll();
+		_bsmod_deselectAll();
 }
 
 BSMODAPI void _bsmod_deselect(bs_List* list, int id) {
@@ -399,7 +399,7 @@ BSMODAPI void _bsmod_deselect(bs_List* list, int id) {
 		}
 	}
 
-	bsmod_deselectIndex(list, start);
+	_bsmod_deselectIndex(list, start);
 }
 
 BSMODAPI int _bsmod_firstSelectedId(bs_List* list) {
@@ -428,7 +428,7 @@ BSMODAPI int _bsmod_lastSelectedId(bs_List* list) {
  /**
   Tile version converter
   */
-static void bsmod_convertTileVersion1(bsgfx_TypeHeader* old_tiles, bsgfx_TypeHeader* new_tiles) {
+static void _bsmod_convertTileVersion1(bsgfx_TypeHeader* old_tiles, bsgfx_TypeHeader* new_tiles) {
 	unsigned char* old_data = old_tiles->accessors + old_tiles->count;
 	unsigned char* new_data = new_tiles->accessors + new_tiles->count;
 
@@ -449,7 +449,7 @@ static void bsmod_convertTileVersion1(bsgfx_TypeHeader* old_tiles, bsgfx_TypeHea
 	}
 }
 
-static bs_Result bsmod_convertTileVersion(int package_id, bsgfx_Scene* scene) {
+static bs_Result _bsmod_convertTileVersion(int package_id, bsgfx_Scene* scene) {
 	bs_Result result;
 
 	bs_Package* package = bs_fetchUnit(bs_packages(), package_id);
@@ -480,12 +480,12 @@ static bs_Result bsmod_convertTileVersion(int package_id, bsgfx_Scene* scene) {
 	new_tiles->version = BSGFX_TILE_VERSION;
 
 	switch (old_tiles->version) {
-	case 1: bsmod_convertTileVersion1(old_tiles, new_tiles); break;
+	case 1: _bsmod_convertTileVersion1(old_tiles, new_tiles); break;
 	default:
 		bs_warnF("Tile version %d converter\n", old_tiles->version); // TODO: BSMOD warn
 	}
 
-	result = bsmod_packResource(BSGFX_RESOURCE_TILE, new_tiles, size, bs_fileName(package->path), s->value, s->len);
+	result = _bsmod_packResource(BSGFX_RESOURCE_TILE, new_tiles, size, bs_fileName(package->path), s->value, s->len);
 	bs_free(new_tiles);
 
 	return BS_RESULT_OK;
@@ -496,9 +496,9 @@ BSMODAPI void _bsmod_ensureTypeVersionsAreUpToDate(int package_id) {
 	bs_Package* package = bs_fetchUnit(bs_packages(), package_id);
 
 	char* package_name = bs_fileName(package->path);
-	bsmod_iniPackage(package_name);
+	_bsmod_iniPackage(package_name);
 
-	bs_Result result = bsmod_convertTileVersion(package_id, bsgfx_currentScene());
+	bs_Result result = _bsmod_convertTileVersion(package_id, bsgfx_currentScene());
 	if (!result)
 		return;
 
@@ -509,7 +509,7 @@ BSMODAPI void _bsmod_ensureTypeVersionsAreUpToDate(int package_id) {
 	//bs_Resource* prefabs = bs_loadResource(package_id, (s = bs_stringF(s, "levels/%s_prefabs", scene->name))->value, 0);
 	//bs_except(0);
 
-	bsmod_savePackage(package_name);
+	_bsmod_savePackage(package_name);
 }
 
 
@@ -522,7 +522,7 @@ BSMODAPI void _bsmod_ensureTypeVersionsAreUpToDate(int package_id) {
 BSMODAPI void _val_bsmod_copyHoveringDataToBuffer() {
 	BSMOD_VALIDATE(bs_exists(BSGFX_RENDERERS, BSGFX_RENDERER_LO_RES),,);
 
-	bsmod_copyHoveringDataToBuffer();
+	_bsmod_copyHoveringDataToBuffer();
 }
 
 BSMODAPI void _bsmod_copyHoveringDataToBuffer() {
@@ -604,7 +604,7 @@ BSMODAPI void _bsmod_readHoveringInstanceData() {
 BSMODAPI void _val_bsmod_readHoveringVertex() {
 	BSMOD_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_LO_RES_CURSOR_READS),,);
 
-	bsmod_readHoveringVertex();
+	_bsmod_readHoveringVertex();
 }
 
 BSMODAPI void _bsmod_readHoveringVertex() {
@@ -617,7 +617,7 @@ BSMODAPI void _bsmod_readHoveringVertex() {
 
 	bsgfx_InstanceBuffer* instance = bs_bufferMap(poser()->instance_buffers[_bsmod_.hovering.instance_type]);
 
-	bool is_unselected_primitive = _bsmod_.hovering.flags & BSGFX_ID_IS_PRIMITIVE && !bsmod_isSelected(BSMOD_IDS, BSGFX_TYPE_PRIMITIVE, instance->header.id);
+	bool is_unselected_primitive = _bsmod_.hovering.flags & BSGFX_ID_IS_PRIMITIVE && !_bsmod_isSelected(BSMOD_IDS, BSGFX_TYPE_PRIMITIVE, instance->header.id);
 	if (is_unselected_primitive)
 		_bsmod_.hovering.closest_primitive = _bsmod_.hovering.instance_id;
 
@@ -638,7 +638,7 @@ BSMODAPI void _bsmod_readHoveringVertex() {
 BSMODAPI void _val_bsmod_readHoveringOutputs() {
 	BSMOD_VALIDATE(bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_LO_RES_CURSOR_READS), , );
 
-	bsmod_readHoveringOutputs();
+	_bsmod_readHoveringOutputs();
 }
 
 BSMODAPI void _bsmod_readHoveringOutputs() {
@@ -664,7 +664,7 @@ BSMODAPI void _bsmod_editSelectedType() {
 	bsgfx_Type* type = bsgfx_getType(_bsmod_.selected_type);
 
 	if (bs_keyDownOnce(BS_KEY_DELETE)) {
-		bsmod_deleteSelected(_bsmod_.selected_type);
+		_bsmod_deleteSelected(_bsmod_.selected_type);
 	}
 }
 
@@ -675,7 +675,7 @@ BSMODAPI void _bsmod_selectHoveringTypes() {
 
 	bool select_tile = false;
 	if (bs_leftClickOnce()) {
-		if (_bsmod_.selected_type == BSGFX_TYPE_PRIMITIVE && _bsmod_.selected_ids.count && _bsmod_.hovering.primitive == bsmod_firstSelectedId(BSMOD_IDS)) {
+		if (_bsmod_.selected_type == BSGFX_TYPE_PRIMITIVE && _bsmod_.selected_ids.count && _bsmod_.hovering.primitive == _bsmod_firstSelectedId(BSMOD_IDS)) {
 			select_tile = true;
 		}
 		else if (_bsmod_.selected_type == BSGFX_TYPE_TILE) {
@@ -688,15 +688,15 @@ BSMODAPI void _bsmod_selectHoveringTypes() {
 
 	if (select_tile && !bs_keyDown(BS_KEY_LEFT_SHIFT)) {
 		if (_bsmod_.selected_tile_axis != _bsmod_.hovering.tile_axis)
-			bsmod_deselectAll();
+			_bsmod_deselectAll();
 
 		_bsmod_.selected_tile_primitive = _bsmod_.hovering.primitive;
 		_bsmod_.selected_tile_axis = _bsmod_.hovering.tile_axis;
 
-		if (bsmod_isSelected(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, _bsmod_.hovering.tile))
-			bsmod_deselect(BSMOD_TILE_IDS, _bsmod_.hovering.tile);
+		if (_bsmod_isSelected(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, _bsmod_.hovering.tile))
+			_bsmod_deselect(BSMOD_TILE_IDS, _bsmod_.hovering.tile);
 		else
-			bsmod_select(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, _bsmod_.hovering.tile);
+			_bsmod_select(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, _bsmod_.hovering.tile);
 	}
 
 	_bsmod_.hovering.tile_axis = _bsmod_.hovering.primitive = _bsmod_.hovering.tile = -1;
@@ -709,8 +709,8 @@ BSMODAPI void _bsmod_selectHoveringTypes() {
 			bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
 			if (tile >= primitive->first_tile && tile < primitive->last_tile) {
 				if (bs_leftClickOnce() && !select_tile) {
-					bsmod_deselectAll();
-					bsmod_select(BSMOD_IDS, BSGFX_TYPE_PRIMITIVE, i);
+					_bsmod_deselectAll();
+					_bsmod_select(BSMOD_IDS, BSGFX_TYPE_PRIMITIVE, i);
 				}
 
 				_bsmod_.hovering.primitive = i;
@@ -727,16 +727,16 @@ BSMODAPI void _bsmod_selectHoveringTypes() {
 
 		if (bs_leftClickOnce()) {
 			if (!bs_keyDown(BS_KEY_ALT) || bs_keyDown(BS_KEY_LEFT_CONTROL))
-				bsmod_deselectAll();
+				_bsmod_deselectAll();
 
-			bsmod_select(BSMOD_IDS, BSGFX_TYPE_PREFAB, _bsmod_.hovering.instance_id);
+			_bsmod_select(BSMOD_IDS, BSGFX_TYPE_PREFAB, _bsmod_.hovering.instance_id);
 		}
 	}
 
 	if (bs_leftClickOnce() && _bsmod_.selected_type == BSGFX_TYPE_TILE && bs_keyDown(BS_KEY_LEFT_SHIFT)) {
 		bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, _bsmod_.selected_tile_primitive);
 
-		int first_tile = bsmod_firstSelectedId(BSMOD_TILE_IDS);
+		int first_tile = _bsmod_firstSelectedId(BSMOD_TILE_IDS);
 
 		int first_tile_axis;
 		bsgfx_tileAxis(primitive, first_tile, &first_tile_axis);
@@ -764,7 +764,7 @@ BSMODAPI void _bsmod_selectHoveringTypes() {
 						bs_U32 index;
 						bsgfx_tileIndex(primitive, _bsmod_.hovering.tile_axis, x, y, &index);
 
-						bsmod_select(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, index);
+						_bsmod_select(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, index);
 					}
 				}
 			}
@@ -802,7 +802,7 @@ BSMODAPI void _bsmod_selectHoveringTypes() {
 				bsgfx_tileAxis(primitive, j, &axis);
 
 				if (axis == _bsmod_.selected_tile_axis)
-					bsmod_select(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, j);
+					_bsmod_select(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, j);
 			}
 
 			break;

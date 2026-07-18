@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-gfx.h>
+#include <bsgfx_internal.h>
 
 BSGFXAPI bs_vec3 _bsgfx_spawnPosition(bs_vec2 coords, float y) {
     return (bs_vec3) {
@@ -33,34 +33,34 @@ BSGFXAPI bs_vec3 _bsgfx_spawnPosition(bs_vec2 coords, float y) {
     };
 }
 
-static void bsgfx_mapSpawner(bsgfx_RawSpawner* unmapped, bsgfx_Spawner* mapped) {
+static void _bsgfx_mapSpawner(bsgfx_RawSpawner* unmapped, bsgfx_Spawner* mapped) {
     *mapped = (bsgfx_Spawner){
         .position = unmapped->position,
         .spawn_type = unmapped->spawn_type,
         .spawn_name = unmapped->spawn_name,
         .flags = unmapped->flags,
         .spawn_periodicity = unmapped->spawn_periodicity,
-        .material_id = unmapped->material_name ? bsgfx_queryMaterialHash(unmapped->material_name)->id : 0,
+        .material_id = unmapped->material_name ? _bsgfx_queryMaterialHash(unmapped->material_name)->id : 0,
     };
 }
 
-// static void bsgfx_onSelectSpawner(int id) {
-//     bsgfx_deselectAll();
+// static void _bsgfx_onSelectSpawner(int id) {
+//     _bsgfx_deselectAll();
 // }
 
 BSGFXAPI void _bsgfx_loadSpawners(int package_id) {
-    bsgfx_type(
+    _bsgfx_type(
         BSGFX_TYPE_SPAWNER, 
         package_id, 
         BSGFX_SPAWNER_VERSION,
         "spawners", "spawner",
         sizeof(bsgfx_RawSpawner), sizeof(bsgfx_Spawner), 
-        bsgfx_mapSpawner, 
+        _bsgfx_mapSpawner, 
         0, 
         0, 
         0, 
         0);
-   // bsgfx_onSelect(BSGFX_TYPE_SPAWNER, bsgfx_onSelectSpawner);
+   // _bsgfx_onSelect(BSGFX_TYPE_SPAWNER, _bsgfx_onSelectSpawner);
 }
 
 BSGFXAPI void _bsgfx_spawn(bsgfx_Spawner* spawner) {
@@ -71,7 +71,7 @@ BSGFXAPI void _bsgfx_spawn(bsgfx_Spawner* spawner) {
         /*
         bs_Model* model = $items();
         bs_Mesh* mesh = bs_queryMeshHash(model, spawner->spawn_name, NULL);
-        bsgfx_spawnItem(mesh - model->meshes, bs_v3AddY(spawner->position, 2.0), 10.0, spawner->material_id);
+        _bsgfx_spawnItem(mesh - model->meshes, bs_v3AddY(spawner->position, 2.0), 10.0, spawner->material_id);
         */
         break;
     case BSGFX_SPAWNER_ENTITY:
@@ -89,28 +89,28 @@ struct bsgfx_SpawnerMenuParams {
     int clicked_spawner;
 };
 
-static void bsgfx_onClickSpawn(bool confirm, struct bsgfx_SpawnerMenuParams* params) {
+static void _bsgfx_onClickSpawn(bool confirm, struct bsgfx_SpawnerMenuParams* params) {
     if (!confirm) return;
 
-    bsgfx_Spawner* spawner = bsgfx_get(BSGFX_TYPE_SPAWNER, params->clicked_spawner);
-    bsgfx_spawn(spawner);
+    bsgfx_Spawner* spawner = _bsgfx_get(BSGFX_TYPE_SPAWNER, params->clicked_spawner);
+    _bsgfx_spawn(spawner);
 }
 
-static void bsgfx_onClickDeleteSpawner(bool confirm, struct bsgfx_SpawnerMenuParams* params) {
+static void _bsgfx_onClickDeleteSpawner(bool confirm, struct bsgfx_SpawnerMenuParams* params) {
     if (!confirm) return;
 
     bsmod_delete(BSGFX_TYPE_SPAWNER, params->clicked_spawner);
 }
 
-static bool bsgfx_instanceSpawner(bs_vec3 position, int id, const char* material) {
-    bsgfx_meshInstance(_bsgfx_subtypes_[BSGFX_SUBTYPE_BIPYRAMID], &(bsgfx_MeshInstance) {
+static bool _bsgfx_instanceSpawner(bs_vec3 position, int id, const char* material) {
+    _bsgfx_meshInstance(_bsgfx_subtypes_[BSGFX_SUBTYPE_BIPYRAMID], &(bsgfx_MeshInstance) {
         .transform = bs_rotate(bs_translate(BS_MAT4_IDENTITY, bs_v3AddY(position, 1.0)), bs_qFromDegreesV3(0.0, bs_elapsedTime() * 60.0, 0.0))
-    }, 0, id, bsgfx_queryMaterial(material)->id);
+    }, 0, id, _bsgfx_queryMaterial(material)->id);
 
     return _poser_->hovering.subtype == _bsgfx_subtypes_[BSGFX_SUBTYPE_BIPYRAMID] && _poser_->hovering.instance_id == id;
 }
 
-void bsgfx_instanceSpawners() {
+void _bsgfx_instanceSpawners() {
     if (!_bsgfx_settings_.draw_spawners)
         return;
 
@@ -119,8 +119,8 @@ void bsgfx_instanceSpawners() {
 
     static struct bsgfx_SpawnerMenuParams params;
 
-    for (int i = 0; i < bsgfx_count(BSGFX_TYPE_SPAWNER); i++) {
-        bsgfx_Spawner* spawner = bsgfx_get(BSGFX_TYPE_SPAWNER, i);
+    for (int i = 0; i < _bsgfx_count(BSGFX_TYPE_SPAWNER); i++) {
+        bsgfx_Spawner* spawner = _bsgfx_get(BSGFX_TYPE_SPAWNER, i);
 
         char* name = NULL;
         int id = -1;
@@ -131,10 +131,10 @@ void bsgfx_instanceSpawners() {
             bs_Mesh* mesh = bs_queryMeshHash(model, spawner->spawn_name, NULL);
 
             name = mesh->name;
-           // hovering = bsgfx_instanceItemPreview(BSGFX_ITEM_SUBTYPE, spawner->position, mesh->name_hash, i);
+           // hovering = _bsgfx_instanceItemPreview(BSGFX_ITEM_SUBTYPE, spawner->position, mesh->name_hash, i);
             id = mesh - model->meshes;
-            // bsgfx_obbInstance(&mesh->aabb, BS_BLACK, &transform);
-            hovering = bsgfx_instanceSpawner(spawner->position, i, "red");
+            // _bsgfx_obbInstance(&mesh->aabb, BS_BLACK, &transform);
+            hovering = _bsgfx_instanceSpawner(spawner->position, i, "red");
             break;
         case BSGFX_SPAWNER_ENTITY: 
             bsgfx_Script* script = bs_queryHash(NULL, "lua", spawner->spawn_name, 0).data;
@@ -142,15 +142,15 @@ void bsgfx_instanceSpawners() {
 
             name = script->name;
 
-           // hovering = bsgfx_instanceScriptPreview(spawner->position, script->name, false);
+           // hovering = _bsgfx_instanceScriptPreview(spawner->position, script->name, false);
             id = script - scripts;
-            hovering = bsgfx_instanceSpawner(spawner->position, i, "green");
+            hovering = _bsgfx_instanceSpawner(spawner->position, i, "green");
             break;
         }
         
         if (hovering && !_poser_->menu_blocked) {
-            //if (!bsgfx_quickMenuEnabled())
-            //    bsgfx_instanceHint(bs_cursorPosition(), name);
+            //if (!_bsgfx_quickMenuEnabled())
+            //    _bsgfx_instanceHint(bs_cursorPosition(), name);
 
             if (bs_leftClickOnce()) {
                 bsmod_select(BSGFX_TYPE_SPAWNER, i);
@@ -162,15 +162,15 @@ void bsgfx_instanceSpawners() {
                     .id = id,
                 };
 
-                bsgfx_enableRightClickMenu((bsgfx_RightClickMenu) {
+                _bsgfx_enableRightClickMenu((bsgfx_RightClickMenu) {
                     .buttons = {
                         {
                             .name = "spawn",
-                            .on_click = bsgfx_onClickSpawn,
+                            .on_click = _bsgfx_onClickSpawn,
                         },
                         {
                             .name = "delete",
-                            .on_click = bsgfx_onClickDeleteSpawner,
+                            .on_click = _bsgfx_onClickDeleteSpawner,
                             .confirm = true,
                         }
                     }

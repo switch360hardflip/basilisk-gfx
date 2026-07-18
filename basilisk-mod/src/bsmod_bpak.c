@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 #include <stdarg.h>
 #include <string.h>
 #include <assert.h>
@@ -48,7 +48,7 @@ BSMODAPI bsmod_Package* _bsmod_queryPackage(const char* name) {
 }
 
 BSMODAPI bsmod_Package* _bsmod_ensurePackage(const char* name) {
-	bsmod_Package* existing = bsmod_queryPackage(name);
+	bsmod_Package* existing = _bsmod_queryPackage(name);
 	if (existing)
 		return existing;
 
@@ -61,7 +61,7 @@ BSMODAPI bsmod_Package* _bsmod_ensurePackage(const char* name) {
 	});
 }
 
-static bsmod_Resource* bsmod_ensureResource(bsmod_Package* package, char* name) {
+static bsmod_Resource* _bsmod_ensureResource(bsmod_Package* package, char* name) {
 	bs_U64 hash = bs_stringHash(name);
 
 	for (int i = 0; i < package->resources.count; i++) {
@@ -83,7 +83,7 @@ BSMODAPI bs_Result _bsmod_iniPackage(const char* package_name) {
 	bs_Result result;
 
 	int previous_count = _bsmod_packages_.count;
-	bsmod_Package* package = bsmod_ensurePackage(package_name);
+	bsmod_Package* package = _bsmod_ensurePackage(package_name);
 	if (previous_count == _bsmod_packages_.count) {
 		bs_warnF("Package \"%s\" is already initialized\n", package_name);
 		return BS_RESULT_OK; // TODO
@@ -148,7 +148,7 @@ BSMODAPI bs_Result _bsmod_iniPackage(const char* package_name) {
 	return BS_RESULT_OK;
 }
 
-static bsmod_Chunk* bsmod_ensureChunk(bsmod_Package* package, int size) {
+static bsmod_Chunk* _bsmod_ensureChunk(bsmod_Package* package, int size) {
 	bsmod_Chunk* chunk;
 	for (int i = 0; i < package->chunks.count; i++) {
 		chunk = bs_fetchUnit(&package->chunks, i);
@@ -168,9 +168,9 @@ static bsmod_Chunk* bsmod_ensureChunk(bsmod_Package* package, int size) {
 }
 
 BSMODAPI bs_Result _bsmod_packResource(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, char* resource_name, int resource_name_length) {
-	bsmod_Package* package = bsmod_ensurePackage(package_name);
+	bsmod_Package* package = _bsmod_ensurePackage(package_name);
 
-	bsmod_Resource* resource = bsmod_ensureResource(package, resource_name);
+	bsmod_Resource* resource = _bsmod_ensureResource(package, resource_name);
 	resource->type = type;
 
 	bsmod_Chunk* chunk = bs_fetchUnit(&package->chunks, resource->header.chunk);
@@ -199,7 +199,7 @@ BSMODAPI bs_Result _bsmod_packResource(bs_ResourceType type, unsigned char* data
 			}
 		}
 
-		chunk = bsmod_ensureChunk(package, data_size);
+		chunk = _bsmod_ensureChunk(package, data_size);
 		resource->header.chunk = chunk->id;
 		resource->header.offset = chunk->bin.count;
 		resource->header.size = data_size;
@@ -218,7 +218,7 @@ BSMODAPI bs_Result _bsmod_packResource(bs_ResourceType type, unsigned char* data
 	return BS_RESULT_OK;
 }
 
-static bs_Result bsmod_loadResource(int type, int package_id, char* name) {
+static bs_Result _bsmod_loadResource(int type, int package_id, char* name) {
 	bs_Result result = BS_RESULT_OK;
 
 	bs_Scope scope = bs_enterSingle();
@@ -333,7 +333,7 @@ static bs_Result bsmod_loadResource(int type, int package_id, char* name) {
 		if (existing_atlas) {
 			bs_Atlas* atlas_object = BS_ATLAS(existing_atlas->head.source_id, existing_atlas->head.id, BS_OBJECT_FORCE_DESTROY);
 			if (bs_loadAtlas(atlas_object, package_id, 0, name, strlen(name)) == BS_RESULT_OK) {
-				bsmod_bindAtlases();
+				_bsmod_bindAtlases();
 			}
 		}
 		else {
@@ -381,12 +381,12 @@ end:
 BSMODAPI bs_Result _val_bsmod_savePackage(const char* name) {
 	BSMOD_VALIDATE(bs_instance()->device != NULL, BS_RESULT_VALIDATION_ERROR,);
 
-	return bsmod_savePackage(name);
+	return _bsmod_savePackage(name);
 }
 
 BSMODAPI bs_Result _bsmod_savePackage(const char* name) {
 	bs_Result result;
-	bsmod_Package* package = bsmod_ensurePackage(name);
+	bsmod_Package* package = _bsmod_ensurePackage(name);
 
 	if (!package->has_changes)
 		return BS_RESULT_OK;
@@ -447,7 +447,7 @@ BSMODAPI bs_Result _bsmod_savePackage(const char* name) {
 	for (int i = 0; i < package->resources.count; i++) {
 		bsmod_Resource* resource = bs_fetchUnit(&package->resources, i);
 		if (resource->has_changes) {
-			result = bsmod_loadResource(resource->type, package_id, resource->name);
+			result = _bsmod_loadResource(resource->type, package_id, resource->name);
 			resource->has_changes = false;
 		}
 	}

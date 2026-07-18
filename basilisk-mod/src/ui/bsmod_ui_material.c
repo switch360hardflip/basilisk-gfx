@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 #include <bsmod_cache.h>
 
 
@@ -38,7 +38,7 @@ BSMODAPI void _bsmod_onDragMaterial(bsmod_DraggingParams params) {
         bsgfx_RawPrefab* raw_prefab = bsgfx_getRaw(BSGFX_TYPE_PREFAB, _bsmod_.hovering.instance_id);
         if (bs_leftClickUpOnce()) {
             raw_prefab->material_hash = bsgfx_fetchMaterial(_bsmod_.dragging_id)->hash;
-            bsmod_saveType(BSGFX_TYPE_PREFAB, BS_CONSTANT_STRING("Changed prefab material"));
+            _bsmod_saveType(BSGFX_TYPE_PREFAB, BS_CONSTANT_STRING("Changed prefab material"));
         }
     }
 
@@ -50,21 +50,21 @@ BSMODAPI void _bsmod_onDragMaterial(bsmod_DraggingParams params) {
    * Side Menu Material UI
    *============================================================================*/
 
-bs_String* bsmod_hex_input = NULL;
-static bs_RGBA bsmod_material_color_input = { 255, 255, 255, 255 };
+bs_String* _bsmod_hex_input = NULL;
+static bs_RGBA _bsmod_material_color_input = { 255, 255, 255, 255 };
 
-static bsgfx_Material* bsmod_selected_material;
-static bs_String* bsmod_material_name = NULL;
-static bs_vec4 bsmod_material_hsva = { 0, 0, 0, 1 };
+static bsgfx_Material* _bsmod_selected_material;
+static bs_String* _bsmod_material_name = NULL;
+static bs_vec4 _bsmod_material_hsva = { 0, 0, 0, 1 };
 
-static bsmod_GridClickParams bsmod_click_params;
+static bsmod_GridClickParams _bsmod_click_params;
 
 static void bsgfx_onChangeColor(struct bsgfx_Widget* widget, bs_RGBA color) {
-    bsmod_material_color_input = color;
-    bsmod_hex_input = bs_stringF(bsmod_hex_input, "#%02X%02X%02X%02X", color.r, color.g, color.b, color.a);
-    bsmod_selected_material->contract->color = BS_V4(color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
+    _bsmod_material_color_input = color;
+    _bsmod_hex_input = bs_stringF(_bsmod_hex_input, "#%02X%02X%02X%02X", color.r, color.g, color.b, color.a);
+    _bsmod_selected_material->contract->color = BS_V4(color.r / 255.0, color.g / 255.0, color.b / 255.0, color.a / 255.0);
     if (widget)
-        bsmod_selected_material->contract->hsva = bsmod_material_hsva;
+        _bsmod_selected_material->contract->hsva = _bsmod_material_hsva;
 }
 
 BSMODAPI void _bsmod_onClickMaterialMenu(bsmod_GridClickParams params) {
@@ -72,21 +72,21 @@ BSMODAPI void _bsmod_onClickMaterialMenu(bsmod_GridClickParams params) {
 
     char* name = atlas->unmapped[params.atlas_id].name;
 
-    bsmod_selected_material = bsgfx_queryMaterial(name);
+    _bsmod_selected_material = bsgfx_queryMaterial(name);
     bs_infoF("Selected material \"%s\"\n", name);
 
     bs_vec4 rgba_f;
-    bs_v4MulS(&bsmod_selected_material->contract->color, 255.0, &rgba_f);
+    bs_v4MulS(&_bsmod_selected_material->contract->color, 255.0, &rgba_f);
 
     bs_RGBA rgba = BS_RGBA(rgba_f.x, rgba_f.y, rgba_f.z, rgba_f.w);
     bsgfx_onChangeColor(NULL, rgba);
 
-    bsmod_material_name = bs_string(bsmod_material_name, name, strlen(name));
-    bsmod_material_hsva.xyz = bs_rgbToHsv(&rgba);
-    bsmod_material_hsva.w = bsmod_selected_material->contract->color.w;
-    bsmod_selected_material->contract->hsva = bsmod_material_hsva;
+    _bsmod_material_name = bs_string(_bsmod_material_name, name, strlen(name));
+    _bsmod_material_hsva.xyz = bs_rgbToHsv(&rgba);
+    _bsmod_material_hsva.w = _bsmod_selected_material->contract->color.w;
+    _bsmod_selected_material->contract->hsva = _bsmod_material_hsva;
 
-    bsmod_click_params = params;
+    _bsmod_click_params = params;
 }
 
 BSMODAPI void _bsmod_pushMaterialWidgets(bs_List* widgets, bs_vec2 background_size) {
@@ -108,7 +108,7 @@ BSMODAPI void _bsmod_pushMaterialWidgets(bs_List* widgets, bs_vec2 background_si
         //.name = "Name",
         .input = {
             .type = BSGFX_INPUT_STRING,
-            .as_string = &bsmod_material_name,
+            .as_string = &_bsmod_material_name,
             .dimensions = { background_size.x - offset.x, 16 },
             .outline_material_id = $bsmod_grey_40()->id,
             .background_outline_material_id = $bsmod_grey_30()->id,
@@ -129,7 +129,7 @@ BSMODAPI void _bsmod_pushMaterialWidgets(bs_List* widgets, bs_vec2 background_si
             .scale = { texture_dimensions, texture_dimensions },
             .border_radius = BSMOD_DEFAULT_RADIUS,
             .outline_material_id = $bsmod_grey_30()->id,
-            .material_id = bsmod_click_params.atlas_id,
+            .material_id = _bsmod_click_params.atlas_id,
         },
         .material_id = BSMOD_UI_BASE_TEXT_MATERIAL()->id,
         .advance_flags = BSGFX_WIDGET_ADVANCE_DOWN,
@@ -141,9 +141,9 @@ BSMODAPI void _bsmod_pushMaterialWidgets(bs_List* widgets, bs_vec2 background_si
         .offset = offset,
         .color = {
             .dimensions = { color_dimensions, color_dimensions },
-            .hsva = &bsmod_material_hsva,
+            .hsva = &_bsmod_material_hsva,
             .hue_width = hue_width,
-            .material_id = bsmod_selected_material->id,
+            .material_id = _bsmod_selected_material->id,
             .background_material_id = $white_material()->id,
             .outline_material_id = $bsmod_grey_30()->id,
             .padding = color_padding,
@@ -156,11 +156,11 @@ BSMODAPI void _bsmod_pushMaterialWidgets(bs_List* widgets, bs_vec2 background_si
     });
 
     //offset.x += color_padding+ hue_width * 2;
-    //bsmod_pushInputWidget(widgets, &bsmod_red_input, offset, channel_width, name_padding, true, false, true, bsmod_onChangeRedInput, "");
-    //bsmod_pushInputWidget(widgets, &bsmod_green_input, bs_v3AddY(offset, -(BSMOD_INPUT_HEIGHT + color_padding) * 1), channel_width, name_padding, true, false, true, bsmod_onChangeGreenInput, "");
-    //bsmod_pushInputWidget(widgets, &bsmod_blue_input, bs_v3AddY(offset, -(BSMOD_INPUT_HEIGHT + color_padding) * 2), channel_width, name_padding, true, false, true, bsmod_onChangeBlueInput, "");
-    //bsmod_pushInputWidget(widgets, &bsmod_alpha_input, bs_v3AddY(offset, -(BSMOD_INPUT_HEIGHT + color_padding) * 3), channel_width, name_padding, true, false, true, bsmod_onChangeAlphaInput, "");
-    //bsmod_pushInputWidget(widgets, &bsmod_hex_input, bs_v3AddY(offset, -color_dimensions + BSMOD_INPUT_HEIGHT), channel_width, name_padding, true, true, false, bsmod_onChangeHexInput, "");
+    //bsmod_pushInputWidget(widgets, &_bsmod_red_input, offset, channel_width, name_padding, true, false, true, _bsmod_onChangeRedInput, "");
+    //bsmod_pushInputWidget(widgets, &_bsmod_green_input, bs_v3AddY(offset, -(BSMOD_INPUT_HEIGHT + color_padding) * 1), channel_width, name_padding, true, false, true, _bsmod_onChangeGreenInput, "");
+    //bsmod_pushInputWidget(widgets, &_bsmod_blue_input, bs_v3AddY(offset, -(BSMOD_INPUT_HEIGHT + color_padding) * 2), channel_width, name_padding, true, false, true, _bsmod_onChangeBlueInput, "");
+    //bsmod_pushInputWidget(widgets, &_bsmod_alpha_input, bs_v3AddY(offset, -(BSMOD_INPUT_HEIGHT + color_padding) * 3), channel_width, name_padding, true, false, true, _bsmod_onChangeAlphaInput, "");
+    //bsmod_pushInputWidget(widgets, &_bsmod_hex_input, bs_v3AddY(offset, -color_dimensions + BSMOD_INPUT_HEIGHT), channel_width, name_padding, true, true, false, _bsmod_onChangeHexInput, "");
 }
 
 
@@ -202,7 +202,7 @@ BSMODAPI void _bsmod_rasterizeMaterialIcons() {
             .camera = bs_m4x3(&camera),
         };
 
-        bsmod_beginRasterize(render_size, output_size);
+        _bsmod_beginRasterize(render_size, output_size);
 
         int sphere_subtype = bsgfx_subtypes()[BSGFX_SUBTYPE_PRIMITIVE_SPHERE];
 
@@ -223,9 +223,9 @@ BSMODAPI void _bsmod_rasterizeMaterialIcons() {
             push_const.model = matrix;
 
             int instance = bsgfx_instancePrimitive(sphere_subtype, BS_MAT4_IDENTITY, 0, 0, 0);
-            bsmod_rasterizeInstance(hash, sphere_subtype, instance, material->category, material->name, render_size.x, render_size.y, sizeof(push_const), &push_const);
+            _bsmod_rasterizeInstance(hash, sphere_subtype, instance, material->category, material->name, render_size.x, render_size.y, sizeof(push_const), &push_const);
         }
 
-        bsmod_endRasterize();
+        _bsmod_endRasterize();
     }
 }

@@ -30,6 +30,9 @@
   the code is regenerated.
   */
         
+#include <bsgfx_internal.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 bsgfx_Material* _bsgfx_materialV(
     char* format, 

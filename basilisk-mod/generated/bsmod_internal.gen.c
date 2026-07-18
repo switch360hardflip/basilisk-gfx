@@ -30,6 +30,9 @@
   the code is regenerated.
   */
         
+#include <bsmod_internal.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 bs_Result _bsmod_packBMFontV(
     char* package_name, 

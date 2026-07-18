@@ -28,15 +28,15 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 #include <bsmod_cache.h>
 
 static int _bsmod_active_side_menu_tab;
 
-static void bsmod_pushInstanceWidgets(bs_List* widgets, bs_vec2 background_size) {
+static void _bsmod_pushInstanceWidgets(bs_List* widgets, bs_vec2 background_size) {
     switch (_bsmod_.selected_type) {
-    case BSGFX_TYPE_PREFAB: bsmod_pushPrefabMenuWidgets(widgets, background_size); break;
-    case BSGFX_TYPE_TILE: bsmod_pushTileMenuWidgets(widgets, background_size); break;
+    case BSGFX_TYPE_PREFAB: _bsmod_pushPrefabMenuWidgets(widgets, background_size); break;
+    case BSGFX_TYPE_TILE: _bsmod_pushTileMenuWidgets(widgets, background_size); break;
     default:
 
         break;
@@ -44,8 +44,8 @@ static void bsmod_pushInstanceWidgets(bs_List* widgets, bs_vec2 background_size)
 }
 
 bsmod_SideMenuTab _bsmod_side_menu_tabs[BSMOD_TABS_COUNT] = {
-    [BSMOD_TAB_INSTANCE] = {.name = "Instance", .cache = $BSMOD_ATLAS_UI_instance, .push_widgets = bsmod_pushInstanceWidgets , },
-    [BSMOD_TAB_MATERIAL] = {.name = "Material", .cache = $BSMOD_ATLAS_UI_material, .push_widgets = bsmod_pushMaterialWidgets, .on_click = bsmod_onClickMaterialMenu },
+    [BSMOD_TAB_INSTANCE] = {.name = "Instance", .cache = $BSMOD_ATLAS_UI_instance, .push_widgets = _bsmod_pushInstanceWidgets , },
+    [BSMOD_TAB_MATERIAL] = {.name = "Material", .cache = $BSMOD_ATLAS_UI_material, .push_widgets = _bsmod_pushMaterialWidgets, .on_click = _bsmod_onClickMaterialMenu },
     [BSMOD_TAB_SETTINGS] = {.name = "Settings", .cache = $BSMOD_ATLAS_UI_instance, },
 };
 
@@ -53,7 +53,7 @@ BSMODAPI void _val_bsmod_setSideMenuTab(int id, bsmod_GridClickParams params) {
     BSMOD_VALIDATE(id >= 0,,);
     BSMOD_VALIDATE(id < BSMOD_TABS_COUNT,,);
 
-    bsmod_setSideMenuTab(id, params);
+    _bsmod_setSideMenuTab(id, params);
 }
 
 BSMODAPI void _bsmod_setSideMenuTab(int id, bsmod_GridClickParams params) {

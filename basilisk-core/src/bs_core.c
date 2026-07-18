@@ -717,7 +717,7 @@ BSAPI void _bs_batchBipyramid(
     _bs_batchVertex(&declaration, &(bs_Vertex) { .bs_Position = { pos.x, pos.y - height, pos.z }, .bs_Texture = { 0.5, 1.0 } });
 }
 
-BSAPI void _bs_batchQuad(bs_Batch* batch, bs_U32* offset, bs_Quad quad, bs_RGBA color) {
+BSAPI void _bs_batchQuad(bs_Batch* batch, bs_U32* offset, const bs_Quad* quad, bs_RGBA color) {
     BS_VERTEX_DECLARATION(
         declaration, batch, offset,
         bs_vec3, bs_Position,
@@ -725,10 +725,10 @@ BSAPI void _bs_batchQuad(bs_Batch* batch, bs_U32* offset, bs_Quad quad, bs_RGBA 
         bs_RGBA, bs_Color
     );
 
-    _bs_batchVertex(&declaration, &(bs_Vertex) { quad.a, quad.ca, color });
-    _bs_batchVertex(&declaration, &(bs_Vertex) { quad.b, quad.cb, color });
-    _bs_batchVertex(&declaration, &(bs_Vertex) { quad.c, quad.cc, color });
-    _bs_batchVertex(&declaration, &(bs_Vertex) { quad.d, quad.cd, color });
+    _bs_batchVertex(&declaration, &(bs_Vertex) { quad->a, quad->ca, color });
+    _bs_batchVertex(&declaration, &(bs_Vertex) { quad->b, quad->cb, color });
+    _bs_batchVertex(&declaration, &(bs_Vertex) { quad->c, quad->cc, color });
+    _bs_batchVertex(&declaration, &(bs_Vertex) { quad->d, quad->cd, color });
 }
 
 BSAPI void _bs_batchTriangle(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color) {
@@ -850,14 +850,14 @@ static inline void _bs_quadTextureCoords(bs_Quad* q, bs_vec2 offset, bs_vec2 coo
 }
 
 BSAPI bs_Range _bs_pushQuad(
-    bs_Batch* batch, bs_Quad quad, bs_RGBA color
+    bs_Batch* batch, const bs_Quad* quad, bs_RGBA color
 ) {
     int index_offset = batch->indices.count;
     const int indices[] = { 1, 2, 0, 2, 1, 3 };
 
     _bs_ensureBatchSize(batch, 6, 4);
     _bs_pushIndices(batch, indices, sizeof(indices) / sizeof(*indices));
-    _bs_batchQuad(batch, &batch->vertices.count, quad, color);
+    _bs_batchQuad(batch, &batch->vertices.count, &quad, color);
 
     return _bs_batchRange(batch, index_offset);
 }

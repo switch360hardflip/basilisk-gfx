@@ -23,7 +23,8 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
+#include <bsmod_cache.h>
 
 
 
@@ -31,7 +32,7 @@
    * Instance Menu
    *============================================================================*/
 
-static void bsmod_pushDividerWidget(bs_List* widgets, bs_vec3 offset) {
+static void _bsmod_pushDividerWidget(bs_List* widgets, bs_vec3 offset) {
     const int divider_indent = 8;
     bs_pushBack(widgets, &(bsgfx_Widget) {
         .type = BSGFX_WIDGET_BACKGROUND,
@@ -45,7 +46,7 @@ static void bsmod_pushDividerWidget(bs_List* widgets, bs_vec3 offset) {
     });
 }
 
-static void bsmod_pushDropdownWidget(bs_List* widgets, bs_vec3 offset) {
+static void _bsmod_pushDropdownWidget(bs_List* widgets, bs_vec3 offset) {
     const int height = 24;
 
     bs_pushBack(widgets, &(bsgfx_Widget) {
@@ -75,7 +76,7 @@ static void bsmod_pushDropdownWidget(bs_List* widgets, bs_vec3 offset) {
         .offset = { 0.0, -height, 0.0 },
     });
 
-    bsmod_pushDividerWidget(widgets, BS_V3(0.0, offset.y, offset.z));
+    _bsmod_pushDividerWidget(widgets, BS_V3(0.0, offset.y, offset.z));
 }
 
 BSMODAPI void _bsmod_pushTileMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
@@ -97,12 +98,12 @@ BSMODAPI void _bsmod_pushTileMenuWidgets(bs_List* widgets, bs_vec2 background_si
         .offset = { 0, -8.0, 0.0 },
     });
 
-    bsmod_pushDividerWidget(widgets, BS_V3(0.0, 0.0, 0.0));
+    _bsmod_pushDividerWidget(widgets, BS_V3(0.0, 0.0, 0.0));
 
     for (int i = 0; i < _bsmod_.selected_ids.count; i++) {
         bsgfx_Tile* tile = bsgfx_get(BSGFX_TYPE_TILE, i);
 
-        bsmod_pushDropdownWidget(widgets, BS_V3(indent, 0, 0));
+        _bsmod_pushDropdownWidget(widgets, BS_V3(indent, 0, 0));
     }
 }
 
@@ -164,7 +165,7 @@ BSMODAPI void _bsmod_onDragTile(bsmod_DraggingParams params) {
     assert(_bsmod_.dragging_id >= 0 && _bsmod_.dragging_id < tile_image_object->image->num_indices);
 
     if (bs_leftClickUpOnce()) {
-        if (bsmod_isSelected(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, _bsmod_.hovering.tile)) {
+        if (_bsmod_isSelected(BSMOD_TILE_IDS, BSGFX_TYPE_TILE, _bsmod_.hovering.tile)) {
             for (int i = 0; i < _bsmod_.selected_tiles.count; i++) {
                 int id = *(int*)bs_fetchUnit(&_bsmod_.selected_tiles, i);
 
@@ -180,7 +181,7 @@ BSMODAPI void _bsmod_onDragTile(bsmod_DraggingParams params) {
 
                 bsgfx_tileCoordinate(hovering_primitive, _bsmod_.hovering.tile_axis, id, &coords);
 
-                bsmod_add(BSGFX_TYPE_TILE, &(bsgfx_RawTile) {
+                _bsmod_add(BSGFX_TYPE_TILE, &(bsgfx_RawTile) {
                     .coords = coords,
                     .texture_hash = tile_image_object->image->indices[_bsmod_.dragging_id].name_hash,
                     .primitive = hovering_primitive->guid,
@@ -195,7 +196,7 @@ BSMODAPI void _bsmod_onDragTile(bsmod_DraggingParams params) {
             bs_warnF("Tile is not selected\n");
         }
 
-        bsmod_saveType(BSGFX_TYPE_TILE, "Created %d tiles", _bsmod_.selected_tiles.count);
-        bsmod_deselectAll();
+        _bsmod_saveType(BSGFX_TYPE_TILE, "Created %d tiles", _bsmod_.selected_tiles.count);
+        _bsmod_deselectAll();
     }
 }

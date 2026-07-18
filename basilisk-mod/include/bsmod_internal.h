@@ -26,9 +26,78 @@
 #ifndef BSMOD_INTERNAL_H
 #define BSMOD_INTERNAL_H
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.gen.h>
 
-static inline const char* bsmod_applicationContentPath() {
+typedef struct {
+    int package;
+    int bsgfx_package;
+    int selected_tile_primitive;
+    int selected_tile_axis;
+    struct {
+        bs_RGBA color;
+        bs_vec3 normal;
+        bs_U32 index;
+        bs_U32 flags;
+        bs_vec3 position;
+        int instance_type;
+        int instance_id;
+        int subtype;
+        int closest_primitive;
+        bs_vec3 closest_vertex;
+        bool billboard;
+        int primitive;
+        int prefab;
+        int tile;
+        int tile_axis;
+    } hovering;
+    bs_List selected_ids;
+    bs_List selected_tiles;
+    int editor_resource_type;
+    int editor_resource_id;
+    bs_String* foliage_density_input;
+    bs_String* primitive_angle_input;
+    bs_vec2 selected_tile_size;
+    bool draw_menu;
+    bool active;
+    bool ui_blocked;
+    int overlay;
+    PFN_bsmod_GridMenu grid_menu;
+    PFN_bsmod_GridMenuCallback grid_menu_callback;
+    void* grid_menu_params;
+    int clicked_type;
+    int clicked_id;
+    bsgfx_TypeId selected_type;
+    int axis;
+    bs_I64 history;
+    struct {
+        bool draw_hidden_primitives;
+    } settings;
+    struct {
+        int isolated_subtype;
+        int isolated_id;
+        bool screenshot;
+        bool load_fonts;
+        bool load_shaders;
+        bool load_materials;
+        bool load_textures;
+        bool load_scripts;
+        bool skip_mesh_index_write;
+    } queue;
+    int dragging_object_id;
+    int dragging_subtype;
+    int dragging_id;
+    bsmod_EditType edit_type;
+    bsmod_EditType edit_type_old;
+    bs_Json track_json;
+    bs_Json bindings_json;
+    bs_String* variadic;
+    bs_List queue_load;
+    HMODULE module;
+} Bsmod;
+
+BSMODAPI extern Bsmod _bsmod_;
+
+static inline const char* _bsmod_applicationContentPath() {
 	return bs_fetchJson(&_bsmod_config_, BS_JSON_STRING, BS_CONSTANT_STRING("application.content_path")).as_string;
 }
 

@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 #include <stb_rect_pack/stb_rect_pack.h>
 #include <string.h>
 
@@ -52,7 +52,7 @@ BSMODAPI bsmod_AtlasPacker _bsmod_createAtlasPacker() {
 }
 
 /*
-void bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* package, char* resource_name) {
+void _bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* package, char* resource_name) {
 	stbrp_context ctx;
 	stbrp_node* nodes = _alloca(width * sizeof(stbrp_node));
 
@@ -125,8 +125,8 @@ void bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* pac
 	size_t png_data_size = 0;
 	unsigned char* png_data = bs_encodePng(&png_data_size, atlas, bs_iv2(width, height), BS_PNG_RGBA);
 
-	bsmod_packResource(BS_RESOURCE_BINARY, raw, strlen(raw), package, "atlas/metadata/%s", resource_name);
-	bsmod_packResource(BS_RESOURCE_ATLAS, png_data, png_data_size, package, "atlas/%s", resource_name);
+	_bsmod_packResource(BS_RESOURCE_BINARY, raw, strlen(raw), package, "atlas/metadata/%s", resource_name);
+	_bsmod_packResource(BS_RESOURCE_ATLAS, png_data, png_data_size, package, "atlas/%s", resource_name);
 
 	bs_saveFile("test.png", png_data, png_data_size);
 	free(png_data);
@@ -140,7 +140,7 @@ void bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* pac
 BSMODAPI bs_Result _val_bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* package_name, char* resource_name) {
 	BSMOD_VALIDATE(packer->info.count == packer->rects.count, BS_RESULT_OK,);
 
-	return bsmod_packAtlas(packer, width, height, package_name, resource_name);
+	return _bsmod_packAtlas(packer, width, height, package_name, resource_name);
 }
 
 BSMODAPI bs_Result _bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int height, char* package_name, char* resource_name) {
@@ -228,7 +228,7 @@ BSMODAPI bs_Result _bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int he
 		return result;
 	}
 
-	result = bsmod_packResource(BS_RESOURCE_ATLAS, batl, total_size, package_name, resource_name, strlen(resource_name));
+	result = _bsmod_packResource(BS_RESOURCE_ATLAS, batl, total_size, package_name, resource_name, strlen(resource_name));
 	bs_free(batl);
 //	if (result != BS_RESULT_OK)
 //		return result;

@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 #include <bsmod_cache.h>
 
 
@@ -80,9 +80,9 @@ BSMODAPI void _bsmod_instanceLightBillboards() {
 
             if (bs_leftClickOnce()) {
                 if (!bs_keyDown(BS_KEY_ALT))
-                    bsmod_deselectAll();
+                    _bsmod_deselectAll();
 
-                bsmod_select(&_bsmod_.selected_ids, BSGFX_TYPE_LIGHT, i);
+                _bsmod_select(&_bsmod_.selected_ids, BSGFX_TYPE_LIGHT, i);
             }
         }
     }
@@ -94,7 +94,7 @@ BSMODAPI void _bsmod_instanceLightBillboards() {
    * Context Menu
    *============================================================================*/
 
-static inline void bsmod_addLight(bsgfx_LightType type) {
+static inline void _bsmod_addLight(bsgfx_LightType type) {
     assert(_bsmod_.selected_tiles.count == 1);
 
     int tile_id = *(int*)bs_fetchUnit(&_bsmod_.selected_tiles, 0);
@@ -114,54 +114,55 @@ static inline void bsmod_addLight(bsgfx_LightType type) {
     };
     bsgfx_tilePosition(primitive, axis, coords.x, coords.y, &data.position);
 
-    bsmod_add(BSGFX_TYPE_LIGHT, &data);
+    _bsmod_add(BSGFX_TYPE_LIGHT, &data);
 }
 
-static bool bsmod_onAddPointTick(bsgfx_ButtonParams params) {
-    if (params.hovering && bs_leftClickOnce())
-        bs_warnF("Point light is not implemented\n");
+static bool _bsmod_onAddPointTick(const bsgfx_ButtonParams* params) {
+    if (params->hovering && bs_leftClickOnce())
+        bs_warn(BS_CONSTANT_STRING("Point light is not implemented\n"));
 
-    return params.hovering;
+    return params->hovering;
 }
 
-static bool bsmod_onAddSunTick(bsgfx_ButtonParams params) {
-    if (params.hovering && bs_leftClickOnce())
-        bsmod_addLight(BSGFX_LIGHT_TYPE_SUN);
+static bool _bsmod_onAddSunTick(const bsgfx_ButtonParams* params) {
+    if (params->hovering && bs_leftClickOnce())
+        _bsmod_addLight(BSGFX_LIGHT_TYPE_SUN);
 
-    return params.hovering;
+    return params->hovering;
 }
 
-BSMODAPI bool _bsmod_onAddLightTick(bsgfx_ButtonParams params) {
+BSMODAPI bool _bsmod_onAddLightTick(const bsgfx_ButtonParams* params) {
     static bool was_hovering;
+    bool hovering = params->hovering;
 
-    bs_vec3 position = params.widget_position;
+    bs_vec3 position = params->widget_position;
     position.y += BSMOD_CONTEXT_MENU_BUTTON_HEIGHT;
-    position.x += params.menu->untextured.dimensions.x;
+    position.x += params->menu->untextured.dimensions.x;
     position.x -= BSMOD_CONTEXT_MENU_PADDING - 1;
 
     bs_vec2 size = BS_V2(125.0, 175.0);
 
-    if (!params.hovering && was_hovering) {
+    if (!hovering && was_hovering) {
         bs_vec2 cursor = bs_cursorPosition();
         bs_vec2 p = { position.x - (BSMOD_CONTEXT_MENU_PADDING + 2), position.y - size.y };
 
         if (bs_rectangleVsPoint(&p, &size, &cursor)) {
-            params.hovering = true;
+            hovering = true;
         }
     }
 
-    if (params.hovering) {
+    if (hovering) {
         static bs_List widgets = { .unit_size = sizeof(bsgfx_Widget), .increment = 16};
         widgets.count = 0;
 
         const int indent = 4;
-        //bsgfx_Widget sun_widget = bsmod_iconWidget(icon, align_height, bs_v3AddX(icon_offset, padding), BSGFX_WIDGET_ADVANCE_RIGHT);
-        bsmod_pushContextMenuButton(&widgets, size, BS_V3(0, -1, 0), $BSMOD_ATLAS_UI_light_add(), "Point", 0, bsmod_onAddPointTick, false);
-        bsmod_pushContextMenuButton(&widgets, size, BS_V3(0, 0, 0), $BSMOD_ATLAS_UI_sun_add(), "Sun", 0, bsmod_onAddSunTick, false);
+        //bsgfx_Widget sun_widget = _bsmod_iconWidget(icon, align_height, bs_v3AddX(icon_offset, padding), BSGFX_WIDGET_ADVANCE_RIGHT);
+        _bsmod_pushContextMenuButton(&widgets, size, BS_V3(0, -1, 0), $BSMOD_ATLAS_UI_light_add(), "Point", 0, _bsmod_onAddPointTick, false);
+        _bsmod_pushContextMenuButton(&widgets, size, BS_V3(0, 0, 0), $BSMOD_ATLAS_UI_sun_add(), "Sun", 0, _bsmod_onAddSunTick, false);
 
-        bsmod_instanceContextMenu(&widgets, position, size);
+        _bsmod_instanceContextMenu(&widgets, position, size);
     }
 
-    was_hovering = params.hovering;
-    return params.hovering;
+    was_hovering = hovering;
+    return hovering;
 }

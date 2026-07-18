@@ -23,7 +23,8 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
+#include <bsmod_cache.h>
 
 #define BSGFX_AXIS_CLICK_SIZE (48)
 
@@ -68,7 +69,7 @@ BSMODAPI void _bsmod_snapPrimitive() {
 	bs_v2Add(&temp, &cursor, &cursor);
 
 	if (_bsmod_.edit_type_old != _bsmod_.edit_type) {
-		bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, bsmod_firstSelectedId(BSGFX_TYPE_PRIMITIVE));
+		bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, _bsmod_firstSelectedId(BSGFX_TYPE_PRIMITIVE));
 		if (primitive) {
 			cursor_start = cursor;
 		}
@@ -86,7 +87,7 @@ BSMODAPI void _bsmod_snapPrimitive() {
 		bsgfx_RawPrimitive* raw_primitive = bsgfx_getRaw(BSGFX_TYPE_PRIMITIVE, i);
 		bsgfx_Primitive* primitive = bsgfx_get(BSGFX_TYPE_PRIMITIVE, i);
 
-		if (bsmod_isSelected(BSMOD_IDS, BSGFX_TYPE_PRIMITIVE, i)) {
+		if (_bsmod_isSelected(BSMOD_IDS, BSGFX_TYPE_PRIMITIVE, i)) {
 			bs_vec2 diff = {
 				((cursor.x - cursor_start.x) / BSGFX_TILE_SIZE.x),
 				((cursor.y - cursor_start.y) / BSGFX_TILE_SIZE.y),
@@ -158,7 +159,7 @@ BSMODAPI void _bsmod_snapPrimitive() {
    * Type Transformation
    =============================================================================*/
 
-static inline bs_vec3 bsmod_axisScreenPosition(bs_vec3 position) {
+static inline bs_vec3 _bsmod_axisScreenPosition(bs_vec3 position) {
 	position.x *= BSGFX_TILE_SIZE.x * 2.0;
 	position.x -= poser()->world_camera.position.x;
 
@@ -174,7 +175,7 @@ static inline bs_vec3 bsmod_axisScreenPosition(bs_vec3 position) {
 	return position;
 }
 
-static inline bs_vec3 bsmod_worldToScreenCoords(bs_vec3 world_coords, float width) {
+static inline bs_vec3 _bsmod_worldToScreenCoords(bs_vec3 world_coords, float width) {
 	bs_ivec2 resolution = bs_resolution();
 	bs_mat4 camera = poser()->camera.result;
 
@@ -255,7 +256,7 @@ BSMODAPI void _bsmod_instanceTransform() {
 	bs_m4Scale(&transform, &scale, &transform);
 
 	if (bs_leftClickUpOnce() && _bsmod_.axis != -1) {
-		bsmod_saveType(type, NULL, 0);
+		_bsmod_saveType(type, NULL, 0);
 
 		_bsmod_.axis = -1;
 	}
@@ -355,9 +356,9 @@ BSMODAPI void _bsmod_instanceTransform() {
     */
 	float width = 36;
 	bs_vec3 screen_coordinates[] = {
-		bsmod_worldToScreenCoords(x, width),
-		bsmod_worldToScreenCoords(y, width),
-		bsmod_worldToScreenCoords(z, width),
+		_bsmod_worldToScreenCoords(x, width),
+		_bsmod_worldToScreenCoords(y, width),
+		_bsmod_worldToScreenCoords(z, width),
 	};
 	static bs_vec3 start_coordinate;
 	static bs_vec2 start_direction;
@@ -380,7 +381,7 @@ BSMODAPI void _bsmod_instanceTransform() {
 		if (bs_leftClickOnce()) {
 			_bsmod_.ui_blocked = true;
 			_bsmod_.axis = closest_axis;
-			start_coordinate = bsmod_worldToScreenCoords(origin, 1.0);
+			start_coordinate = _bsmod_worldToScreenCoords(origin, 1.0);
 			bs_v2Normalize(&BS_V2_SUB(cursor, start_coordinate.xy), &start_direction);
 		}
 	}

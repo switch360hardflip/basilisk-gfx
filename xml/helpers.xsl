@@ -3,7 +3,7 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
     <xsl:template match="ifdef|ifndef|elifdef">
-        <xsl:text>#</xsl:text>
+        <xsl:text>#ABC123</xsl:text>
         <xsl:value-of select="name()"/>
         <xsl:text> </xsl:text>
         <xsl:value-of select="@cond"/>

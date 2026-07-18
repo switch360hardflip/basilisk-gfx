@@ -1,4 +1,4 @@
-#include <basilisk-gfx.h>
+#include <bsgfx_internal.h>
 
 BSGFXAPI void _val_bsgfx_worldToScreen(const bs_vec3* position, const bs_mat4* camera, const bs_vec2* resolution, bs_vec2* out) {
 	bs_vec4 clip;
@@ -6,7 +6,7 @@ BSGFXAPI void _val_bsgfx_worldToScreen(const bs_vec3* position, const bs_mat4* c
 
 	BSGFX_VALIDATE(clip.w != 0.0,,);
 
-	bsgfx_worldToScreen(position, camera, resolution, out);
+	_bsgfx_worldToScreen(position, camera, resolution, out);
 }
 
 BSGFXAPI void _bsgfx_worldToScreen(const bs_vec3* position, const bs_mat4* camera, const bs_vec2* resolution, bs_vec2* out) {

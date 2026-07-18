@@ -30,7 +30,6 @@
   the code is regenerated.
   */
         
-#include <basilisk-core.h>
 #include <basilisk-gfx.h>
 #include <bsgfx_internal.gen.h>
 #include <math.h>
@@ -115,7 +114,7 @@ bool bsgfx_validateInstanceType(
 void bsgfx_worldToScreen(
     const bs_vec3* position, 
     const bs_mat4* camera, 
-    const bs_vec3* resolution, 
+    const bs_vec2* resolution, 
     bs_vec2* out)
 {
     next.bsgfx_worldToScreen(position, camera, resolution, out);
@@ -198,11 +197,6 @@ void bsgfx_tickMaterials()
     next.bsgfx_tickMaterials();
 }
 
-void bsgfx_shadowPipe()
-{
-    next.bsgfx_shadowPipe();
-}
-
 void bsgfx_pipeline()
 {
     next.bsgfx_pipeline();
@@ -226,7 +220,7 @@ bsgfx_Collider bsgfx_collider(
 
 void bsgfx_applyCollisions(
     bsgfx_Collider* collider, 
-    bs_vec3 position, 
+    const bs_vec3* position, 
     bs_vec3* velocity)
 {
     next.bsgfx_applyCollisions(collider, position, velocity);
@@ -245,7 +239,7 @@ void bsgfx_instanceSweepCollisions()
 
 void bsgfx_instanceCollider(
     bsgfx_Collider* collider, 
-    bs_vec3 position, 
+    const bs_vec3* position, 
     bs_vec3* velocity)
 {
     next.bsgfx_instanceCollider(collider, position, velocity);
@@ -575,17 +569,6 @@ bs_mat4x3 bsgfx_matrix(
     return next.bsgfx_matrix(position, scale);
 }
 
-void bsgfx_renderFontSubtypes()
-{
-    next.bsgfx_renderFontSubtypes();
-}
-
-void bsgfx_settingsEditor(
-    bs_List* result)
-{
-    next.bsgfx_settingsEditor(result);
-}
-
 void bsgfx_renderFineShadowVolumes()
 {
     next.bsgfx_renderFineShadowVolumes();
@@ -619,11 +602,6 @@ void bsgfx_ini(
     char* argv[])
 {
     next.bsgfx_ini(name, width, height, argc, argv);
-}
-
-HINSTANCE bsgfx_bsmodDll()
-{
-    return next.bsgfx_bsmodDll();
 }
 
 void bsgfx_checkGFSDK(
@@ -755,18 +733,6 @@ bsgfx_TypeId bsmod_queryType(
     return next.bsmod_queryType(plural);
 }
 
-void bsgfx_loadFoliages(
-    int package_id)
-{
-    next.bsgfx_loadFoliages(package_id);
-}
-
-int bsgfx_queryFoliage(
-    bs_GUID* guid)
-{
-    return next.bsgfx_queryFoliage(guid);
-}
-
 void bsgfx_loadLights(
     int package_id)
 {
@@ -787,11 +753,6 @@ bsgfx_PrefabMetadata* bsgfx_prefabMetadata(
     int mesh_id)
 {
     return next.bsgfx_prefabMetadata(mesh_id);
-}
-
-void bsgfx_savePrefabs()
-{
-    next.bsgfx_savePrefabs();
 }
 
 void bsgfx_loadPrefabs(
@@ -846,12 +807,6 @@ void bsgfx_renderPrefabPrimitives(
     int key_start)
 {
     next.bsgfx_renderPrefabPrimitives(pipeline, key_start);
-}
-
-bsgfx_RawPrefab* bsgfx_tilePrefab(
-    bs_vec2 coords)
-{
-    return next.bsgfx_tilePrefab(coords);
 }
 
 int bsgfx_queryPrefabId(
@@ -932,11 +887,6 @@ void bsgfx_spawn(
     next.bsgfx_spawn(spawner);
 }
 
-void bsgfx_instanceSpawners()
-{
-    next.bsgfx_instanceSpawners();
-}
-
 void bsgfx_loadTiles(
     int package_id, 
     bool force_destroy)
@@ -951,7 +901,7 @@ void bsgfx_instanceTiles()
 
 void bsgfx_pushTile(
     const bs_Batch* batch, 
-    bs_Quad quad, 
+    const bs_Quad* quad, 
     bs_vec3 normal, 
     bs_U32 index, 
     int image_index, 
@@ -963,7 +913,7 @@ void bsgfx_pushTile(
 void bsgfx_batchTile(
     const bs_Batch* batch, 
     const bs_U32* offset, 
-    bs_Quad quad, 
+    const bs_Quad* quad, 
     bs_vec3 normal, 
     bs_U32 index, 
     int image_index)
@@ -1001,8 +951,8 @@ void bsgfx_tileEulerRotation(
 }
 
 void bsgfx_pushTileAt(
-    bs_Batch* batch, 
-    bsgfx_Primitive* primitive, 
+    const bs_Batch* batch, 
+    const bsgfx_Primitive* primitive, 
     int axis, 
     int x, 
     int y, 
@@ -1014,7 +964,7 @@ void bsgfx_pushTileAt(
 }
 
 void bsgfx_tileCoordinate(
-    bsgfx_Primitive* primitive, 
+    const bsgfx_Primitive* primitive, 
     int axis, 
     int index, 
     bs_ivec2* out)

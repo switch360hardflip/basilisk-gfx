@@ -33,9 +33,10 @@
 #ifndef BS_INTERNAL_GEN_H
 #define BS_INTERNAL_GEN_H
 
-#include <basilisk-core.gen.h>
+#include <basilisk-core.h>
 #include <wtypes.h>
 #include <vulkan.h>
+#include <stdarg.h>
 
 typedef void(__stdcall* PFN_bs_v2Mid)(const bs_vec2* a, const bs_vec2* b, bs_vec2* out);
 typedef void(__stdcall* PFN_bs_v3Mid)(const bs_vec3* a, const bs_vec3* b, bs_vec3* out);
@@ -122,8 +123,8 @@ typedef void(__stdcall* PFN_bs_batchCube)(bs_Batch* batch, bs_U32* offset, bs_RG
 typedef bs_Range(__stdcall* PFN_bs_pushCube)(bs_Batch* batch, bs_RGBA color);
 typedef void(__stdcall* PFN_bs_batchCone)(bs_Batch* batch, bs_U32* offset, int segments, float height, float radius, bs_RGBA color);
 typedef bs_Range(__stdcall* PFN_bs_pushCone)(bs_Batch* batch, int segments, float height, float radius, bs_RGBA color);
-typedef void(__stdcall* PFN_bs_batchQuad)(bs_Batch* batch, bs_U32* offset, bs_Quad quad, bs_RGBA color);
-typedef bs_Range(__stdcall* PFN_bs_pushQuad)(bs_Batch* batch, bs_Quad quad, bs_RGBA color);
+typedef void(__stdcall* PFN_bs_batchQuad)(bs_Batch* batch, bs_U32* offset, const bs_Quad* quad, bs_RGBA color);
+typedef bs_Range(__stdcall* PFN_bs_pushQuad)(bs_Batch* batch, const bs_Quad* quad, bs_RGBA color);
 typedef void(__stdcall* PFN_bs_batchTriangle)(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color);
 typedef bs_Range(__stdcall* PFN_bs_pushTriangle)(bs_Batch* batch, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color);
 typedef void(__stdcall* PFN_bs_batchLine)(bs_Batch* batch, bs_U32* offset, bs_vec3 start, bs_vec3 end, bs_RGBA color);
@@ -300,6 +301,7 @@ typedef bs_Features*(__stdcall* PFN_bs_features)();
 typedef bs_Props*(__stdcall* PFN_bs_props)();
 typedef bs_Config*(__stdcall* PFN_bs_config)();
 typedef bs_Scope*(__stdcall* PFN_bs_scope)();
+typedef bs_IO*(__stdcall* PFN_bs_io)();
 typedef void(__stdcall* PFN_bs_system)(char* value, int value_length);
 typedef void(__stdcall* PFN_bs_systemV)(char* format, va_list args);
 typedef void(__stdcall* PFN_bs_systemF)(char* format, ...);
@@ -794,6 +796,7 @@ typedef struct {
     PFN_bs_props bs_props;
     PFN_bs_config bs_config;
     PFN_bs_scope bs_scope;
+    PFN_bs_io bs_io;
     PFN_bs_system bs_system;
     PFN_bs_systemV bs_systemV;
     PFN_bs_systemF bs_systemF;
@@ -1110,8 +1113,8 @@ BSAPI void _bs_batchCube(bs_Batch* batch, bs_U32* offset, bs_RGBA color);
 BSAPI bs_Range _bs_pushCube(bs_Batch* batch, bs_RGBA color);
 BSAPI void _bs_batchCone(bs_Batch* batch, bs_U32* offset, int segments, float height, float radius, bs_RGBA color);
 BSAPI bs_Range _bs_pushCone(bs_Batch* batch, int segments, float height, float radius, bs_RGBA color);
-BSAPI void _bs_batchQuad(bs_Batch* batch, bs_U32* offset, bs_Quad quad, bs_RGBA color);
-BSAPI bs_Range _bs_pushQuad(bs_Batch* batch, bs_Quad quad, bs_RGBA color);
+BSAPI void _bs_batchQuad(bs_Batch* batch, bs_U32* offset, const bs_Quad* quad, bs_RGBA color);
+BSAPI bs_Range _bs_pushQuad(bs_Batch* batch, const bs_Quad* quad, bs_RGBA color);
 BSAPI void _bs_batchTriangle(bs_Batch* batch, bs_U32* offset, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color);
 BSAPI bs_Range _bs_pushTriangle(bs_Batch* batch, bs_vec3 a, bs_vec3 b, bs_vec3 c, bs_RGBA color);
 BSAPI void _bs_batchLine(bs_Batch* batch, bs_U32* offset, bs_vec3 start, bs_vec3 end, bs_RGBA color);
@@ -1288,6 +1291,7 @@ BSAPI bs_Features* _bs_features();
 BSAPI bs_Props* _bs_props();
 BSAPI bs_Config* _bs_config();
 BSAPI bs_Scope* _bs_scope();
+BSAPI bs_IO* _bs_io();
 BSAPI void _bs_system(char* value, int value_length);
 BSAPI void _bs_systemV(char* format, va_list args);
 BSAPI void _bs_systemF(char* format,  ...);
@@ -1784,6 +1788,7 @@ static inline bs_FunctionTable _bs_getFunctions() {
     functions.bs_props = _bs_props;
     functions.bs_config = _bs_config;
     functions.bs_scope = _bs_scope;
+    functions.bs_io = _bs_io;
     functions.bs_system = _bs_system;
     functions.bs_systemV = _bs_systemV;
     functions.bs_systemF = _bs_systemF;

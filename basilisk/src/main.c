@@ -1,4 +1,4 @@
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 
 #include <windows.h>
 #include <stdio.h>

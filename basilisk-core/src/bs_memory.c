@@ -44,11 +44,6 @@
 #include <bs_internal.h>
 #include <vulkan.h>
 
-bs_Scope _bs_scope_ = { 0 };
-bs_Instance* _bs_instance_ = NULL;
-bs_IO _bs_io_ = { 0 };
-int _bs_image_index_ = 0;
-
 
 
   /*==============================================================================
@@ -465,7 +460,7 @@ BSAPI bool _bs_startsWith(char* string, const char* prefix) {
     return *prefix == 0;
 }
 
-BSAPI bool _bs_endsWith(const char* string, const char* suffix) {
+BSAPI bool _bs_endsWith(char* string, const char* suffix) {
     size_t string_len = strlen(string);
     size_t suffix_len = strlen(suffix);
 
@@ -538,10 +533,10 @@ BSAPI void* _val_bs_fetchUnit(bs_List* list, bs_U32 offset) {
 }
 
 BSAPI void _val_bs_seekList(bs_List* list, bs_U32 offset) {
-    BS_VALIDATE(list->data != NULL, NULL, );
-    BS_VALIDATE(offset < list->capacity, NULL, );
+    BS_VALIDATE(list->data != NULL,,);
+    BS_VALIDATE(offset < list->capacity,,);
 
-    return _bs_seekList(list, offset);
+    _bs_seekList(list, offset);
 }
 
 BSAPI void _bs_seekList(bs_List* list, bs_U32 offset) {
@@ -698,11 +693,11 @@ static inline bs_Result _bs_iterateDocuments(int is_file, int(*x)(bs_FileInfo, v
     return BS_RESULT_OK;
 }
 
-BSAPI bs_Result _bs_foreachFile(bs_ForeachDocumentFunction x, void* param, const char* directory, int directory_length) {
+BSAPI bs_Result _bs_foreachFile(bs_ForeachDocumentFunction x, void* param, char* directory, int directory_length) {
     return _bs_iterateDocuments(true, x, param, directory, directory_length);
 }
 
-BSAPI bs_Result _bs_foreachDirectory(bs_ForeachDocumentFunction x, void* param, const char* directory, int directory_length) {
+BSAPI bs_Result _bs_foreachDirectory(bs_ForeachDocumentFunction x, void* param, char* directory, int directory_length) {
     return _bs_iterateDocuments(false, x, param, directory, directory_length);
 }
 
@@ -1123,7 +1118,7 @@ BSAPI void _bs_guidToString(bs_GUID* guid, char out[37]) {
 #endif
 }
 
-BSAPI bs_GUID _bs_stringToGuid(char* string) {
+BSAPI bs_GUID _bs_stringToGuid(const char* string) {
     bs_GUID guid;
 
 #ifdef _WIN32

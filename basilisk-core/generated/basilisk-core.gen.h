@@ -208,38 +208,11 @@ typedef enum bs_JsonType bs_JsonType;
 typedef enum bs_ShaderType bs_ShaderType;
 typedef enum bs_BindType bs_BindType;
 
-#define bs_alloca                                                    \
-    _alloca
-
-#define bs_alloca                                                    \
-    alloca
-
-#define BS_WARN_WIN32_PATH(function, path)                           \
-    bs_warnF("%s: %s failed for \"%s\" (Win32 error %lu = \"%s\")\n", __func__, function, path, GetLastError(), bs_serializeWin32Error(GetLastError()))
-
 #define BS_RGBA(r, g, b, a)                                          \
     (bs_RGBA) { r, g, b, a }
 
 #define BS_FLT_MAX                                                   \
     3.402823466e+38F
-
-#define BS_WARN_ERRNO_PATH(function, path)                           \
-    bs_warnF("%s: %s failed for \"%s\" (errno %d = \"%s\")\n", __func__, function, path, errno, bs_serializeErrno())
-
-#define BS_VALIDATE(condition, ret, format, ...)                     \
-    if (!(condition)) {                                              \
-        bs_warnF(BS_PRINT_COLOR("[CORE] [VAL]", BS_PRINT_RED) " %s: %s\n" __VA_OPT__(format) "\n", __func__, #condition __VA_OPT__(,) __VA_ARGS__); \
-        return ret;                                                  \
-    }
-
-#define BS_WARN_VULKAN_ERROR(function, code, format, ...)            \
-    bs_warnF("%s: %s failed" __VA_OPT__(", ") format " (Vulkan result %d\n", __func__, function __VA_OPT__(,) __VA_ARGS__, code)
-
-#define BS_CRITICAL_VULKAN_ERROR(function, code, format, ...)        \
-    bs_warnF("%s: %s failed" __VA_OPT__(", ") format " (Vulkan result %d)\n", __func__, function __VA_OPT__(,) __VA_ARGS__, code)
-
-#define BS_VALIDATE_OBJECT_TYPE(object, source_id, _return)          \
-    BS_VALIDATE(((bs_ObjectSource*)bs_fetchUnit(bs_objectSources(), source_id))->type == source_id, _return,,)
 
 #define BS_CONSTANT_STRING(s)                                        \
     s, sizeof(s) - 1
@@ -721,7 +694,7 @@ typedef enum bs_BindType bs_BindType;
     BS_PRINT_COLOR("[INF] ", BS_PRINT_CYAN)
 
 #define BS_STACK_LIST(type, c)                                       \
-        { .capacity = c, .data = _alloca(c * sizeof(type)), .unit_size = sizeof(type) }
+        { .capacity = c, .data = bs_alloca(c * sizeof(type)), .unit_size = sizeof(type) }
 
 #define BS_SWAP_SIZE(type)                                           \
     (sizeof(*((type*)NULL)->_))
@@ -5149,7 +5122,7 @@ BSAPI void
 bs_batchQuad(
     bs_Batch* batch,
     bs_U32* offset,
-    bs_Quad quad,
+    const bs_Quad* quad,
     bs_RGBA color);
 
  /**
@@ -5161,7 +5134,7 @@ bs_batchQuad(
 BSAPI bs_Range
 bs_pushQuad(
     bs_Batch* batch,
-    bs_Quad quad,
+    const bs_Quad* quad,
     bs_RGBA color);
 
  /**
@@ -7059,6 +7032,12 @@ bs_config();
   */
 BSAPI bs_Scope*
 bs_scope();
+
+ /**
+  @return bs_IO*
+  */
+BSAPI bs_IO*
+bs_io();
 
  /**
   @param value

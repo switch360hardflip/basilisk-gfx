@@ -77,11 +77,11 @@ BSAPI void _bs_quad(const bs_vec3* position, const bs_vec2* dimensions, bs_Quad*
  /**
   Midpoint
   */
-BSAPI void _bs_v2Mid(bs_vec2* a, bs_vec2* b, bs_vec2* out) {
+BSAPI void _bs_v2Mid(const bs_vec2* a, const bs_vec2* b, bs_vec2* out) {
     *out = BS_V2((a->x + b->x) / 2.0f, (a->y + b->y) / 2.0f);
 }
 
-BSAPI void _bs_v3Mid(bs_vec3* a, bs_vec3* b, bs_vec3* out) {
+BSAPI void _bs_v3Mid(const bs_vec3* a, const bs_vec3* b, bs_vec3* out) {
     *out = BS_V3((a->x + b->x) / 2.0f, (a->y + b->y) / 2.0f, (a->z + b->z) / 2.0f);
 }
 
@@ -158,7 +158,7 @@ BSAPI void bs_m3ToM4(const bs_mat3* m, bs_mat4* out) {
  /**
   Taken from https://github.com/Inseckto/HSV-to-RGB/blob/master/HSV2RGB.c
   */
-BSAPI bs_vec3 _bs_hsvToRgb(bs_vec3* hsv) {
+BSAPI bs_vec3 _bs_hsvToRgb(const bs_vec3* hsv) {
     float r, g, b;
     
     float h = hsv->x / 360;
@@ -187,7 +187,7 @@ BSAPI bs_vec3 _bs_hsvToRgb(bs_vec3* hsv) {
  /**
   Taken from https://stackoverflow.com/questions/6614792/fast-optimized-and-accurate-rgb-hsb-conversion-code-in-c
   */
-BSAPI bs_vec3 _bs_rgbToHsv(bs_vec3* rgb) {
+BSAPI bs_vec3 _bs_rgbToHsv(const bs_vec3* rgb) {
     bs_vec3 hsv;
 
     float r = rgb->x;
@@ -327,12 +327,12 @@ BSAPI void _bs_fitAabb(const bs_Aabb* aabb, const bs_vec2* size, const bs_vec4* 
     bs_v3MulS(&BS_V3_ADD(rotated_aabb.min, rotated_aabb.max), 0.5, &center);
 
     bs_mat3 rotation_matrix;
-    _bs_qToM3(rotation, &rotation_matrix);
+    bs_qToM3(rotation, &rotation_matrix);
 
     _bs_rotateAabb(&rotated_aabb, &rotation_matrix, &rotated_aabb);
 
     bs_vec3 rotated_size;
-    _bs_v3Sub(&aabb->max, &aabb->min, &rotated_size);
+    bs_v3Sub(&aabb->max, &aabb->min, &rotated_size);
 
     float scale_x = size->x / rotated_size.x;
     float scale_y = size->y / rotated_size.y;
@@ -374,11 +374,13 @@ static inline double _bs_determinate(float a, float b, float c, float d) {
 }
 
 BSAPI bool _val_bs_lineVsLine(const bs_vec2* l1_start, const bs_vec2* l1_end, const bs_vec2* l2_start, const bs_vec2* l2_end, bs_LineVsLine* out) {
-    _bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, out);
+    bool result = _bs_lineVsLine(l1_start, l1_end, l2_start, l2_end, out);
 
     if (!isfinite(out->point.x) || !isfinite(out->point.y)) {
         _bs_warn(BS_CONSTANT_STRING("_bs_lineVsLine returned an infinite number\n"));
     }
+
+    return result;
 }
 
 BSAPI bool _bs_lineVsLine(const bs_vec2* l1_start, const bs_vec2* l1_end, const bs_vec2* l2_start, const bs_vec2* l2_end, bs_LineVsLine* out) {
@@ -457,7 +459,7 @@ BSAPI void _bs_rayVsObb(const bs_Ray* ray, const bs_vec3* position, const bs_vec
     bs_m4Translate(&transform, position, &transform);
     bs_m4Rotate(&transform, rotation, &transform);
 
-    _bs_qToM3(rotation, &rotation_matrix);
+    bs_qToM3(rotation, &rotation_matrix);
     bs_m3Inverse(&rotation_matrix, &rotation_matrix_inverse);
 
     bs_vec3 origin;
@@ -465,7 +467,7 @@ BSAPI void _bs_rayVsObb(const bs_Ray* ray, const bs_vec3* position, const bs_vec
     bs_vec3 min, max;
 
     bs_vec3 s;
-    _bs_v3Sub(&ray->origin, position, &s);
+    bs_v3Sub(&ray->origin, position, &s);
 
     bs_m3MulV3(&rotation_matrix_inverse, &s, &origin);
     bs_m3MulV3(&rotation_matrix_inverse, &ray->direction, &direction);
@@ -523,7 +525,7 @@ BSAPI void _bs_rayVsObb(const bs_Ray* ray, const bs_vec3* position, const bs_vec
 
     if (quadrant[which_plane] == LEFT)
         bs_v3MulS(&normal, -1.0, &normal);
-    _bs_v3Normalize(&normal, &normal);
+    bs_v3Normalize(&normal, &normal);
 
     bs_vec3 coord;
     for (i = 0; i < 3; i++) {
@@ -575,9 +577,9 @@ static bool bsi_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* 
     bs_vec3 relative_center;
     bs_m4MulV3(transform, center, &relative_center);
 
-    if (_bs_abs(relative_center.x) - radius > scale->x ||
-        _bs_abs(relative_center.y) - radius > scale->y ||
-        _bs_abs(relative_center.z) - radius > scale->z)
+    if (bs_abs(relative_center.x) - radius > scale->x ||
+        bs_abs(relative_center.y) - radius > scale->y ||
+        bs_abs(relative_center.z) - radius > scale->z)
     {
         return false;
     }
@@ -601,9 +603,9 @@ static bool bsi_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* 
     closest_point->z = dist;
 
     bs_vec3 diff;
-    _bs_v3Sub(closest_point, &relative_center, &diff);
+    bs_v3Sub(closest_point, &relative_center, &diff);
 
-    float distance = _bs_v3MagnitudeSqrd(&diff);
+    float distance = bs_v3MagnitudeSqrd(&diff);
 
     return distance <= radius * radius;
 }
@@ -632,8 +634,8 @@ BSAPI bool _bs_sphereVsObb(const bs_vec3* center, float radius, const bs_vec3* p
 
     bs_m4MulV3(&transform, &closest_point, &result->point);
 
-    _bs_v3Sub(&center, &result->point, &result->normal);
-    _bs_v3Normalize(&result->normal, &result->normal);
+    bs_v3Sub(&center, &result->point, &result->normal);
+    bs_v3Normalize(&result->normal, &result->normal);
 
     return result->hit = true;
 }

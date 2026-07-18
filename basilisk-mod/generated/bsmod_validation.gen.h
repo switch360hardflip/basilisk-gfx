@@ -33,8 +33,7 @@
 #ifndef BSMOD_VALIDATION_H
 #define BSMOD_VALIDATION_H
 
-#include <bsmod_internal.gen.h>
-#include <windows.h>
+#include <basilisk-mod.h>
 
 static inline bsmod_FunctionTable _val_bsmod_getFunctions() {
     bsmod_FunctionTable functions;
@@ -119,7 +118,6 @@ static inline bsmod_FunctionTable _val_bsmod_getFunctions() {
     functions.bsmod_pushContextMenuButton = (PFN_bsmod_pushContextMenuButton)GetProcAddress(module, "_val_bsmod_pushContextMenuButton");
     functions.bsmod_instanceGridMenu = (PFN_bsmod_instanceGridMenu)GetProcAddress(module, "_val_bsmod_instanceGridMenu");
     functions.bsmod_instanceLightBillboards = (PFN_bsmod_instanceLightBillboards)GetProcAddress(module, "_val_bsmod_instanceLightBillboards");
-    functions.bsmod_onAddLightTick = (PFN_bsmod_onAddLightTick)GetProcAddress(module, "_val_bsmod_onAddLightTick");
     functions.bsmod_pushMaterialWidgets = (PFN_bsmod_pushMaterialWidgets)GetProcAddress(module, "_val_bsmod_pushMaterialWidgets");
     functions.bsmod_onDragMaterial = (PFN_bsmod_onDragMaterial)GetProcAddress(module, "_val_bsmod_onDragMaterial");
     functions.bsmod_onClickMaterialMenu = (PFN_bsmod_onClickMaterialMenu)GetProcAddress(module, "_val_bsmod_onClickMaterialMenu");

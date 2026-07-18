@@ -32,6 +32,7 @@
         
 #include <basilisk-mod.h>
 #include <bsmod_internal.gen.h>
+#include <math.h>
 #include <stdio.h>
 
 static bsmod_FunctionTable next = { 0 };
@@ -213,11 +214,11 @@ bs_Result bsmod_packBMFontF(
     return _return;
 }
 
- bsmod_scrollbar(
+void bsmod_scrollbar(
     const int* scroll, 
     bsgfx_Scrollbar* out)
 {
-    return next.bsmod_scrollbar(scroll, out);
+    next.bsmod_scrollbar(scroll, out);
 }
 
 void bsmod_dividerWidget(
@@ -603,7 +604,7 @@ void bsmod_pushContextMenuButton(
     bsgfx_AtlasCache* icon, 
     const char* name, 
     int indent, 
-    PFN_bsmod_PushContextMenuButton action, 
+    PFN_bsgfx_ButtonWidgetCallback action, 
     bool expandable)
 {
     next.bsmod_pushContextMenuButton(widgets, menu_size, icon_offset, icon, name, indent, action, expandable);
@@ -619,12 +620,6 @@ void bsmod_instanceGridMenu(
 void bsmod_instanceLightBillboards()
 {
     next.bsmod_instanceLightBillboards();
-}
-
-bool bsmod_onAddLightTick(
-    bsgfx_ButtonParams params)
-{
-    return next.bsmod_onAddLightTick(params);
 }
 
 void bsmod_pushMaterialWidgets(

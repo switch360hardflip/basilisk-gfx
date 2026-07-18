@@ -30,8 +30,7 @@
   the code is regenerated.
   */
         
-#include <basilisk-mod.h>
-#include <bsmod_internal.gen.h>
+#include <bsmod_internal.h>
 
 static bsmod_FunctionTable next = { 0 };
 
@@ -140,10 +139,10 @@ BSMODAPI bs_Result _preval_bsmod_packImageDirectory(char* directory_name, char* 
     return next.bsmod_packImageDirectory(directory_name, package_name, resource_name);
 }
 
-BSMODAPI  _preval_bsmod_scrollbar(const int* scroll, bsgfx_Scrollbar* out) {
-    BSMOD_VALIDATE(scroll != NULL, 0,);
-    BSMOD_VALIDATE(out != NULL, 0,);
-    return next.bsmod_scrollbar(scroll, out);
+BSMODAPI void _preval_bsmod_scrollbar(const int* scroll, bsgfx_Scrollbar* out) {
+    BSMOD_VALIDATE(scroll != NULL, ,);
+    BSMOD_VALIDATE(out != NULL, ,);
+    next.bsmod_scrollbar(scroll, out);
 }
 
 BSMODAPI void _preval_bsmod_dividerWidget(float width, int indent, bsgfx_Widget* out) {
@@ -365,7 +364,7 @@ BSMODAPI void _preval_bsmod_instanceContextMenu(bs_List* widgets, bs_vec3 positi
     next.bsmod_instanceContextMenu(widgets, position, size);
 }
 
-BSMODAPI void _preval_bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, bs_vec3 icon_offset, bsgfx_AtlasCache* icon, const char* name, int indent, PFN_bsmod_PushContextMenuButton action, bool expandable) {
+BSMODAPI void _preval_bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, bs_vec3 icon_offset, bsgfx_AtlasCache* icon, const char* name, int indent, PFN_bsgfx_ButtonWidgetCallback action, bool expandable) {
     BSMOD_VALIDATE(widgets != NULL, ,);
     BSMOD_VALIDATE(icon != NULL, ,);
     BSMOD_VALIDATE(name != NULL, ,);
@@ -378,10 +377,6 @@ BSMODAPI void _preval_bsmod_instanceGridMenu(bs_vec3 position, bs_vec2 dimension
 
 BSMODAPI void _preval_bsmod_instanceLightBillboards() {
     next.bsmod_instanceLightBillboards();
-}
-
-BSMODAPI bool _preval_bsmod_onAddLightTick(bsgfx_ButtonParams params) {
-    return next.bsmod_onAddLightTick(params);
 }
 
 BSMODAPI void _preval_bsmod_pushMaterialWidgets(bs_List* widgets, bs_vec2 background_size) {
@@ -534,7 +529,6 @@ bsmod_FunctionTable _preval_bsmod_getFunctionTable() {
     functions.bsmod_pushContextMenuButton = _preval_bsmod_pushContextMenuButton;
     functions.bsmod_instanceGridMenu = _preval_bsmod_instanceGridMenu;
     functions.bsmod_instanceLightBillboards = _preval_bsmod_instanceLightBillboards;
-    functions.bsmod_onAddLightTick = _preval_bsmod_onAddLightTick;
     functions.bsmod_pushMaterialWidgets = _preval_bsmod_pushMaterialWidgets;
     functions.bsmod_onDragMaterial = _preval_bsmod_onDragMaterial;
     functions.bsmod_onClickMaterialMenu = _preval_bsmod_onClickMaterialMenu;

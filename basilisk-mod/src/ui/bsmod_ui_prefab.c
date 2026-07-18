@@ -23,7 +23,7 @@
   SOFTWARE.
   */ 
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
 #include <bsmod_cache.h>
 
 BSMODAPI void _bsmod_pushPrefabMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
@@ -39,9 +39,9 @@ BSMODAPI void _bsmod_pushPrefabMenuWidgets(bs_List* widgets, bs_vec2 background_
 
     static bs_vec3 temp = { 0 }, rot = { 0 }, sca = { 1, 1, 1 };
     const float input_width = 64.0;
-    bsmod_pushVecNWidget(widgets, "Position", offset, input_width, &temp, 3);
-    bsmod_pushVecNWidget(widgets, "Rotation", offset, input_width, &rot, 3);
-    bsmod_pushVecNWidget(widgets, "Scale", offset, input_width, &sca, 3);
+    _bsmod_pushVecNWidget(widgets, "Position", offset, input_width, &temp, 3);
+    _bsmod_pushVecNWidget(widgets, "Rotation", offset, input_width, &rot, 3);
+    _bsmod_pushVecNWidget(widgets, "Scale", offset, input_width, &sca, 3);
 }
 
 BSMODAPI bool _bsmod_instancePrefabPreview(bsgfx_Widget* widget, bs_vec2* position, int id, bool hovering) {
@@ -103,13 +103,13 @@ BSMODAPI void _bsmod_onDragPrefab(bsmod_DraggingParams params) {
     bs_Mesh* prefab_mesh = prefab_model->meshes + _bsmod_.dragging_id;
 
     if (bs_leftClickUpOnce()) {
-        bsgfx_RawPrefab* prefab = bsmod_add(BSGFX_TYPE_PREFAB, &(bsgfx_RawPrefab) {
+        bsgfx_RawPrefab* prefab = _bsmod_add(BSGFX_TYPE_PREFAB, &(bsgfx_RawPrefab) {
             .position = tile_position,
             .rotation = euler_rotation,
             .scale = { 1, 1, 1 },
             .name_hash = prefab_mesh->name_hash,
         });
-        bsmod_saveType(BSGFX_TYPE_PREFAB, BS_CONSTANT_STRING("Created prefab"));
+        _bsmod_saveType(BSGFX_TYPE_PREFAB, BS_CONSTANT_STRING("Created prefab"));
     }
 }
 
@@ -153,7 +153,7 @@ BSMODAPI void _bsmod_rasterizePrefabIcons() {
 
         int instance = 0;
 
-        bsmod_beginRasterize(render_size, output_size);
+        _bsmod_beginRasterize(render_size, output_size);
 
         bsgfx_Material* material = $bsmod_light_blue();
 
@@ -177,9 +177,9 @@ BSMODAPI void _bsmod_rasterizePrefabIcons() {
             push_const.model = bs_m4x3(&transform);
 
             instance = bsgfx_instancePrefabModel(i, transform, BSGFX_PREFAB_SUBTYPE_MESH, $bsmod_light_blue()->id);
-            bsmod_rasterizeInstance(hash, subtype, instance, material->category, material->name, render_size.x, render_size.y, sizeof(push_const), &push_const);
+            _bsmod_rasterizeInstance(hash, subtype, instance, material->category, material->name, render_size.x, render_size.y, sizeof(push_const), &push_const);
         }
 
-        bsmod_endRasterize();
+        _bsmod_endRasterize();
     }
 }

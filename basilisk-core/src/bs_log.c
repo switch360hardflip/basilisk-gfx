@@ -87,7 +87,9 @@ BSAPI char* _postval_bs_logWithTimestamp(const char* type, int type_len, const c
 }
 
 BSAPI char* _bs_log(char* message, int message_len) {
+    int len = _bs_io_.log->len;
     _bs_io_.log = _bs_appendString(_bs_io_.log, message, message_len);
+    return _bs_io_.log->value + len;
 }
 
 /** Info log */

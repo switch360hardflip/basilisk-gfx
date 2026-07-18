@@ -9,7 +9,10 @@ file(GLOB SOURCE_FILES "src/*.c")
 file(GLOB_RECURSE HEADER_FILES "include/*.h")
 file(GLOB PROJECT_FILES "./*" LIST_DIRECTORIES false)
 
+file(GLOB XML_FILES "../xml/*.*")
+
 add_executable(${PROJECT_NAME}
+    ${XML_FILES}
     ${SOURCE_FILES}
     ${HEADER_FILES}
 
@@ -25,6 +28,7 @@ set_property(TARGET ${PROJECT_NAME}
 source_group("Source Files" FILES ${SOURCE_FILES})
 source_group("Headers" FILES ${HEADER_FILES})
 source_group("Project Files" FILES ${PROJECT_FILES})
+source_group("XML Files" FILES ${XML_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/basilisk-core/include

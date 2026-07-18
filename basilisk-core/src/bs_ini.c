@@ -49,12 +49,18 @@ bs_Config _bs_config_ = {
     .attributes.unit_size = sizeof(bs_AttributeType),
 };
 
+bs_Scope _bs_scope_ = { 0 };
+bs_Instance* _bs_instance_ = NULL;
+bs_IO _bs_io_ = { 0 };
+int _bs_image_index_ = 0;
+
 BSAPI bs_Instance* _bs_instance() { return _bs_instance_; }
 BSAPI bs_Args* _bs_args() { return &_bs_args_; }
 BSAPI bs_Features* _bs_features() { return &_bs_features_; }
 BSAPI bs_Props* _bs_props() { return &_bs_props_; }
 BSAPI bs_Config* _bs_config() { return &_bs_config_; }
 BSAPI bs_Scope* _bs_scope() { return &_bs_scope_; }
+BSAPI bs_IO* _bs_io() { return &_bs_io_; }
 
 BSAPI void _bsi_nameHandle(bs_U64 handle, bs_U32 type, char* name, int name_length) {
     PFN_vkSetDebugUtilsObjectNameEXT pfn_vkSetDebugUtilsObjectNameEXT = 
@@ -626,7 +632,7 @@ BSAPI void _bs_load(
 void _bs_setFunctions(const struct _bs_FunctionTable* table);
 void _preval_bs_setFunctions(const struct _preval_bs_FunctionTable* table);
 
-BSAPI void _bs_setupTrampoline() { // TODO: postval
+BSAPI void bs_setupTrampoline() {
     bs_FunctionTable definitions = _bs_getFunctions();
     bs_FunctionTable preval_definitions = _preval_bs_getFunctions();
     bs_FunctionTable val_definitions = _val_bs_getFunctions();

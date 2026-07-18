@@ -28,7 +28,8 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include <basilisk-mod.h>
+#include <bsmod_internal.h>
+#include <bsmod_cache.h>
 
 BSMODAPI void _bsmod_scrollbar(const int* scroll, bsgfx_Scrollbar* out) {
     *out = (bsgfx_Scrollbar) {
@@ -104,7 +105,7 @@ BSMODAPI void _bsmod_pushInputWidget(
                 .name = "increment",
                 .material_id = $bsmod_grey_120()->id,
                 //.placement = BSGFX_ICON_PLACE_BELOW
-                //.hover = bsmod_onHoverDirectoryWidget,
+                //.hover = _bsmod_onHoverDirectoryWidget,
             },
             .advance_flags = BSGFX_WIDGET_ADVANCE_RIGHT,
             .material_id = $bsmod_grey_120()->id,
@@ -122,7 +123,7 @@ BSMODAPI void _bsmod_pushInputWidget(
                 .material_id = $bsmod_grey_120()->id,
                 //.placement = BSGFX_ICON_PLACE_BELOW,
                 .flipped = true,
-                //.hover = bsmod_onHoverDirectoryWidget,
+                //.hover = _bsmod_onHoverDirectoryWidget,
             },
             .advance_flags = BSGFX_WIDGET_ADVANCE_RIGHT,
             .material_id = $bsmod_grey_120()->id,
@@ -152,7 +153,7 @@ BSMODAPI void _bsmod_pushInputWidget(
 BSMODAPI void _val_bsmod_pushVecNWidget(bs_List* widgets, const char* name, bs_vec3 offset, float width, float* v, int n) {
     BSMOD_VALIDATE(n <= 4,,);
 
-    bsmod_pushVecNWidget(widgets, name, offset, width, v, n);
+    _bsmod_pushVecNWidget(widgets, name, offset, width, v, n);
 }
 
 BSMODAPI void _bsmod_pushVecNWidget(bs_List* widgets, const char* name, bs_vec3 offset, float width, float* v, int n) {
@@ -271,7 +272,7 @@ BSMODAPI void _bsmod_instanceBackgroundMenu(bs_vec3 position, bs_vec2 dimensions
         _bsmod_.ui_blocked = hovering;
 }
 
-static void bsmod_instanceDraggingIcon() {
+static void _bsmod_instanceDraggingIcon() {
     bsmod_DraggingParams params = { 0 };
     bs_vec2 cursor = bs_cursorPosition();
 
@@ -288,10 +289,10 @@ static void bsmod_instanceDraggingIcon() {
         0, 0, 0);
 
     switch (_bsmod_.dragging_object_id) {
-    case BSMOD_ATLAS_MATERIAL_ICONS: bsmod_onDragMaterial(params); break;
-    case BSMOD_ATLAS_PREFAB_ICONS: bsmod_onDragPrefab(params); break;
-    case BSMOD_ATLAS_PRIMITIVE_ICONS: bsmod_onDragPrimitive(params); break;
-    case BSGFX_IMAGE_TILE:  bsmod_onDragTile(params); break;
+    case BSMOD_ATLAS_MATERIAL_ICONS: _bsmod_onDragMaterial(params); break;
+    case BSMOD_ATLAS_PREFAB_ICONS: _bsmod_onDragPrefab(params); break;
+    case BSMOD_ATLAS_PRIMITIVE_ICONS: _bsmod_onDragPrimitive(params); break;
+    case BSGFX_IMAGE_TILE:  _bsmod_onDragTile(params); break;
     default:
         return;
     }
@@ -337,9 +338,9 @@ BSMODAPI void _bsmod_renderBillboards() {
     }
 }
 
-static void bsmod_instanceBillboards() {
+static void _bsmod_instanceBillboards() {
     _bsmod_.hovering.billboard = false;
-    bsmod_instanceLightBillboards();
+    _bsmod_instanceLightBillboards();
 }
 
 BSMODAPI void _bsmod_instanceUI() {
@@ -365,7 +366,7 @@ BSMODAPI void _bsmod_instanceUI() {
             p.y -= d;
 
         if (_bsmod_.selected_type == BSGFX_TYPE_TILE && _bsmod_.selected_tiles.count == 1)
-            bsmod_instanceTileContextMenu(p, s);
+            _bsmod_instanceTileContextMenu(p, s);
     }
 
     if (bs_keyDown(BS_KEY_ALT) && !bs_keyDown(BS_KEY_LEFT_CONTROL)) {
@@ -396,20 +397,20 @@ BSMODAPI void _bsmod_instanceUI() {
             25.0
         };
 
-      //  bsmod_instanceBackgroundMenu(center, dimensions);
+      //  _bsmod_instanceBackgroundMenu(center, dimensions);
 
         const int side_menu_width = BSGFX_SIDE_MENU_WIDTH;
         dimensions.x -= side_menu_width;
-        bsmod_instanceGridMenu(center, dimensions);
+        _bsmod_instanceGridMenu(center, dimensions);
 
         center.x += dimensions.x;
         center.x += BSMOD_GRID_SIDE_MENU_SPACE;
-        bsmod_instanceSideMenu(center, BS_V2(side_menu_width, dimensions.y));
+        _bsmod_instanceSideMenu(center, BS_V2(side_menu_width, dimensions.y));
     }
 
     if (_bsmod_.dragging_subtype >= 0) {
-        bsmod_instanceDraggingIcon();
+        _bsmod_instanceDraggingIcon();
     }
 
-    bsmod_instanceBillboards();
+    _bsmod_instanceBillboards();
 }

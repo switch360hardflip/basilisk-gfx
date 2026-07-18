@@ -30,8 +30,9 @@
   the code is regenerated.
   */
         
-#include <bs_internal.gen.h>
+#include <bs_internal.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 void _bs_beginCommentV(
     char* format, 
