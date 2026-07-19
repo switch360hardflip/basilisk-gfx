@@ -270,7 +270,7 @@ BSAPI void _preval_bs_clearColor(bs_U32 index, bs_ivec2 dim, bs_RGBA color) {
     next.bs_clearColor(index, dim, color);
 }
 
-BSAPI void _preval_bs_stencilReference(bs_FaceType face, bs_U32 reference) {
+BSAPI void _preval_bs_stencilReference(bs_StencilFaceFlag face, bs_U32 reference) {
     next.bs_stencilReference(face, reference);
 }
 

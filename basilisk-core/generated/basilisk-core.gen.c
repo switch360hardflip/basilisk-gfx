@@ -1002,7 +1002,7 @@ void bs_clearColor(
 }
 
 void bs_stencilReference(
-    bs_FaceType face, 
+    bs_StencilFaceFlag face, 
     bs_U32 reference)
 {
     next.bs_stencilReference(face, reference);
@@ -4481,15 +4481,14 @@ const char* bs_serializeShaderType(
     bs_ShaderType e)
 {
     switch (e) {
-        case BS_VERTEX_SHADER: return "BS_VERTEX_SHADER";
-        case BS_GEOMETRY_SHADER: return "BS_GEOMETRY_SHADER";
-        case BS_FRAGMENT_SHADER: return "BS_FRAGMENT_SHADER";
-        case BS_COMPUTE_SHADER: return "BS_COMPUTE_SHADER";
-        case BS_RAY_GEN_SHADER: return "BS_RAY_GEN_SHADER";
-        case BS_ANY_HIT_SHADER: return "BS_ANY_HIT_SHADER";
-        case BS_CLOSEST_HIT_SHADER: return "BS_CLOSEST_HIT_SHADER";
-        case BS_MISS_SHADER: return "BS_MISS_SHADER";
-        case BS_INTERSECTION_SHADER: return "BS_INTERSECTION_SHADER";
+        case BS_SHADER_STAGE_VERTEX_BIT: return "BS_SHADER_STAGE_VERTEX_BIT";
+        case BS_SHADER_STAGE_TESSELLATION_CONTROL_BIT: return "BS_SHADER_STAGE_TESSELLATION_CONTROL_BIT";
+        case BS_SHADER_STAGE_TESSELLATION_EVALUATION_BIT: return "BS_SHADER_STAGE_TESSELLATION_EVALUATION_BIT";
+        case BS_SHADER_STAGE_GEOMETRY_BIT: return "BS_SHADER_STAGE_GEOMETRY_BIT";
+        case BS_SHADER_STAGE_FRAGMENT_BIT: return "BS_SHADER_STAGE_FRAGMENT_BIT";
+        case BS_SHADER_STAGE_COMPUTE_BIT: return "BS_SHADER_STAGE_COMPUTE_BIT";
+        case BS_SHADER_STAGE_ALL_GRAPHICS: return "BS_SHADER_STAGE_ALL_GRAPHICS";
+        case BS_SHADER_STAGE_ALL: return "BS_SHADER_STAGE_ALL";
     }
 
     return NULL;
@@ -4498,15 +4497,14 @@ const char* bs_serializeShaderType(
 bs_ShaderType bs_deserializeShaderType(
     const char* value)
 {
-    if (strcmp(value, "BS_VERTEX_SHADER") == 0) return BS_VERTEX_SHADER;
-    else if (strcmp(value, "BS_GEOMETRY_SHADER") == 0) return BS_GEOMETRY_SHADER;
-    else if (strcmp(value, "BS_FRAGMENT_SHADER") == 0) return BS_FRAGMENT_SHADER;
-    else if (strcmp(value, "BS_COMPUTE_SHADER") == 0) return BS_COMPUTE_SHADER;
-    else if (strcmp(value, "BS_RAY_GEN_SHADER") == 0) return BS_RAY_GEN_SHADER;
-    else if (strcmp(value, "BS_ANY_HIT_SHADER") == 0) return BS_ANY_HIT_SHADER;
-    else if (strcmp(value, "BS_CLOSEST_HIT_SHADER") == 0) return BS_CLOSEST_HIT_SHADER;
-    else if (strcmp(value, "BS_MISS_SHADER") == 0) return BS_MISS_SHADER;
-    else if (strcmp(value, "BS_INTERSECTION_SHADER") == 0) return BS_INTERSECTION_SHADER;
+    if (strcmp(value, "BS_SHADER_STAGE_VERTEX_BIT") == 0) return BS_SHADER_STAGE_VERTEX_BIT;
+    else if (strcmp(value, "BS_SHADER_STAGE_TESSELLATION_CONTROL_BIT") == 0) return BS_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+    else if (strcmp(value, "BS_SHADER_STAGE_TESSELLATION_EVALUATION_BIT") == 0) return BS_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+    else if (strcmp(value, "BS_SHADER_STAGE_GEOMETRY_BIT") == 0) return BS_SHADER_STAGE_GEOMETRY_BIT;
+    else if (strcmp(value, "BS_SHADER_STAGE_FRAGMENT_BIT") == 0) return BS_SHADER_STAGE_FRAGMENT_BIT;
+    else if (strcmp(value, "BS_SHADER_STAGE_COMPUTE_BIT") == 0) return BS_SHADER_STAGE_COMPUTE_BIT;
+    else if (strcmp(value, "BS_SHADER_STAGE_ALL_GRAPHICS") == 0) return BS_SHADER_STAGE_ALL_GRAPHICS;
+    else if (strcmp(value, "BS_SHADER_STAGE_ALL") == 0) return BS_SHADER_STAGE_ALL;
 
     bs_warnF("Failed to deserialize enum value \"%s\"\n", value);
     return 0;
@@ -4515,46 +4513,37 @@ bs_ShaderType bs_deserializeShaderType(
 const char* bs_serializeBindType(
     bs_BindType e)
 {
-    static const char* values[BS_BIND_TYPES_COUNT] = {
-        [BS_BIND_TYPE_SAMPLER] = "BS_BIND_TYPE_SAMPLER",
-        [BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER] = "BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER",
-        [BS_BIND_TYPE_SAMPLED_IMAGE] = "BS_BIND_TYPE_SAMPLED_IMAGE",
-        [BS_BIND_TYPE_STORAGE_IMAGE] = "BS_BIND_TYPE_STORAGE_IMAGE",
-        [BS_BIND_TYPE_UNIFORM_TEXEL_BUFFER] = "BS_BIND_TYPE_UNIFORM_TEXEL_BUFFER",
-        [BS_BIND_TYPE_STORAGE_TEXEL_BUFFER] = "BS_BIND_TYPE_STORAGE_TEXEL_BUFFER",
-        [BS_BIND_TYPE_UNIFORM_BUFFER] = "BS_BIND_TYPE_UNIFORM_BUFFER",
-        [BS_BIND_TYPE_STORAGE_BUFFER] = "BS_BIND_TYPE_STORAGE_BUFFER",
-        [BS_BIND_TYPE_UNIFORM_BUFFER_DYNAMIC] = "BS_BIND_TYPE_UNIFORM_BUFFER_DYNAMIC",
-        [BS_BIND_TYPE_STORAGE_BUFFER_DYNAMIC] = "BS_BIND_TYPE_STORAGE_BUFFER_DYNAMIC",
-        [BS_BIND_TYPE_INPUT_ATTACHMENT] = "BS_BIND_TYPE_INPUT_ATTACHMENT",
-        [BS_BIND_TYPE_PUSH_CONSTANT] = "BS_BIND_TYPE_PUSH_CONSTANT",
-        [BS_BIND_TYPE_INLINE_UNIFORM_BLOCK] = "BS_BIND_TYPE_INLINE_UNIFORM_BLOCK",
-        [BS_BIND_TYPE_ACCELERATION_STRUCTURE] = "BS_BIND_TYPE_ACCELERATION_STRUCTURE",
-        [BS_BIND_TYPE_MUTABLE_VALVE] = "BS_BIND_TYPE_MUTABLE_VALVE",
-    };
+    switch (e) {
+        case BS_DESCRIPTOR_TYPE_SAMPLER: return "BS_DESCRIPTOR_TYPE_SAMPLER";
+        case BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: return "BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER";
+        case BS_DESCRIPTOR_TYPE_SAMPLED_IMAGE: return "BS_DESCRIPTOR_TYPE_SAMPLED_IMAGE";
+        case BS_DESCRIPTOR_TYPE_STORAGE_IMAGE: return "BS_DESCRIPTOR_TYPE_STORAGE_IMAGE";
+        case BS_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER: return "BS_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER";
+        case BS_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER: return "BS_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER";
+        case BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER: return "BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER";
+        case BS_DESCRIPTOR_TYPE_STORAGE_BUFFER: return "BS_DESCRIPTOR_TYPE_STORAGE_BUFFER";
+        case BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC: return "BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC";
+        case BS_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC: return "BS_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC";
+        case BS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT: return "BS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT";
+    }
 
-    return values[e];
+    return NULL;
 }
 
 bs_BindType bs_deserializeBindType(
     const char* value)
 {
-    if (strcmp(value, "BS_BIND_TYPE_SAMPLER") == 0) return BS_BIND_TYPE_SAMPLER;
-    else if (strcmp(value, "BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER") == 0) return BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER;
-    else if (strcmp(value, "BS_BIND_TYPE_SAMPLED_IMAGE") == 0) return BS_BIND_TYPE_SAMPLED_IMAGE;
-    else if (strcmp(value, "BS_BIND_TYPE_STORAGE_IMAGE") == 0) return BS_BIND_TYPE_STORAGE_IMAGE;
-    else if (strcmp(value, "BS_BIND_TYPE_UNIFORM_TEXEL_BUFFER") == 0) return BS_BIND_TYPE_UNIFORM_TEXEL_BUFFER;
-    else if (strcmp(value, "BS_BIND_TYPE_STORAGE_TEXEL_BUFFER") == 0) return BS_BIND_TYPE_STORAGE_TEXEL_BUFFER;
-    else if (strcmp(value, "BS_BIND_TYPE_UNIFORM_BUFFER") == 0) return BS_BIND_TYPE_UNIFORM_BUFFER;
-    else if (strcmp(value, "BS_BIND_TYPE_STORAGE_BUFFER") == 0) return BS_BIND_TYPE_STORAGE_BUFFER;
-    else if (strcmp(value, "BS_BIND_TYPE_UNIFORM_BUFFER_DYNAMIC") == 0) return BS_BIND_TYPE_UNIFORM_BUFFER_DYNAMIC;
-    else if (strcmp(value, "BS_BIND_TYPE_STORAGE_BUFFER_DYNAMIC") == 0) return BS_BIND_TYPE_STORAGE_BUFFER_DYNAMIC;
-    else if (strcmp(value, "BS_BIND_TYPE_INPUT_ATTACHMENT") == 0) return BS_BIND_TYPE_INPUT_ATTACHMENT;
-    else if (strcmp(value, "BS_BIND_TYPE_PUSH_CONSTANT") == 0) return BS_BIND_TYPE_PUSH_CONSTANT;
-    else if (strcmp(value, "BS_BIND_TYPE_INLINE_UNIFORM_BLOCK") == 0) return BS_BIND_TYPE_INLINE_UNIFORM_BLOCK;
-    else if (strcmp(value, "BS_BIND_TYPE_ACCELERATION_STRUCTURE") == 0) return BS_BIND_TYPE_ACCELERATION_STRUCTURE;
-    else if (strcmp(value, "BS_BIND_TYPE_MUTABLE_VALVE") == 0) return BS_BIND_TYPE_MUTABLE_VALVE;
-    else if (strcmp(value, "BS_BIND_TYPES_COUNT") == 0) return BS_BIND_TYPES_COUNT;
+    if (strcmp(value, "BS_DESCRIPTOR_TYPE_SAMPLER") == 0) return BS_DESCRIPTOR_TYPE_SAMPLER;
+    else if (strcmp(value, "BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER") == 0) return BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    else if (strcmp(value, "BS_DESCRIPTOR_TYPE_SAMPLED_IMAGE") == 0) return BS_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+    else if (strcmp(value, "BS_DESCRIPTOR_TYPE_STORAGE_IMAGE") == 0) return BS_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+    else if (strcmp(value, "BS_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER") == 0) return BS_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+    else if (strcmp(value, "BS_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER") == 0) return BS_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+    else if (strcmp(value, "BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER") == 0) return BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    else if (strcmp(value, "BS_DESCRIPTOR_TYPE_STORAGE_BUFFER") == 0) return BS_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    else if (strcmp(value, "BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC") == 0) return BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+    else if (strcmp(value, "BS_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC") == 0) return BS_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+    else if (strcmp(value, "BS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT") == 0) return BS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
 
     bs_warnF("Failed to deserialize enum value \"%s\"\n", value);
     return 0;

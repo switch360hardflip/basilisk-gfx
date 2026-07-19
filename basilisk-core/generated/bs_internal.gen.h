@@ -76,7 +76,7 @@ typedef void(__stdcall* PFN_bs_clearStencil)(bs_U32 index, bs_ivec2 resolution, 
 typedef void(__stdcall* PFN_bs_clearDepth)(bs_U32 index, bs_ivec2 dim, float value);
 typedef void(__stdcall* PFN_bs_clearDepthStencil)(bs_U32 index, bs_ivec2 dim, float depth_value, bs_U32 stencil_value);
 typedef void(__stdcall* PFN_bs_clearColor)(bs_U32 index, bs_ivec2 dim, bs_RGBA color);
-typedef void(__stdcall* PFN_bs_stencilReference)(bs_FaceType face, bs_U32 reference);
+typedef void(__stdcall* PFN_bs_stencilReference)(bs_StencilFaceFlag face, bs_U32 reference);
 typedef void(__stdcall* PFN_bs_cull)(bs_CullFlags flags);
 typedef void(__stdcall* PFN_bs_setLineWidth)(float width);
 typedef int(__stdcall* PFN_bs_batchSize)(bs_Batch* batch);
@@ -1066,7 +1066,7 @@ BSAPI void _bs_clearStencil(bs_U32 index, bs_ivec2 resolution, bs_U32 value);
 BSAPI void _bs_clearDepth(bs_U32 index, bs_ivec2 dim, float value);
 BSAPI void _bs_clearDepthStencil(bs_U32 index, bs_ivec2 dim, float depth_value, bs_U32 stencil_value);
 BSAPI void _bs_clearColor(bs_U32 index, bs_ivec2 dim, bs_RGBA color);
-BSAPI void _bs_stencilReference(bs_FaceType face, bs_U32 reference);
+BSAPI void _bs_stencilReference(bs_StencilFaceFlag face, bs_U32 reference);
 BSAPI void _bs_cull(bs_CullFlags flags);
 BSAPI void _bs_setLineWidth(float width);
 BSAPI int _bs_batchSize(bs_Batch* batch);

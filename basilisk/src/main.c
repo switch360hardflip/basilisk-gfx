@@ -10,6 +10,8 @@ int main(int argc, char* argv[]) {
 
 	bs_ini();
 
+	bs_PhysicalDevice* device = bs_queryPreferredPhysicalDevice();
+
 	bs_Object* window_object = BS_WINDOW(BSGFX_WINDOWS, -1, 0);
 	bs_window(window_object, 1024, 1024, "basilisk");
 

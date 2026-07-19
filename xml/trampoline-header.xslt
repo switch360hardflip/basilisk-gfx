@@ -11,9 +11,9 @@
     <xsl:variable name="prefix" select="registry/prefix"/>
     <xsl:variable name="spaces" select="'                                                                               '"/>
     <xsl:variable name="functionPrefix" select="registry/functionPrefix"/>
-    <xsl:variable name="functionPrefixCaps" select="registry/functionPrefixCaps"/>
+	<xsl:variable name="functionPrefixCaps" select="registry/functionPrefixCaps"/>
 
-    <xsl:template match="/">
+	<xsl:template match="/">
         <xsl:call-template name="add-license"/>
 
 		<xsl:apply-templates select="registry/name"/>
@@ -144,7 +144,7 @@
         <xsl:text>;&#xA;</xsl:text>
     </xsl:template>
 
-    <xsl:template match="enum" mode="definition">
+	<xsl:template match="enum" mode="definition">
         <xsl:param name="indent"/>
         <xsl:value-of select="$indent"/>
 

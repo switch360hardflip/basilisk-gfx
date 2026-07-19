@@ -151,7 +151,7 @@ BSAPI void _bs_clearColor(bs_U32 index, bs_ivec2 dim, bs_RGBA color) {
     });
 }
 
-BSAPI void _bs_stencilReference(bs_FaceType face, bs_U32 reference) {
+BSAPI void _bs_stencilReference(bs_StencilFaceFlag face, bs_U32 reference) {
     VkCommandBuffer commands = bsi_fetchCommands();
     vkCmdSetStencilReference(commands, (VkStencilFaceFlags)face, reference);
 }
@@ -1486,7 +1486,7 @@ BSAPI bs_Result _bs_renderPass(bs_Renderer* renderer) {
         if (is_depth) {
             *reference = (VkAttachmentReference) {
                 .attachment = i,
-                .layout = output->new_layout == BS_LAYOUT_GENERAL ? VK_IMAGE_LAYOUT_GENERAL :
+                .layout = output->new_layout == BS_IMAGE_LAYOUT_GENERAL ? VK_IMAGE_LAYOUT_GENERAL :
                     (is_stencil ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL)
             };
 
@@ -1499,7 +1499,7 @@ BSAPI bs_Result _bs_renderPass(bs_Renderer* renderer) {
 
             *reference = (VkAttachmentReference) {
                 .attachment = i,
-                .layout = output->new_layout == BS_LAYOUT_GENERAL ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_GENERAL
+                .layout = output->new_layout == BS_IMAGE_LAYOUT_GENERAL ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_GENERAL
             };
 
             subpass->colorAttachmentCount++;
@@ -2251,7 +2251,7 @@ static inline VkQueueFlags _bs_convertQueueFlags(bs_QueueBits flags) {
 
 BSAPI bs_I32 _bs_queueFamily(bs_QueueBits _bs_flags) {
     VkQueueFlagBits flags = _bs_convertQueueFlags(_bs_flags);
-
+    
     bs_U32 num_families = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(_bs_instance_->physical_device, &num_families, NULL);
     VkQueueFamilyProperties* queue_families = _bs_calloc(num_families, sizeof(VkQueueFamilyProperties));

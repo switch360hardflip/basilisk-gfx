@@ -52,6 +52,8 @@ bs_Instance* _bs_instance_ = NULL;
 bs_IO _bs_io_ = { 0 };
 int _bs_image_index_ = 0;
 
+bs_List _bs_physical_devices_ = { .unit_size = sizeof(bs_PhysicalDevice) };
+
 BSAPI bs_Instance* _bs_instance() { return _bs_instance_; }
 BSAPI bs_Args* _bs_args() { return &_bs_args_; }
 BSAPI bs_Features* _bs_features() { return &_bs_features_; }
@@ -329,34 +331,115 @@ static void _bs_createSurface(bs_Window* window) {
     }
 }
 
-static inline void _bs_logPhysicalDeviceInfo(int i, VkPhysicalDevice device) {
-    VkPhysicalDeviceProperties properties;
-    vkGetPhysicalDeviceProperties(device, &properties);
+static inline const char* _bs_physicalDeviceTypeName(VkPhysicalDeviceType type) {
+    switch (type) {
+    case VK_PHYSICAL_DEVICE_TYPE_OTHER: return "Other";
+    case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: return "Integrated";
+    case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: return "Discrete";
+    case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: return "Virtual";
+    case VK_PHYSICAL_DEVICE_TYPE_CPU: return "CPU";
+    default: return "Unknown";
+    }
+}
 
-    const char* type = NULL;
+static void _bs_logPhysicalDeviceInfo(bs_PhysicalDevice* physical_device) {
+    _bs_logF("Device \"%s\":\n", physical_device->name);
+    _bs_logF("    API version: %d.%d.%d.%d\n",
+        VK_API_VERSION_VARIANT(physical_device->api_version),
+        VK_API_VERSION_MAJOR(physical_device->api_version),
+        VK_API_VERSION_MINOR(physical_device->api_version),
+        VK_API_VERSION_PATCH(physical_device->api_version)
+    );
+    _bs_logF("    Type: %s\n", _bs_physicalDeviceTypeName(physical_device->type));
 
-    switch (properties.deviceType) {
-    case VK_PHYSICAL_DEVICE_TYPE_OTHER: type = "(Other)\n"; break;
-    case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: type = "(Integrated)\n"; break;
-    case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: type = "(Discrete)\n"; break;
-    case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: type = "(Virtual)\n"; break;
-    case VK_PHYSICAL_DEVICE_TYPE_CPU: type = "(CPU)\n"; break;
-    default: type = "\n"; break;
+    for (int i = 0; i < physical_device->queue_families.count; i++) {
+        bs_QueueFamily* family = _bs_fetchUnit(&physical_device->queue_families, i);
+        _bs_logF("    Family %d queues count: %d\n", i, family->queue_count);
+        _bs_logF("    Graphics %s, Compute %s, Transfer %s, Sparse binding %s\n",
+            (family->queue_flags & VK_QUEUE_GRAPHICS_BIT) ? "[X]" : "[ ]",
+            (family->queue_flags & VK_QUEUE_COMPUTE_BIT) ? "[X]" : "[ ]", 
+            (family->queue_flags & VK_QUEUE_TRANSFER_BIT) ? "[X]" : "[ ]", 
+            (family->queue_flags & VK_QUEUE_SPARSE_BINDING_BIT) ? "[X]" : "[ ]"
+        );
     }
 
-    _bs_infoF(
-        "Physical device %d:\n"     \
-        "  API: %d.%d.%d\n"         \
-        "  Driver: %d.%d.%d\n"      \
-        "  Name: %s %s", 
-        i,
-        VK_VERSION_MAJOR(properties.apiVersion), VK_VERSION_MINOR(properties.apiVersion), VK_VERSION_PATCH(properties.apiVersion),
-        VK_VERSION_MAJOR(properties.driverVersion), VK_VERSION_MINOR(properties.driverVersion), VK_VERSION_PATCH(properties.driverVersion),
-        properties.deviceName, type);
+    for (int i = 0; i < physical_device->queue_families.count; i++) {
+        bs_QueueFamily* family = _bs_fetchUnit(&physical_device->queue_families, i);
 
+        _bs_logF("    Family %d queues count: %d\n", i, family->queue_count);
+        _bs_logF("    Graphics %s, Compute %s, Transfer %s, Sparse binding %s\n",
+            (family->queue_flags & VK_QUEUE_GRAPHICS_BIT) ? "[X]" : "[ ]",
+            (family->queue_flags & VK_QUEUE_COMPUTE_BIT) ? "[X]" : "[ ]",
+            (family->queue_flags & VK_QUEUE_TRANSFER_BIT) ? "[X]" : "[ ]",
+            (family->queue_flags & VK_QUEUE_SPARSE_BINDING_BIT) ? "[X]" : "[ ]"
+        );
+    }
+}
+
+static void _bs_readQueueFamilies(bs_PhysicalDevice* physical_device) {
+    VkResult result;
+
+    bs_U32 families_count = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(physical_device->vk_device, &families_count, NULL);
+    VkQueueFamilyProperties* queue_families = bs_alloca(families_count, sizeof(VkQueueFamilyProperties));
+
+    physical_device->queue_families = _bs_list(sizeof(VkQueueFamilyProperties), 0);
+    bs_ensureSize(&physical_device->queue_families, families_count);
+
+    vkGetPhysicalDeviceQueueFamilyProperties(physical_device->vk_device, &families_count, queue_families);
+
+    int actual_count = 0;
+    for (bs_U32 i = 0; i < families_count; i++) {
+        bs_QueueFamily* queue_family = _bs_fetchUnit(&physical_device->queue_families, i);
+
+        VkBool32 supports_present = false;
+        result = vkGetPhysicalDeviceSurfaceSupportKHR(physical_device->vk_device, i, _bs_scope_.window->surface, &supports_present);
+        if (result != VK_SUCCESS) {
+            BS_CRITICAL_VULKAN_ERROR("vkGetPhysicalDeviceSurfaceSupportKHR", result,);
+            continue;
+        }
+
+        queue_family->queue_flags = queue_families[i].queueFlags;
+        queue_family->queue_count = queue_families[i].queueCount;
+        queue_family->supports_present = supports_present;
+
+        if (supports_present)
+            physical_device->supports_present = true;
+    }
+}
+
+static void _bs_readSurfaceFormats(bs_PhysicalDevice* physical_device) {
+    VkResult result;
+
+    bs_U32 surface_formats_count;
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device->vk_device, _bs_scope_.window->surface, &surface_formats_count, NULL);
+    if (result != VK_SUCCESS) {
+        BS_CRITICAL_VULKAN_ERROR("vkGetPhysicalDeviceSurfaceFormatsKHR", result,);
+        return;
+    }
+
+    if (surface_formats_count > 0) {
+        VkSurfaceFormatKHR* formats = bs_alloca(surface_formats_count * sizeof(VkSurfaceFormatKHR));
+        result = vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device->vk_device, _bs_scope_.window->surface, &surface_formats_count, formats);
+        if (result != VK_SUCCESS) {
+            BS_CRITICAL_VULKAN_ERROR("vkGetPhysicalDeviceSurfaceFormatsKHR", result, );
+            return;
+        }
+
+        physical_device->surface_formats = bs_list(sizeof(VkSurfaceFormatKHR), 0);
+        bs_ensureSize(&physical_device->surface_formats, surface_formats_count);
+
+        for (int j = 0; j < physical_device->surface_formats.count; j++) {
+            bs_SurfaceFormat* surface_format = _bs_fetchUnit(&physical_device->surface_formats, i);
+            surface_format->color_space = formats[j].colorSpace;
+            surface_format->format = formats[j].format;
+        }
+    }
 }
 
 static void _bs_preparePhysicalDevice() {
+    VkResult result;
+
     bs_U32 num_devices = 0;
     vkEnumeratePhysicalDevices(_bs_instance_->instance, &num_devices, NULL);
     if (num_devices == 0) {
@@ -364,20 +447,37 @@ static void _bs_preparePhysicalDevice() {
         return;
     }
 
-    VkPhysicalDevice* devices = _bs_calloc(num_devices, sizeof(VkPhysicalDevice));
+    VkPhysicalDevice* devices = bs_alloca(num_devices * sizeof(VkPhysicalDevice));
     vkEnumeratePhysicalDevices(_bs_instance_->instance, &num_devices, devices);
+
+    _bs_ensureSize(&_bs_physical_devices_, num_devices);
+
+    assert(BS_MAX_PHYSICAL_DEVICE_NAME_SIZE == VK_MAX_PHYSICAL_DEVICE_NAME_SIZE);
 
     int chosen = 0;
     for(int i = 0; i < num_devices; i++) {
-        chosen = i;
-        _bs_logPhysicalDeviceInfo(i, devices[i]);
-        _bs_instance_->physical_device = devices[i];
-        if (_bs_queueFamily(BS_QUEUE_GRAPHICS_BIT) != -1)
-            break;
-        _bs_instance_->physical_device = VK_NULL_HANDLE;
+        bs_PhysicalDevice* physical_device = _bs_fetchUnit(&_bs_physical_devices_, i);
+        VkPhysicalDevice device = devices[i];
+
+        VkPhysicalDeviceProperties props;
+        vkGetPhysicalDeviceProperties(device, &props);
+
+        physical_device->vk_device = device;
+        physical_device->type = props.deviceType;
+        memcpy(physical_device->name, props.deviceName, BS_MAX_PHYSICAL_DEVICE_NAME_SIZE);
+
+        _bs_readQueueFamilies(physical_device);
+        _bs_readSurfaceFormats(physical_device);
+
+       // VkSurfaceCapabilitiesKHR capabilities;
+       // vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, _bs_scope_.window->surface, &capabilities);
+
     }
 
-    _bs_free(devices);
+    for (int i = 0; i < _bs_physical_devices_.count; i++) {
+        bs_PhysicalDevice* physical_device = _bs_fetchUnit(&_bs_physical_devices_, i);
+        _bs_logPhysicalDeviceInfo(physical_device);
+    }
 
     if (_bs_instance_->physical_device == VK_NULL_HANDLE) {
         _bs_warn(BS_CONSTANT_STRING("No GPU with graphics support was found\n"));

@@ -60,7 +60,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         </function>
     </xsl:template>
 
-    <xsl:template match="batchFunctionTemplate">
+	<xsl:template match="batchFunctionTemplate">
         <function name="bs_batch{@name}">
             <return>void</return>
             <param><type>bs_Batch*</type><name>batch</name></param>
@@ -74,7 +74,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         </function>
     </xsl:template>
 
-    <xsl:template match="registry/enums">
+	<xsl:template match="registry/enums">
         <enums>
             <xsl:apply-templates select="@*|node()"/>
             <xsl:apply-templates select="serializableEnum" mode="enum"/>

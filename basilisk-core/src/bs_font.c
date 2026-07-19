@@ -848,7 +848,7 @@ BSAPI void _bs_destroyFont(bs_Font* font) {
 BSAPI void _bs_bindFont(bs_Font* font, bs_Sampler* sampler, int bind_set, int bind_point) {
     _bs_bindImages(bind_set, bind_point, &(bs_ImageDescriptor) {
         .image = font->atlas->image,
-        .layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        .layout = BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         .sampler = sampler,
     }, 1);
 }

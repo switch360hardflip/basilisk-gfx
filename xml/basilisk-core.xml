@@ -146,17 +146,6 @@
 			<line><name>BS_JSON_BOOL</name><value>1 &lt;&lt; 10</value></line>
 			<line><name>BS_JSON_UCHAR</name><value>1 &lt;&lt; 11</value></line>
 		</serializableEnum>
-		<serializableEnum name="ShaderType" deserialize="true">
-			<line><name>BS_VERTEX_SHADER</name><value>0x00000001</value></line>
-			<line><name>BS_GEOMETRY_SHADER</name><value>0x00000008</value></line>
-			<line><name>BS_FRAGMENT_SHADER</name><value>0x00000010</value></line>
-			<line><name>BS_COMPUTE_SHADER</name><value>0x00000020</value></line>
-			<line><name>BS_RAY_GEN_SHADER</name><value>0x00000100</value></line>
-			<line><name>BS_ANY_HIT_SHADER</name><value>0x00000200</value></line>
-			<line><name>BS_CLOSEST_HIT_SHADER</name><value>0x00000400</value></line>
-			<line><name>BS_MISS_SHADER</name><value>0x00000800</value></line>
-			<line><name>BS_INTERSECTION_SHADER</name><value>0x00001000</value></line>
-		</serializableEnum>
 		<enum name="bs_Slot">
 			<line><name>BS_SLOT_NONE</name><value>0</value></line>
 			<line><name>BS_SLOT_00_BIT</name><value>1 &lt;&lt; 0</value></line>
@@ -192,469 +181,31 @@
 			<line><name>BS_SLOT_30_BIT</name><value>1 &lt;&lt; 30</value></line>
 			<line><name>BS_SLOT_31_BIT</name><value>1 &lt;&lt; 31</value></line>
 		</enum>
-		<enum name="bs_BufferUsageFlag">
-			<line><name>BS_BUFFER_USAGE_TRANSFER_SRC_BIT</name><value>0x00000001</value></line>
-			<line><name>BS_BUFFER_USAGE_TRANSFER_DST_BIT</name><value>0x00000002</value></line>
-			<line><name>BS_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT</name><value>0x00000004</value></line>
-			<line><name>BS_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT</name><value>0x00000008</value></line>
-			<line><name>BS_BUFFER_USAGE_UNIFORM_BUFFER_BIT</name><value>0x00000010</value></line>
-			<line><name>BS_BUFFER_USAGE_STORAGE_BUFFER_BIT</name><value>0x00000020</value></line>
-			<line><name>BS_BUFFER_USAGE_INDEX_BUFFER_BIT</name><value>0x00000040</value></line>
-			<line><name>BS_BUFFER_USAGE_VERTEX_BUFFER_BIT</name><value>0x00000080</value></line>
-			<line><name>BS_BUFFER_USAGE_INDIRECT_BUFFER_BIT</name><value>0x00000100</value></line>
-			<line><name>BS_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT</name><value>0x00020000</value></line>
-			<line><name>BS_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR</name><value>0x00002000</value></line>
-			<line><name>BS_BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR</name><value>0x00004000</value></line>
-			<line><name>BS_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT</name><value>0x00000800</value></line>
-			<line><name>BS_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT</name><value>0x00001000</value></line>
-			<line><name>BS_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT</name><value>0x00000200</value></line>
-			<line><name>BS_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR</name><value>0x00080000</value></line>
-			<line><name>BS_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR</name><value>0x00100000</value></line>
-			<line><name>BS_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR</name><value>0x00000400</value></line>
-			<line><name>BS_BUFFER_USAGE_VIDEO_ENCODE_DST_BIT_KHR</name><value>0x00008000</value></line>
-			<line><name>BS_BUFFER_USAGE_VIDEO_ENCODE_SRC_BIT_KHR</name><value>0x00010000</value></line>
-			<line><name>BS_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT</name><value>0x00200000</value></line>
-			<line><name>BS_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT</name><value>0x00400000</value></line>
-			<line><name>BS_BUFFER_USAGE_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT</name><value>0x04000000</value></line>
-			<line><name>BS_BUFFER_USAGE_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT</name><value>0x00800000</value></line>
-			<line><name>BS_BUFFER_USAGE_MICROMAP_STORAGE_BIT_EXT</name><value>0x01000000</value></line>
-			<line><name>BS_BUFFER_USAGE_TILE_MEMORY_BIT_QCOM</name><value>0x08000000</value></line>
-			<line><name>BS_BUFFER_USAGE_RAY_TRACING_BIT_NV</name><value>BS_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR</value></line>
-			<line><name>BS_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_EXT</name><value>BS_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT</value></line>
-			<line><name>BS_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT_KHR</name><value>BS_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT</value></line>
-			<line><name>BS_BUFFER_USAGE_FLAG_BITS_MAX_ENUM</name><value>0x7FFFFFFF</value></line>
-		</enum>
-		<enum name="bs_MemoryPropertyFlag">
-			<line><name>BS_MEMORY_PROPERTY_DEVICE_LOCAL_BIT</name><value>0x00000001</value></line>
-			<line><name>BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT</name><value>0x00000002</value></line>
-			<line><name>BS_MEMORY_PROPERTY_HOST_COHERENT_BIT</name><value>0x00000004</value></line>
-			<line><name>BS_MEMORY_PROPERTY_HOST_CACHED_BIT</name><value>0x00000008</value></line>
-			<line><name>BS_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT</name><value>0x00000010</value></line>
-			<line><name>BS_MEMORY_PROPERTY_PROTECTED_BIT</name><value>0x00000020</value></line>
-			<line><name>BS_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD</name><value>0x00000040</value></line>
-			<line><name>BS_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD</name><value>0x00000080</value></line>
-			<line><name>BS_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV</name><value>0x00000100</value></line>
-			<line><name>BS_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM</name><value>0x7FFFFFFF</value></line>
-		</enum>
-		<enum name="bs_Format">
-			<line><name>BS_FORMAT_UNDEFINED</name><value>0</value></line>
-			<line><name>BS_FORMAT_R4G4_UNORM_PACK8</name><value>1</value></line>
-			<line><name>BS_FORMAT_R4G4B4A4_UNORM_PACK16</name><value>2</value></line>
-			<line><name>BS_FORMAT_B4G4R4A4_UNORM_PACK16</name><value>3</value></line>
-			<line><name>BS_FORMAT_R5G6B5_UNORM_PACK16</name><value>4</value></line>
-			<line><name>BS_FORMAT_B5G6R5_UNORM_PACK16</name><value>5</value></line>
-			<line><name>BS_FORMAT_R5G5B5A1_UNORM_PACK16</name><value>6</value></line>
-			<line><name>BS_FORMAT_B5G5R5A1_UNORM_PACK16</name><value>7</value></line>
-			<line><name>BS_FORMAT_A1R5G5B5_UNORM_PACK16</name><value>8</value></line>
-			<line><name>BS_FORMAT_R8_UNORM</name><value>9</value></line>
-			<line><name>BS_FORMAT_R8_SNORM</name><value>10</value></line>
-			<line><name>BS_FORMAT_R8_USCALED</name><value>11</value></line>
-			<line><name>BS_FORMAT_R8_SSCALED</name><value>12</value></line>
-			<line><name>BS_FORMAT_R8_UINT</name><value>13</value></line>
-			<line><name>BS_FORMAT_R8_SINT</name><value>14</value></line>
-			<line><name>BS_FORMAT_R8_SRGB</name><value>15</value></line>
-			<line><name>BS_FORMAT_R8G8_UNORM</name><value>16</value></line>
-			<line><name>BS_FORMAT_R8G8_SNORM</name><value>17</value></line>
-			<line><name>BS_FORMAT_R8G8_USCALED</name><value>18</value></line>
-			<line><name>BS_FORMAT_R8G8_SSCALED</name><value>19</value></line>
-			<line><name>BS_FORMAT_R8G8_UINT</name><value>20</value></line>
-			<line><name>BS_FORMAT_R8G8_SINT</name><value>21</value></line>
-			<line><name>BS_FORMAT_R8G8_SRGB</name><value>22</value></line>
-			<line><name>BS_FORMAT_R8G8B8_UNORM</name><value>23</value></line>
-			<line><name>BS_FORMAT_R8G8B8_SNORM</name><value>24</value></line>
-			<line><name>BS_FORMAT_R8G8B8_USCALED</name><value>25</value></line>
-			<line><name>BS_FORMAT_R8G8B8_SSCALED</name><value>26</value></line>
-			<line><name>BS_FORMAT_R8G8B8_UINT</name><value>27</value></line>
-			<line><name>BS_FORMAT_R8G8B8_SINT</name><value>28</value></line>
-			<line><name>BS_FORMAT_R8G8B8_SRGB</name><value>29</value></line>
-			<line><name>BS_FORMAT_B8G8R8_UNORM</name><value>30</value></line>
-			<line><name>BS_FORMAT_B8G8R8_SNORM</name><value>31</value></line>
-			<line><name>BS_FORMAT_B8G8R8_USCALED</name><value>32</value></line>
-			<line><name>BS_FORMAT_B8G8R8_SSCALED</name><value>33</value></line>
-			<line><name>BS_FORMAT_B8G8R8_UINT</name><value>34</value></line>
-			<line><name>BS_FORMAT_B8G8R8_SINT</name><value>35</value></line>
-			<line><name>BS_FORMAT_B8G8R8_SRGB</name><value>36</value></line>
-			<line><name>BS_FORMAT_R8G8B8A8_UNORM</name><value>37</value></line>
-			<line><name>BS_FORMAT_R8G8B8A8_SNORM</name><value>38</value></line>
-			<line><name>BS_FORMAT_R8G8B8A8_USCALED</name><value>39</value></line>
-			<line><name>BS_FORMAT_R8G8B8A8_SSCALED</name><value>40</value></line>
-			<line><name>BS_FORMAT_R8G8B8A8_UINT</name><value>41</value></line>
-			<line><name>BS_FORMAT_R8G8B8A8_SINT</name><value>42</value></line>
-			<line><name>BS_FORMAT_R8G8B8A8_SRGB</name><value>43</value></line>
-			<line><name>BS_FORMAT_B8G8R8A8_UNORM</name><value>44</value></line>
-			<line><name>BS_FORMAT_B8G8R8A8_SNORM</name><value>45</value></line>
-			<line><name>BS_FORMAT_B8G8R8A8_USCALED</name><value>46</value></line>
-			<line><name>BS_FORMAT_B8G8R8A8_SSCALED</name><value>47</value></line>
-			<line><name>BS_FORMAT_B8G8R8A8_UINT</name><value>48</value></line>
-			<line><name>BS_FORMAT_B8G8R8A8_SINT</name><value>49</value></line>
-			<line><name>BS_FORMAT_B8G8R8A8_SRGB</name><value>50</value></line>
-			<line><name>BS_FORMAT_A8B8G8R8_UNORM_PACK32</name><value>51</value></line>
-			<line><name>BS_FORMAT_A8B8G8R8_SNORM_PACK32</name><value>52</value></line>
-			<line><name>BS_FORMAT_A8B8G8R8_USCALED_PACK32</name><value>53</value></line>
-			<line><name>BS_FORMAT_A8B8G8R8_SSCALED_PACK32</name><value>54</value></line>
-			<line><name>BS_FORMAT_A8B8G8R8_UINT_PACK32</name><value>55</value></line>
-			<line><name>BS_FORMAT_A8B8G8R8_SINT_PACK32</name><value>56</value></line>
-			<line><name>BS_FORMAT_A8B8G8R8_SRGB_PACK32</name><value>57</value></line>
-			<line><name>BS_FORMAT_A2R10G10B10_UNORM_PACK32</name><value>58</value></line>
-			<line><name>BS_FORMAT_A2R10G10B10_SNORM_PACK32</name><value>59</value></line>
-			<line><name>BS_FORMAT_A2R10G10B10_USCALED_PACK32</name><value>60</value></line>
-			<line><name>BS_FORMAT_A2R10G10B10_SSCALED_PACK32</name><value>61</value></line>
-			<line><name>BS_FORMAT_A2R10G10B10_UINT_PACK32</name><value>62</value></line>
-			<line><name>BS_FORMAT_A2R10G10B10_SINT_PACK32</name><value>63</value></line>
-			<line><name>BS_FORMAT_A2B10G10R10_UNORM_PACK32</name><value>64</value></line>
-			<line><name>BS_FORMAT_A2B10G10R10_SNORM_PACK32</name><value>65</value></line>
-			<line><name>BS_FORMAT_A2B10G10R10_USCALED_PACK32</name><value>66</value></line>
-			<line><name>BS_FORMAT_A2B10G10R10_SSCALED_PACK32</name><value>67</value></line>
-			<line><name>BS_FORMAT_A2B10G10R10_UINT_PACK32</name><value>68</value></line>
-			<line><name>BS_FORMAT_A2B10G10R10_SINT_PACK32</name><value>69</value></line>
-			<line><name>BS_FORMAT_R16_UNORM</name><value>70</value></line>
-			<line><name>BS_FORMAT_R16_SNORM</name><value>71</value></line>
-			<line><name>BS_FORMAT_R16_USCALED</name><value>72</value></line>
-			<line><name>BS_FORMAT_R16_SSCALED</name><value>73</value></line>
-			<line><name>BS_FORMAT_R16_UINT</name><value>74</value></line>
-			<line><name>BS_FORMAT_R16_SINT</name><value>75</value></line>
-			<line><name>BS_FORMAT_R16_SFLOAT</name><value>76</value></line>
-			<line><name>BS_FORMAT_R16G16_UNORM</name><value>77</value></line>
-			<line><name>BS_FORMAT_R16G16_SNORM</name><value>78</value></line>
-			<line><name>BS_FORMAT_R16G16_USCALED</name><value>79</value></line>
-			<line><name>BS_FORMAT_R16G16_SSCALED</name><value>80</value></line>
-			<line><name>BS_FORMAT_R16G16_UINT</name><value>81</value></line>
-			<line><name>BS_FORMAT_R16G16_SINT</name><value>82</value></line>
-			<line><name>BS_FORMAT_R16G16_SFLOAT</name><value>83</value></line>
-			<line><name>BS_FORMAT_R16G16B16_UNORM</name><value>84</value></line>
-			<line><name>BS_FORMAT_R16G16B16_SNORM</name><value>85</value></line>
-			<line><name>BS_FORMAT_R16G16B16_USCALED</name><value>86</value></line>
-			<line><name>BS_FORMAT_R16G16B16_SSCALED</name><value>87</value></line>
-			<line><name>BS_FORMAT_R16G16B16_UINT</name><value>88</value></line>
-			<line><name>BS_FORMAT_R16G16B16_SINT</name><value>89</value></line>
-			<line><name>BS_FORMAT_R16G16B16_SFLOAT</name><value>90</value></line>
-			<line><name>BS_FORMAT_R16G16B16A16_UNORM</name><value>91</value></line>
-			<line><name>BS_FORMAT_R16G16B16A16_SNORM</name><value>92</value></line>
-			<line><name>BS_FORMAT_R16G16B16A16_USCALED</name><value>93</value></line>
-			<line><name>BS_FORMAT_R16G16B16A16_SSCALED</name><value>94</value></line>
-			<line><name>BS_FORMAT_R16G16B16A16_UINT</name><value>95</value></line>
-			<line><name>BS_FORMAT_R16G16B16A16_SINT</name><value>96</value></line>
-			<line><name>BS_FORMAT_R16G16B16A16_SFLOAT</name><value>97</value></line>
-			<line><name>BS_FORMAT_R32_UINT</name><value>98</value></line>
-			<line><name>BS_FORMAT_R32_SINT</name><value>99</value></line>
-			<line><name>BS_FORMAT_R32_SFLOAT</name><value>100</value></line>
-			<line><name>BS_FORMAT_R32G32_UINT</name><value>101</value></line>
-			<line><name>BS_FORMAT_R32G32_SINT</name><value>102</value></line>
-			<line><name>BS_FORMAT_R32G32_SFLOAT</name><value>103</value></line>
-			<line><name>BS_FORMAT_R32G32B32_UINT</name><value>104</value></line>
-			<line><name>BS_FORMAT_R32G32B32_SINT</name><value>105</value></line>
-			<line><name>BS_FORMAT_R32G32B32_SFLOAT</name><value>106</value></line>
-			<line><name>BS_FORMAT_R32G32B32A32_UINT</name><value>107</value></line>
-			<line><name>BS_FORMAT_R32G32B32A32_SINT</name><value>108</value></line>
-			<line><name>BS_FORMAT_R32G32B32A32_SFLOAT</name><value>109</value></line>
-			<line><name>BS_FORMAT_R64_UINT</name><value>110</value></line>
-			<line><name>BS_FORMAT_R64_SINT</name><value>111</value></line>
-			<line><name>BS_FORMAT_R64_SFLOAT</name><value>112</value></line>
-			<line><name>BS_FORMAT_R64G64_UINT</name><value>113</value></line>
-			<line><name>BS_FORMAT_R64G64_SINT</name><value>114</value></line>
-			<line><name>BS_FORMAT_R64G64_SFLOAT</name><value>115</value></line>
-			<line><name>BS_FORMAT_R64G64B64_UINT</name><value>116</value></line>
-			<line><name>BS_FORMAT_R64G64B64_SINT</name><value>117</value></line>
-			<line><name>BS_FORMAT_R64G64B64_SFLOAT</name><value>118</value></line>
-			<line><name>BS_FORMAT_R64G64B64A64_UINT</name><value>119</value></line>
-			<line><name>BS_FORMAT_R64G64B64A64_SINT</name><value>120</value></line>
-			<line><name>BS_FORMAT_R64G64B64A64_SFLOAT</name><value>121</value></line>
-			<line><name>BS_FORMAT_B10G11R11_UFLOAT_PACK32</name><value>122</value></line>
-			<line><name>BS_FORMAT_E5B9G9R9_UFLOAT_PACK32</name><value>123</value></line>
-			<line><name>BS_FORMAT_D16_UNORM</name><value>124</value></line>
-			<line><name>BS_FORMAT_X8_D24_UNORM_PACK32</name><value>125</value></line>
-			<line><name>BS_FORMAT_D32_SFLOAT</name><value>126</value></line>
-			<line><name>BS_FORMAT_S8_UINT</name><value>127</value></line>
-			<line><name>BS_FORMAT_D16_UNORM_S8_UINT</name><value>128</value></line>
-			<line><name>BS_FORMAT_D24_UNORM_S8_UINT</name><value>129</value></line>
-			<line><name>BS_FORMAT_D32_SFLOAT_S8_UINT</name><value>130</value></line>
-			<line><name>BS_FORMAT_BC1_RGB_UNORM_BLOCK</name><value>131</value></line>
-			<line><name>BS_FORMAT_BC1_RGB_SRGB_BLOCK</name><value>132</value></line>
-			<line><name>BS_FORMAT_BC1_RGBA_UNORM_BLOCK</name><value>133</value></line>
-			<line><name>BS_FORMAT_BC1_RGBA_SRGB_BLOCK</name><value>134</value></line>
-			<line><name>BS_FORMAT_BC2_UNORM_BLOCK</name><value>135</value></line>
-			<line><name>BS_FORMAT_BC2_SRGB_BLOCK</name><value>136</value></line>
-			<line><name>BS_FORMAT_BC3_UNORM_BLOCK</name><value>137</value></line>
-			<line><name>BS_FORMAT_BC3_SRGB_BLOCK</name><value>138</value></line>
-			<line><name>BS_FORMAT_BC4_UNORM_BLOCK</name><value>139</value></line>
-			<line><name>BS_FORMAT_BC4_SNORM_BLOCK</name><value>140</value></line>
-			<line><name>BS_FORMAT_BC5_UNORM_BLOCK</name><value>141</value></line>
-			<line><name>BS_FORMAT_BC5_SNORM_BLOCK</name><value>142</value></line>
-			<line><name>BS_FORMAT_BC6H_UFLOAT_BLOCK</name><value>143</value></line>
-			<line><name>BS_FORMAT_BC6H_SFLOAT_BLOCK</name><value>144</value></line>
-			<line><name>BS_FORMAT_BC7_UNORM_BLOCK</name><value>145</value></line>
-			<line><name>BS_FORMAT_BC7_SRGB_BLOCK</name><value>146</value></line>
-			<line><name>BS_FORMAT_ETC2_R8G8B8_UNORM_BLOCK</name><value>147</value></line>
-			<line><name>BS_FORMAT_ETC2_R8G8B8_SRGB_BLOCK</name><value>148</value></line>
-			<line><name>BS_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK</name><value>149</value></line>
-			<line><name>BS_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK</name><value>150</value></line>
-			<line><name>BS_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK</name><value>151</value></line>
-			<line><name>BS_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK</name><value>152</value></line>
-			<line><name>BS_FORMAT_EAC_R11_UNORM_BLOCK</name><value>153</value></line>
-			<line><name>BS_FORMAT_EAC_R11_SNORM_BLOCK</name><value>154</value></line>
-			<line><name>BS_FORMAT_EAC_R11G11_UNORM_BLOCK</name><value>155</value></line>
-			<line><name>BS_FORMAT_EAC_R11G11_SNORM_BLOCK</name><value>156</value></line>
-			<line><name>BS_FORMAT_ASTC_4x4_UNORM_BLOCK</name><value>157</value></line>
-			<line><name>BS_FORMAT_ASTC_4x4_SRGB_BLOCK</name><value>158</value></line>
-			<line><name>BS_FORMAT_ASTC_5x4_UNORM_BLOCK</name><value>159</value></line>
-			<line><name>BS_FORMAT_ASTC_5x4_SRGB_BLOCK</name><value>160</value></line>
-			<line><name>BS_FORMAT_ASTC_5x5_UNORM_BLOCK</name><value>161</value></line>
-			<line><name>BS_FORMAT_ASTC_5x5_SRGB_BLOCK</name><value>162</value></line>
-			<line><name>BS_FORMAT_ASTC_6x5_UNORM_BLOCK</name><value>163</value></line>
-			<line><name>BS_FORMAT_ASTC_6x5_SRGB_BLOCK</name><value>164</value></line>
-			<line><name>BS_FORMAT_ASTC_6x6_UNORM_BLOCK</name><value>165</value></line>
-			<line><name>BS_FORMAT_ASTC_6x6_SRGB_BLOCK</name><value>166</value></line>
-			<line><name>BS_FORMAT_ASTC_8x5_UNORM_BLOCK</name><value>167</value></line>
-			<line><name>BS_FORMAT_ASTC_8x5_SRGB_BLOCK</name><value>168</value></line>
-			<line><name>BS_FORMAT_ASTC_8x6_UNORM_BLOCK</name><value>169</value></line>
-			<line><name>BS_FORMAT_ASTC_8x6_SRGB_BLOCK</name><value>170</value></line>
-			<line><name>BS_FORMAT_ASTC_8x8_UNORM_BLOCK</name><value>171</value></line>
-			<line><name>BS_FORMAT_ASTC_8x8_SRGB_BLOCK</name><value>172</value></line>
-			<line><name>BS_FORMAT_ASTC_10x5_UNORM_BLOCK</name><value>173</value></line>
-			<line><name>BS_FORMAT_ASTC_10x5_SRGB_BLOCK</name><value>174</value></line>
-			<line><name>BS_FORMAT_ASTC_10x6_UNORM_BLOCK</name><value>175</value></line>
-			<line><name>BS_FORMAT_ASTC_10x6_SRGB_BLOCK</name><value>176</value></line>
-			<line><name>BS_FORMAT_ASTC_10x8_UNORM_BLOCK</name><value>177</value></line>
-			<line><name>BS_FORMAT_ASTC_10x8_SRGB_BLOCK</name><value>178</value></line>
-			<line><name>BS_FORMAT_ASTC_10x10_UNORM_BLOCK</name><value>179</value></line>
-			<line><name>BS_FORMAT_ASTC_10x10_SRGB_BLOCK</name><value>180</value></line>
-			<line><name>BS_FORMAT_ASTC_12x10_UNORM_BLOCK</name><value>181</value></line>
-			<line><name>BS_FORMAT_ASTC_12x10_SRGB_BLOCK</name><value>182</value></line>
-			<line><name>BS_FORMAT_ASTC_12x12_UNORM_BLOCK</name><value>183</value></line>
-			<line><name>BS_FORMAT_ASTC_12x12_SRGB_BLOCK</name><value>184</value></line>
-		</enum>
-		<enum name="bs_ImageLayout">
-			<line><name>BS_LAYOUT_UNDEFINED</name><value>0</value></line>
-			<line><name>BS_LAYOUT_GENERAL</name><value>1</value></line>
-			<line><name>BS_LAYOUT_COLOR_ATTACHMENT_OPTIMAL</name><value>2</value></line>
-			<line><name>BS_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL</name><value>3</value></line>
-			<line><name>BS_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL</name><value>4</value></line>
-			<line><name>BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL</name><value>5</value></line>
-			<line><name>BS_LAYOUT_TRANSFER_SRC_OPTIMAL</name><value>6</value></line>
-			<line><name>BS_LAYOUT_TRANSFER_DST_OPTIMAL</name><value>7</value></line>
-			<line><name>BS_LAYOUT_PREINITIALIZED</name><value>8</value></line>
-			<line><name>BS_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL</name><value>1000117000</value></line>
-			<line><name>BS_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL</name><value>1000117001</value></line>
-			<line><name>BS_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL</name><value>1000241000</value></line>
-			<line><name>BS_LAYOUT_DEPTH_READ_ONLY_OPTIMAL</name><value>1000241001</value></line>
-			<line><name>BS_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL</name><value>1000241002</value></line>
-			<line><name>BS_LAYOUT_STENCIL_READ_ONLY_OPTIMAL</name><value>1000241003</value></line>
-			<line><name>BS_LAYOUT_READ_ONLY_OPTIMAL</name><value>1000314000</value></line>
-			<line><name>BS_LAYOUT_ATTACHMENT_OPTIMAL</name><value>1000314001</value></line>
-			<line><name>BS_LAYOUT_PRESENT_SRC_KHR</name><value>1000001002</value></line>
-		</enum>
-		<enum name="bs_AccessMask">
-			<line><name>BS_ACCESS_NONE</name><value>0</value></line>
-			<line><name>BS_ACCESS_INDIRECT_COMMAND_READ_BIT</name><value>0x00000001</value></line>
-			<line><name>BS_ACCESS_INDEX_READ_BIT</name><value>0x00000002</value></line>
-			<line><name>BS_ACCESS_VERTEX_ATTRIBUTE_READ_BIT</name><value>0x00000004</value></line>
-			<line><name>BS_ACCESS_UNIFORM_READ_BIT</name><value>0x00000008</value></line>
-			<line><name>BS_ACCESS_INPUT_ATTACHMENT_READ_BIT</name><value>0x00000010</value></line>
-			<line><name>BS_ACCESS_SHADER_READ_BIT</name><value>0x00000020</value></line>
-			<line><name>BS_ACCESS_SHADER_WRITE_BIT</name><value>0x00000040</value></line>
-			<line><name>BS_ACCESS_COLOR_ATTACHMENT_READ_BIT</name><value>0x00000080</value></line>
-			<line><name>BS_ACCESS_COLOR_ATTACHMENT_WRITE_BIT</name><value>0x00000100</value></line>
-			<line><name>BS_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT</name><value>0x00000200</value></line>
-			<line><name>BS_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT</name><value>0x00000400</value></line>
-			<line><name>BS_ACCESS_TRANSFER_READ_BIT</name><value>0x00000800</value></line>
-			<line><name>BS_ACCESS_TRANSFER_WRITE_BIT</name><value>0x00001000</value></line>
-			<line><name>BS_ACCESS_HOST_READ_BIT</name><value>0x00002000</value></line>
-			<line><name>BS_ACCESS_HOST_WRITE_BIT</name><value>0x00004000</value></line>
-			<line><name>BS_ACCESS_MEMORY_READ_BIT</name><value>0x00008000</value></line>
-			<line><name>BS_ACCESS_MEMORY_WRITE_BIT</name><value>0x00010000</value></line>
-		</enum>
-		<enum name="bs_PipelineStage">
-			<line><name>BS_PIPELINE_STAGE_NONE</name><value>0</value></line>
-			<line><name>BS_PIPELINE_STAGE_TOP_OF_PIPE_BIT</name><value>0x00000001</value></line>
-			<line><name>BS_PIPELINE_STAGE_DRAW_INDIRECT_BIT</name><value>0x00000002</value></line>
-			<line><name>BS_PIPELINE_STAGE_VERTEX_INPUT_BIT</name><value>0x00000004</value></line>
-			<line><name>BS_PIPELINE_STAGE_VERTEX_SHADER_BIT</name><value>0x00000008</value></line>
-			<line><name>BS_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT</name><value>0x00000010</value></line>
-			<line><name>BS_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT</name><value>0x00000020</value></line>
-			<line><name>BS_PIPELINE_STAGE_GEOMETRY_SHADER_BIT</name><value>0x00000040</value></line>
-			<line><name>BS_PIPELINE_STAGE_FRAGMENT_SHADER_BIT</name><value>0x00000080</value></line>
-			<line><name>BS_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT</name><value>0x00000100</value></line>
-			<line><name>BS_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT</name><value>0x00000200</value></line>
-			<line><name>BS_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT</name><value>0x00000400</value></line>
-			<line><name>BS_PIPELINE_STAGE_COMPUTE_SHADER_BIT</name><value>0x00000800</value></line>
-			<line><name>BS_PIPELINE_STAGE_TRANSFER_BIT</name><value>0x00001000</value></line>
-			<line><name>BS_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT</name><value>0x00002000</value></line>
-			<line><name>BS_PIPELINE_STAGE_HOST_BIT</name><value>0x00004000</value></line>
-			<line><name>BS_PIPELINE_STAGE_ALL_GRAPHICS_BIT</name><value>0x00008000</value></line>
-			<line><name>BS_PIPELINE_STAGE_ALL_COMMANDS_BIT</name><value>0x00010000</value></line>
-			<line><name>BS_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT</name><value>0x01000000</value></line>
-			<line><name>BS_PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT</name><value>0x00040000</value></line>
-			<line><name>BS_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR</name><value>0x02000000</value></line>
-			<line><name>BS_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR</name><value>0x00200000</value></line>
-			<line><name>BS_PIPELINE_STAGE_TASK_SHADER_BIT_NV</name><value>0x00080000</value></line>
-			<line><name>BS_PIPELINE_STAGE_MESH_SHADER_BIT_NV</name><value>0x00100000</value></line>
-			<line><name>BS_PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT_EXT</name><value>0x00800000</value></line>
-		</enum>
-		<enum name="bs_DependencyFlag">
-			<line><name>BS_DEPENDENCY_BY_REGION_BIT</name><value>0x00000001</value></line>
-			<line><name>BS_DEPENDENCY_DEVICE_GROUP_BIT</name><value>0x00000004</value></line>
-			<line><name>BS_DEPENDENCY_VIEW_LOCAL_BIT</name><value>0x00000002</value></line>
-		</enum>
-		<enum name="bs_FaceType">
-			<line><name>BS_FACE_FRONT</name><value>0x00000001</value></line>
-			<line><name>BS_FACE_BACK</name><value>0x00000002</value></line>
-			<line><name>BS_FACE_FRONT_AND_BACK</name><value>0x00000003</value></line>
-		</enum>
-		<enum name="bs_StencilOperationType">
-			<line><name>BS_STENCIL_OP_KEEP</name><value>0</value></line>
-			<line><name>BS_STENCIL_OP_ZERO</name><value>1</value></line>
-			<line><name>BS_STENCIL_OP_REPLACE</name><value>2</value></line>
-			<line><name>BS_STENCIL_OP_INCREMENT_AND_CLAMP</name><value>3</value></line>
-			<line><name>BS_STENCIL_OP_DECREMENT_AND_CLAMP</name><value>4</value></line>
-			<line><name>BS_STENCIL_OP_INVERT</name><value>5</value></line>
-			<line><name>BS_STENCIL_OP_INCREMENT_AND_WRAP</name><value>6</value></line>
-			<line><name>BS_STENCIL_OP_DECREMENT_AND_WRAP</name><value>7</value></line>
-		</enum>
-		<enum name="bs_BlendFactorType">
-			<line><name>BS_BLEND_FACTOR_ZERO</name><value>-1</value></line>
-			<line><name>BS_BLEND_FACTOR_DEFAULT</name><value>0</value></line>
-			<line><name>BS_BLEND_FACTOR_ONE</name><value>1</value></line>
-			<line><name>BS_BLEND_FACTOR_SRC_COLOR</name><value>2</value></line>
-			<line><name>BS_BLEND_FACTOR_ONE_MINUS_SRC_COLOR</name><value>3</value></line>
-			<line><name>BS_BLEND_FACTOR_DST_COLOR</name><value>4</value></line>
-			<line><name>BS_BLEND_FACTOR_ONE_MINUS_DST_COLOR</name><value>5</value></line>
-			<line><name>BS_BLEND_FACTOR_SRC_ALPHA</name><value>6</value></line>
-			<line><name>BS_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA</name><value>7</value></line>
-			<line><name>BS_BLEND_FACTOR_DST_ALPHA</name><value>8</value></line>
-			<line><name>BS_BLEND_FACTOR_ONE_MINUS_DST_ALPHA</name><value>9</value></line>
-			<line><name>BS_BLEND_FACTOR_CONSTANT_COLOR</name><value>10</value></line>
-			<line><name>BS_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR</name><value>11</value></line>
-			<line><name>BS_BLEND_FACTOR_CONSTANT_ALPHA</name><value>12</value></line>
-			<line><name>BS_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA</name><value>13</value></line>
-			<line><name>BS_BLEND_FACTOR_SRC_ALPHA_SATURATE</name><value>14</value></line>
-			<line><name>BS_BLEND_FACTOR_SRC1_COLOR</name><value>15</value></line>
-			<line><name>BS_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR</name><value>16</value></line>
-			<line><name>BS_BLEND_FACTOR_SRC1_ALPHA</name><value>17</value></line>
-			<line><name>BS_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA</name><value>18</value></line>
-		</enum>
-		<enum name="bs_BlendOperationType">
-			<line><name>BS_BLEND_OP_ADD</name><value>0</value></line>
-			<line><name>BS_BLEND_OP_SUBTRACT</name><value>1</value></line>
-			<line><name>BS_BLEND_OP_REVERSE_SUBTRACT</name><value>2</value></line>
-			<line><name>BS_BLEND_OP_MIN</name><value>3</value></line>
-			<line><name>BS_BLEND_OP_MAX</name><value>4</value></line>
-			<line><name>BS_BLEND_OP_ZERO_EXT</name><value>1000148000</value></line>
-			<line><name>BS_BLEND_OP_SRC_EXT</name><value>1000148001</value></line>
-			<line><name>BS_BLEND_OP_DST_EXT</name><value>1000148002</value></line>
-			<line><name>BS_BLEND_OP_SRC_OVER_EXT</name><value>1000148003</value></line>
-			<line><name>BS_BLEND_OP_DST_OVER_EXT</name><value>1000148004</value></line>
-			<line><name>BS_BLEND_OP_SRC_IN_EXT</name><value>1000148005</value></line>
-			<line><name>BS_BLEND_OP_DST_IN_EXT</name><value>1000148006</value></line>
-			<line><name>BS_BLEND_OP_SRC_OUT_EXT</name><value>1000148007</value></line>
-			<line><name>BS_BLEND_OP_DST_OUT_EXT</name><value>1000148008</value></line>
-			<line><name>BS_BLEND_OP_SRC_ATOP_EXT</name><value>1000148009</value></line>
-			<line><name>BS_BLEND_OP_DST_ATOP_EXT</name><value>1000148010</value></line>
-			<line><name>BS_BLEND_OP_XOR_EXT</name><value>1000148011</value></line>
-			<line><name>BS_BLEND_OP_MULTIPLY_EXT</name><value>1000148012</value></line>
-			<line><name>BS_BLEND_OP_SCREEN_EXT</name><value>1000148013</value></line>
-			<line><name>BS_BLEND_OP_OVERLAY_EXT</name><value>1000148014</value></line>
-			<line><name>BS_BLEND_OP_DARKEN_EXT</name><value>1000148015</value></line>
-			<line><name>BS_BLEND_OP_LIGHTEN_EXT</name><value>1000148016</value></line>
-			<line><name>BS_BLEND_OP_COLORDODGE_EXT</name><value>1000148017</value></line>
-			<line><name>BS_BLEND_OP_COLORBURN_EXT</name><value>1000148018</value></line>
-			<line><name>BS_BLEND_OP_HARDLIGHT_EXT</name><value>1000148019</value></line>
-			<line><name>BS_BLEND_OP_SOFTLIGHT_EXT</name><value>1000148020</value></line>
-			<line><name>BS_BLEND_OP_DIFFERENCE_EXT</name><value>1000148021</value></line>
-			<line><name>BS_BLEND_OP_EXCLUSION_EXT</name><value>1000148022</value></line>
-			<line><name>BS_BLEND_OP_INVERT_EXT</name><value>1000148023</value></line>
-			<line><name>BS_BLEND_OP_INVERT_RGB_EXT</name><value>1000148024</value></line>
-			<line><name>BS_BLEND_OP_LINEARDODGE_EXT</name><value>1000148025</value></line>
-			<line><name>BS_BLEND_OP_LINEARBURN_EXT</name><value>1000148026</value></line>
-			<line><name>BS_BLEND_OP_VIVIDLIGHT_EXT</name><value>1000148027</value></line>
-			<line><name>BS_BLEND_OP_LINEARLIGHT_EXT</name><value>1000148028</value></line>
-			<line><name>BS_BLEND_OP_PINLIGHT_EXT</name><value>1000148029</value></line>
-			<line><name>BS_BLEND_OP_HARDMIX_EXT</name><value>1000148030</value></line>
-			<line><name>BS_BLEND_OP_HSL_HUE_EXT</name><value>1000148031</value></line>
-			<line><name>BS_BLEND_OP_HSL_SATURATION_EXT</name><value>1000148032</value></line>
-			<line><name>BS_BLEND_OP_HSL_COLOR_EXT</name><value>1000148033</value></line>
-			<line><name>BS_BLEND_OP_HSL_LUMINOSITY_EXT</name><value>1000148034</value></line>
-			<line><name>BS_BLEND_OP_PLUS_EXT</name><value>1000148035</value></line>
-			<line><name>BS_BLEND_OP_PLUS_CLAMPED_EXT</name><value>1000148036</value></line>
-			<line><name>BS_BLEND_OP_PLUS_CLAMPED_ALPHA_EXT</name><value>1000148037</value></line>
-			<line><name>BS_BLEND_OP_PLUS_DARKER_EXT</name><value>1000148038</value></line>
-			<line><name>BS_BLEND_OP_MINUS_EXT</name><value>1000148039</value></line>
-			<line><name>BS_BLEND_OP_MINUS_CLAMPED_EXT</name><value>1000148040</value></line>
-			<line><name>BS_BLEND_OP_CONTRAST_EXT</name><value>1000148041</value></line>
-			<line><name>BS_BLEND_OP_INVERT_OVG_EXT</name><value>1000148042</value></line>
-			<line><name>BS_BLEND_OP_RED_EXT</name><value>1000148043</value></line>
-			<line><name>BS_BLEND_OP_GREEN_EXT</name><value>1000148044</value></line>
-			<line><name>BS_BLEND_OP_BLUE_EXT</name><value>1000148045</value></line>
-		</enum>
-		<enum name="bs_ComparisonType">
-			<line><name>BS_COMPARE_OP_NEVER</name><value>-1</value></line>
-			<line><name>BS_COMPARE_OP_DEFAULT</name><value>0</value></line>
-			<line><name>BS_COMPARE_OP_LESS</name><value>1</value></line>
-			<line><name>BS_COMPARE_OP_EQUAL</name><value>2</value></line>
-			<line><name>BS_COMPARE_OP_LESS_OR_EQUAL</name><value>3</value></line>
-			<line><name>BS_COMPARE_OP_GREATER</name><value>4</value></line>
-			<line><name>BS_COMPARE_OP_NOT_EQUAL</name><value>5</value></line>
-			<line><name>BS_COMPARE_OP_GREATER_OR_EQUAL</name><value>6</value></line>
-			<line><name>BS_COMPARE_OP_ALWAYS</name><value>7</value></line>
-		</enum>
-		<enum name="bs_CullType">
-			<line><name>BS_CULL_MODE_NONE</name><value>-1</value></line>
-			<line><name>BS_CULL_MODE_DEFAULT</name><value>0</value></line>
-			<line><name>BS_CULL_MODE_FRONT_BIT</name><value>0x00000001</value></line>
-			<line><name>BS_CULL_MODE_BACK_BIT</name><value>0x00000002</value></line>
-			<line><name>BS_CULL_MODE_FRONT_AND_BACK</name><value>0x00000003</value></line>
-		</enum>
-		<serializableEnum name="BindType" deserialize="true" count="BS_BIND_TYPES_COUNT">
-			<line><name>BS_BIND_TYPE_SAMPLER</name><value>0</value></line>
-			<line><name>BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER</name><value>1</value></line>
-			<line><name>BS_BIND_TYPE_SAMPLED_IMAGE</name><value>2</value></line>
-			<line><name>BS_BIND_TYPE_STORAGE_IMAGE</name><value>3</value></line>
-			<line><name>BS_BIND_TYPE_UNIFORM_TEXEL_BUFFER</name><value>4</value></line>
-			<line><name>BS_BIND_TYPE_STORAGE_TEXEL_BUFFER</name><value>5</value></line>
-			<line><name>BS_BIND_TYPE_UNIFORM_BUFFER</name><value>6</value></line>
-			<line><name>BS_BIND_TYPE_STORAGE_BUFFER</name><value>7</value></line>
-			<line><name>BS_BIND_TYPE_UNIFORM_BUFFER_DYNAMIC</name><value>8</value></line>
-			<line><name>BS_BIND_TYPE_STORAGE_BUFFER_DYNAMIC</name><value>9</value></line>
-			<line><name>BS_BIND_TYPE_INPUT_ATTACHMENT</name><value>10</value></line>
-			<line><name>BS_BIND_TYPE_PUSH_CONSTANT</name><value>11</value></line>
-			<line><name>BS_BIND_TYPE_INLINE_UNIFORM_BLOCK</name><value>12</value></line>
-			<line><name>BS_BIND_TYPE_ACCELERATION_STRUCTURE</name><value>13</value></line>
-			<line><name>BS_BIND_TYPE_MUTABLE_VALVE</name><value>14</value></line>
-			<line><name>BS_BIND_TYPES_COUNT</name></line>
-		</serializableEnum>
-		<enum name="bs_TopologyType">
-			<line><name>BS_TOPOLOGY_POINT_LIST</name><value>-1</value></line>
-			<line><name>BS_TOPOLOGY_DEFAULT</name><value>0</value></line>
-			<line><name>BS_TOPOLOGY_LINE_LIST</name><value>1</value></line>
-			<line><name>BS_TOPOLOGY_LINE_STRIP</name><value>2</value></line>
-			<line><name>BS_TOPOLOGY_TRIANGLE_LIST</name><value>3</value></line>
-			<line><name>BS_TOPOLOGY_TRIANGLE_STRIP</name><value>4</value></line>
-			<line><name>BS_TOPOLOGY_TRIANGLE_FAN</name><value>5</value></line>
-			<line><name>BS_TOPOLOGY_LINE_LIST_WITH_ADJACENCY</name><value>6</value></line>
-			<line><name>BS_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY</name><value>7</value></line>
-			<line><name>BS_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY</name><value>8</value></line>
-			<line><name>BS_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY</name><value>9</value></line>
-			<line><name>BS_TOPOLOGY_PATCH_LIST</name><value>10</value></line>
-		</enum>
-		<enum name="bs_PolygonType">
-			<line><name>BS_POLYGON_FILL</name><value>0</value></line>
-			<line><name>BS_POLYGON_LINE</name><value>1</value></line>
-			<line><name>BS_POLYGON_POINT</name><value>2</value></line>
-		</enum>
+		
+		<serializableEnum name="ShaderType" deserialize="true" copyFrom="VkShaderStageFlagBits"/>
+		<enum name="bs_BufferUsageFlag" copyFrom="VkBufferUsageFlagBits"/>
+		<enum name="bs_MemoryPropertyFlag" copyFrom="VkMemoryPropertyFlagBits"/>
+		<enum name="bs_Format" copyFrom="VkFormat"/>
+		<enum name="bs_ImageLayout" copyFrom="VkImageLayout"/>
+		<enum name="bs_AccessMask" copyFrom="VkAccessFlagBits"/>
+		<enum name="bs_PipelineStage" copyFrom="VkPipelineStageFlagBits"/>
+		<enum name="bs_DependencyFlag" copyFrom="VkDependencyFlagBits"/>
+		<enum name="bs_CullModeFlag" copyFrom="VkCullModeFlagBits"/>
+		<enum name="bs_StencilFaceFlag" copyFrom="VkStencilFaceFlagBits"/>
+		<enum name="bs_StencilOp" copyFrom="VkStencilOp"/>
+		<enum name="bs_BlendFactor" copyFrom="VkBlendFactor"/>
+		<enum name="bs_BlendOperationType" copyFrom="VkBlendOp"/>
+		<enum name="bs_CompareOp" copyFrom="VkCompareOp"/>
+		<serializableEnum name="BindType" deserialize="true" copyFrom="VkDescriptorType"/>
+		<enum name="bs_TopologyType" copyFrom="VkPrimitiveTopology"/>
+		<enum name="bs_PolygonType" copyFrom="VkPolygonMode"/>
+		<enum name="bs_StoreOp" copyFrom="VkAttachmentStoreOp"/>
+		<enum name="bs_LoadOp" copyFrom="VkAttachmentLoadOp"/>
+		
 		<enum name="bs_ColliderType">
 			<line><name>BS_COLLIDER_NONE</name><value>0</value></line>
 			<line><name>BS_COLLIDER_SPHERE</name><value>1</value></line>
 			<line><name>BS_COLLIDER_AABB</name><value>2</value></line>
-		</enum>
-		<enum name="bs_StoreOp">
-			<line><name>BS_STORE_OP_STORE</name><value>0</value></line>
-			<line><name>BS_STORE_OP_DONT_CARE</name><value>1</value></line>
-			<line><name>BS_STORE_OP_NONE</name><value>1000301000</value></line>
-		</enum>
-		<enum name="bs_LoadOp">
-			<line><name>BS_LOAD_OP_LOAD</name><value>0</value></line>
-			<line><name>BS_LOAD_OP_CLEAR</name><value>1</value></line>
-			<line><name>BS_LOAD_OP_DONT_CARE</name><value>2</value></line>
-			<line><name>BS_LOAD_OP_NONE</name><value>1000400000</value></line>
 		</enum>
 		<enum name="bs_ObjectFlag">
 			<line><name>BS_OBJECT_SHOULD_LOAD</name><value>(1 &lt;&lt; 0)</value></line>
@@ -1687,10 +1238,10 @@
             </structure>
         </structure>
         <structure name="bs_StencilOperation">
-            <field><type>bs_StencilOperationType</type><name>fail_op</name></field>
-            <field><type>bs_StencilOperationType</type><name>pass_op</name></field>
-            <field><type>bs_StencilOperationType</type><name>depth_fail_op</name></field>
-            <field><type>bs_ComparisonType</type><name>compare_op</name></field>
+            <field><type>bs_StencilOp</type><name>fail_op</name></field>
+            <field><type>bs_StencilOp</type><name>pass_op</name></field>
+            <field><type>bs_StencilOp</type><name>depth_fail_op</name></field>
+            <field><type>bs_CompareOp</type><name>compare_op</name></field>
             <field><type>bs_U32</type><name>compare_mask</name></field>
             <field><type>bs_U32</type><name>write_mask</name></field>
             <field><type>bs_U32</type><name>reference</name></field>
@@ -1718,17 +1269,17 @@
             <field><type>int</type><name>subpass</name></field>
             <field><type>bs_Renderer*</type><name>renderer</name></field>
             <field><type>bs_TopologyType</type><name>topology_type</name></field>
-            <field><type>bs_BlendFactorType</type><name>src_color_factor</name></field>
-            <field><type>bs_BlendFactorType</type><name>dst_color_factor</name></field>
-            <field><type>bs_BlendFactorType</type><name>src_alpha_factor</name></field>
-            <field><type>bs_BlendFactorType</type><name>dst_alpha_factor</name></field>
+            <field><type>bs_BlendFactor</type><name>src_color_factor</name></field>
+            <field><type>bs_BlendFactor</type><name>dst_color_factor</name></field>
+            <field><type>bs_BlendFactor</type><name>src_alpha_factor</name></field>
+            <field><type>bs_BlendFactor</type><name>dst_alpha_factor</name></field>
             <field><type>bs_BlendOperationType</type><name>color_op</name></field>
             <field><type>bs_BlendOperationType</type><name>alpha_op</name></field>
             <field><type>bs_StencilOperation</type><name>stencil_front</name></field>
             <field><type>bs_StencilOperation</type><name>stencil_back</name></field>
-            <field><type>bs_CullType</type><name>cull_type</name></field>
+            <field><type>bs_CullModeFlag</type><name>cull_type</name></field>
             <field><type>bs_PolygonType</type><name>polygon_type</name></field>
-            <field><type>bs_ComparisonType</type><name>depth_comparison</name></field>
+            <field><type>bs_CompareOp</type><name>depth_comparison</name></field>
             <field><type>bool</type><name>restart_primitive</name></field>
             <field><type>bool</type><name>clamp_depth</name></field>
             <field><type>bool</type><name>skip_depth_test</name></field>
@@ -2302,14 +1853,9 @@
             <field><type>bool</type><name>paused</name></field>
             <field><type>bool</type><name>advance</name></field>
 
-            <structure instance=" surface_format">
-                <field><type>bs_Format</type><name>format</name></field>
-                <field><type>enum VkColorSpaceKHR</type><name>color_space</name></field>
-            </structure>
-			<field><type>enum VkColorSpaceKHR</type><name>color_space</name></field>
-			<field><type>enum VkPresentModeKHR</type><name>present_mode</name></field>
 			<field><type>struct VkSurfaceKHR_T*</type><name>surface</name></field>
-
+            <field><type>bs_PhysicalDevice*</type><name>physical_device</name></field>
+			
             <field><type>int</type><name>id</name></field>
             <field><type>int</type><name>frames_in_flight</name></field>
             <field><type>int</type><name>frame</name></field>
@@ -2347,7 +1893,6 @@
             <field><type>struct VkDescriptorSet_T*</type><name>sets</name><size>BS_MAX_NUM_BIND_SETS</size></field>
 			<field><type>struct VkDescriptorSetLayout_T*</type><name>layouts</name><size>BS_MAX_NUM_BIND_SETS</size></field>
 			<field><type>struct VkInstance_T*</type><name>instance</name></field>
-			<field><type>struct VkPhysicalDevice_T*</type><name>physical_device</name></field>
 			<field><type>struct VkDevice_T*</type><name>device</name></field>
 			<field><type>struct VkCommandPool_T*</type><name>command_pool</name></field>
 		</structure>
@@ -2396,6 +1941,7 @@
 		<extern><type>bs_Props</type><name>bs_props</name></extern>
 		<extern><type>bs_Scope</type><name>bs_scope</name></extern>
 		<extern><type>int</type><name>bs_image_index</name></extern>
+		<extern><type>bs_List</type><name>bs_physical_devices</name></extern>
 	</externs>
 	
     <functions>
@@ -2914,7 +2460,7 @@
         </function>
         <function name="bs_stencilReference">
             <return>void</return>
-            <param><type>bs_FaceType</type><name>face</name></param>
+            <param><type>bs_StencilFaceFlag</type><name>face</name></param>
             <param><type>bs_U32</type><name>reference</name></param>
         </function>
         <function name="bs_cull">

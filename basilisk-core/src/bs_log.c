@@ -108,6 +108,17 @@ BSAPI void _bs_critical(char* message, int message_len) {
 
     _bs_saveFile(result, strlen(result), BS_CONSTANT_STRING("basilisk.log"));
 
+#ifdef _WIN32
+    if (_bs_scope_.window) {
+        int report_bug = MessageBox(
+            _bs_scope_.window->hwnd,
+            message,
+            _bs_scope_.window->title,
+            MB_ICONERROR | MB_OK
+        );
+    }
+#endif
+
     /*
     if (_bs_args_.send_bugs)
     {

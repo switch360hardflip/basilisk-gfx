@@ -67,30 +67,6 @@ BSAPI bool _bs_hasAlpha(bs_Format format) {
         format == BS_FORMAT_B8G8R8A8_SRGB;
 }
 
-static inline const char* _bs_layoutName(bs_ImageLayout layout) {
-    switch (layout) {
-        case BS_LAYOUT_UNDEFINED: return "Undefined";
-        case BS_LAYOUT_GENERAL: return "General";
-        case BS_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: return "Color (Attachment)";
-        case BS_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: return "Depth/Stencil (Attachment)";
-        case BS_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL: return "Depth/Stencil (Read Only)";
-        case BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL: return "Shader (Read Only)";
-        case BS_LAYOUT_TRANSFER_SRC_OPTIMAL: return "Transfer Src";
-        case BS_LAYOUT_TRANSFER_DST_OPTIMAL: return "Transfer Dst";
-        case BS_LAYOUT_PREINITIALIZED: return "Preinitialized";
-        case BS_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL: return "Depth (Read Only) Stencil (Attachment)";
-        case BS_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL: return "Depth/Stencil (Read Only)";
-        case BS_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL: return "Depth (Attachment)";
-        case BS_LAYOUT_DEPTH_READ_ONLY_OPTIMAL: return "Depth (Read Only)";
-        case BS_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL: return "Stencil (Attachment)";
-        case BS_LAYOUT_STENCIL_READ_ONLY_OPTIMAL: return "Stencil (Read Only)";
-        case BS_LAYOUT_READ_ONLY_OPTIMAL: return "Read Only";
-        case BS_LAYOUT_ATTACHMENT_OPTIMAL: return "Attachment";
-        case BS_LAYOUT_PRESENT_SRC_KHR: return "Present Src";
-    }
-    return "Unknown";
-}
-
 BSAPI int _bs_imageSwapsCount(bs_Image* image) {
     return image->flags & BS_IMAGE_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
 }
@@ -133,98 +109,98 @@ BSAPI void _bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout,
         barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     }
 
-    if (old_layout == BS_LAYOUT_UNDEFINED && new_layout == BS_LAYOUT_TRANSFER_DST_OPTIMAL) {
+    if (old_layout == BS_IMAGE_LAYOUT_UNDEFINED && new_layout == BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
         barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
         src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     }
-    else if (old_layout == BS_LAYOUT_UNDEFINED && new_layout == BS_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+    else if (old_layout == BS_IMAGE_LAYOUT_UNDEFINED && new_layout == BS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
         barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
         src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     }
-    else if (old_layout == BS_LAYOUT_UNDEFINED && new_layout == BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+    else if (old_layout == BS_IMAGE_LAYOUT_UNDEFINED && new_layout == BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
         barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     }
-    else if (old_layout == BS_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && new_layout == BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+    else if (old_layout == BS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && new_layout == BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
         barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         src_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     }
-    else if (old_layout == BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL && new_layout == BS_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+    else if (old_layout == BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && new_layout == BS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
         barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
         barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
         src_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
         dst_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     }
-    else if (old_layout == BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL && new_layout == BS_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+    else if (old_layout == BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && new_layout == BS_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
         barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
         src_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
         dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     }
-    else if (old_layout == BS_LAYOUT_TRANSFER_SRC_OPTIMAL && new_layout == BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+    else if (old_layout == BS_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && new_layout == BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         src_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
         dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     }
-    else if (old_layout == BS_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+    else if (old_layout == BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         src_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
         dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     }
-    else if (old_layout == BS_LAYOUT_UNDEFINED && new_layout == BS_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+    else if (old_layout == BS_IMAGE_LAYOUT_UNDEFINED && new_layout == BS_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
         barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
         src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         dst_stage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     }
-    else if (old_layout == BS_LAYOUT_GENERAL && new_layout == BS_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+    else if (old_layout == BS_IMAGE_LAYOUT_GENERAL && new_layout == BS_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
         barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
         src_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
         dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     }
-    else if (old_layout == BS_LAYOUT_TRANSFER_SRC_OPTIMAL && new_layout == BS_LAYOUT_GENERAL) {
+    else if (old_layout == BS_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && new_layout == BS_IMAGE_LAYOUT_GENERAL) {
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         src_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
         dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     }
-    else if (old_layout == BS_LAYOUT_UNDEFINED && new_layout == BS_LAYOUT_GENERAL) {
+    else if (old_layout == BS_IMAGE_LAYOUT_UNDEFINED && new_layout == BS_IMAGE_LAYOUT_GENERAL) {
         barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     }
-    else if (old_layout == BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL && new_layout == BS_LAYOUT_TRANSFER_DST_OPTIMAL) {
+    else if (old_layout == BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && new_layout == BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
         barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
         src_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
         dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     }
-    else if (old_layout == BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL && new_layout == BS_LAYOUT_GENERAL) {
+    else if (old_layout == BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && new_layout == BS_IMAGE_LAYOUT_GENERAL) {
         barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
@@ -611,9 +587,9 @@ BSAPI bs_Result _bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs
         VK_IMAGE_USAGE_SAMPLED_BIT,
         VK_IMAGE_ASPECT_COLOR_BIT);
 
-    _bs_transition(object->image, 0, BS_LAYOUT_UNDEFINED, BS_LAYOUT_TRANSFER_DST_OPTIMAL);
-    _bs_copyBufferToImage(staging_buffer, object->image, 0, BS_LAYOUT_TRANSFER_DST_OPTIMAL);
-    _bs_transition(object->image, 0, BS_LAYOUT_TRANSFER_DST_OPTIMAL, BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    _bs_transition(object->image, 0, BS_IMAGE_LAYOUT_UNDEFINED, BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    _bs_copyBufferToImage(staging_buffer, object->image, 0, BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    _bs_transition(object->image, 0, BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
    // _bs_destroyBuffer(staging_buffer); // queue this or sum shit idk how to deal with this
 
@@ -924,9 +900,9 @@ BSAPI bs_Result _bs_loadImage(bs_Object* object, int package_id, bs_ImageBits fl
         object->image->indices[i].name_hash = _bs_stringHash(name);
 
         _bs_stageImage(buffer, BS_FORMAT_R8G8B8A8_UNORM, object->image->dim, bmp);
-        _bs_transition(object->image, i, BS_LAYOUT_UNDEFINED, BS_LAYOUT_TRANSFER_DST_OPTIMAL);
-        _bs_copyBufferToImage(buffer, object->image, i, BS_LAYOUT_TRANSFER_DST_OPTIMAL);
-        _bs_transition(object->image, i, BS_LAYOUT_TRANSFER_DST_OPTIMAL, BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        _bs_transition(object->image, i, BS_IMAGE_LAYOUT_UNDEFINED, BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        _bs_copyBufferToImage(buffer, object->image, i, BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+        _bs_transition(object->image, i, BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
         data += pointer->name_length;
     }
