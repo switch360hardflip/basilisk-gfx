@@ -121,11 +121,13 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                     <xsl:otherwise>
                         <xsl:text>    switch (e) {&#xA;</xsl:text>
                         <xsl:for-each select="line">
+							<xsl:if test="not(value = preceding-sibling::line/value)">
 								<xsl:text>        case </xsl:text>
 								<xsl:value-of select="name"/>
 								<xsl:text>: return "</xsl:text>
 								<xsl:value-of select="name"/>
 								<xsl:text>";&#xA;</xsl:text>
+							</xsl:if>
                         </xsl:for-each>
                         <xsl:text>    }&#xA;&#xA;    return NULL;</xsl:text>
                     </xsl:otherwise>

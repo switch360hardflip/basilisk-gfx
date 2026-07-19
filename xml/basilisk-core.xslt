@@ -59,10 +59,34 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 		</line>
 	</xsl:template>
 
+	<xsl:template match="enum|serializableEnum" mode="vk-extends">
+		<xsl:param name="indent"/>
+
+		<line>
+			<name>
+				<xsl:call-template name="replace-prefix">
+					<xsl:with-param name="text" select="@name"/>
+					<xsl:with-param name="old" select="'VK_'"/>
+					<xsl:with-param name="new" select="'BS_'"/>
+				</xsl:call-template>
+			</name>
+			<value><xsl:value-of select="1000000000 + ((../../@number - 1) * 1000) + @offset"/></value>
+		</line>
+	</xsl:template>
+
+	<xsl:template name="applyEnumExtensions">
+		<xsl:param name="sourceEnum"/>
+		
+		<xsl:for-each select="/registry/extensions">
+			<xsl:apply-templates select="$vk/registry/extensions/extension[@name = 'VK_KHR_swapchain']/require/enum[@extends = $sourceEnum]" mode="vk-extends"/>
+		</xsl:for-each>
+	</xsl:template>
+
 	<xsl:template match="serializableEnum[@copyFrom]">
 		<serializableEnum name="{@name}" deserialize="{@deserialize}">
 			<xsl:variable name="sourceEnum" select="@copyFrom"/>
 			<xsl:apply-templates select="$vk/registry/enums[@name = $sourceEnum]/enum" mode="vk-line"/>
+			<xsl:call-template name="applyEnumExtensions"><xsl:with-param name="sourceEnum" select="$sourceEnum"/></xsl:call-template>
 		</serializableEnum>
 	</xsl:template>
 
@@ -70,6 +94,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 		<enum name="{@name}">
 			<xsl:variable name="sourceEnum" select="@copyFrom"/>
 			<xsl:apply-templates select="$vk/registry/enums[@name = $sourceEnum]/enum" mode="vk-line"/>
+			<xsl:call-template name="applyEnumExtensions"><xsl:with-param name="sourceEnum" select="$sourceEnum"/></xsl:call-template>
 		</enum>
 	</xsl:template>
 

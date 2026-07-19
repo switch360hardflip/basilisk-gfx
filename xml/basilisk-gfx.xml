@@ -573,49 +573,6 @@
             <line>BSGFX_BATCH_POINT_INSTANCED</line>
         </macro>
 
-        <macro>
-            <name>#define BSGFX_REQUIRED_FOR_SHADOW_VOLUMES</name>
-            <line>.stencil_front = {</line>
-            <line>    .fail_op = BS_STENCIL_OP_KEEP,</line>
-            <line>    .depth_fail_op = BS_STENCIL_OP_KEEP,</line>
-            <line>    .pass_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,</line>
-            <line>    .compare_mask = 0xFF,</line>
-            <line>    .compare_op = BS_COMPARE_OP_LESS_OR_EQUAL,</line>
-            <line>    .write_mask = 0xFF,</line>
-            <line>},</line>
-            <line>.stencil_back = {</line>
-            <line>    .fail_op = BS_STENCIL_OP_KEEP,</line>
-            <line>    .depth_fail_op = BS_STENCIL_OP_KEEP,</line>
-            <line>    .pass_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,</line>
-            <line>    .compare_mask = 0xFF,</line>
-            <line>    .compare_op = BS_COMPARE_OP_LESS_OR_EQUAL,</line>
-            <line>    .write_mask = 0xFF,</line>
-            <line>},</line>
-            <line>.cull_type = BS_CULL_MODE_NONE</line>
-        </macro>
-
-        <macro>
-            <name>#define BSGFX_REQUIRED_FOR_SHADOW_STENCIL</name>
-            <line>.depth_comparison = BS_COMPARE_OP_ALWAYS,</line>
-            <line>.stencil_front = {</line>
-            <line>    .compare_op = BS_COMPARE_OP_EQUAL,</line>
-            <line>    .compare_mask = 0xFF,</line>
-            <line>    .fail_op = BS_STENCIL_OP_KEEP,</line>
-            <line>    .depth_fail_op = BS_STENCIL_OP_KEEP,</line>
-            <line>    .pass_op = BS_STENCIL_OP_KEEP,</line>
-            <line>}</line>
-        </macro>
-
-        <macro>
-            <name>#define BSGFX_TRANSPARENT_OPTIONS</name>
-            <line>.src_alpha_factor = BS_BLEND_FACTOR_SRC_ALPHA,</line>
-            <line>.dst_alpha_factor = BS_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,</line>
-            <line>.src_color_factor = BS_BLEND_FACTOR_SRC_ALPHA,</line>
-            <line>.dst_color_factor = BS_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,</line>
-            <line>.color_op = BS_BLEND_OP_ADD,</line>
-            <line>.alpha_op = BS_BLEND_OP_ADD</line>
-        </macro>
-
         <macro><name>#define BSGFX_COLLIDER_SKIN</name><line>(0.015)</line></macro>
 
         <macro><name>#define du_animatorCallback(name)</name><line>void(*name)(bsgfx_Animator*)</line></macro>
@@ -647,14 +604,6 @@
         <macro><name>#define BSGFX_FIXED_TICK</name><line>(1.0 / 40.0)</line></macro>
         <macro><name>#define BSGFX_TITLE_BAR_COLOR</name><line>(bs_RGBA) { 255, 255, 255, 200 }</line></macro>
         <macro><name>#define BSGFX_SCREENSHOT_DIMENSIONS</name><line>BS_IV2(1920 / 4, 1080 / 4)</line></macro>
-
-        <macro>
-            <name>#define BSGFX_MOTD</name>
-            <line>"poser\n"</line>
-            <line>"pre-pre-alpha\n\n"</line>
-            <line>"thx for playing\n"</line>
-            <line>"special thx malteSWE!"</line>
-        </macro>
 
         <macro><name>#define BSGFX_SHADOW_COLOR</name><line>((bs_RGBA) { 50, 50, 60, 150 })</line></macro>
         <macro><name>#define BSGFX_RGBA(r, g, b, a)</name><line>((bs_vec4) { (float)r / 255.0, (float)g / 255.0, (float)b / 255.0, (float)a / 255.0 })</line></macro>
@@ -1284,6 +1233,25 @@
 	<functions>
 		<validationTemplate/>
 
+		<function name="bsgfx_defaultPipelineHash">
+			<return>bs_PipelineHash</return>
+		</function>
+
+		<function name="bsgfx_requiredForShadowVolumes">
+			<return>void</return>
+			<param><type>bs_PipelineHash*</type><name>inout</name></param>
+		</function>
+		
+		<function name="bsgfx_requiredForStencilShadows">
+			<return>void</return>
+			<param><type>bs_PipelineHash*</type><name>inout</name></param>
+		</function>
+		
+		<function name="bsgfx_requiredForTransparency">
+			<return>void</return>
+			<param><type>bs_PipelineHash*</type><name>inout</name></param>
+		</function>
+		
 		<function name="bsgfx_currentScene">
 			<return>bsgfx_Scene*</return>
 		</function>

@@ -208,7 +208,7 @@ BSAPI void _bs_transition(bs_Image* image, int index, bs_ImageLayout old_layout,
         dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     }
     else {
-        _bs_warnF("Unknown layout transition %s -> %s\n", _bs_layoutName(old_layout), _bs_layoutName(new_layout));
+        _bs_warnF("Unknown layout transition %s -> %s\n", bs_serializeImageLayout(old_layout), bs_serializeImageLayout(new_layout));
     }
 
     vkCmdPipelineBarrier(

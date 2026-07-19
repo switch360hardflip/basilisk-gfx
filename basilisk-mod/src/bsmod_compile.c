@@ -108,24 +108,29 @@ static bsmod_Reflection _bsmod_reflectionData(bs_U32* spirv, bs_U32 size, spvc_r
 }
 
 static const char* _bsmod_serializeBufferType(spvc_resource_type type) {
+	bs_criticalF("%s: Not implemented", __func__);
+	return NULL;
+	/*
 	bs_BindType bind_type;
 
 	switch (type) {
-	case SPVC_RESOURCE_TYPE_STORAGE_BUFFER: bind_type = BS_BIND_TYPE_STORAGE_BUFFER; break;
-	case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER: bind_type = BS_BIND_TYPE_UNIFORM_BUFFER; break;
-	case SPVC_RESOURCE_TYPE_SEPARATE_IMAGE: bind_type = BS_BIND_TYPE_SAMPLED_IMAGE; break;
-	case SPVC_RESOURCE_TYPE_SUBPASS_INPUT: bind_type = BS_BIND_TYPE_INPUT_ATTACHMENT; break;
-	case SPVC_RESOURCE_TYPE_SEPARATE_SAMPLERS: bind_type = BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER; break;
-	case SPVC_RESOURCE_TYPE_PUSH_CONSTANT: bind_type = BS_BIND_TYPE_PUSH_CONSTANT; break;
-	case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE: bind_type = BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER; break;
-	case SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE: bind_type = BS_BIND_TYPE_ACCELERATION_STRUCTURE; break;
-	case SPVC_RESOURCE_TYPE_STORAGE_IMAGE: bind_type = BS_BIND_TYPE_STORAGE_IMAGE; break;
+	case SPVC_RESOURCE_TYPE_STORAGE_BUFFER: bind_type = BS_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
+	case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER: bind_type = BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
+	case SPVC_RESOURCE_TYPE_SEPARATE_IMAGE: bind_type = BS_DESCRIPTOR_TYPE_SAMPLED_IMAGE; break;
+	case SPVC_RESOURCE_TYPE_SUBPASS_INPUT: bind_type = BS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT; break;
+	case SPVC_RESOURCE_TYPE_SEPARATE_SAMPLERS: bind_type = BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; break;
+	case SPVC_RESOURCE_TYPE_PUSH_CONSTANT: bind_type = BS_DESCRIPTOR_TYPE_PUSH_CONSTANT; break;
+	case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE: bind_type = BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; break;
+	case SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE: bind_type = BS_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE; break;
+	case SPVC_RESOURCE_TYPE_STORAGE_IMAGE: bind_type = BS_DESCRIPTOR_TYPE_STORAGE_IMAGE; break;
 	default:
 	//	ls_throw("SPVC buffer type (%d) not supported\n", type);
 		return NULL;
 	}
 
+
 	return bs_serializeBindType(bind_type);
+	*/
 }
 
 static void _bsmod_saveBuffer(bs_Json* json, char* shader_type, const char* name, spvc_resource_type type, bs_U32* spirv, bs_U32 size, bool add_to_bindings) {
@@ -216,6 +221,7 @@ static void _bsmod_saveAttributes(bs_Json* json, bs_U32* spirv, bs_U32 size) {
 }
 
 static bs_Result _bsmod_saveReflection(char* path, char* package, char* name, bs_U32* spirv, bs_U32 size, glslang_stage_t stage) {
+	/*
 	bs_Result result = BS_RESULT_OK;
 
 	bs_Json json;
@@ -255,7 +261,7 @@ static bs_Result _bsmod_saveReflection(char* path, char* package, char* name, bs
 	_bsmod_saveBuffer(&json, type_name, "sampledImages", SPVC_RESOURCE_TYPE_SAMPLED_IMAGE, spirv, size, true);
 	_bsmod_saveBuffer(&json, type_name, "accelerationStructures", SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE, spirv, size, true);
 	_bsmod_saveBuffer(&json, type_name, "storageImages", SPVC_RESOURCE_TYPE_STORAGE_IMAGE, spirv, size, true);
-
+	*/
 	bs_warnF("Custom shader format not implemented yet\n");
 	return BS_RESULT_NOT_IMPLEMENTED;
 	/*
@@ -290,7 +296,7 @@ static bs_Result _bsmod_saveReflection(char* path, char* package, char* name, bs
 		name[-1] = '/';
 	}
 	*/
-
+	/*
 	char* raw;
 	result = bs_saveJson(&json, BS_JSON_PRETTY, &raw);
 	if (result != BS_RESULT_OK)
@@ -305,6 +311,7 @@ end:
 	bs_destroyJson(&json);
 
 	return result;
+	*/
 }
 
 static bs_Json _bsmod_shader_references = { 0 };
@@ -485,6 +492,8 @@ typedef struct {
 } ls_Binding;
 
 static void ls_readBuffer(bs_Json* root, bs_List* bindings, char* path, const char* name) {
+	bs_criticalF("%s: Not implemented", __func__);
+	/*
 	bs_JsonValue objects = bs_fetchJson(root, BS_JSON_UNDEFINED, name, strlen(name));
 
 	if (!objects.found) 
@@ -542,6 +551,7 @@ static void ls_readBuffer(bs_Json* root, bs_List* bindings, char* path, const ch
 	}
 
 	bs_free(objects.as_array.as_objects);
+	*/
 }
 
 static void _bsmod_readShaderBindings(char* path, bs_List* bindings) {

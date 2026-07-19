@@ -169,7 +169,6 @@ typedef enum bs_PngType bs_PngType;
 typedef enum bs_Slot bs_Slot;
 typedef enum bs_BufferUsageFlag bs_BufferUsageFlag;
 typedef enum bs_MemoryPropertyFlag bs_MemoryPropertyFlag;
-typedef enum bs_ImageLayout bs_ImageLayout;
 typedef enum bs_AccessMask bs_AccessMask;
 typedef enum bs_PipelineStage bs_PipelineStage;
 typedef enum bs_DependencyFlag bs_DependencyFlag;
@@ -211,6 +210,7 @@ typedef enum bs_ShaderType bs_ShaderType;
 typedef enum bs_Format bs_Format;
 typedef enum bs_ColorSpace bs_ColorSpace;
 typedef enum bs_PresentMode bs_PresentMode;
+typedef enum bs_ImageLayout bs_ImageLayout;
 typedef enum bs_BindType bs_BindType;
 typedef enum bs_VkObjectType bs_VkObjectType;
 
@@ -2619,18 +2619,6 @@ enum bs_MemoryPropertyFlag {
     BS_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT = 1 << 4,
 };
 
-enum bs_ImageLayout {
-    BS_IMAGE_LAYOUT_UNDEFINED = 0,
-    BS_IMAGE_LAYOUT_GENERAL = 1,
-    BS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL = 2,
-    BS_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL = 3,
-    BS_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL = 4,
-    BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL = 5,
-    BS_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL = 6,
-    BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL = 7,
-    BS_IMAGE_LAYOUT_PREINITIALIZED = 8,
-};
-
 enum bs_AccessMask {
     BS_ACCESS_INDIRECT_COMMAND_READ_BIT = 1 << 0,
     BS_ACCESS_INDEX_READ_BIT = 1 << 1,
@@ -2910,7 +2898,7 @@ enum bs_CursorIcon {
 };
 
 enum bs_ObjectType {
-    BS_OBJECT_WINDOW,
+    BS_OBJECT_CONTEXT,
     BS_OBJECT_IMAGE,
     BS_OBJECT_SAMPLER,
     BS_OBJECT_BUFFER,
@@ -3164,6 +3152,19 @@ enum bs_PresentMode {
     BS_PRESENT_MODE_FIFO_RELAXED_KHR = 3,
 };
 
+enum bs_ImageLayout {
+    BS_IMAGE_LAYOUT_UNDEFINED = 0,
+    BS_IMAGE_LAYOUT_GENERAL = 1,
+    BS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL = 2,
+    BS_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL = 3,
+    BS_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL = 4,
+    BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL = 5,
+    BS_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL = 6,
+    BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL = 7,
+    BS_IMAGE_LAYOUT_PREINITIALIZED = 8,
+    BS_IMAGE_LAYOUT_PRESENT_SRC_KHR = 1000001002,
+};
+
 enum bs_BindType {
     BS_DESCRIPTOR_TYPE_SAMPLER = 0,
     BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER = 1,
@@ -3205,6 +3206,7 @@ enum bs_VkObjectType {
     BS_OBJECT_TYPE_DESCRIPTOR_SET = 23,
     BS_OBJECT_TYPE_FRAMEBUFFER = 24,
     BS_OBJECT_TYPE_COMMAND_POOL = 25,
+    BS_OBJECT_TYPE_SWAPCHAIN_KHR = 1000001000,
 };
 
  /**
@@ -6308,12 +6310,6 @@ bs_parseArgs(
     char* argv[]);
 
  /**
-  @return bs_Args*
-  */
-BSAPI bs_Args*
-bs_arguments();
-
- /**
   @return void
   */
 BSAPI void
@@ -9398,6 +9394,14 @@ bs_serializeColorSpace(
 BSAPI const char*
 bs_serializePresentMode(
     bs_PresentMode e);
+
+ /**
+  @param e
+  @return const char*
+  */
+BSAPI const char*
+bs_serializeImageLayout(
+    bs_ImageLayout e);
 
  /**
   @param e

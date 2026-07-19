@@ -221,7 +221,6 @@ static inline bs_FunctionTable* _val_bs_getFunctions() {
     functions.bs_destroyAtlas = (PFN_bs_destroyAtlas)GetProcAddress(module, "_val_bs_destroyAtlas");
     functions.bs_loadAtlasMemory = (PFN_bs_loadAtlasMemory)GetProcAddress(module, "_val_bs_loadAtlasMemory");
     functions.bs_parseArgs = (PFN_bs_parseArgs)GetProcAddress(module, "_val_bs_parseArgs");
-    functions.bs_arguments = (PFN_bs_arguments)GetProcAddress(module, "_val_bs_arguments");
     functions.bs_ini = (PFN_bs_ini)GetProcAddress(module, "_val_bs_ini");
     functions.bs_load = (PFN_bs_load)GetProcAddress(module, "_val_bs_load");
     functions.bs_queryProcedures = (PFN_bs_queryProcedures)GetProcAddress(module, "_val_bs_queryProcedures");

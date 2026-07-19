@@ -724,28 +724,27 @@ BSGFXAPI void _bsgfx_renderColorPickers() {
 	 /**
 	  Color picker
 	  */
-	hash = (bs_PipelineHash) {
-		.shaders = {
-			$vs_bsgfx_quad_rounded_instanced(),
-			$fs_bsgfx_color_picker(),
-		},
-		BSGFX_TRANSPARENT_OPTIONS,
-				.stencil_back = {
-			.fail_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
-			.pass_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
-			.depth_fail_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
-			.compare_op = BS_COMPARE_OP_ALWAYS,
-			.compare_mask = 0xFF,
-			.write_mask = 0xFF,
-		},
-		.stencil_front = {
-			.fail_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
-			.pass_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
-			.depth_fail_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
-			.compare_op = BS_COMPARE_OP_ALWAYS,
-			.compare_mask = 0xFF,
-			.write_mask = 0xFF,
-		}
+	hash = _bsgfx_defaultPipelineHash();
+	_bsgfx_requiredForTransparency(&hash);
+	hash.shaders[0] = $vs_bsgfx_quad_rounded_instanced();
+	hash.shaders[1] = $fs_bsgfx_color_picker();
+
+	hash.stencil_back = (bs_StencilOperation) {
+		.fail_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
+		.pass_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
+		.depth_fail_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
+		.compare_op = BS_COMPARE_OP_ALWAYS,
+		.compare_mask = 0xFF,
+		.write_mask = 0xFF,
+	};
+
+	hash.stencil_front = (bs_StencilOperation) {
+		.fail_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
+		.pass_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
+		.depth_fail_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
+		.compare_op = BS_COMPARE_OP_ALWAYS,
+		.compare_mask = 0xFF,
+		.write_mask = 0xFF,
 	};
 
 	if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
@@ -757,13 +756,10 @@ BSGFXAPI void _bsgfx_renderColorPickers() {
 	 /**
 	  Hue
 	  */
-	hash = (bs_PipelineHash) {
-		.shaders = {
-			$vs_bsgfx_quad_rounded_instanced(),
-			$fs_bsgfx_hue(),
-		},
-		BSGFX_TRANSPARENT_OPTIONS,
-	};
+	hash = _bsgfx_defaultPipelineHash();
+	_bsgfx_requiredForTransparency(&hash);
+	hash.shaders[0] = $vs_bsgfx_quad_rounded_instanced();
+	hash.shaders[1] = $fs_bsgfx_hue();
 
 	if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
 
@@ -774,13 +770,10 @@ BSGFXAPI void _bsgfx_renderColorPickers() {
 	 /**
 	  Alpha
 	  */
-	hash = (bs_PipelineHash){
-		.shaders = {
-			$vs_bsgfx_quad_rounded_instanced(),
-			$fs_bsgfx_alpha(),
-		},
-		BSGFX_TRANSPARENT_OPTIONS,
-	};
+	hash = _bsgfx_defaultPipelineHash();
+	_bsgfx_requiredForTransparency(&hash);
+	hash.shaders[0] = $vs_bsgfx_quad_rounded_instanced();
+	hash.shaders[1] = $fs_bsgfx_alpha();
 
 	if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
 		bs_pushConstant(pipeline, 0, sizeof(_poser_->screen_camera.result), &_poser_->screen_camera.result);

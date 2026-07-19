@@ -193,8 +193,8 @@ static void _bs_readSurfaceFormats(bs_PhysicalDevice* physical_device) {
 
     for (int i = 0; i < physical_device->surface_formats.count; i++) {
         bs_SurfaceFormat* surface_format = _bs_fetchUnit(&physical_device->surface_formats, i);
-        surface_format->color_space = formats[i].colorSpace;
-        surface_format->format = formats[i].format;
+        surface_format->color_space = (bs_ColorSpace)formats[i].colorSpace;
+        surface_format->format = (bs_Format)formats[i].format;
     }
 }
 
@@ -457,7 +457,7 @@ static void _bs_querySwapchainFormat(VkFormat candidates[], int candidates_count
         for (int j = 0; j < _bs_context_->physical_device->surface_formats.count; j++) {
             bs_SurfaceFormat* surface_format = bs_fetchUnit(&_bs_context_->physical_device->surface_formats, j);
 
-            if (candidate == surface_format->format) {
+            if ((bs_Format)candidate == surface_format->format) {
                 _bs_context_->surface_format = *surface_format;
                 return;
             }
@@ -481,7 +481,7 @@ static void _bs_querySwapchainMode(VkPresentModeKHR candidates[], int candidates
             VkPresentModeKHR mode = modes[j];
             if (candidate == mode) {
                 _bs_free(modes);
-                _bs_context_->present_mode = mode;
+                _bs_context_->present_mode = (bs_PresentMode)mode;
                 return;
             }
         }
@@ -548,9 +548,9 @@ static void _bs_prepareSwapchain() {
         .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
         .clipped = VK_TRUE,
         .preTransform = capabilities.currentTransform,
-        .presentMode = _bs_context_->present_mode,
+        .presentMode = (VkPresentModeKHR)_bs_context_->present_mode,
         .imageFormat = (VkFormat)_bs_context_->surface_format.format,
-        .imageColorSpace = _bs_context_->surface_format.color_space,
+        .imageColorSpace = (VkColorSpaceKHR)_bs_context_->surface_format.color_space,
     };
 
     result = vkCreateSwapchainKHR(_bs_instance_->device, &swapchain_ci, NULL, &_bs_context_->swapchain);

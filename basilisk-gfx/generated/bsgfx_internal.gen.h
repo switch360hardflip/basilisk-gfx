@@ -36,6 +36,10 @@
 #include <basilisk-gfx.h>
 #include <windows.h>
 
+typedef bs_PipelineHash(__stdcall* PFN_bsgfx_defaultPipelineHash)();
+typedef void(__stdcall* PFN_bsgfx_requiredForShadowVolumes)(bs_PipelineHash* inout);
+typedef void(__stdcall* PFN_bsgfx_requiredForStencilShadows)(bs_PipelineHash* inout);
+typedef void(__stdcall* PFN_bsgfx_requiredForTransparency)(bs_PipelineHash* inout);
 typedef bsgfx_Scene*(__stdcall* PFN_bsgfx_currentScene)();
 typedef void(__stdcall* PFN_bsgfx_loadScene)(const char* name);
 typedef int(__stdcall* PFN_bsgfx_contexts)();
@@ -171,6 +175,10 @@ typedef bool(__stdcall* PFN_bsgfx_instanceWidgets)(bsgfx_Menu menu, bsgfx_TitleB
 typedef void(__stdcall* PFN_bsgfx_renderColorPickers)();
 
 typedef struct {
+    PFN_bsgfx_defaultPipelineHash bsgfx_defaultPipelineHash;
+    PFN_bsgfx_requiredForShadowVolumes bsgfx_requiredForShadowVolumes;
+    PFN_bsgfx_requiredForStencilShadows bsgfx_requiredForStencilShadows;
+    PFN_bsgfx_requiredForTransparency bsgfx_requiredForTransparency;
     PFN_bsgfx_currentScene bsgfx_currentScene;
     PFN_bsgfx_loadScene bsgfx_loadScene;
     PFN_bsgfx_contexts bsgfx_contexts;
@@ -306,6 +314,10 @@ typedef struct {
     PFN_bsgfx_renderColorPickers bsgfx_renderColorPickers;
 } bsgfx_FunctionTable;
 
+BSGFXAPI bs_PipelineHash _bsgfx_defaultPipelineHash();
+BSGFXAPI void _bsgfx_requiredForShadowVolumes(bs_PipelineHash* inout);
+BSGFXAPI void _bsgfx_requiredForStencilShadows(bs_PipelineHash* inout);
+BSGFXAPI void _bsgfx_requiredForTransparency(bs_PipelineHash* inout);
 BSGFXAPI bsgfx_Scene* _bsgfx_currentScene();
 BSGFXAPI void _bsgfx_loadScene(const char* name);
 BSGFXAPI int _bsgfx_contexts();
@@ -443,6 +455,10 @@ BSGFXAPI void _bsgfx_renderColorPickers();
 static inline bsgfx_FunctionTable* _bsgfx_getFunctions() {
     static bsgfx_FunctionTable functions;
 
+    functions.bsgfx_defaultPipelineHash = _bsgfx_defaultPipelineHash;
+    functions.bsgfx_requiredForShadowVolumes = _bsgfx_requiredForShadowVolumes;
+    functions.bsgfx_requiredForStencilShadows = _bsgfx_requiredForStencilShadows;
+    functions.bsgfx_requiredForTransparency = _bsgfx_requiredForTransparency;
     functions.bsgfx_currentScene = _bsgfx_currentScene;
     functions.bsgfx_loadScene = _bsgfx_loadScene;
     functions.bsgfx_contexts = _bsgfx_contexts;

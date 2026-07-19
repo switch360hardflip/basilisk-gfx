@@ -1091,10 +1091,6 @@ static inline VkStencilOpState _bs_mapStencilOpState(bs_StencilOperation op) {
     };
 }
 
-static inline int _bs_defaultEnum(int value, int def) {
-    return (value == 0) ? def : (value == -1 ? 0 : value);
-}
-
 BSAPI void _bs_destroyPipeline(bs_Pipeline* pipeline) {
     pipeline->name = _bs_free(pipeline->name);
     vkDestroyPipelineLayout(_bs_instance_->device, pipeline->vk_layout, NULL);
@@ -1110,12 +1106,6 @@ BSAPI bs_U64 _bs_pipelineHash(bs_PipelineHash* descriptor) {
     }
 
     return hash;
-}
-
-static void _bs_defaultDescriptor(bs_PipelineHash* descriptor) {
-    descriptor->depth_comparison = _bs_defaultEnum(descriptor->depth_comparison, VK_COMPARE_OP_LESS);
-    descriptor->cull_type = _bs_defaultEnum(descriptor->cull_type, VK_CULL_MODE_BACK_BIT);
-    descriptor->cull_type = (descriptor->cull_type == BS_CULL_MODE_NONE) ? 0 : descriptor->cull_type;
 }
 
 BSAPI bs_Result _val_bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
@@ -1151,8 +1141,6 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
         .flags = descriptor->flags,
     };
 
-    _bs_defaultDescriptor(descriptor);
-
     bs_U64 hash = _bs_pipelineHash(descriptor);
     bs_Pipeline* pipeline = *out = _bs_preparePipeline(BS_PIPELINE_GRAPHICS, hash, init);
 
@@ -1180,17 +1168,19 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
 
             if (!_bs_features_.independent_blend && num_blend_states > 0)
                 memcpy(blend_states + num_blend_states++, blend_states, sizeof(VkPipelineColorBlendAttachmentState));
-            else
+            else {
                 blend_states[num_blend_states++] = (VkPipelineColorBlendAttachmentState){
                     .colorWriteMask = descriptor->attachments[num_blend_states].skip_write ? 0 : VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-                    .srcColorBlendFactor = _bs_defaultEnum(descriptor->src_color_factor, VK_BLEND_FACTOR_SRC_ALPHA),
-                    .dstColorBlendFactor = _bs_defaultEnum(descriptor->dst_color_factor, VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA),
+                    .srcColorBlendFactor = (VkBlendFactor)descriptor->src_color_factor,
+                    .dstColorBlendFactor = (VkBlendFactor)descriptor->dst_color_factor,
                     .colorBlendOp = (VkBlendOp)descriptor->color_op,
-                    .srcAlphaBlendFactor = _bs_defaultEnum(descriptor->src_alpha_factor, VK_BLEND_FACTOR_ONE),
-                    .dstAlphaBlendFactor = _bs_defaultEnum(descriptor->dst_alpha_factor, VK_BLEND_FACTOR_ZERO),
+                    .srcAlphaBlendFactor = (VkBlendFactor)descriptor->src_alpha_factor,
+                    .dstAlphaBlendFactor = (VkBlendFactor)descriptor->dst_alpha_factor,
                     .alphaBlendOp = (VkBlendOp)descriptor->alpha_op,
                     .blendEnable = descriptor->disable_blend ? false : _bs_hasAlpha(output->image->format),
                 };
+            }
+  
         }
     }
     else {
@@ -1274,7 +1264,7 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
 
         assembly_ci = (VkPipelineInputAssemblyStateCreateInfo) {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
-            .topology = _bs_defaultEnum(descriptor->topology_type, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST),
+            .topology = (VkPrimitiveTopology)descriptor->topology_type,
             .primitiveRestartEnable = descriptor->restart_primitive,
         };
 

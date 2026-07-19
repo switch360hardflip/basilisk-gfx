@@ -2198,11 +2198,6 @@ void bs_parseArgs(
     next.bs_parseArgs(argc, argv);
 }
 
-bs_Args* bs_arguments()
-{
-    return next.bs_arguments();
-}
-
 void bs_ini()
 {
     next.bs_ini();
@@ -4720,7 +4715,6 @@ const char* bs_serializeColorSpace(
 {
     switch (e) {
         case BS_COLOR_SPACE_SRGB_NONLINEAR_KHR: return "BS_COLOR_SPACE_SRGB_NONLINEAR_KHR";
-        case BS_COLORSPACE_SRGB_NONLINEAR_KHR: return "BS_COLORSPACE_SRGB_NONLINEAR_KHR";
     }
 
     return NULL;
@@ -4734,6 +4728,25 @@ const char* bs_serializePresentMode(
         case BS_PRESENT_MODE_MAILBOX_KHR: return "BS_PRESENT_MODE_MAILBOX_KHR";
         case BS_PRESENT_MODE_FIFO_KHR: return "BS_PRESENT_MODE_FIFO_KHR";
         case BS_PRESENT_MODE_FIFO_RELAXED_KHR: return "BS_PRESENT_MODE_FIFO_RELAXED_KHR";
+    }
+
+    return NULL;
+}
+
+const char* bs_serializeImageLayout(
+    bs_ImageLayout e)
+{
+    switch (e) {
+        case BS_IMAGE_LAYOUT_UNDEFINED: return "BS_IMAGE_LAYOUT_UNDEFINED";
+        case BS_IMAGE_LAYOUT_GENERAL: return "BS_IMAGE_LAYOUT_GENERAL";
+        case BS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: return "BS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL";
+        case BS_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: return "BS_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL";
+        case BS_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL: return "BS_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL";
+        case BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: return "BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL";
+        case BS_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: return "BS_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL";
+        case BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: return "BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL";
+        case BS_IMAGE_LAYOUT_PREINITIALIZED: return "BS_IMAGE_LAYOUT_PREINITIALIZED";
+        case BS_IMAGE_LAYOUT_PRESENT_SRC_KHR: return "BS_IMAGE_LAYOUT_PRESENT_SRC_KHR";
     }
 
     return NULL;
@@ -4808,6 +4821,7 @@ const char* bs_serializeVkObjectType(
         case BS_OBJECT_TYPE_DESCRIPTOR_SET: return "BS_OBJECT_TYPE_DESCRIPTOR_SET";
         case BS_OBJECT_TYPE_FRAMEBUFFER: return "BS_OBJECT_TYPE_FRAMEBUFFER";
         case BS_OBJECT_TYPE_COMMAND_POOL: return "BS_OBJECT_TYPE_COMMAND_POOL";
+        case BS_OBJECT_TYPE_SWAPCHAIN_KHR: return "BS_OBJECT_TYPE_SWAPCHAIN_KHR";
     }
 
     return NULL;

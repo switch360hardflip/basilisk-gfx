@@ -38,11 +38,13 @@ BSGFXAPI bsgfx_Scene* _bsgfx_currentScene() {
     return &_bsgfx_current_scene;
 }
 
-int _bsgfx_windows_ = -1, _bsgfx_images_ = -1, _bsgfx_samplers_ = -1, _bsgfx_buffers_ = -1,
+// TODO: object configuration generation
+
+int _bsgfx_contexts_ = -1, _bsgfx_images_ = -1, _bsgfx_samplers_ = -1, _bsgfx_buffers_ = -1,
     _bsgfx_batches_ = -1, _bsgfx_renderers_ = -1, _bsgfx_ray_tracers_ = -1,
     _bsgfx_queues_ = -1, _bsgfx_atlases_ = -1, _bsgfx_fonts_ = -1;
 
-BSGFXAPI int _bsgfx_windows() { return _bsgfx_windows_; }
+BSGFXAPI int _bsgfx_contexts() { return _bsgfx_contexts_; }
 BSGFXAPI int _bsgfx_images() { return _bsgfx_images_; }
 BSGFXAPI int _bsgfx_samplers() { return _bsgfx_samplers_; }
 BSGFXAPI int _bsgfx_buffers() { return _bsgfx_buffers_; }
@@ -67,7 +69,7 @@ static void _bsgfx_createRenderers() {
             /** subpass 0 */
             bs_output(hi_res->renderer, (bs_Output) {
                 .subpass = 0,
-                .image = bs_scope()->_bs_context_.swapchain_image->image,
+                .image = bs_context()->swapchain_image->image,
                 .load_op = BS_ATTACHMENT_LOAD_OP_CLEAR,
                 .store_op = BS_ATTACHMENT_STORE_OP_STORE,
                 .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
@@ -77,8 +79,8 @@ static void _bsgfx_createRenderers() {
             bs_output(hi_res->renderer, (bs_Output) {
                 .subpass = 0,
                 .image = hi_res_0_depth->image,
-                .load_op = BS_LOAD_OP_CLEAR,
-                .store_op = BS_STORE_OP_STORE,
+                .load_op = BS_ATTACHMENT_LOAD_OP_CLEAR,
+                .store_op = BS_ATTACHMENT_STORE_OP_STORE,
                 .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
                 .new_layout = BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             });
@@ -150,8 +152,8 @@ static void _bsgfx_createRenderers() {
             bs_output(lo_res->renderer, (bs_Output) {
                 .subpass = 0,
                 .image = subpass_0_outputs[i],
-                .load_op = BS_LOAD_OP_CLEAR,
-                .store_op = BS_STORE_OP_STORE,
+                .load_op = BS_ATTACHMENT_LOAD_OP_CLEAR,
+                .store_op = BS_ATTACHMENT_STORE_OP_STORE,
                 .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
                 .new_layout = BS_IMAGE_LAYOUT_GENERAL,
             });
@@ -187,8 +189,8 @@ static void _bsgfx_createRenderers() {
         bs_output(lo_res->renderer, (bs_Output) {
             .subpass = 1,
             .image = lo_res_1_color,
-            .load_op = BS_LOAD_OP_CLEAR,
-            .store_op = BS_STORE_OP_STORE,
+            .load_op = BS_ATTACHMENT_LOAD_OP_CLEAR,
+            .store_op = BS_ATTACHMENT_STORE_OP_STORE,
             .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
             .new_layout = BS_IMAGE_LAYOUT_GENERAL,
         });

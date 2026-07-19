@@ -332,43 +332,6 @@ typedef enum bsgfx_WidgetAdvanceType bsgfx_WidgetAdvanceType;
     BSGFX_BATCH_LINE_INSTANCED,                                      \
     BSGFX_BATCH_POINT_INSTANCED
 
-#define BSGFX_REQUIRED_FOR_SHADOW_VOLUMES                            \
-    .stencil_front = {                                               \
-        .fail_op = BS_STENCIL_OP_KEEP,                               \
-        .depth_fail_op = BS_STENCIL_OP_KEEP,                         \
-        .pass_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,                \
-        .compare_mask = 0xFF,                                        \
-        .compare_op = BS_COMPARE_OP_LESS_OR_EQUAL,                   \
-        .write_mask = 0xFF,                                          \
-    },                                                               \
-    .stencil_back = {                                                \
-        .fail_op = BS_STENCIL_OP_KEEP,                               \
-        .depth_fail_op = BS_STENCIL_OP_KEEP,                         \
-        .pass_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,                \
-        .compare_mask = 0xFF,                                        \
-        .compare_op = BS_COMPARE_OP_LESS_OR_EQUAL,                   \
-        .write_mask = 0xFF,                                          \
-    },                                                               \
-    .cull_type = BS_CULL_MODE_NONE
-
-#define BSGFX_REQUIRED_FOR_SHADOW_STENCIL                            \
-    .depth_comparison = BS_COMPARE_OP_ALWAYS,                        \
-    .stencil_front = {                                               \
-        .compare_op = BS_COMPARE_OP_EQUAL,                           \
-        .compare_mask = 0xFF,                                        \
-        .fail_op = BS_STENCIL_OP_KEEP,                               \
-        .depth_fail_op = BS_STENCIL_OP_KEEP,                         \
-        .pass_op = BS_STENCIL_OP_KEEP,                               \
-    }
-
-#define BSGFX_TRANSPARENT_OPTIONS                                    \
-    .src_alpha_factor = BS_BLEND_FACTOR_SRC_ALPHA,                   \
-    .dst_alpha_factor = BS_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,         \
-    .src_color_factor = BS_BLEND_FACTOR_SRC_ALPHA,                   \
-    .dst_color_factor = BS_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,         \
-    .color_op = BS_BLEND_OP_ADD,                                     \
-    .alpha_op = BS_BLEND_OP_ADD
-
 #define BSGFX_COLLIDER_SKIN                                          \
     (0.015)
 
@@ -411,12 +374,6 @@ typedef enum bsgfx_WidgetAdvanceType bsgfx_WidgetAdvanceType;
 
 #define BSGFX_SCREENSHOT_DIMENSIONS                                  \
     BS_IV2(1920 / 4, 1080 / 4)
-
-#define BSGFX_MOTD                                                   \
-    "poser\n"                                                        \
-    "pre-pre-alpha\n\n"                                              \
-    "thx for playing\n"                                              \
-    "special thx malteSWE!"
 
 #define BSGFX_SHADOW_COLOR                                           \
     ((bs_RGBA) { 50, 50, 60, 150 })
@@ -1374,6 +1331,36 @@ bsgfx_enableValidation();
   */
 BSGFXAPI void
 bsgfx_disableValidation();
+
+ /**
+  @return bs_PipelineHash
+  */
+BSGFXAPI bs_PipelineHash
+bsgfx_defaultPipelineHash();
+
+ /**
+  @param inout
+  @return void
+  */
+BSGFXAPI void
+bsgfx_requiredForShadowVolumes(
+    bs_PipelineHash* inout);
+
+ /**
+  @param inout
+  @return void
+  */
+BSGFXAPI void
+bsgfx_requiredForStencilShadows(
+    bs_PipelineHash* inout);
+
+ /**
+  @param inout
+  @return void
+  */
+BSGFXAPI void
+bsgfx_requiredForTransparency(
+    bs_PipelineHash* inout);
 
  /**
   @return bsgfx_Scene*

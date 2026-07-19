@@ -492,7 +492,7 @@ BSMODAPI void _preval_bsmod_onDragTile(bsmod_DraggingParams params) {
 }
 
 bsmod_FunctionTable* _preval_bsmod_getFunctionTable() {
-    bsmod_FunctionTable functions = { 0 };
+    static bsmod_FunctionTable functions = { 0 };
 
     functions.bsmod_copyHoveringDataToBuffer = _preval_bsmod_copyHoveringDataToBuffer;
     functions.bsmod_onIni = _preval_bsmod_onIni;

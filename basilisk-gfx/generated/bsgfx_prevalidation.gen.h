@@ -44,6 +44,10 @@ static inline bsgfx_FunctionTable* _preval_bsgfx_getFunctions() {
         (LPCSTR)(&_preval_bsgfx_getFunctions),
         &module);
 
+    functions.bsgfx_defaultPipelineHash = (PFN_bsgfx_defaultPipelineHash)GetProcAddress(module, "_preval_bsgfx_defaultPipelineHash");
+    functions.bsgfx_requiredForShadowVolumes = (PFN_bsgfx_requiredForShadowVolumes)GetProcAddress(module, "_preval_bsgfx_requiredForShadowVolumes");
+    functions.bsgfx_requiredForStencilShadows = (PFN_bsgfx_requiredForStencilShadows)GetProcAddress(module, "_preval_bsgfx_requiredForStencilShadows");
+    functions.bsgfx_requiredForTransparency = (PFN_bsgfx_requiredForTransparency)GetProcAddress(module, "_preval_bsgfx_requiredForTransparency");
     functions.bsgfx_currentScene = (PFN_bsgfx_currentScene)GetProcAddress(module, "_preval_bsgfx_currentScene");
     functions.bsgfx_loadScene = (PFN_bsgfx_loadScene)GetProcAddress(module, "_preval_bsgfx_loadScene");
     functions.bsgfx_contexts = (PFN_bsgfx_contexts)GetProcAddress(module, "_preval_bsgfx_contexts");

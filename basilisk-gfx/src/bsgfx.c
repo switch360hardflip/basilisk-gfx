@@ -77,6 +77,8 @@ BSGFXAPI struct Poser* _poser() {
 }
 
 static void _bsgfx_configure() {
+    // TODO: object configuration generation
+    _bsgfx_contexts_ = bs_configureSource(BS_OBJECT_CONTEXT, BSGFX_IMAGES_COUNT, (const char* []) { BSGFX_IMAGE_IDS(BS_STRING_GEN) });
     _bsgfx_images_ = bs_configureSource(BS_OBJECT_IMAGE, BSGFX_IMAGES_COUNT, (const char*[]) { BSGFX_IMAGE_IDS(BS_STRING_GEN) });
     _bsgfx_samplers_ = bs_configureSource(BS_OBJECT_SAMPLER, BSGFX_SAMPLERS_COUNT, (const char* []) { BSGFX_SAMPLER_IDS(BS_STRING_GEN) });
     _bsgfx_buffers_ = bs_configureSource(BS_OBJECT_BUFFER, BSGFX_BUFFERS_COUNT, (const char* []) { BSGFX_BUFFER_IDS(BS_STRING_GEN) });

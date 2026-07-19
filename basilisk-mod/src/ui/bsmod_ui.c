@@ -309,25 +309,21 @@ BSMODAPI void _bsmod_renderBillboards() {
     bs_Pipeline* pipeline;
     bs_PipelineHash hash;
 
-    struct {
-        bs_mat4 camera;
-        bs_mat4 view;
-
-    } push_const = {
-        .camera = poser()->camera.result,
-        .view = poser()->camera.view,
-    };
-
-    hash = (bs_PipelineHash){
-        .shaders = {
-            $vs_bsmod_billboard(),
-            $fs_bsmod_billboard(),
-        },
-        .skip_depth_test = true,
-        BSGFX_TRANSPARENT_OPTIONS,
-    };
+    hash = bsgfx_defaultPipelineHash();
+    hash.shaders[0] = $vs_bsmod_billboard();
+    hash.shaders[1] = $fs_bsmod_billboard();
+    hash.skip_depth_test = true;
+    bsgfx_requiredForTransparency(&hash);
 
     if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
+        struct {
+            bs_mat4 camera;
+            bs_mat4 view;
+
+        } push_const = {
+            .camera = poser()->camera.result,
+            .view = poser()->camera.view,
+        };
 
         bs_beginComment(BS_CONSTANT_STRING("Billboards"));
 

@@ -5,6 +5,10 @@
 	<prefix>BSAPI</prefix>
 	<functionPrefix>bs_</functionPrefix>
 	<functionPrefixCaps>BS_</functionPrefixCaps>
+	
+	<extensions>
+		<extension>VK_KHR_swapchain</extension>
+	</extensions>
 
 	<includes>
 		<trampoline>
@@ -188,7 +192,7 @@
 		<serializableEnum name="Format" copyFrom="VkFormat"/>
 		<serializableEnum name="ColorSpace" copyFrom="VkColorSpaceKHR"/>
 		<serializableEnum name="PresentMode" copyFrom="VkPresentModeKHR"/>
-		<enum name="bs_ImageLayout" copyFrom="VkImageLayout"/>
+		<serializableEnum name="ImageLayout" copyFrom="VkImageLayout"/>
 		<enum name="bs_AccessMask" copyFrom="VkAccessFlagBits"/>
 		<enum name="bs_PipelineStage" copyFrom="VkPipelineStageFlagBits"/>
 		<enum name="bs_DependencyFlag" copyFrom="VkDependencyFlagBits"/>
@@ -323,7 +327,8 @@
 			<line><name>BS_CURSOR_TYPE_COUNT</name><value>2</value></line>
 		</enum>
 		<enum name="bs_ObjectType">
-			<line><name>BS_OBJECT_WINDOW</name></line>
+			<!--TODO: object configuration generation -->
+			<line><name>BS_OBJECT_CONTEXT</name></line>
 			<line><name>BS_OBJECT_IMAGE</name></line>
 			<line><name>BS_OBJECT_SAMPLER</name></line>
 			<line><name>BS_OBJECT_BUFFER</name></line>
@@ -3132,9 +3137,6 @@
             <return>void</return>
             <param><type>int</type><name>argc</name></param>
             <param><type>char*</type><name>argv</name><size></size></param>
-        </function>
-        <function name="bs_arguments">
-            <return>bs_Args*</return>
         </function>
         <function name="bs_ini">
             <return>void</return>

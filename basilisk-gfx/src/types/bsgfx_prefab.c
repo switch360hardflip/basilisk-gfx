@@ -120,27 +120,6 @@ BSGFXAPI void _bsgfx_computePrefabShadows() {
     }
 }
 
-#define BSGFX_STENCIL_SHADOW_VOLUME_OPTIONS                                             \
-    .stencil_front = {                                                                  \
-        .depth_fail_op = BS_STENCIL_OP_INCREMENT_AND_WRAP,                              \
-        .compare_op = BS_COMPARE_OP_ALWAYS,                                             \
-        .compare_mask = 0xFF,                                                           \
-        .write_mask = 0xFF,                                                             \
-    },                                                                                  \
-    .stencil_back = {                                                                   \
-        .depth_fail_op = BS_STENCIL_OP_DECREMENT_AND_WRAP,                              \
-        .compare_op = BS_COMPARE_OP_ALWAYS,                                             \
-        .compare_mask = 0xFF,                                                           \
-        .write_mask = 0xFF,                                                             \
-    },                                                                                  \
-    .cull_type = BS_CULL_MODE_NONE,                                                     \
-    .clamp_depth = true,                                                                \
-    .skip_depth_write = true,                                                           \
-    .attachments = {                                                                    \
-        [0] = {.skip_write = true },                                                    \
-        [3] = {.skip_write = true },                                     /* position */ \
-    }                                                                                   \
-
 BSGFXAPI void _val_bsgfx_renderPrefabShadowVolumes() {
     BSGFX_VALIDATE(bs_exists(BSGFX_BATCHES, BSGFX_BATCH_PREFAB_SHADOWS),,);
     BSGFX_VALIDATE(bs_exists(BSGFX_BATCHES, BSGFX_BATCH_VOLUME_SCREEN),,);
@@ -164,13 +143,10 @@ BSGFXAPI void _bsgfx_renderPrefabShadowVolumes() {
         return;
     }
 
-    hash = (bs_PipelineHash) {
-        .shaders = {
-            $vs_bsgfx_volume(),
-            $fs_bsgfx_volume(),
-        },
-        BSGFX_STENCIL_SHADOW_VOLUME_OPTIONS
-    };
+    hash = bsgfx_defaultPipelineHash();
+    _bsgfx_requiredForShadowVolumes(&hash);
+    hash.shaders[0] = $vs_bsgfx_volume();
+    hash.shaders[1] = $fs_bsgfx_volume();
 
     if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
         bs_pushConstant(pipeline, 0, sizeof(_poser_->camera.result), &_poser_->camera.result);
@@ -183,20 +159,20 @@ BSGFXAPI void _bsgfx_renderPrefabShadowVolumes() {
             BS_ACCESS_SHADER_READ_BIT);
     }
 
-    hash = (bs_PipelineHash){
-        .shaders = {
-            $vs_bsgfx_color_percentage(),
-            $fs_bsgfx_volume_screen(),
-        },
-        .skip_depth_write = true,
-        .stencil_front = {
-            .compare_op = BS_COMPARE_OP_NOT_EQUAL,
-            .compare_mask = 0xFF,
-        },
-        .attachments = {
-            [3] = {.skip_write = true }, // position
-        }
+    hash = bsgfx_defaultPipelineHash();
+    _bsgfx_requiredForShadowVolumes(&hash);
+
+    hash.shaders[0] = $vs_bsgfx_color_percentage();
+    hash.shaders[1] = $fs_bsgfx_volume_screen();
+
+    hash.skip_depth_write = true;
+
+    hash.stencil_front = (bs_StencilOperation){
+        .compare_op = BS_COMPARE_OP_NOT_EQUAL,
+        .compare_mask = 0xFF,
     };
+
+    hash.attachments[3].skip_write = true; // position // TODO: don't hardcode
 
     if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
         bs_pushConstant(pipeline, 0, sizeof(bs_vec4), &BSGFX_RGBA(BSGFX_SHADOW_COLOR.r, BSGFX_SHADOW_COLOR.g, BSGFX_SHADOW_COLOR.b, BSGFX_SHADOW_COLOR.a));
@@ -495,22 +471,11 @@ BSGFXAPI void _bsgfx_renderScenePrefabs() {
         .sun_direction.xyz = _poser_->sun_direction,
     };
 
-    bs_PipelineHash hash = {
-        .shaders = {
-            $vs_bsgfx_mesh_static_instanced(),
-            $fs_bsgfx_model(),
-        },
-        // BSGFX_REQUIRED_FOR_SHADOW_VOLUMES,
-        .cull_type = _bsgfx_settings_.cull_backfaces ? BS_CULL_MODE_DEFAULT : BS_CULL_MODE_NONE,
-        //.attachments[0].skip_write = true,
-        //  .cull_type = BS_CULL_MODE_NONE,
-        // .attachments = {
-        //      [0] = {.skip_write = true},
-        // }
-    };
-    // TODO: screenshot reimplementation
-    //if (_bsmod_.queue.screenshot)
-    //    hash.attachments[0].skip_write = false;
+    bs_PipelineHash hash = bsgfx_defaultPipelineHash();
+    hash.shaders[0] = $vs_bsgfx_mesh_static_instanced();
+    hash.shaders[1] = $fs_bsgfx_model();
+    hash.cull_type = _bsgfx_settings_.cull_backfaces ? BS_CULL_MODE_BACK_BIT : BS_CULL_MODE_NONE;
+
     bs_Pipeline* mesh_pipeline;
     if (bs_pipeline(&hash, &mesh_pipeline) == BS_RESULT_OK) {
         bs_beginComment(BS_CONSTANT_STRING("Prefabs"));
@@ -520,13 +485,6 @@ BSGFXAPI void _bsgfx_renderScenePrefabs() {
 
         bs_endComment();
     }
-
-    // todo debug
-//           if (_bsgfx_debug.queue.skip_mesh_index_write) {
-//               hash.attachments[_bsgfx_queryLoResImageIndex(BSGFX_IMAGE_LO_RES_0_INDEX)].skip_write = true;
-//               mesh_pipeline = bs_pipeline(&hash);
-//           }
-
 }
 
 BSGFXAPI void _bsgfx_renderPrefabPrimitives(bs_Pipeline* pipeline, int key_start) {

@@ -1149,10 +1149,6 @@ BSAPI void _preval_bs_parseArgs(int argc, char* argv[]) {
     next.bs_parseArgs(argc, argv);
 }
 
-BSAPI bs_Args* _preval_bs_arguments() {
-    return next.bs_arguments();
-}
-
 BSAPI void _preval_bs_ini() {
     next.bs_ini();
 }
@@ -2501,7 +2497,7 @@ BSAPI bs_Result _preval_bs_deleteDirectoryV(char* format, va_list args) {
 }
 
 bs_FunctionTable* _preval_bs_getFunctionTable() {
-    bs_FunctionTable functions = { 0 };
+    static bs_FunctionTable functions = { 0 };
 
     functions.bs_v2Mid = _preval_bs_v2Mid;
     functions.bs_v3Mid = _preval_bs_v3Mid;
@@ -2686,7 +2682,6 @@ bs_FunctionTable* _preval_bs_getFunctionTable() {
     functions.bs_destroyAtlas = _preval_bs_destroyAtlas;
     functions.bs_loadAtlasMemory = _preval_bs_loadAtlasMemory;
     functions.bs_parseArgs = _preval_bs_parseArgs;
-    functions.bs_arguments = _preval_bs_arguments;
     functions.bs_ini = _preval_bs_ini;
     functions.bs_load = _preval_bs_load;
     functions.bs_queryProcedures = _preval_bs_queryProcedures;

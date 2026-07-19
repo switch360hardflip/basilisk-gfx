@@ -49,6 +49,25 @@ const bsgfx_FunctionTable* _preval_bsgfx_setFunctions(const bsgfx_FunctionTable*
     return &next;
 }
 
+BSGFXAPI bs_PipelineHash _preval_bsgfx_defaultPipelineHash() {
+    return next.bsgfx_defaultPipelineHash();
+}
+
+BSGFXAPI void _preval_bsgfx_requiredForShadowVolumes(bs_PipelineHash* inout) {
+    BSGFX_VALIDATE(inout != NULL, ,);
+    next.bsgfx_requiredForShadowVolumes(inout);
+}
+
+BSGFXAPI void _preval_bsgfx_requiredForStencilShadows(bs_PipelineHash* inout) {
+    BSGFX_VALIDATE(inout != NULL, ,);
+    next.bsgfx_requiredForStencilShadows(inout);
+}
+
+BSGFXAPI void _preval_bsgfx_requiredForTransparency(bs_PipelineHash* inout) {
+    BSGFX_VALIDATE(inout != NULL, ,);
+    next.bsgfx_requiredForTransparency(inout);
+}
+
 BSGFXAPI bsgfx_Scene* _preval_bsgfx_currentScene() {
     return next.bsgfx_currentScene();
 }
@@ -660,8 +679,12 @@ BSGFXAPI void _preval_bsgfx_renderColorPickers() {
 }
 
 bsgfx_FunctionTable* _preval_bsgfx_getFunctionTable() {
-    bsgfx_FunctionTable functions = { 0 };
+    static bsgfx_FunctionTable functions = { 0 };
 
+    functions.bsgfx_defaultPipelineHash = _preval_bsgfx_defaultPipelineHash;
+    functions.bsgfx_requiredForShadowVolumes = _preval_bsgfx_requiredForShadowVolumes;
+    functions.bsgfx_requiredForStencilShadows = _preval_bsgfx_requiredForStencilShadows;
+    functions.bsgfx_requiredForTransparency = _preval_bsgfx_requiredForTransparency;
     functions.bsgfx_currentScene = _preval_bsgfx_currentScene;
     functions.bsgfx_loadScene = _preval_bsgfx_loadScene;
     functions.bsgfx_contexts = _preval_bsgfx_contexts;

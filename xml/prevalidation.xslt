@@ -23,9 +23,10 @@
         <xsl:text>FunctionTable* _preval_</xsl:text>
         <xsl:value-of select="registry/functionPrefix"/>
         <xsl:text>getFunctionTable() {&#xA;    </xsl:text>
-        <xsl:value-of select="registry/functionPrefix"/>
-        <xsl:text>FunctionTable functions = { 0 };&#xA;&#xA;</xsl:text>
-        <xsl:for-each select="registry/functions/function">
+		<xsl:text>static </xsl:text>
+		<xsl:value-of select="registry/functionPrefix"/>
+		<xsl:text>FunctionTable functions = { 0 };&#xA;&#xA;</xsl:text>
+		<xsl:for-each select="registry/functions/function">
             <xsl:if test="not(body)">
                 <xsl:text>    functions.</xsl:text>
                 <xsl:value-of select="@name"/>

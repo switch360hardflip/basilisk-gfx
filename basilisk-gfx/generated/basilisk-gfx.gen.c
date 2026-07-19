@@ -69,6 +69,29 @@ void bsgfx_disableValidation()
     _bsgfx_setFunctions(definitions, NULL);
 }
 
+bs_PipelineHash bsgfx_defaultPipelineHash()
+{
+    return next.bsgfx_defaultPipelineHash();
+}
+
+void bsgfx_requiredForShadowVolumes(
+    bs_PipelineHash* inout)
+{
+    next.bsgfx_requiredForShadowVolumes(inout);
+}
+
+void bsgfx_requiredForStencilShadows(
+    bs_PipelineHash* inout)
+{
+    next.bsgfx_requiredForStencilShadows(inout);
+}
+
+void bsgfx_requiredForTransparency(
+    bs_PipelineHash* inout)
+{
+    next.bsgfx_requiredForTransparency(inout);
+}
+
 bsgfx_Scene* bsgfx_currentScene()
 {
     return next.bsgfx_currentScene();

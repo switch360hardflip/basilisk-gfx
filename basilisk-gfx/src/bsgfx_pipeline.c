@@ -57,6 +57,63 @@ void _bsgfx_onDeviceLost() {
     //bs_critical(BS_CONSTANT_STRING("Device lost"));
 }
 
+BSGFXAPI bs_PipelineHash _bsgfx_defaultPipelineHash() {
+    return (bs_PipelineHash) {
+        .depth_comparison = BS_COMPARE_OP_LESS,
+        .cull_type = BS_CULL_MODE_BACK_BIT,
+        .topology_type = BS_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+
+        .src_color_factor = BS_BLEND_FACTOR_SRC_ALPHA,
+        .dst_color_factor = BS_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+
+        .src_alpha_factor = BS_BLEND_FACTOR_ONE,
+        .dst_alpha_factor = BS_BLEND_FACTOR_ZERO,
+    };
+}
+
+BSGFXAPI void _bsgfx_requiredForShadowVolumes(bs_PipelineHash* inout) {
+    inout->stencil_front = (bs_StencilOperation) {
+        .fail_op = BS_STENCIL_OP_KEEP,
+        .depth_fail_op = BS_STENCIL_OP_KEEP,
+        .pass_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
+        .compare_mask = 0xFF,
+        .compare_op = BS_COMPARE_OP_LESS_OR_EQUAL,
+        .write_mask = 0xFF,
+    };
+
+    inout->stencil_back = (bs_StencilOperation) {
+        .fail_op = BS_STENCIL_OP_KEEP,
+        .depth_fail_op = BS_STENCIL_OP_KEEP,
+        .pass_op = BS_STENCIL_OP_INCREMENT_AND_CLAMP,
+        .compare_mask = 0xFF,
+        .compare_op = BS_COMPARE_OP_LESS_OR_EQUAL,
+        .write_mask = 0xFF,
+    };
+
+    inout->cull_type = BS_CULL_MODE_NONE;
+}
+
+BSGFXAPI void _bsgfx_requiredForStencilShadows(bs_PipelineHash* inout) {
+    inout->stencil_front = (bs_StencilOperation){
+        .compare_op = BS_COMPARE_OP_EQUAL,
+        .compare_mask = 0xFF,
+        .fail_op = BS_STENCIL_OP_KEEP,
+        .depth_fail_op = BS_STENCIL_OP_KEEP,
+        .pass_op = BS_STENCIL_OP_KEEP,
+    };
+
+    inout->depth_comparison = BS_COMPARE_OP_ALWAYS;
+}
+
+BSGFXAPI void _bsgfx_requiredForTransparency(bs_PipelineHash* inout) {
+    inout->src_alpha_factor = BS_BLEND_FACTOR_SRC_ALPHA;
+    inout->dst_alpha_factor = BS_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    inout->src_color_factor = BS_BLEND_FACTOR_SRC_ALPHA;
+    inout->dst_color_factor = BS_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+    inout->color_op = BS_BLEND_OP_ADD;
+    inout->alpha_op = BS_BLEND_OP_ADD;
+}
+
 
 
   /*==============================================================================
@@ -77,12 +134,9 @@ static void _bsgfx_renderPrimitiveTiles() {
     if (!bs_exists(BSGFX_BATCHES, BSGFX_BATCH_PRIMITIVE_TILES))
         return;
 
-    bs_PipelineHash hash = {
-        .shaders = {
-            $vs_bsgfx_tile_static(),
-            $fs_bsgfx_tile(),
-        },
-    };
+    bs_PipelineHash hash = _bsgfx_defaultPipelineHash();
+    hash.shaders[0] = $vs_bsgfx_tile_static();
+    hash.shaders[1] = $fs_bsgfx_tile();
 
     bs_Pipeline* pipeline;
     if (bs_pipeline(&hash, &pipeline) != BS_RESULT_OK)
@@ -104,14 +158,11 @@ static void _bsgfx_renderPrimitiveTiles() {
 }
 
 static void _bsgfx_renderAtlas() {
-    bs_PipelineHash hash = {
-        .shaders = {
-            $vs_bsgfx_quad_instanced(),
-            $fs_bsgfx_atlas(),
-        },
-        BSGFX_REQUIRED_FOR_SHADOW_STENCIL,
-        .skip_depth_write = true
-    };
+    bs_PipelineHash hash = _bsgfx_defaultPipelineHash();
+    _bsgfx_requiredForStencilShadows(&hash);
+
+    hash.shaders[0] = $vs_bsgfx_quad_instanced();
+    hash.shaders[1] = $fs_bsgfx_atlas();
 
     bs_Pipeline* pipeline;
     if (bs_pipeline(&hash, &pipeline) != BS_RESULT_OK)
@@ -143,15 +194,12 @@ static void _bsgfx_shadowedGeometryPipe() {
 }
 
 static void _bsgfx_renderPoints() {
-    bs_Pipeline* pipeline;
-    bs_PipelineHash hash = {
-        .shaders = {
-            $vs_bsgfx_point_instanced(),
-            $fs_bsgfx_color(),
-        },
-        .topology_type = BS_TOPOLOGY_POINT_LIST,
-    };
+    bs_PipelineHash hash = _bsgfx_defaultPipelineHash();
+    hash.shaders[0] = $vs_bsgfx_point_instanced();
+    hash.shaders[1] = $fs_bsgfx_color();
+    hash.topology_type = BS_PRIMITIVE_TOPOLOGY_POINT_LIST;
 
+    bs_Pipeline* pipeline;
     if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
 
         bs_pushConstant(pipeline, 0, sizeof(_poser_->camera.result), &_poser_->camera.result);
@@ -160,16 +208,13 @@ static void _bsgfx_renderPoints() {
 }
 
 static void _bsgfx_renderLines(const bs_mat4* camera, int subtype, bool skip_depth_test) {
-    bs_Pipeline* pipeline;
-    bs_PipelineHash hash = {
-        .shaders = {
-            $vs_bsgfx_line_instanced(),
-            $fs_bsgfx_color(),
-        },
-        .topology_type = BS_TOPOLOGY_LINE_LIST,
-        .skip_depth_test = skip_depth_test,
-    };
+    bs_PipelineHash hash = _bsgfx_defaultPipelineHash();
+    hash.shaders[0] = $vs_bsgfx_line_instanced();
+    hash.shaders[1] = $fs_bsgfx_color();
+    hash.topology_type = BS_PRIMITIVE_TOPOLOGY_LINE_LIST;
+    hash.skip_depth_test = skip_depth_test;
 
+    bs_Pipeline* pipeline;
     if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
 
         bs_pushConstant(pipeline, 0, sizeof(bs_mat4), camera);
@@ -178,16 +223,13 @@ static void _bsgfx_renderLines(const bs_mat4* camera, int subtype, bool skip_dep
 }
 
 static void _bsgfx_renderLineModel(const bs_mat4* camera, int subtype, bool skip_depth_test) {
-    bs_Pipeline* pipeline;
-    bs_PipelineHash hash = {
-        .shaders = {
-            $vs_bsgfx_mesh_instanced(),
-            $fs_bsgfx_color(),
-        },
-        .topology_type = BS_TOPOLOGY_LINE_LIST,
-        .skip_depth_test = skip_depth_test,
-    };
+    bs_PipelineHash hash = _bsgfx_defaultPipelineHash();
+    hash.shaders[0] = $vs_bsgfx_mesh_instanced();
+    hash.shaders[1] = $fs_bsgfx_color();
+    hash.topology_type = BS_PRIMITIVE_TOPOLOGY_LINE_LIST;
+    hash.skip_depth_test = skip_depth_test;
 
+    bs_Pipeline* pipeline;
     if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
         bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 
@@ -272,14 +314,11 @@ static void _bsgfx_loResSubpass1() {
             BS_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
             BS_ACCESS_SHADER_READ_BIT);
 
-        bs_Pipeline* pipeline;
-        bs_PipelineHash hash = {
-            .shaders = {
-                $vs_bsgfx_color_percentage(),
-                $fs_bsgfx_hilight(),
-            },
-        };
+        bs_PipelineHash hash = _bsgfx_defaultPipelineHash();
+        hash.shaders[0] = $vs_bsgfx_color_percentage();
+        hash.shaders[1] = $fs_bsgfx_hilight();
 
+        bs_Pipeline* pipeline;
         if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
             struct {
                 float offset_x;
@@ -308,15 +347,12 @@ static void _bsgfx_loResSubpass1() {
   *============================================================================*/
 
 static void _bsgfx_loResUISubpass0_renderPreviousPass() {
+    bs_PipelineHash hash = _bsgfx_defaultPipelineHash();
+    _bsgfx_requiredForTransparency(&hash);
+    hash.shaders[0] = $vs_bsgfx_color_percentage();
+    hash.shaders[1] = $fs_bsgfx_lo_res_ui_post_0();
+
     bs_Pipeline* pipeline;
-    bs_PipelineHash hash = {
-        .shaders = {
-            $vs_bsgfx_color_percentage(),
-            $fs_bsgfx_lo_res_ui_post_0(),
-        },
-        BSGFX_TRANSPARENT_OPTIONS,
-    };
-    
     if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
         struct {
             bs_mat4 inv_proj;
@@ -354,13 +390,10 @@ static void _bsgfx_loResUISubpass0() {
   *============================================================================*/
 
 static void _bsgfx_renderAtlasIcons() {
-    bs_PipelineHash hash = {
-        .shaders = {
-            $vs_bsgfx_quad_instanced(),
-            $fs_bsgfx_atlas(),
-        },
-        BSGFX_TRANSPARENT_OPTIONS,
-    };
+    bs_PipelineHash hash = _bsgfx_defaultPipelineHash();
+    _bsgfx_requiredForTransparency(&hash);
+    hash.shaders[0] = $vs_bsgfx_quad_instanced();
+    hash.shaders[1] = $fs_bsgfx_atlas();
 
     bs_Pipeline* pipeline;
     if (bs_pipeline(&hash, &pipeline) != BS_RESULT_OK)
@@ -382,13 +415,10 @@ static void _bsgfx_renderAtlasIcons() {
 }
 
 static void _bsgfx_renderTileIcons() {
-    bs_PipelineHash hash = {
-        .shaders = {
-            $vs_bsgfx_quad_instanced(),
-            $fs_bsgfx_tile_screen(),
-        },
-        BSGFX_TRANSPARENT_OPTIONS,
-    };
+    bs_PipelineHash hash = _bsgfx_defaultPipelineHash();
+    _bsgfx_requiredForTransparency(&hash);
+    hash.shaders[0] = $vs_bsgfx_quad_instanced();
+    hash.shaders[1] = $fs_bsgfx_tile_screen();
 
     bs_Pipeline* pipeline;
     if (bs_pipeline(&hash, &pipeline) != BS_RESULT_OK)
@@ -412,13 +442,10 @@ static void _bsgfx_hiResSubpass0() {
 
    // Final post processing step on the BSGFX_IMAGE_LO_RES_RESULT
     if (bs_exists(BSGFX_BATCHES, BSGFX_BATCH_SCREEN)) {
-        hash = (bs_PipelineHash) {
-            .shaders = {
-                $vs_bsgfx_color_percentage(),
-                $fs_bsgfx_pixelation(),
-            },
-            BSGFX_TRANSPARENT_OPTIONS,
-        };
+        hash = _bsgfx_defaultPipelineHash();
+        _bsgfx_requiredForTransparency(&hash);
+        hash.shaders[0] = $vs_bsgfx_color_percentage();
+        hash.shaders[1] = $fs_bsgfx_pixelation();
 
         if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
             bs_beginComment(BS_CONSTANT_STRING("Post processing"));
@@ -451,13 +478,10 @@ static void _bsgfx_hiResSubpass0() {
     /**
      Textures
      */
-    hash = (bs_PipelineHash) {
-        .shaders = {
-            $vs_bsgfx_quad_instanced(),
-            $fs_bsgfx_256_hi_res(),
-        },
-        BSGFX_TRANSPARENT_OPTIONS,
-    };
+    hash = _bsgfx_defaultPipelineHash();
+    _bsgfx_requiredForTransparency(&hash);
+    hash.shaders[0] = $vs_bsgfx_quad_instanced();
+    hash.shaders[1] = $fs_bsgfx_256_hi_res();
 
     if (bs_pipeline(&hash, &pipeline) == BS_RESULT_OK) {
 

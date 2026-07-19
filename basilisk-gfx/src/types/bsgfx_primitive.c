@@ -163,21 +163,19 @@ BSGFXAPI void _bsgfx_renderPrimitives(bs_mat4 camera) {
         .camera = camera,
     };
 
-    hash = (bs_PipelineHash){
-        .shaders = {
-            $vs_bsgfx_mesh_instanced(),
-            $fs_bsgfx_model(),
-        },
-        .stencil_front = {
-            .fail_op = BS_STENCIL_OP_KEEP,
-            .pass_op = BS_STENCIL_OP_KEEP,
-            .depth_fail_op = BS_STENCIL_OP_KEEP,
-            .compare_op = BS_COMPARE_OP_EQUAL,
-            .compare_mask = 0xFF,
-            .write_mask = 0x00,
-            .reference = 2,
-        },
+    hash = bsgfx_defaultPipelineHash();
+    hash.shaders[0] = $vs_bsgfx_mesh_static_instanced();
+    hash.shaders[1] = $fs_bsgfx_model();
+    hash.stencil_front = (bs_StencilOperation) {
+        .fail_op = BS_STENCIL_OP_KEEP,
+        .pass_op = BS_STENCIL_OP_KEEP,
+        .depth_fail_op = BS_STENCIL_OP_KEEP,
+        .compare_op = BS_COMPARE_OP_EQUAL,
+        .compare_mask = 0xFF,
+        .write_mask = 0x00,
+        .reference = 2, // TODO:
     };
+
     bs_Pipeline* pipeline;
     bs_pipeline(&hash, &pipeline);
 

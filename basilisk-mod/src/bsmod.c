@@ -528,9 +528,9 @@ BSMODAPI void _bsmod_onLoad() {
         // bs_U32 subpass, bs_Image* image, bs_ImageLayout old_layout, bs_ImageLayout new_layout, bs_OutputFlags flags
         bs_output(renderer_object->renderer, (bs_Output) {
             .subpass = 0, 
-            .image = bs_scope()->_bs_context_.swapchain_image->image,
-            .load_op = BS_LOAD_OP_CLEAR,
-            .store_op = BS_STORE_OP_STORE,
+            .image = bs_context()->swapchain_image->image,
+            .load_op = BS_ATTACHMENT_LOAD_OP_CLEAR,
+            .store_op = BS_ATTACHMENT_STORE_OP_STORE,
             .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
             .new_layout = BS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         });
@@ -543,8 +543,8 @@ BSMODAPI void _bsmod_onLoad() {
             bs_output(renderer_object->renderer, (bs_Output) {
                 .subpass = 0,
                 .image = subpass_0_outputs[i],
-                .load_op = BS_LOAD_OP_CLEAR,
-                .store_op = BS_STORE_OP_STORE,
+                .load_op = BS_ATTACHMENT_LOAD_OP_CLEAR,
+                .store_op = BS_ATTACHMENT_STORE_OP_STORE,
                 .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
                 .new_layout = BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             });
@@ -569,9 +569,9 @@ BSMODAPI void _bsmod_onLoad() {
 
         bs_output(renderer_3d->renderer, (bs_Output) {
             .subpass = 0, 
-            .image = bs_scope()->_bs_context_.swapchain_image->image,
-            .load_op = BS_LOAD_OP_LOAD,
-            .store_op = BS_STORE_OP_STORE,
+            .image = bs_context()->swapchain_image->image,
+            .load_op = BS_ATTACHMENT_LOAD_OP_LOAD,
+            .store_op = BS_ATTACHMENT_STORE_OP_STORE,
             .old_layout = BS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
             .new_layout = BS_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         });
@@ -580,8 +580,8 @@ BSMODAPI void _bsmod_onLoad() {
         bs_output(renderer_3d->renderer, (bs_Output) {
             .subpass = 0, 
             .image = depth,
-            .load_op = BS_LOAD_OP_LOAD,
-            .store_op = BS_STORE_OP_STORE,
+            .load_op = BS_ATTACHMENT_LOAD_OP_LOAD,
+            .store_op = BS_ATTACHMENT_STORE_OP_STORE,
             .old_layout = BS_IMAGE_LAYOUT_GENERAL,
             .new_layout = BS_IMAGE_LAYOUT_GENERAL,
         });
