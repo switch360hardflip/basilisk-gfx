@@ -58,8 +58,8 @@ BSGFXAPI void _preval_bsgfx_loadScene(const char* name) {
     next.bsgfx_loadScene(name);
 }
 
-BSGFXAPI int _preval_bsgfx_windows() {
-    return next.bsgfx_windows();
+BSGFXAPI int _preval_bsgfx_contexts() {
+    return next.bsgfx_contexts();
 }
 
 BSGFXAPI int _preval_bsgfx_images() {
@@ -664,7 +664,7 @@ bsgfx_FunctionTable* _preval_bsgfx_getFunctionTable() {
 
     functions.bsgfx_currentScene = _preval_bsgfx_currentScene;
     functions.bsgfx_loadScene = _preval_bsgfx_loadScene;
-    functions.bsgfx_windows = _preval_bsgfx_windows;
+    functions.bsgfx_contexts = _preval_bsgfx_contexts;
     functions.bsgfx_images = _preval_bsgfx_images;
     functions.bsgfx_samplers = _preval_bsgfx_samplers;
     functions.bsgfx_buffers = _preval_bsgfx_buffers;

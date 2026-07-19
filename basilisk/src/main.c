@@ -10,10 +10,9 @@ int main(int argc, char* argv[]) {
 
 	bs_ini();
 
-	bs_PhysicalDevice* device = bs_queryPreferredPhysicalDevice();
-
-	bs_Object* window_object = BS_WINDOW(BSGFX_WINDOWS, -1, 0);
-	bs_window(window_object, 1024, 1024, "basilisk");
+	bs_Object* context_object = BS_CONTEXT(BSGFX_CONTEXTS, -1, 0);
+	bs_window(context_object, 1024, 1024, "basilisk");
+	bs_device(context_object, NULL);
 
 	bs_Atlas atlas = { .count = 1 };
 	bs_atlasSize(&atlas, 0);

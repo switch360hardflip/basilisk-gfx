@@ -553,13 +553,13 @@ BSMODAPI void _bsmod_copyHoveringDataToBuffer() {
 				image,
 				cursor_reads_buffer,
 				0,
-				BS_LAYOUT_GENERAL,
+				BS_IMAGE_LAYOUT_GENERAL,
 				i * 4,
 				cursor_position,
 				BS_IV2(1, 1));
 
 			if (_bsmod_.queue.screenshot)
-				bs_copyImageToBufferAsync(image, tile_read_buffer, 0, BS_LAYOUT_GENERAL, pixel_resolution.x * pixel_resolution.y * i * 4, BS_IV2(0, 0), pixel_resolution);
+				bs_copyImageToBufferAsync(image, tile_read_buffer, 0, BS_IMAGE_LAYOUT_GENERAL, pixel_resolution.x * pixel_resolution.y * i * 4, BS_IV2(0, 0), pixel_resolution);
 		}
 	}
 }

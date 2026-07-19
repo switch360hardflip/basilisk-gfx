@@ -272,6 +272,7 @@ static inline bs_FunctionTable* _val_bs_getFunctions() {
     functions.bs_props = (PFN_bs_props)GetProcAddress(module, "_val_bs_props");
     functions.bs_config = (PFN_bs_config)GetProcAddress(module, "_val_bs_config");
     functions.bs_scope = (PFN_bs_scope)GetProcAddress(module, "_val_bs_scope");
+    functions.bs_context = (PFN_bs_context)GetProcAddress(module, "_val_bs_context");
     functions.bs_io = (PFN_bs_io)GetProcAddress(module, "_val_bs_io");
     functions.bs_system = (PFN_bs_system)GetProcAddress(module, "_val_bs_system");
     functions.bs_createThread = (PFN_bs_createThread)GetProcAddress(module, "_val_bs_createThread");
@@ -429,6 +430,7 @@ static inline bs_FunctionTable* _val_bs_getFunctions() {
     functions.bs_resizeWindow = (PFN_bs_resizeWindow)GetProcAddress(module, "_val_bs_resizeWindow");
     functions.bs_moveWindow = (PFN_bs_moveWindow)GetProcAddress(module, "_val_bs_moveWindow");
     functions.bs_window = (PFN_bs_window)GetProcAddress(module, "_val_bs_window");
+    functions.bs_device = (PFN_bs_device)GetProcAddress(module, "_val_bs_device");
     functions.bs_tick = (PFN_bs_tick)GetProcAddress(module, "_val_bs_tick");
     functions.bs_exit = (PFN_bs_exit)GetProcAddress(module, "_val_bs_exit");
     functions.bs_setCursor = (PFN_bs_setCursor)GetProcAddress(module, "_val_bs_setCursor");

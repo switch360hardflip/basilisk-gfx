@@ -449,7 +449,7 @@ BSMODAPI void _bsmod_bindAtlases() {
         bs_bindImages(BSMOD_SET_IMAGE_ATLAS_UI, BSMOD_BINDING_IMAGE_ATLAS_UI, &(bs_ImageDescriptor) {
             .image = ui->image,
             .sampler = nearest_sampler,
-            .layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .layout = BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         }, 1);
     }
 
@@ -465,7 +465,7 @@ BSMODAPI void _bsmod_bindAtlases() {
         icon_atlases[BSMOD_ATLAS_ICONS_PREFABS_BINDING].image = bs_fetch(BSMOD_ATLASES, BSMOD_ATLAS_PREFAB_ICONS)->atlas->image;
 
     for (int i = 0; i < BSMOD_ATLAS_ICONS_COUNT; i++) {
-        icon_atlases[i].layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        icon_atlases[i].layout = BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         icon_atlases[i].sampler = nearest_sampler;
     }
 
@@ -528,11 +528,11 @@ BSMODAPI void _bsmod_onLoad() {
         // bs_U32 subpass, bs_Image* image, bs_ImageLayout old_layout, bs_ImageLayout new_layout, bs_OutputFlags flags
         bs_output(renderer_object->renderer, (bs_Output) {
             .subpass = 0, 
-            .image = bs_scope()->window->swapchain_image->image,
+            .image = bs_scope()->_bs_context_.swapchain_image->image,
             .load_op = BS_LOAD_OP_CLEAR,
             .store_op = BS_STORE_OP_STORE,
-            .old_layout = BS_LAYOUT_UNDEFINED,
-            .new_layout = BS_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
+            .new_layout = BS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
         });
 
         bs_Image* subpass_0_outputs[] = {
@@ -545,8 +545,8 @@ BSMODAPI void _bsmod_onLoad() {
                 .image = subpass_0_outputs[i],
                 .load_op = BS_LOAD_OP_CLEAR,
                 .store_op = BS_STORE_OP_STORE,
-                .old_layout = BS_LAYOUT_UNDEFINED,
-                .new_layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
+                .new_layout = BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             });
         }
 
@@ -569,21 +569,21 @@ BSMODAPI void _bsmod_onLoad() {
 
         bs_output(renderer_3d->renderer, (bs_Output) {
             .subpass = 0, 
-            .image = bs_scope()->window->swapchain_image->image,
+            .image = bs_scope()->_bs_context_.swapchain_image->image,
             .load_op = BS_LOAD_OP_LOAD,
             .store_op = BS_STORE_OP_STORE,
-            .old_layout = BS_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            .new_layout = BS_LAYOUT_PRESENT_SRC_KHR,
+            .old_layout = BS_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .new_layout = BS_IMAGE_LAYOUT_PRESENT_SRC_KHR,
         });
 
-        bs_transition(depth, 0, BS_LAYOUT_UNDEFINED, BS_LAYOUT_GENERAL);
+        bs_transition(depth, 0, BS_IMAGE_LAYOUT_UNDEFINED, BS_IMAGE_LAYOUT_GENERAL);
         bs_output(renderer_3d->renderer, (bs_Output) {
             .subpass = 0, 
             .image = depth,
             .load_op = BS_LOAD_OP_LOAD,
             .store_op = BS_STORE_OP_STORE,
-            .old_layout = BS_LAYOUT_GENERAL,
-            .new_layout = BS_LAYOUT_GENERAL,
+            .old_layout = BS_IMAGE_LAYOUT_GENERAL,
+            .new_layout = BS_IMAGE_LAYOUT_GENERAL,
         });
 
         bs_dependency(renderer_3d->renderer, -1, 0, BS_DEPENDENCY_BY_REGION_BIT,

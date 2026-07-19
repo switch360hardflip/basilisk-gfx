@@ -67,11 +67,11 @@ static void _bsgfx_createRenderers() {
             /** subpass 0 */
             bs_output(hi_res->renderer, (bs_Output) {
                 .subpass = 0,
-                .image = bs_scope()->window->swapchain_image->image,
-                .load_op = BS_LOAD_OP_CLEAR,
-                .store_op = BS_STORE_OP_STORE,
-                .old_layout = BS_LAYOUT_UNDEFINED,
-                .new_layout = BS_LAYOUT_PRESENT_SRC_KHR,
+                .image = bs_scope()->_bs_context_.swapchain_image->image,
+                .load_op = BS_ATTACHMENT_LOAD_OP_CLEAR,
+                .store_op = BS_ATTACHMENT_STORE_OP_STORE,
+                .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
+                .new_layout = BS_IMAGE_LAYOUT_PRESENT_SRC_KHR,
             });
 
             bs_output(hi_res->renderer, (bs_Output) {
@@ -79,8 +79,8 @@ static void _bsgfx_createRenderers() {
                 .image = hi_res_0_depth->image,
                 .load_op = BS_LOAD_OP_CLEAR,
                 .store_op = BS_STORE_OP_STORE,
-                .old_layout = BS_LAYOUT_UNDEFINED,
-                .new_layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
+                .new_layout = BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             });
 
             /** dependencies */
@@ -152,8 +152,8 @@ static void _bsgfx_createRenderers() {
                 .image = subpass_0_outputs[i],
                 .load_op = BS_LOAD_OP_CLEAR,
                 .store_op = BS_STORE_OP_STORE,
-                .old_layout = BS_LAYOUT_UNDEFINED,
-                .new_layout = BS_LAYOUT_GENERAL,
+                .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
+                .new_layout = BS_IMAGE_LAYOUT_GENERAL,
             });
         }
 
@@ -189,8 +189,8 @@ static void _bsgfx_createRenderers() {
             .image = lo_res_1_color,
             .load_op = BS_LOAD_OP_CLEAR,
             .store_op = BS_STORE_OP_STORE,
-            .old_layout = BS_LAYOUT_UNDEFINED,
-            .new_layout = BS_LAYOUT_GENERAL,
+            .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
+            .new_layout = BS_IMAGE_LAYOUT_GENERAL,
         });
 
         /** dependencies */
@@ -378,8 +378,8 @@ static void _bsgfx_loadResources() {
     if (bs_exists(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST) &&
         bs_image(ray_trace_output, resolution, 0, BS_FORMAT_R32G32B32A32_SFLOAT, BS_IMAGE_USAGE_STORAGE_BIT) == BS_RESULT_OK) 
     {
-        bs_transition(ray_trace_output->image, 0, BS_LAYOUT_UNDEFINED, BS_LAYOUT_GENERAL);
-        bs_bindImage(BSGFX_SET_RAY_TRACE_OUTPUT, BSGFX_BINDING_RAY_TRACE_OUTPUT, ray_trace_output->image, bs_fetch(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)->sampler, BS_LAYOUT_GENERAL);
+        bs_transition(ray_trace_output->image, 0, BS_IMAGE_LAYOUT_UNDEFINED, BS_IMAGE_LAYOUT_GENERAL);
+        bs_bindImage(BSGFX_SET_RAY_TRACE_OUTPUT, BSGFX_BINDING_RAY_TRACE_OUTPUT, ray_trace_output->image, bs_fetch(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)->sampler, BS_IMAGE_LAYOUT_GENERAL);
     }
 
     bs_RayTracer* ray_tracer = bs_rayTracer(BSGFX_RAY_TRACER_MAIN, 0, $rgen_main(), $rmiss_main(), NULL)->ray_tracer;
@@ -466,34 +466,34 @@ static void _bsgfx_loadResources() {
         bs_Image* lo_res_result_image = bs_fetch(BSGFX_IMAGES, BSGFX_IMAGE_LO_RES_1_COLOR)->image;
 
         if (lo_res_color_image) {
-            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_COLOR_ATTACHMENT, lo_res_color_image, sampler, BS_LAYOUT_GENERAL);
-            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_COLOR_INPUT, lo_res_color_image, sampler, BS_LAYOUT_GENERAL);
+            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_COLOR_ATTACHMENT, lo_res_color_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
+            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_COLOR_INPUT, lo_res_color_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
         }
         if (lo_res_normal_image) {
-            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_NORMAL_ATTACHMENT, lo_res_normal_image, sampler, BS_LAYOUT_GENERAL);
-            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_NORMAL_INPUT, lo_res_normal_image, sampler, BS_LAYOUT_GENERAL);
+            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_NORMAL_ATTACHMENT, lo_res_normal_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
+            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_NORMAL_INPUT, lo_res_normal_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
         }
         if (lo_res_index_image) {
-            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_INDEX_ATTACHMENT, lo_res_index_image, sampler, BS_LAYOUT_GENERAL);
-            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_INDEX_INPUT, lo_res_index_image, sampler, BS_LAYOUT_GENERAL);
+            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_INDEX_ATTACHMENT, lo_res_index_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
+            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_INDEX_INPUT, lo_res_index_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
         }
         if (lo_res_flags_image) {
-            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_FLAGS_ATTACHMENT, lo_res_flags_image, sampler, BS_LAYOUT_GENERAL);
-            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_FLAGS_INPUT, lo_res_flags_image, sampler, BS_LAYOUT_GENERAL);
+            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_FLAGS_ATTACHMENT, lo_res_flags_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
+            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_FLAGS_INPUT, lo_res_flags_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
         }
         if (lo_res_vertex_image) {
-            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_VERTEX_ATTACHMENT, lo_res_vertex_image, sampler, BS_LAYOUT_GENERAL);
+            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_VERTEX_ATTACHMENT, lo_res_vertex_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
         }
         if (lo_res_position_image) {
-            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_POSITION_ATTACHMENT, lo_res_position_image, sampler, BS_LAYOUT_GENERAL);
-            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_POSITION_INPUT, lo_res_position_image, sampler, BS_LAYOUT_GENERAL);
+            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_POSITION_ATTACHMENT, lo_res_position_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
+            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_POSITION_INPUT, lo_res_position_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
         }
         if (lo_res_depth_image) {
-            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_DEPTH_ATTACHMENT, lo_res_depth_image, sampler, BS_LAYOUT_GENERAL);
-//            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_DEPTH_INPUT, lo_res_depth_image, sampler, BS_LAYOUT_GENERAL);
+            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_DEPTH_ATTACHMENT, lo_res_depth_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
+//            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_0_DEPTH_INPUT, lo_res_depth_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
         }
         if (lo_res_result_image)
-            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_1_COLOR_ATTACHMENT, lo_res_result_image, sampler, BS_LAYOUT_GENERAL);
+            bs_bindImage(BSGFX_SET_LO_RES_0, BSGFX_BINDING_LO_RES_1_COLOR_ATTACHMENT, lo_res_result_image, sampler, BS_IMAGE_LAYOUT_GENERAL);
     }
 
     bs_pushBindings();

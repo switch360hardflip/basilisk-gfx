@@ -450,7 +450,7 @@
             <line>X(BSGFX_FONT_ARIAL_48)</line>
         </macro>
 
-        <macro><name>#define BSGFX_WINDOWS</name><line>bsgfx_windows()</line></macro>
+        <macro><name>#define BSGFX_CONTEXTS</name><line>bsgfx_contexts()</line></macro>
         <macro><name>#define BSGFX_IMAGES</name><line>bsgfx_images()</line></macro>
         <macro><name>#define BSGFX_SAMPLERS</name><line>bsgfx_samplers()</line></macro>
         <macro><name>#define BSGFX_BUFFERS</name><line>bsgfx_buffers()</line></macro>
@@ -1291,7 +1291,7 @@
 			<return>void</return>
 			<param><type>const char*</type><name>name</name></param>
 		</function>
-		<function name="bsgfx_windows"><return>int</return></function>
+		<function name="bsgfx_contexts"><return>int</return></function>
 		<function name="bsgfx_images"><return>int</return></function>
 		<function name="bsgfx_samplers"><return>int</return></function>
 		<function name="bsgfx_buffers"><return>int</return></function>
@@ -1869,6 +1869,7 @@
 
 	<externs>
 		<extern><type>bsgfx_Scene</type><name>bsgfx_current_scene</name></extern>
+		<extern><type>int</type><name>bsgfx_contexts</name></extern>
 		<extern><type>int</type><name>bsgfx_images</name></extern>
 		<extern><type>int</type><name>bsgfx_samplers</name></extern>
 		<extern><type>int</type><name>bsgfx_buffers</name></extern>

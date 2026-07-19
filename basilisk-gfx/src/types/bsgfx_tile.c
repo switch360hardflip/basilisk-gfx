@@ -404,7 +404,7 @@ static void _bsgfx_loadTileTextures(int package_id) {
     result = bs_bindImages(BSGFX_SET_34_24, BSGFX_BINDING_34_24, &(bs_ImageDescriptor) {
         .image = tile_image->image,
         .sampler = bs_fetch(BSGFX_SAMPLERS, BSGFX_SAMPLER_NEAREST)->sampler,
-        .layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        .layout = BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
     }, 1);
     if (result != BS_RESULT_OK)
         return;

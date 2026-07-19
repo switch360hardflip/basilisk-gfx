@@ -150,11 +150,14 @@ typedef struct bs_BindSet bs_BindSet;
 typedef struct bs_ObjectSource bs_ObjectSource;
 typedef struct bs_ObjectId bs_ObjectId;
 typedef struct bs_IO bs_IO;
-typedef struct bs_Window bs_Window;
 typedef struct bs_Instance bs_Instance;
 typedef struct bs_Bindings bs_Bindings;
 typedef struct bs_Config bs_Config;
 typedef struct bs_Scope bs_Scope;
+typedef struct bs_QueueFamily bs_QueueFamily;
+typedef struct bs_SurfaceFormat bs_SurfaceFormat;
+typedef struct bs_PhysicalDevice bs_PhysicalDevice;
+typedef struct bs_Context bs_Context;
 typedef struct bs_Args bs_Args;
 typedef struct bs_Features bs_Features;
 typedef struct bs_Props bs_Props;
@@ -166,7 +169,6 @@ typedef enum bs_PngType bs_PngType;
 typedef enum bs_Slot bs_Slot;
 typedef enum bs_BufferUsageFlag bs_BufferUsageFlag;
 typedef enum bs_MemoryPropertyFlag bs_MemoryPropertyFlag;
-typedef enum bs_Format bs_Format;
 typedef enum bs_ImageLayout bs_ImageLayout;
 typedef enum bs_AccessMask bs_AccessMask;
 typedef enum bs_PipelineStage bs_PipelineStage;
@@ -206,7 +208,11 @@ typedef enum bs_SurfaceType bs_SurfaceType;
 typedef enum bs_SwapchainMode bs_SwapchainMode;
 typedef enum bs_JsonType bs_JsonType;
 typedef enum bs_ShaderType bs_ShaderType;
+typedef enum bs_Format bs_Format;
+typedef enum bs_ColorSpace bs_ColorSpace;
+typedef enum bs_PresentMode bs_PresentMode;
 typedef enum bs_BindType bs_BindType;
+typedef enum bs_VkObjectType bs_VkObjectType;
 
 #define BS_RGBA(r, g, b, a)                                          \
     (bs_RGBA) { r, g, b, a }
@@ -216,6 +222,9 @@ typedef enum bs_BindType bs_BindType;
 
 #define BS_CONSTANT_STRING(s)                                        \
     s, sizeof(s) - 1
+
+#define BS_MAX_PHYSICAL_DEVICE_NAME_SIZE                             \
+    256U
 
 #define BS_PI                                                        \
     3.14159265359
@@ -700,13 +709,13 @@ typedef enum bs_BindType bs_BindType;
     (sizeof(*((type*)NULL)->_))
 
 #define BS_SWAPS_COUNT(flags)                                        \
-    ((flags & BS_OBJECT_HAS_SWAPS_BIT) ? bs_scope()->window->frames_in_flight : 1)
+    ((flags & BS_OBJECT_HAS_SWAPS_BIT) ? bs_context()->frames_in_flight : 1)
 
 #define BS_OBJECT(type, source_id, id, swaps_count, flags)           \
         bs_object(source_id, id, sizeof(type), BS_SWAP_SIZE(type), swaps_count, flags)
 
-#define BS_WINDOW(source_id, id, flags)                              \
-    BS_OBJECT(bs_Window, source_id, id, BS_SWAPS_COUNT(flags), flags)
+#define BS_CONTEXT(source_id, id, flags)                             \
+    BS_OBJECT(bs_Context, source_id, id, BS_SWAPS_COUNT(flags), flags)
 
 #define BS_IMAGE(source_id, id, flags)                               \
     BS_OBJECT(bs_Image, source_id, id, BS_SWAPS_COUNT(flags), flags)
@@ -1588,7 +1597,7 @@ struct bs_Object {
         bs_Queue* queue;
         bs_RayTracer* ray_tracer;
         bs_Font* font;
-        bs_Window* window;
+        bs_Context* context;
     };
 };
 
@@ -2388,43 +2397,6 @@ struct bs_IO {
     bs_String* log;
 };
 
-struct bs_Window {
-    bs_Header head;
-    const char* title;
-    void* hwnd;
-    bs_Timer timer;
-    bs_ivec2 dimensions;
-    bs_Callback resize;
-    bs_Callback destroy;
-    bs_vec2 cursor;
-    double time, time_old;
-    double delta_time;
-    double fixed_time;
-    double fixed_interpolation;
-    double target_frame_time;
-    double elapsed_time;
-    int last_fixed_update_times[2];
-    int new_time_index;
-    bool in_fixed;
-    bool lock_cursor_position;
-    bool active;
-    bs_CursorIcon cursor_icon;
-    bool paused;
-    bool advance;
-    struct VkSurfaceKHR_T* surface;
-    bs_PhysicalDevice* physical_device;
-    int id;
-    int frames_in_flight;
-    int frame;
-    bool resized;
-    bool image_acquired;
-    bs_Object* swapchain_image;
-    struct VkSwapchainKHR_T* swapchain;
-    struct {
-        struct VkSemaphore_T* semaphore;
-    }_[];
-};
-
 struct bs_Instance {
     bs_Queue* single_times_queue;
     int bind_sets_count;
@@ -2465,10 +2437,70 @@ struct bs_Scope {
     bs_Renderer* renderer;
     int subpass;
     bs_Queue* queue;
-    bs_Window* window;
     bs_U32 wait_num;
     bs_U32 wait_stages[BS_MAX_NUM_WAITS];
     struct VkSemaphore_T* wait_semaphores[BS_MAX_NUM_WAITS];
+};
+
+struct bs_QueueFamily {
+    bool supports_present;
+    bs_U32 queue_flags;
+    bs_U32 queue_count;
+};
+
+struct bs_SurfaceFormat {
+    bs_Format format;
+    bs_ColorSpace color_space;
+};
+
+struct bs_PhysicalDevice {
+    struct VkPhysicalDevice_T* vk_device;
+    bool supports_present;
+    bs_U32 api_version;
+    int type;
+    bs_List queue_families;
+    bs_List surface_formats;
+    const char name[BS_MAX_PHYSICAL_DEVICE_NAME_SIZE];
+};
+
+struct bs_Context {
+    bs_Header head;
+    const char* title;
+    void* hwnd;
+    bs_Timer timer;
+    bs_ivec2 dimensions;
+    bs_Callback resize;
+    bs_Callback destroy;
+    bs_vec2 cursor;
+    double time, time_old;
+    double delta_time;
+    double fixed_time;
+    double fixed_interpolation;
+    double target_frame_time;
+    double elapsed_time;
+    int last_fixed_update_times[2];
+    int new_time_index;
+    bool in_fixed;
+    bool lock_cursor_position;
+    bool active;
+    bs_CursorIcon cursor_icon;
+    bool paused;
+    bool advance;
+    struct VkSurfaceKHR_T* surface;
+    bs_PhysicalDevice* physical_device;
+    bs_QueueFamily* queue_family;
+    bs_SurfaceFormat surface_format;
+    bs_PresentMode present_mode;
+    int id;
+    int frames_in_flight;
+    int frame;
+    bool resized;
+    bool image_acquired;
+    bs_Object* swapchain_image;
+    struct VkSwapchainKHR_T* swapchain;
+    struct {
+        struct VkSemaphore_T* semaphore;
+    }_[];
 };
 
 struct bs_Args {
@@ -2585,194 +2617,6 @@ enum bs_MemoryPropertyFlag {
     BS_MEMORY_PROPERTY_HOST_COHERENT_BIT = 1 << 2,
     BS_MEMORY_PROPERTY_HOST_CACHED_BIT = 1 << 3,
     BS_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT = 1 << 4,
-};
-
-enum bs_Format {
-    BS_FORMAT_UNDEFINED = 0,
-    BS_FORMAT_R4G4_UNORM_PACK8 = 1,
-    BS_FORMAT_R4G4B4A4_UNORM_PACK16 = 2,
-    BS_FORMAT_B4G4R4A4_UNORM_PACK16 = 3,
-    BS_FORMAT_R5G6B5_UNORM_PACK16 = 4,
-    BS_FORMAT_B5G6R5_UNORM_PACK16 = 5,
-    BS_FORMAT_R5G5B5A1_UNORM_PACK16 = 6,
-    BS_FORMAT_B5G5R5A1_UNORM_PACK16 = 7,
-    BS_FORMAT_A1R5G5B5_UNORM_PACK16 = 8,
-    BS_FORMAT_R8_UNORM = 9,
-    BS_FORMAT_R8_SNORM = 10,
-    BS_FORMAT_R8_USCALED = 11,
-    BS_FORMAT_R8_SSCALED = 12,
-    BS_FORMAT_R8_UINT = 13,
-    BS_FORMAT_R8_SINT = 14,
-    BS_FORMAT_R8_SRGB = 15,
-    BS_FORMAT_R8G8_UNORM = 16,
-    BS_FORMAT_R8G8_SNORM = 17,
-    BS_FORMAT_R8G8_USCALED = 18,
-    BS_FORMAT_R8G8_SSCALED = 19,
-    BS_FORMAT_R8G8_UINT = 20,
-    BS_FORMAT_R8G8_SINT = 21,
-    BS_FORMAT_R8G8_SRGB = 22,
-    BS_FORMAT_R8G8B8_UNORM = 23,
-    BS_FORMAT_R8G8B8_SNORM = 24,
-    BS_FORMAT_R8G8B8_USCALED = 25,
-    BS_FORMAT_R8G8B8_SSCALED = 26,
-    BS_FORMAT_R8G8B8_UINT = 27,
-    BS_FORMAT_R8G8B8_SINT = 28,
-    BS_FORMAT_R8G8B8_SRGB = 29,
-    BS_FORMAT_B8G8R8_UNORM = 30,
-    BS_FORMAT_B8G8R8_SNORM = 31,
-    BS_FORMAT_B8G8R8_USCALED = 32,
-    BS_FORMAT_B8G8R8_SSCALED = 33,
-    BS_FORMAT_B8G8R8_UINT = 34,
-    BS_FORMAT_B8G8R8_SINT = 35,
-    BS_FORMAT_B8G8R8_SRGB = 36,
-    BS_FORMAT_R8G8B8A8_UNORM = 37,
-    BS_FORMAT_R8G8B8A8_SNORM = 38,
-    BS_FORMAT_R8G8B8A8_USCALED = 39,
-    BS_FORMAT_R8G8B8A8_SSCALED = 40,
-    BS_FORMAT_R8G8B8A8_UINT = 41,
-    BS_FORMAT_R8G8B8A8_SINT = 42,
-    BS_FORMAT_R8G8B8A8_SRGB = 43,
-    BS_FORMAT_B8G8R8A8_UNORM = 44,
-    BS_FORMAT_B8G8R8A8_SNORM = 45,
-    BS_FORMAT_B8G8R8A8_USCALED = 46,
-    BS_FORMAT_B8G8R8A8_SSCALED = 47,
-    BS_FORMAT_B8G8R8A8_UINT = 48,
-    BS_FORMAT_B8G8R8A8_SINT = 49,
-    BS_FORMAT_B8G8R8A8_SRGB = 50,
-    BS_FORMAT_A8B8G8R8_UNORM_PACK32 = 51,
-    BS_FORMAT_A8B8G8R8_SNORM_PACK32 = 52,
-    BS_FORMAT_A8B8G8R8_USCALED_PACK32 = 53,
-    BS_FORMAT_A8B8G8R8_SSCALED_PACK32 = 54,
-    BS_FORMAT_A8B8G8R8_UINT_PACK32 = 55,
-    BS_FORMAT_A8B8G8R8_SINT_PACK32 = 56,
-    BS_FORMAT_A8B8G8R8_SRGB_PACK32 = 57,
-    BS_FORMAT_A2R10G10B10_UNORM_PACK32 = 58,
-    BS_FORMAT_A2R10G10B10_SNORM_PACK32 = 59,
-    BS_FORMAT_A2R10G10B10_USCALED_PACK32 = 60,
-    BS_FORMAT_A2R10G10B10_SSCALED_PACK32 = 61,
-    BS_FORMAT_A2R10G10B10_UINT_PACK32 = 62,
-    BS_FORMAT_A2R10G10B10_SINT_PACK32 = 63,
-    BS_FORMAT_A2B10G10R10_UNORM_PACK32 = 64,
-    BS_FORMAT_A2B10G10R10_SNORM_PACK32 = 65,
-    BS_FORMAT_A2B10G10R10_USCALED_PACK32 = 66,
-    BS_FORMAT_A2B10G10R10_SSCALED_PACK32 = 67,
-    BS_FORMAT_A2B10G10R10_UINT_PACK32 = 68,
-    BS_FORMAT_A2B10G10R10_SINT_PACK32 = 69,
-    BS_FORMAT_R16_UNORM = 70,
-    BS_FORMAT_R16_SNORM = 71,
-    BS_FORMAT_R16_USCALED = 72,
-    BS_FORMAT_R16_SSCALED = 73,
-    BS_FORMAT_R16_UINT = 74,
-    BS_FORMAT_R16_SINT = 75,
-    BS_FORMAT_R16_SFLOAT = 76,
-    BS_FORMAT_R16G16_UNORM = 77,
-    BS_FORMAT_R16G16_SNORM = 78,
-    BS_FORMAT_R16G16_USCALED = 79,
-    BS_FORMAT_R16G16_SSCALED = 80,
-    BS_FORMAT_R16G16_UINT = 81,
-    BS_FORMAT_R16G16_SINT = 82,
-    BS_FORMAT_R16G16_SFLOAT = 83,
-    BS_FORMAT_R16G16B16_UNORM = 84,
-    BS_FORMAT_R16G16B16_SNORM = 85,
-    BS_FORMAT_R16G16B16_USCALED = 86,
-    BS_FORMAT_R16G16B16_SSCALED = 87,
-    BS_FORMAT_R16G16B16_UINT = 88,
-    BS_FORMAT_R16G16B16_SINT = 89,
-    BS_FORMAT_R16G16B16_SFLOAT = 90,
-    BS_FORMAT_R16G16B16A16_UNORM = 91,
-    BS_FORMAT_R16G16B16A16_SNORM = 92,
-    BS_FORMAT_R16G16B16A16_USCALED = 93,
-    BS_FORMAT_R16G16B16A16_SSCALED = 94,
-    BS_FORMAT_R16G16B16A16_UINT = 95,
-    BS_FORMAT_R16G16B16A16_SINT = 96,
-    BS_FORMAT_R16G16B16A16_SFLOAT = 97,
-    BS_FORMAT_R32_UINT = 98,
-    BS_FORMAT_R32_SINT = 99,
-    BS_FORMAT_R32_SFLOAT = 100,
-    BS_FORMAT_R32G32_UINT = 101,
-    BS_FORMAT_R32G32_SINT = 102,
-    BS_FORMAT_R32G32_SFLOAT = 103,
-    BS_FORMAT_R32G32B32_UINT = 104,
-    BS_FORMAT_R32G32B32_SINT = 105,
-    BS_FORMAT_R32G32B32_SFLOAT = 106,
-    BS_FORMAT_R32G32B32A32_UINT = 107,
-    BS_FORMAT_R32G32B32A32_SINT = 108,
-    BS_FORMAT_R32G32B32A32_SFLOAT = 109,
-    BS_FORMAT_R64_UINT = 110,
-    BS_FORMAT_R64_SINT = 111,
-    BS_FORMAT_R64_SFLOAT = 112,
-    BS_FORMAT_R64G64_UINT = 113,
-    BS_FORMAT_R64G64_SINT = 114,
-    BS_FORMAT_R64G64_SFLOAT = 115,
-    BS_FORMAT_R64G64B64_UINT = 116,
-    BS_FORMAT_R64G64B64_SINT = 117,
-    BS_FORMAT_R64G64B64_SFLOAT = 118,
-    BS_FORMAT_R64G64B64A64_UINT = 119,
-    BS_FORMAT_R64G64B64A64_SINT = 120,
-    BS_FORMAT_R64G64B64A64_SFLOAT = 121,
-    BS_FORMAT_B10G11R11_UFLOAT_PACK32 = 122,
-    BS_FORMAT_E5B9G9R9_UFLOAT_PACK32 = 123,
-    BS_FORMAT_D16_UNORM = 124,
-    BS_FORMAT_X8_D24_UNORM_PACK32 = 125,
-    BS_FORMAT_D32_SFLOAT = 126,
-    BS_FORMAT_S8_UINT = 127,
-    BS_FORMAT_D16_UNORM_S8_UINT = 128,
-    BS_FORMAT_D24_UNORM_S8_UINT = 129,
-    BS_FORMAT_D32_SFLOAT_S8_UINT = 130,
-    BS_FORMAT_BC1_RGB_UNORM_BLOCK = 131,
-    BS_FORMAT_BC1_RGB_SRGB_BLOCK = 132,
-    BS_FORMAT_BC1_RGBA_UNORM_BLOCK = 133,
-    BS_FORMAT_BC1_RGBA_SRGB_BLOCK = 134,
-    BS_FORMAT_BC2_UNORM_BLOCK = 135,
-    BS_FORMAT_BC2_SRGB_BLOCK = 136,
-    BS_FORMAT_BC3_UNORM_BLOCK = 137,
-    BS_FORMAT_BC3_SRGB_BLOCK = 138,
-    BS_FORMAT_BC4_UNORM_BLOCK = 139,
-    BS_FORMAT_BC4_SNORM_BLOCK = 140,
-    BS_FORMAT_BC5_UNORM_BLOCK = 141,
-    BS_FORMAT_BC5_SNORM_BLOCK = 142,
-    BS_FORMAT_BC6H_UFLOAT_BLOCK = 143,
-    BS_FORMAT_BC6H_SFLOAT_BLOCK = 144,
-    BS_FORMAT_BC7_UNORM_BLOCK = 145,
-    BS_FORMAT_BC7_SRGB_BLOCK = 146,
-    BS_FORMAT_ETC2_R8G8B8_UNORM_BLOCK = 147,
-    BS_FORMAT_ETC2_R8G8B8_SRGB_BLOCK = 148,
-    BS_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK = 149,
-    BS_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK = 150,
-    BS_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK = 151,
-    BS_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK = 152,
-    BS_FORMAT_EAC_R11_UNORM_BLOCK = 153,
-    BS_FORMAT_EAC_R11_SNORM_BLOCK = 154,
-    BS_FORMAT_EAC_R11G11_UNORM_BLOCK = 155,
-    BS_FORMAT_EAC_R11G11_SNORM_BLOCK = 156,
-    BS_FORMAT_ASTC_4x4_UNORM_BLOCK = 157,
-    BS_FORMAT_ASTC_4x4_SRGB_BLOCK = 158,
-    BS_FORMAT_ASTC_5x4_UNORM_BLOCK = 159,
-    BS_FORMAT_ASTC_5x4_SRGB_BLOCK = 160,
-    BS_FORMAT_ASTC_5x5_UNORM_BLOCK = 161,
-    BS_FORMAT_ASTC_5x5_SRGB_BLOCK = 162,
-    BS_FORMAT_ASTC_6x5_UNORM_BLOCK = 163,
-    BS_FORMAT_ASTC_6x5_SRGB_BLOCK = 164,
-    BS_FORMAT_ASTC_6x6_UNORM_BLOCK = 165,
-    BS_FORMAT_ASTC_6x6_SRGB_BLOCK = 166,
-    BS_FORMAT_ASTC_8x5_UNORM_BLOCK = 167,
-    BS_FORMAT_ASTC_8x5_SRGB_BLOCK = 168,
-    BS_FORMAT_ASTC_8x6_UNORM_BLOCK = 169,
-    BS_FORMAT_ASTC_8x6_SRGB_BLOCK = 170,
-    BS_FORMAT_ASTC_8x8_UNORM_BLOCK = 171,
-    BS_FORMAT_ASTC_8x8_SRGB_BLOCK = 172,
-    BS_FORMAT_ASTC_10x5_UNORM_BLOCK = 173,
-    BS_FORMAT_ASTC_10x5_SRGB_BLOCK = 174,
-    BS_FORMAT_ASTC_10x6_UNORM_BLOCK = 175,
-    BS_FORMAT_ASTC_10x6_SRGB_BLOCK = 176,
-    BS_FORMAT_ASTC_10x8_UNORM_BLOCK = 177,
-    BS_FORMAT_ASTC_10x8_SRGB_BLOCK = 178,
-    BS_FORMAT_ASTC_10x10_UNORM_BLOCK = 179,
-    BS_FORMAT_ASTC_10x10_SRGB_BLOCK = 180,
-    BS_FORMAT_ASTC_12x10_UNORM_BLOCK = 181,
-    BS_FORMAT_ASTC_12x10_SRGB_BLOCK = 182,
-    BS_FORMAT_ASTC_12x12_UNORM_BLOCK = 183,
-    BS_FORMAT_ASTC_12x12_SRGB_BLOCK = 184,
 };
 
 enum bs_ImageLayout {
@@ -3120,6 +2964,206 @@ enum bs_ShaderType {
     BS_SHADER_STAGE_ALL = 0x7FFFFFFF,
 };
 
+enum bs_Format {
+    BS_FORMAT_UNDEFINED = 0,
+    BS_FORMAT_R4G4_UNORM_PACK8 = 1,
+    BS_FORMAT_R4G4B4A4_UNORM_PACK16 = 2,
+    BS_FORMAT_B4G4R4A4_UNORM_PACK16 = 3,
+    BS_FORMAT_R5G6B5_UNORM_PACK16 = 4,
+    BS_FORMAT_B5G6R5_UNORM_PACK16 = 5,
+    BS_FORMAT_R5G5B5A1_UNORM_PACK16 = 6,
+    BS_FORMAT_B5G5R5A1_UNORM_PACK16 = 7,
+    BS_FORMAT_A1R5G5B5_UNORM_PACK16 = 8,
+    BS_FORMAT_R8_UNORM = 9,
+    BS_FORMAT_R8_SNORM = 10,
+    BS_FORMAT_R8_USCALED = 11,
+    BS_FORMAT_R8_SSCALED = 12,
+    BS_FORMAT_R8_UINT = 13,
+    BS_FORMAT_R8_SINT = 14,
+    BS_FORMAT_R8_SRGB = 15,
+    BS_FORMAT_R8G8_UNORM = 16,
+    BS_FORMAT_R8G8_SNORM = 17,
+    BS_FORMAT_R8G8_USCALED = 18,
+    BS_FORMAT_R8G8_SSCALED = 19,
+    BS_FORMAT_R8G8_UINT = 20,
+    BS_FORMAT_R8G8_SINT = 21,
+    BS_FORMAT_R8G8_SRGB = 22,
+    BS_FORMAT_R8G8B8_UNORM = 23,
+    BS_FORMAT_R8G8B8_SNORM = 24,
+    BS_FORMAT_R8G8B8_USCALED = 25,
+    BS_FORMAT_R8G8B8_SSCALED = 26,
+    BS_FORMAT_R8G8B8_UINT = 27,
+    BS_FORMAT_R8G8B8_SINT = 28,
+    BS_FORMAT_R8G8B8_SRGB = 29,
+    BS_FORMAT_B8G8R8_UNORM = 30,
+    BS_FORMAT_B8G8R8_SNORM = 31,
+    BS_FORMAT_B8G8R8_USCALED = 32,
+    BS_FORMAT_B8G8R8_SSCALED = 33,
+    BS_FORMAT_B8G8R8_UINT = 34,
+    BS_FORMAT_B8G8R8_SINT = 35,
+    BS_FORMAT_B8G8R8_SRGB = 36,
+    BS_FORMAT_R8G8B8A8_UNORM = 37,
+    BS_FORMAT_R8G8B8A8_SNORM = 38,
+    BS_FORMAT_R8G8B8A8_USCALED = 39,
+    BS_FORMAT_R8G8B8A8_SSCALED = 40,
+    BS_FORMAT_R8G8B8A8_UINT = 41,
+    BS_FORMAT_R8G8B8A8_SINT = 42,
+    BS_FORMAT_R8G8B8A8_SRGB = 43,
+    BS_FORMAT_B8G8R8A8_UNORM = 44,
+    BS_FORMAT_B8G8R8A8_SNORM = 45,
+    BS_FORMAT_B8G8R8A8_USCALED = 46,
+    BS_FORMAT_B8G8R8A8_SSCALED = 47,
+    BS_FORMAT_B8G8R8A8_UINT = 48,
+    BS_FORMAT_B8G8R8A8_SINT = 49,
+    BS_FORMAT_B8G8R8A8_SRGB = 50,
+    BS_FORMAT_A8B8G8R8_UNORM_PACK32 = 51,
+    BS_FORMAT_A8B8G8R8_SNORM_PACK32 = 52,
+    BS_FORMAT_A8B8G8R8_USCALED_PACK32 = 53,
+    BS_FORMAT_A8B8G8R8_SSCALED_PACK32 = 54,
+    BS_FORMAT_A8B8G8R8_UINT_PACK32 = 55,
+    BS_FORMAT_A8B8G8R8_SINT_PACK32 = 56,
+    BS_FORMAT_A8B8G8R8_SRGB_PACK32 = 57,
+    BS_FORMAT_A2R10G10B10_UNORM_PACK32 = 58,
+    BS_FORMAT_A2R10G10B10_SNORM_PACK32 = 59,
+    BS_FORMAT_A2R10G10B10_USCALED_PACK32 = 60,
+    BS_FORMAT_A2R10G10B10_SSCALED_PACK32 = 61,
+    BS_FORMAT_A2R10G10B10_UINT_PACK32 = 62,
+    BS_FORMAT_A2R10G10B10_SINT_PACK32 = 63,
+    BS_FORMAT_A2B10G10R10_UNORM_PACK32 = 64,
+    BS_FORMAT_A2B10G10R10_SNORM_PACK32 = 65,
+    BS_FORMAT_A2B10G10R10_USCALED_PACK32 = 66,
+    BS_FORMAT_A2B10G10R10_SSCALED_PACK32 = 67,
+    BS_FORMAT_A2B10G10R10_UINT_PACK32 = 68,
+    BS_FORMAT_A2B10G10R10_SINT_PACK32 = 69,
+    BS_FORMAT_R16_UNORM = 70,
+    BS_FORMAT_R16_SNORM = 71,
+    BS_FORMAT_R16_USCALED = 72,
+    BS_FORMAT_R16_SSCALED = 73,
+    BS_FORMAT_R16_UINT = 74,
+    BS_FORMAT_R16_SINT = 75,
+    BS_FORMAT_R16_SFLOAT = 76,
+    BS_FORMAT_R16G16_UNORM = 77,
+    BS_FORMAT_R16G16_SNORM = 78,
+    BS_FORMAT_R16G16_USCALED = 79,
+    BS_FORMAT_R16G16_SSCALED = 80,
+    BS_FORMAT_R16G16_UINT = 81,
+    BS_FORMAT_R16G16_SINT = 82,
+    BS_FORMAT_R16G16_SFLOAT = 83,
+    BS_FORMAT_R16G16B16_UNORM = 84,
+    BS_FORMAT_R16G16B16_SNORM = 85,
+    BS_FORMAT_R16G16B16_USCALED = 86,
+    BS_FORMAT_R16G16B16_SSCALED = 87,
+    BS_FORMAT_R16G16B16_UINT = 88,
+    BS_FORMAT_R16G16B16_SINT = 89,
+    BS_FORMAT_R16G16B16_SFLOAT = 90,
+    BS_FORMAT_R16G16B16A16_UNORM = 91,
+    BS_FORMAT_R16G16B16A16_SNORM = 92,
+    BS_FORMAT_R16G16B16A16_USCALED = 93,
+    BS_FORMAT_R16G16B16A16_SSCALED = 94,
+    BS_FORMAT_R16G16B16A16_UINT = 95,
+    BS_FORMAT_R16G16B16A16_SINT = 96,
+    BS_FORMAT_R16G16B16A16_SFLOAT = 97,
+    BS_FORMAT_R32_UINT = 98,
+    BS_FORMAT_R32_SINT = 99,
+    BS_FORMAT_R32_SFLOAT = 100,
+    BS_FORMAT_R32G32_UINT = 101,
+    BS_FORMAT_R32G32_SINT = 102,
+    BS_FORMAT_R32G32_SFLOAT = 103,
+    BS_FORMAT_R32G32B32_UINT = 104,
+    BS_FORMAT_R32G32B32_SINT = 105,
+    BS_FORMAT_R32G32B32_SFLOAT = 106,
+    BS_FORMAT_R32G32B32A32_UINT = 107,
+    BS_FORMAT_R32G32B32A32_SINT = 108,
+    BS_FORMAT_R32G32B32A32_SFLOAT = 109,
+    BS_FORMAT_R64_UINT = 110,
+    BS_FORMAT_R64_SINT = 111,
+    BS_FORMAT_R64_SFLOAT = 112,
+    BS_FORMAT_R64G64_UINT = 113,
+    BS_FORMAT_R64G64_SINT = 114,
+    BS_FORMAT_R64G64_SFLOAT = 115,
+    BS_FORMAT_R64G64B64_UINT = 116,
+    BS_FORMAT_R64G64B64_SINT = 117,
+    BS_FORMAT_R64G64B64_SFLOAT = 118,
+    BS_FORMAT_R64G64B64A64_UINT = 119,
+    BS_FORMAT_R64G64B64A64_SINT = 120,
+    BS_FORMAT_R64G64B64A64_SFLOAT = 121,
+    BS_FORMAT_B10G11R11_UFLOAT_PACK32 = 122,
+    BS_FORMAT_E5B9G9R9_UFLOAT_PACK32 = 123,
+    BS_FORMAT_D16_UNORM = 124,
+    BS_FORMAT_X8_D24_UNORM_PACK32 = 125,
+    BS_FORMAT_D32_SFLOAT = 126,
+    BS_FORMAT_S8_UINT = 127,
+    BS_FORMAT_D16_UNORM_S8_UINT = 128,
+    BS_FORMAT_D24_UNORM_S8_UINT = 129,
+    BS_FORMAT_D32_SFLOAT_S8_UINT = 130,
+    BS_FORMAT_BC1_RGB_UNORM_BLOCK = 131,
+    BS_FORMAT_BC1_RGB_SRGB_BLOCK = 132,
+    BS_FORMAT_BC1_RGBA_UNORM_BLOCK = 133,
+    BS_FORMAT_BC1_RGBA_SRGB_BLOCK = 134,
+    BS_FORMAT_BC2_UNORM_BLOCK = 135,
+    BS_FORMAT_BC2_SRGB_BLOCK = 136,
+    BS_FORMAT_BC3_UNORM_BLOCK = 137,
+    BS_FORMAT_BC3_SRGB_BLOCK = 138,
+    BS_FORMAT_BC4_UNORM_BLOCK = 139,
+    BS_FORMAT_BC4_SNORM_BLOCK = 140,
+    BS_FORMAT_BC5_UNORM_BLOCK = 141,
+    BS_FORMAT_BC5_SNORM_BLOCK = 142,
+    BS_FORMAT_BC6H_UFLOAT_BLOCK = 143,
+    BS_FORMAT_BC6H_SFLOAT_BLOCK = 144,
+    BS_FORMAT_BC7_UNORM_BLOCK = 145,
+    BS_FORMAT_BC7_SRGB_BLOCK = 146,
+    BS_FORMAT_ETC2_R8G8B8_UNORM_BLOCK = 147,
+    BS_FORMAT_ETC2_R8G8B8_SRGB_BLOCK = 148,
+    BS_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK = 149,
+    BS_FORMAT_ETC2_R8G8B8A1_SRGB_BLOCK = 150,
+    BS_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK = 151,
+    BS_FORMAT_ETC2_R8G8B8A8_SRGB_BLOCK = 152,
+    BS_FORMAT_EAC_R11_UNORM_BLOCK = 153,
+    BS_FORMAT_EAC_R11_SNORM_BLOCK = 154,
+    BS_FORMAT_EAC_R11G11_UNORM_BLOCK = 155,
+    BS_FORMAT_EAC_R11G11_SNORM_BLOCK = 156,
+    BS_FORMAT_ASTC_4x4_UNORM_BLOCK = 157,
+    BS_FORMAT_ASTC_4x4_SRGB_BLOCK = 158,
+    BS_FORMAT_ASTC_5x4_UNORM_BLOCK = 159,
+    BS_FORMAT_ASTC_5x4_SRGB_BLOCK = 160,
+    BS_FORMAT_ASTC_5x5_UNORM_BLOCK = 161,
+    BS_FORMAT_ASTC_5x5_SRGB_BLOCK = 162,
+    BS_FORMAT_ASTC_6x5_UNORM_BLOCK = 163,
+    BS_FORMAT_ASTC_6x5_SRGB_BLOCK = 164,
+    BS_FORMAT_ASTC_6x6_UNORM_BLOCK = 165,
+    BS_FORMAT_ASTC_6x6_SRGB_BLOCK = 166,
+    BS_FORMAT_ASTC_8x5_UNORM_BLOCK = 167,
+    BS_FORMAT_ASTC_8x5_SRGB_BLOCK = 168,
+    BS_FORMAT_ASTC_8x6_UNORM_BLOCK = 169,
+    BS_FORMAT_ASTC_8x6_SRGB_BLOCK = 170,
+    BS_FORMAT_ASTC_8x8_UNORM_BLOCK = 171,
+    BS_FORMAT_ASTC_8x8_SRGB_BLOCK = 172,
+    BS_FORMAT_ASTC_10x5_UNORM_BLOCK = 173,
+    BS_FORMAT_ASTC_10x5_SRGB_BLOCK = 174,
+    BS_FORMAT_ASTC_10x6_UNORM_BLOCK = 175,
+    BS_FORMAT_ASTC_10x6_SRGB_BLOCK = 176,
+    BS_FORMAT_ASTC_10x8_UNORM_BLOCK = 177,
+    BS_FORMAT_ASTC_10x8_SRGB_BLOCK = 178,
+    BS_FORMAT_ASTC_10x10_UNORM_BLOCK = 179,
+    BS_FORMAT_ASTC_10x10_SRGB_BLOCK = 180,
+    BS_FORMAT_ASTC_12x10_UNORM_BLOCK = 181,
+    BS_FORMAT_ASTC_12x10_SRGB_BLOCK = 182,
+    BS_FORMAT_ASTC_12x12_UNORM_BLOCK = 183,
+    BS_FORMAT_ASTC_12x12_SRGB_BLOCK = 184,
+};
+
+enum bs_ColorSpace {
+    BS_COLOR_SPACE_SRGB_NONLINEAR_KHR = 0,
+    BS_COLORSPACE_SRGB_NONLINEAR_KHR = 0,
+};
+
+enum bs_PresentMode {
+    BS_PRESENT_MODE_IMMEDIATE_KHR = 0,
+    BS_PRESENT_MODE_MAILBOX_KHR = 1,
+    BS_PRESENT_MODE_FIFO_KHR = 2,
+    BS_PRESENT_MODE_FIFO_RELAXED_KHR = 3,
+};
+
 enum bs_BindType {
     BS_DESCRIPTOR_TYPE_SAMPLER = 0,
     BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER = 1,
@@ -3132,6 +3176,35 @@ enum bs_BindType {
     BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 8,
     BS_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 9,
     BS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT = 10,
+};
+
+enum bs_VkObjectType {
+    BS_OBJECT_TYPE_UNKNOWN = 0,
+    BS_OBJECT_TYPE_INSTANCE = 1,
+    BS_OBJECT_TYPE_PHYSICAL_DEVICE = 2,
+    BS_OBJECT_TYPE_DEVICE = 3,
+    BS_OBJECT_TYPE_QUEUE = 4,
+    BS_OBJECT_TYPE_SEMAPHORE = 5,
+    BS_OBJECT_TYPE_COMMAND_BUFFER = 6,
+    BS_OBJECT_TYPE_FENCE = 7,
+    BS_OBJECT_TYPE_DEVICE_MEMORY = 8,
+    BS_OBJECT_TYPE_BUFFER = 9,
+    BS_OBJECT_TYPE_IMAGE = 10,
+    BS_OBJECT_TYPE_EVENT = 11,
+    BS_OBJECT_TYPE_QUERY_POOL = 12,
+    BS_OBJECT_TYPE_BUFFER_VIEW = 13,
+    BS_OBJECT_TYPE_IMAGE_VIEW = 14,
+    BS_OBJECT_TYPE_SHADER_MODULE = 15,
+    BS_OBJECT_TYPE_PIPELINE_CACHE = 16,
+    BS_OBJECT_TYPE_PIPELINE_LAYOUT = 17,
+    BS_OBJECT_TYPE_RENDER_PASS = 18,
+    BS_OBJECT_TYPE_PIPELINE = 19,
+    BS_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT = 20,
+    BS_OBJECT_TYPE_SAMPLER = 21,
+    BS_OBJECT_TYPE_DESCRIPTOR_POOL = 22,
+    BS_OBJECT_TYPE_DESCRIPTOR_SET = 23,
+    BS_OBJECT_TYPE_FRAMEBUFFER = 24,
+    BS_OBJECT_TYPE_COMMAND_POOL = 25,
 };
 
  /**
@@ -6941,6 +7014,12 @@ BSAPI bs_Scope*
 bs_scope();
 
  /**
+  @return bs_Context*
+  */
+BSAPI bs_Context*
+bs_context();
+
+ /**
   @return bs_IO*
   */
 BSAPI bs_IO*
@@ -8753,7 +8832,7 @@ bs_moveWindow(
     int y);
 
  /**
-  @param object
+  @param context
   @param width
   @param height
   @param title
@@ -8761,20 +8840,28 @@ bs_moveWindow(
   */
 BSAPI bs_Result
 bs_window(
-    bs_Object* object,
+    bs_Context* context,
     bs_U32 width,
     bs_U32 height,
     const char* title);
 
  /**
-  @param window
+  @param context
+  @param device
+  @return void
+  */
+BSAPI void
+bs_device(
+    bs_Context* context,
+    bs_PhysicalDevice* device);
+
+ /**
   @param tick
   @param fixed_tick
   @return void
   */
 BSAPI void
 bs_tick(
-    bs_Window* window,
     bs_Callback tick,
     bs_Callback fixed_tick);
 
@@ -9293,6 +9380,30 @@ bs_deserializeShaderType(
   @return const char*
   */
 BSAPI const char*
+bs_serializeFormat(
+    bs_Format e);
+
+ /**
+  @param e
+  @return const char*
+  */
+BSAPI const char*
+bs_serializeColorSpace(
+    bs_ColorSpace e);
+
+ /**
+  @param e
+  @return const char*
+  */
+BSAPI const char*
+bs_serializePresentMode(
+    bs_PresentMode e);
+
+ /**
+  @param e
+  @return const char*
+  */
+BSAPI const char*
 bs_serializeBindType(
     bs_BindType e);
 
@@ -9304,6 +9415,14 @@ BSAPI bs_BindType
 bs_deserializeBindType(
     const char* value);
 
+ /**
+  @param e
+  @return const char*
+  */
+BSAPI const char*
+bs_serializeVkObjectType(
+    bs_VkObjectType e);
+
 BSAPI extern bs_IO _bs_io_;
 BSAPI extern bs_Instance* _bs_instance_;
 BSAPI extern bs_Bindings _bs_bind_;
@@ -9312,6 +9431,7 @@ BSAPI extern bs_Args _bs_args_;
 BSAPI extern bs_Features _bs_features_;
 BSAPI extern bs_Props _bs_props_;
 BSAPI extern bs_Scope _bs_scope_;
+BSAPI extern bs_Context* _bs_context_;
 BSAPI extern int _bs_image_index_;
 BSAPI extern bs_List _bs_physical_devices_;
 

@@ -185,7 +185,9 @@
 		<serializableEnum name="ShaderType" deserialize="true" copyFrom="VkShaderStageFlagBits"/>
 		<enum name="bs_BufferUsageFlag" copyFrom="VkBufferUsageFlagBits"/>
 		<enum name="bs_MemoryPropertyFlag" copyFrom="VkMemoryPropertyFlagBits"/>
-		<enum name="bs_Format" copyFrom="VkFormat"/>
+		<serializableEnum name="Format" copyFrom="VkFormat"/>
+		<serializableEnum name="ColorSpace" copyFrom="VkColorSpaceKHR"/>
+		<serializableEnum name="PresentMode" copyFrom="VkPresentModeKHR"/>
 		<enum name="bs_ImageLayout" copyFrom="VkImageLayout"/>
 		<enum name="bs_AccessMask" copyFrom="VkAccessFlagBits"/>
 		<enum name="bs_PipelineStage" copyFrom="VkPipelineStageFlagBits"/>
@@ -201,7 +203,8 @@
 		<enum name="bs_PolygonType" copyFrom="VkPolygonMode"/>
 		<enum name="bs_StoreOp" copyFrom="VkAttachmentStoreOp"/>
 		<enum name="bs_LoadOp" copyFrom="VkAttachmentLoadOp"/>
-		
+		<serializableEnum name="VkObjectType" copyFrom="VkObjectType"/>
+
 		<enum name="bs_ColliderType">
 			<line><name>BS_COLLIDER_NONE</name><value>0</value></line>
 			<line><name>BS_COLLIDER_SPHERE</name><value>1</value></line>
@@ -360,6 +363,8 @@
 
         <macro><name>#define BS_CONSTANT_STRING(s)</name><line>s, sizeof(s) - 1</line></macro>
 
+		<macro><name>#define BS_MAX_PHYSICAL_DEVICE_NAME_SIZE</name><line>256U</line></macro>
+		
 		<macro><name>#define BS_PI</name><line>3.14159265359</line></macro>
 		<macro><name>#define BS_2PI</name><line>(3.14159265359 * 2.0)</line></macro>
 		<macro><name>#define BS_MIN(a, b)</name><line>(((a)&lt;(b))?(a):(b))</line></macro>
@@ -666,12 +671,12 @@
             <line>    { .capacity = c, .data = bs_alloca(c * sizeof(type)), .unit_size = sizeof(type) }</line>
         </macro>
         <macro><name>#define BS_SWAP_SIZE(type)</name><line>(sizeof(*((type*)NULL)-&gt;_))</line></macro>
-        <macro><name>#define BS_SWAPS_COUNT(flags)</name><line>((flags &amp; BS_OBJECT_HAS_SWAPS_BIT) ? bs_scope()->window-&gt;frames_in_flight : 1)</line></macro>
+        <macro><name>#define BS_SWAPS_COUNT(flags)</name><line>((flags &amp; BS_OBJECT_HAS_SWAPS_BIT) ? bs_context()-&gt;frames_in_flight : 1)</line></macro>
         <macro>
             <name>#define BS_OBJECT(type, source_id, id, swaps_count, flags)</name>
             <line>    bs_object(source_id, id, sizeof(type), BS_SWAP_SIZE(type), swaps_count, flags)</line>
         </macro>
-        <macro><name>#define BS_WINDOW(source_id, id, flags)</name><line>BS_OBJECT(bs_Window, source_id, id, BS_SWAPS_COUNT(flags), flags)</line></macro>
+        <macro><name>#define BS_CONTEXT(source_id, id, flags)</name><line>BS_OBJECT(bs_Context, source_id, id, BS_SWAPS_COUNT(flags), flags)</line></macro>
         <macro><name>#define BS_IMAGE(source_id, id, flags)</name><line>BS_OBJECT(bs_Image, source_id, id, BS_SWAPS_COUNT(flags), flags)</line></macro>
         <macro><name>#define BS_SAMPLER(source_id, id, flags)</name><line>BS_OBJECT(bs_Sampler, source_id, id, BS_SWAPS_COUNT(flags), flags)</line></macro>
         <macro><name>#define BS_RENDERER(source_id, id, flags)</name><line>BS_OBJECT(bs_Renderer, source_id, id, BS_SWAPS_COUNT(flags), flags)</line></macro>
@@ -1102,7 +1107,7 @@
                 <field><type>bs_Queue*</type><name>queue</name></field>
                 <field><type>bs_RayTracer*</type><name>ray_tracer</name></field>
                 <field><type>bs_Font*</type><name>font</name></field>
-                <field><type>bs_Window*</type><name>window</name></field>
+                <field><type>bs_Context*</type><name>context</name></field>
             </structure>
         </structure>
         <structure name="bs_ResourceParams">
@@ -1828,46 +1833,6 @@
             <field><type>bs_String*</type><name>appdata</name></field>
             <field><type>bs_String*</type><name>log</name></field>
         </structure>
-        <structure name="bs_Window">
-            <field><type>bs_Header</type><name>head</name></field>
-            <field><type>const char*</type><name>title</name></field>
-            <field><type>void*</type><name>hwnd</name></field>
-            <field><type>bs_Timer</type><name>timer</name></field>
-            <field><type>bs_ivec2</type><name>dimensions</name></field>
-            <field><type>bs_Callback</type><name>resize</name></field>
-            <field><type>bs_Callback</type><name>destroy</name></field>
-            <field><type>bs_vec2</type><name>cursor</name></field>
-            <field><type>double</type><name>time, time_old</name></field>
-            <field><type>double</type><name>delta_time</name></field>
-            <field><type>double</type><name>fixed_time</name></field>
-            <field><type>double</type><name>fixed_interpolation</name></field>
-            <field><type>double</type><name>target_frame_time</name></field>
-            <field><type>double</type><name>elapsed_time</name></field>
-            <field><type>int</type><name>last_fixed_update_times</name><size>2</size></field>
-            <field><type>int</type><name>new_time_index</name></field>
-            <field><type>bool</type><name>in_fixed</name></field>
-            <field><type>bool</type><name>lock_cursor_position</name></field>
-            <field><type>bool</type><name>active</name></field>
-            <field><type>bs_CursorIcon</type><name>cursor_icon</name></field>
-
-            <field><type>bool</type><name>paused</name></field>
-            <field><type>bool</type><name>advance</name></field>
-
-			<field><type>struct VkSurfaceKHR_T*</type><name>surface</name></field>
-            <field><type>bs_PhysicalDevice*</type><name>physical_device</name></field>
-			
-            <field><type>int</type><name>id</name></field>
-            <field><type>int</type><name>frames_in_flight</name></field>
-            <field><type>int</type><name>frame</name></field>
-            <field><type>bool</type><name>resized</name></field>
-            <field><type>bool</type><name>image_acquired</name></field>
-            <field><type>bs_Object*</type><name>swapchain_image</name></field>
-            <field><type>struct VkSwapchainKHR_T*</type><name>swapchain</name></field>
-
-            <structure instance="_[]">
-                <field><type>struct VkSemaphore_T*</type><name>semaphore</name></field>
-            </structure>
-        </structure>
         <structure name="bs_Instance">
             <field><type>bs_Queue*</type><name>single_times_queue</name></field>
             <field><type>int</type><name>bind_sets_count</name></field>
@@ -1908,10 +1873,70 @@
             <field><type>bs_Renderer*</type><name>renderer</name></field>
             <field><type>int</type><name>subpass</name></field>
             <field><type>bs_Queue*</type><name>queue</name></field>
-            <field><type>bs_Window*</type><name>window</name></field>
             <field><type>bs_U32</type><name>wait_num</name></field>
             <field><type>bs_U32</type><name>wait_stages</name><size>BS_MAX_NUM_WAITS</size></field>
             <field><type>struct VkSemaphore_T*</type><name>wait_semaphores</name><size>BS_MAX_NUM_WAITS</size></field>
+        </structure>
+		<structure name="bs_QueueFamily">
+            <field><type>bool</type><name>supports_present</name></field>
+            <field><type>bs_U32</type><name>queue_flags</name></field>
+            <field><type>bs_U32</type><name>queue_count</name></field>
+        </structure>
+		<structure name="bs_SurfaceFormat">
+            <field><type>bs_Format</type><name>format</name></field>
+            <field><type>bs_ColorSpace</type><name>color_space</name></field>
+        </structure>
+		<structure name="bs_PhysicalDevice">
+            <field><type>struct VkPhysicalDevice_T*</type><name>vk_device</name></field>
+            <field><type>bool</type><name>supports_present</name></field>
+            <field><type>bs_U32</type><name>api_version</name></field>
+            <field><type>int</type><name>type</name></field>
+            <field><type>bs_List</type><name>queue_families</name></field>
+            <field><type>bs_List</type><name>surface_formats</name></field>
+            <field><type>const char</type><name>name</name><size>BS_MAX_PHYSICAL_DEVICE_NAME_SIZE</size></field>
+        </structure>
+		<structure name="bs_Context">
+            <field><type>bs_Header</type><name>head</name></field>
+            <field><type>const char*</type><name>title</name></field>
+            <field><type>void*</type><name>hwnd</name></field>
+            <field><type>bs_Timer</type><name>timer</name></field>
+            <field><type>bs_ivec2</type><name>dimensions</name></field>
+            <field><type>bs_Callback</type><name>resize</name></field>
+            <field><type>bs_Callback</type><name>destroy</name></field>
+            <field><type>bs_vec2</type><name>cursor</name></field>
+            <field><type>double</type><name>time, time_old</name></field>
+            <field><type>double</type><name>delta_time</name></field>
+            <field><type>double</type><name>fixed_time</name></field>
+            <field><type>double</type><name>fixed_interpolation</name></field>
+            <field><type>double</type><name>target_frame_time</name></field>
+            <field><type>double</type><name>elapsed_time</name></field>
+            <field><type>int</type><name>last_fixed_update_times</name><size>2</size></field>
+            <field><type>int</type><name>new_time_index</name></field>
+            <field><type>bool</type><name>in_fixed</name></field>
+            <field><type>bool</type><name>lock_cursor_position</name></field>
+            <field><type>bool</type><name>active</name></field>
+            <field><type>bs_CursorIcon</type><name>cursor_icon</name></field>
+
+            <field><type>bool</type><name>paused</name></field>
+            <field><type>bool</type><name>advance</name></field>
+
+			<field><type>struct VkSurfaceKHR_T*</type><name>surface</name></field>
+            <field><type>bs_PhysicalDevice*</type><name>physical_device</name></field>
+            <field><type>bs_QueueFamily*</type><name>queue_family</name></field>
+            <field><type>bs_SurfaceFormat</type><name>surface_format</name></field>
+            <field><type>bs_PresentMode</type><name>present_mode</name></field>
+			
+            <field><type>int</type><name>id</name></field>
+            <field><type>int</type><name>frames_in_flight</name></field>
+            <field><type>int</type><name>frame</name></field>
+            <field><type>bool</type><name>resized</name></field>
+            <field><type>bool</type><name>image_acquired</name></field>
+            <field><type>bs_Object*</type><name>swapchain_image</name></field>
+            <field><type>struct VkSwapchainKHR_T*</type><name>swapchain</name></field>
+
+            <structure instance="_[]">
+                <field><type>struct VkSemaphore_T*</type><name>semaphore</name></field>
+            </structure>
         </structure>
         <structure name="bs_Args">
             <field><type>bool</type><name>send_bugs</name></field>
@@ -1940,6 +1965,7 @@
 		<extern><type>bs_Features</type><name>bs_features</name></extern>
 		<extern><type>bs_Props</type><name>bs_props</name></extern>
 		<extern><type>bs_Scope</type><name>bs_scope</name></extern>
+		<extern><type>bs_Context*</type><name>bs_context</name></extern>
 		<extern><type>int</type><name>bs_image_index</name></extern>
 		<extern><type>bs_List</type><name>bs_physical_devices</name></extern>
 	</externs>
@@ -3296,6 +3322,7 @@
         <function name="bs_props"><return>bs_Props*</return></function>
         <function name="bs_config"><return>bs_Config*</return></function>
 		<function name="bs_scope"><return>bs_Scope*</return></function>
+		<function name="bs_context"><return>bs_Context*</return></function>
 		<function name="bs_io"><return>bs_IO*</return></function>
         <variadicStringTemplate name="bs_system">
             <return>void</return>
@@ -4044,14 +4071,18 @@
         </function>
         <function name="bs_window">
             <return>bs_Result</return>
-            <param><type>bs_Object*</type><name>object</name></param>
+            <param><type>bs_Context*</type><name>context</name></param>
             <param><type>bs_U32</type><name>width</name></param>
             <param><type>bs_U32</type><name>height</name></param>
             <param><type>const char*</type><name>title</name></param>
         </function>
+		<function name="bs_device">
+			<return>void</return>
+            <param><type>bs_Context*</type><name>context</name></param>
+            <param><type>bs_PhysicalDevice*</type><name>device</name></param>
+        </function>
         <function name="bs_tick">
             <return>void</return>
-            <param><type>bs_Window*</type><name>window</name></param>
             <param><type>bs_Callback</type><name>tick</name></param>
             <param><type>bs_Callback</type><name>fixed_tick</name></param>
         </function>

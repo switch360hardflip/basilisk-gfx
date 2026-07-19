@@ -23,6 +23,10 @@
   SOFTWARE.
   */ 
 
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <vulkan.h>
+#include <vulkan/vulkan_core.h>
+
 #include <basilisk-core.h>
 #include <bs_internal.h>
 
@@ -35,7 +39,45 @@
 #include <assert.h>
 #include <math.h>
 
-#include <vulkan.h>
+bs_Args _bs_args_ = { 0 };
+bs_Features _bs_features_ = { 0 };
+bs_Props _bs_props_ = { 0 };
+bs_Procs _bs_procs_ = { 0 };
+bs_Config _bs_config_ = {
+    .attributes.unit_size = sizeof(bs_AttributeType),
+};
+
+bs_Scope _bs_scope_ = { 0 };
+bs_Instance* _bs_instance_ = NULL;
+bs_IO _bs_io_ = { 0 };
+bs_Context* _bs_context_ = { 0 };
+int _bs_image_index_ = 0;
+
+bs_List _bs_physical_devices_ = { .unit_size = sizeof(bs_PhysicalDevice) };
+
+BSAPI bs_Instance* _bs_instance() { return _bs_instance_; }
+BSAPI bs_Args* _bs_args() { return &_bs_args_; }
+BSAPI bs_Features* _bs_features() { return &_bs_features_; }
+BSAPI bs_Props* _bs_props() { return &_bs_props_; }
+BSAPI bs_Config* _bs_config() { return &_bs_config_; }
+BSAPI bs_Scope* _bs_scope() { return &_bs_scope_; }
+BSAPI bs_IO* _bs_io() { return &_bs_io_; }
+BSAPI bs_Context* _bs_context() { return &_bs_context_; }
+
+BSAPI void _bsi_nameHandle(bs_U64 handle, bs_U32 type, char* name, int name_length) {
+    PFN_vkSetDebugUtilsObjectNameEXT pfn_vkSetDebugUtilsObjectNameEXT =
+        (PFN_vkSetDebugUtilsObjectNameEXT)vkGetDeviceProcAddr(_bs_instance_->device, "vkSetDebugUtilsObjectNameEXT");
+
+    const VkDebugUtilsObjectNameInfoEXT name_i = {
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+        .pNext = NULL,
+        .objectType = type,
+        .objectHandle = handle,
+        .pObjectName = name,
+    };
+
+    pfn_vkSetDebugUtilsObjectNameEXT(_bs_instance_->device, &name_i);
+}
 
 BSAPI struct VkCommandBuffer_T* _bsi_fetchCommands() {
     if (_bs_scope_.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT)
@@ -85,6 +127,263 @@ BSAPI void _bs_endComment() {
     _bs_procs_.vkCmdEndDebugUtilsLabelEXT(bsi_fetchCommands());
 }
 
+BSAPI void _bs_parseArgs(int argc, char* argv[]) {
+    for (int i = 0; i < argc; i++) {
+        if (strcmp(argv[i], "--color-log") == 0) _bs_args_.color_log = true;
+        else if (strcmp(argv[i], "--use-lisk") == 0) _bs_args_.use_lisk = true;
+        else if (strcmp(argv[i], "--use-validation-layers") == 0) _bs_args_.use_validation_layers = true;
+        else if (strcmp(argv[i], "--send-bugs") == 0) _bs_args_.send_bugs = true;
+        else if (strcmp(argv[i], "--track-changes") == 0) _bs_args_.track_changes = true;
+    }
+}
+
+
+
+  /*==============================================================================
+   * Instance
+   *============================================================================*/
+
+const char* validation_layers[] = {
+    "VK_LAYER_KHRONOS_validation"
+};
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL _bs_debugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+    VkDebugUtilsMessageTypeFlagsEXT type,
+    const VkDebugUtilsMessengerCallbackDataEXT* data,
+    void* param)
+{
+    static bs_String* message;
+
+    if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+        message = _bs_stringF(message, "Message name: %s\n", data->pMessageIdName ? data->pMessageIdName : "N/A\n");
+        message = _bs_appendStringF(message, "Message: %s\n", data->pMessage);
+
+        if (data->objectCount > 0) {
+            for (uint32_t i = 0; i < data->objectCount; i++) {
+                const VkDebugUtilsObjectNameInfoEXT* obj = &data->pObjects[i];
+                message = _bs_appendStringF(message, "Object %d:\n", i);
+                message = _bs_appendStringF(message, "  Handle: 0x%llx\n", (unsigned long long)obj->objectHandle);
+                message = _bs_appendStringF(message, "  Type:   %s\n", bs_serializeVkObjectType(obj->objectType));
+                if (obj->pObjectName)
+                    message = _bs_appendStringF(message, "  Name:   %s\n", obj->pObjectName);
+            }
+        }
+
+        _bs_warn(message->value, message->len);
+    }
+    else {
+        _bs_warnF("%s\n", data->pMessage);
+    }
+
+    // _bs_free(message);
+
+    return VK_FALSE;
+}
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL _bs_reportCallback(
+    VkDebugReportFlagsEXT flags,
+    VkDebugReportObjectTypeEXT type,
+    uint64_t object,
+    size_t location,
+    int32_t code,
+    const char* prefix,
+    const char* message,
+    void* param) {
+
+ //   _bs_infoF("%s\n", message);
+    return VK_FALSE;
+}
+
+static bool _bs_checkValidationLayerSupport() {
+    bs_U32 num_layers;
+    vkEnumerateInstanceLayerProperties(&num_layers, NULL);
+
+    VkLayerProperties* layers = _bs_malloc(num_layers * sizeof(VkLayerProperties));
+    vkEnumerateInstanceLayerProperties(&num_layers, layers);
+
+    bool found_all = true;
+    int num_validation_layers = sizeof(validation_layers) / sizeof(const char *);
+    for(int i = 0; i < num_validation_layers; i++) {
+        bool found = false;
+
+        for(int j = 0; j < num_layers; j++) {
+            if (strcmp(validation_layers[i], layers[j].layerName) == 0) {
+                found = true;
+                break;
+            }
+	    }
+
+        if (!found) {
+            _bs_warnF("Vulkan validation layer %s is not supported\n", validation_layers[i]);
+            found_all = false;
+        }
+    }
+
+    _bs_free(layers);
+    return found_all;
+}
+
+static inline bool _bs_addInstanceExtension(const char** extensions, bs_U32* extensions_count, const char* name, VkExtensionProperties* available_extensions, bs_U32 available_extensions_count) {
+    for (bs_U32 i = 0; i < available_extensions_count; i++) {
+        if (strcmp(name, available_extensions[i].extensionName) == 0) {
+            extensions[(*extensions_count)++] = available_extensions[i].extensionName;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static void _bs_prepareInstance() {
+    VkResult result;
+
+    if (_bs_args_.use_validation_layers)
+        _bs_args_.use_validation_layers = _bs_checkValidationLayerSupport();
+
+    const char* extensions[16];
+    bs_U32 extensions_count = 0;
+
+    bs_U32 available_extensions_count = 0;
+    vkEnumerateInstanceExtensionProperties(NULL, &available_extensions_count, NULL);
+    VkExtensionProperties* available_extensions = malloc(available_extensions_count * sizeof(VkExtensionProperties));
+    vkEnumerateInstanceExtensionProperties(NULL, &available_extensions_count, available_extensions);
+
+#define BS_ADD_INSTANCE_EXTENSION(name) \
+    _bs_addInstanceExtension(extensions, &extensions_count, name, available_extensions, available_extensions_count)
+
+#ifdef _WIN32
+    if (BS_ADD_INSTANCE_EXTENSION(VK_KHR_WIN32_SURFACE_EXTENSION_NAME))
+         _bs_instance_->extensions.surface_type = BS_SURFACE_TYPE_WIN32;
+#elif __linux__
+    if (BS_ADD_INSTANCE_EXTENSION(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME))
+        _bs_instance_->extensions.surface_type = BS_SURFACE_TYPE_WAYLAND;
+    else if (BS_ADD_INSTANCE_EXTENSION(VK_KHR_XLIB_SURFACE_EXTENSION_NAME))
+        _bs_instance_->extensions.surface_type = BS_SURFACE_TYPE_X11;
+#endif
+    else if (BS_ADD_INSTANCE_EXTENSION(VK_EXT_HEADLESS_SURFACE_EXTENSION_NAME)) {
+        _bs_warnF("Only off-screen rendering is available\n");
+        _bs_instance_->extensions.surface_type = BS_SURFACE_TYPE_HEADLESS;
+    }
+    else {
+        _bs_warnF("No instance surface extension found\n");
+    }
+    BS_ADD_INSTANCE_EXTENSION(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    BS_ADD_INSTANCE_EXTENSION(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+    BS_ADD_INSTANCE_EXTENSION(VK_KHR_SURFACE_EXTENSION_NAME);
+    BS_ADD_INSTANCE_EXTENSION(VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME);
+
+    VkApplicationInfo app_i = {
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pApplicationName = "",
+        .applicationVersion = VK_MAKE_API_VERSION(0, 1, 4, 0),
+        .pEngineName = "BASILISK",
+        .engineVersion = VK_MAKE_API_VERSION(0, 1, 4, 0),
+        .apiVersion = VK_API_VERSION_1_4,
+    };
+
+    const VkValidationFeatureEnableEXT enabled_features[] = {
+        VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT,
+     //   VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT,
+       // VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT,
+    };
+
+    VkValidationFeaturesEXT features = {
+        .sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
+        .pEnabledValidationFeatures = enabled_features,
+        .enabledValidationFeatureCount = sizeof(enabled_features) / sizeof(VkValidationFeatureEnableEXT),
+        .pNext = NULL,
+    };
+
+    VkInstanceCreateInfo ci = {
+        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pApplicationInfo = &app_i,
+        .enabledExtensionCount = extensions_count,
+        .ppEnabledExtensionNames = extensions,
+        .ppEnabledLayerNames = validation_layers,
+        .enabledLayerCount = _bs_args_.use_validation_layers ? sizeof(validation_layers) / sizeof(const char*) : 0,
+     //  .pNext = &features,
+    };
+
+    result = vkCreateInstance(&ci, NULL, &_bs_instance_->instance);
+    if (result != VK_SUCCESS) {
+        _bs_criticalF("Failed to create instance (Vulkan result %d)\n", result);
+        return;
+    }
+
+    free(available_extensions);
+
+    VkDebugUtilsMessengerEXT messenger = { 0 };
+    const VkDebugUtilsMessengerCreateInfoEXT debug_ci = {
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+        .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+        .pfnUserCallback = _bs_debugCallback,
+    };
+
+    PFN_vkCreateDebugUtilsMessengerEXT create_messenger = 
+        (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_bs_instance_->instance, "vkCreateDebugUtilsMessengerEXT");
+
+    PFN_vkCreateDebugUtilsMessengerEXT create_reporter = 
+        (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(_bs_instance_->instance, "vkCreateDebugReportCallbackEXT");
+
+    if (create_messenger)
+        create_messenger(_bs_instance_->instance, &debug_ci, NULL, &messenger);
+
+    VkDebugReportCallbackCreateInfoEXT report_ci = {
+        .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
+        .flags = VK_DEBUG_REPORT_ERROR_BIT_EXT,
+        .pfnCallback = _bs_reportCallback,
+    };
+
+    VkDebugReportCallbackEXT reporter = { 0 };
+    if (create_reporter)
+        create_reporter(_bs_instance_->instance, &report_ci, NULL, &reporter);
+}
+
+void _bs_findExecutablePaths();
+BSAPI void _bs_ini() {
+    _bs_io_.log = bs_string(_bs_io_.log, "", 0);
+    _bs_instance_ = _bs_calloc(1, sizeof(bs_Instance));
+
+    _bs_configureAttribute("bs_Position", BS_FORMAT_R32_SFLOAT);
+    _bs_configureAttribute("bs_Texture", BS_FORMAT_R32_SFLOAT);
+    _bs_configureAttribute("bs_Color", BS_FORMAT_R8_UNORM);
+    _bs_configureAttribute("bs_Normal", BS_FORMAT_R32_SFLOAT);
+    _bs_configureAttribute("bs_Bone", BS_FORMAT_R32_SINT);
+    _bs_configureAttribute("bs_Weight", BS_FORMAT_R32_SFLOAT);
+
+    _bs_findExecutablePaths();
+    _bs_prepareInstance();
+}
+
+static int _bs_compareInt(const int* a, const int* b) {
+    if (*a == *b) return 0;
+    else if (*a < *b) return -1;
+    else return 1;
+}
+
+BSAPI void _bs_load(
+    bs_Callback load_resources)
+{
+    if (!_bs_instance_->single_times_queue) {
+        bs_Object* object = BS_QUEUE(-1, 0, 0);
+        if (_bs_queue(object, BS_QUEUE_TRANSFER_BIT | BS_QUEUE_COMPUTE_BIT | BS_QUEUE_SINGLE_TIMES_BIT) != BS_RESULT_OK) {
+            _bs_critical(BS_CONSTANT_STRING("Failed to create single times queue\n"));
+            return;
+        }
+
+        _bs_instance_->single_times_queue;
+    }
+    _bs_scope_.queue = _bs_instance_->single_times_queue;
+
+    if (load_resources)
+        load_resources();
+
+    _bs_scope_.queue = NULL;
+}
+
+
 
 
   /*==============================================================================
@@ -93,7 +392,7 @@ BSAPI void _bs_endComment() {
 
 static inline bs_U32 _bs_queryMemoryType(bs_U32 filter, VkMemoryPropertyFlags props) {
     VkPhysicalDeviceMemoryProperties mem_props;
-    vkGetPhysicalDeviceMemoryProperties(_bs_instance_->physical_device, &mem_props);
+    vkGetPhysicalDeviceMemoryProperties(_bs_context_->physical_device, &mem_props);
 
     for (bs_U32 i = 0; i < mem_props.memoryTypeCount; i++) {
         if ((filter & (1 << i)) && (mem_props.memoryTypes[i].propertyFlags & props) == props) {
@@ -173,7 +472,7 @@ BSAPI void _bs_setLineWidth(float width) {
    *============================================================================*/
 
 BSAPI int _bs_bufferSwaps(bs_Buffer* buffer) {
-    return buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
+    return buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_context_->frames_in_flight : 1;
 }
 
 BSAPI bool _bs_bufferIsMapped(bs_Buffer* buffer) {
@@ -214,7 +513,7 @@ BSAPI bs_Result _bs_buffer(bs_Object* object, bs_U32 num_bytes, bs_BufferUsageFl
         return BS_RESULT_GENERAL_ERROR;
     }
 
-    bs_U32 num_swaps = flags & BSI_BUFFER_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
+    bs_U32 num_swaps = flags & BSI_BUFFER_SWAPS_BIT ? _bs_context_->frames_in_flight : 1;
 
     VkBufferCreateInfo buffer_i = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -303,7 +602,7 @@ BSAPI char* _val_bs_bufferMap(bs_Buffer* buffer) {
 }
 
 BSAPI char* _bs_bufferMap(bs_Buffer* buffer) {
-    int swap = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_scope_.window->frame : 0;
+    int swap = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_context_->frame : 0;
     return buffer->_[swap].data;
 }
 
@@ -316,7 +615,7 @@ BSAPI bs_Result _bs_mapBuffer(bs_Buffer* buffer, bs_U32 num_bytes) {
     else if (num_bytes > buffer->num_bytes)
         return BS_RESULT_OUT_OF_BOUNDS;
 
-    bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
+    bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_context_->frames_in_flight : 1;
     for (int i = 0; i < num_swaps; i++) {
         VkResult result = vkMapMemory(_bs_instance_->device, buffer->_[i].memory, 0, buffer->num_bytes, 0, (void**)&buffer->_[i].data);
         if (result != VK_SUCCESS) {
@@ -330,7 +629,7 @@ BSAPI bs_Result _bs_mapBuffer(bs_Buffer* buffer, bs_U32 num_bytes) {
 BSAPI void _bs_unmapBuffer(bs_Buffer* buffer) {
     if (buffer->_->data == NULL) return;
 
-    bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
+    bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_context_->frames_in_flight : 1;
     for (int i = 0; i < num_swaps; i++) {
         vkUnmapMemory(_bs_instance_->device, buffer->_[i].memory);
         buffer->_[i].data = NULL;
@@ -378,7 +677,7 @@ BSAPI void _bs_stageImage(bs_Buffer* buffer, bs_Format format, bs_ivec2 dim, con
 
 BSAPI void _bs_destroyBuffer(bs_Buffer* buffer) {
     _bs_unmapBuffer(buffer);
-    bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
+    bs_U32 num_swaps = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_context_->frames_in_flight : 1;
     for (int i = 0; i < num_swaps; i++) {
         if (buffer->_[i].vk_buffer)
             vkDestroyBuffer(_bs_instance_->device, buffer->_[i].vk_buffer, NULL);
@@ -417,8 +716,8 @@ BSAPI void _bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 dst_offset, bs_U
         .size = num_bytes
     };
 
-    int src_swap = (src->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_scope_.window->frame : 0;
-    int dst_swap = (dst->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_scope_.window->frame : 0;
+    int src_swap = (src->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_context_->frame : 0;
+    int dst_swap = (dst->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_context_->frame : 0;
 
     VkCommandBuffer commands = bsi_fetchCommands();
     vkCmdCopyBuffer(commands, src->_[src_swap].vk_buffer, dst->_[dst_swap].vk_buffer, 1, &copy_region);
@@ -431,7 +730,7 @@ BSAPI void _bs_copyAsync(bs_Buffer* src, bs_Buffer* dst, bs_U32 dst_offset, bs_U
 
 BSAPI void _bs_setBufferAsync(bs_Buffer* buffer, bs_U32 offset, bs_U32 num_bytes, bs_U32 value) {
     VkCommandBuffer commands = bsi_fetchCommands();
-    int swap = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_scope_.window->frame : 0;
+    int swap = buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_context_->frame : 0;
     vkCmdFillBuffer(commands, buffer->_[swap].vk_buffer, offset, num_bytes, value);
     if (_bs_scope_.queue->flags & BS_QUEUE_SINGLE_TIMES_BIT) {
         _bs_pushQueue(_bs_scope_.queue);
@@ -1329,7 +1628,7 @@ BSAPI void _bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offs
     if (instance_count <= 0) return;
     if (!batch->vertex_buffer) return;
 
-    bs_U32 vertex_swap = (batch->vertex_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_scope_.window->frame : 0;
+    bs_U32 vertex_swap = (batch->vertex_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_context_->frame : 0;
 
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->vk_pipeline);
     if (pipeline->num_bind_sets != 0) {
@@ -1346,7 +1645,7 @@ BSAPI void _bs_render(bs_Batch* batch, bs_Pipeline* pipeline, bs_U32 vertex_offs
     if (!_bs_batchIsIndexed(batch)) {
         vkCmdDraw(command_buffer, vertex_count, instance_count, vertex_offset, instance_offset);
     } else {
-        bs_U32 index_swap = (batch->index_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_scope_.window->frame : 0;
+        bs_U32 index_swap = (batch->index_buffer->buffer->flags & BSI_BUFFER_SWAPS_BIT) ? _bs_context_->frame : 0;
         vkCmdBindIndexBuffer(command_buffer, batch->index_buffer->buffer->_[index_swap].vk_buffer, 0, VK_INDEX_TYPE_UINT32);
         vkCmdDrawIndexed(command_buffer, vertex_count, instance_count, vertex_offset, 0, instance_offset);
     }
@@ -1396,7 +1695,7 @@ BSAPI bs_Result _bs_renderer(bs_Object* object, bs_RendererBits flags) {
     renderer->outputs = _bs_malloc(BS_MAX_ATTACHMENTS_COUNT * sizeof(bs_Output));
     renderer->dependencies = _bs_malloc(BS_MAX_NUM_SUBPASS_DEPENDENCIES * sizeof(VkSubpassDependency));
 
-    // BS_MAX(_bs_scope_.window->frames_in_flight, _bs_settings_.buffer_count_min)
+    // BS_MAX(_bs_context_->frames_in_flight, _bs_settings_.buffer_count_min)
 
     return BS_RESULT_OK;
 }
@@ -1746,7 +2045,7 @@ BSAPI void _bs_runPass(bs_Renderer* renderer, bs_Callback callbacks[], int callb
 }
 
 BSAPI int _bs_rendererSwapsCount(bs_Renderer* renderer) {
-    return renderer->flags & BSI_RENDERER_HAS_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
+    return renderer->flags & BSI_RENDERER_HAS_SWAPS_BIT ? _bs_context_->frames_in_flight : 1;
 }
 
 static void _bs_destroyFramebuffer(bs_Renderer* renderer) {
@@ -1813,6 +2112,8 @@ BSAPI void _bs_dispatchAsync(bs_Pipeline* pipeline, bs_U32 x, bs_U32 y, bs_U32 z
    *============================================================================*/
 
 BSAPI void _bs_rayTrace(bs_RayTracer* ray_tracer, bs_Pipeline* pipeline, bs_U32 width, bs_U32 height, bs_U32 depth) {
+    _bs_warnF("_bs_rayTrace has not been implemented yet\n");
+    /*
     VkCommandBuffer command_buffer = bsi_fetchCommands();
 
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, pipeline->vk_pipeline);
@@ -1852,6 +2153,7 @@ BSAPI void _bs_rayTrace(bs_RayTracer* ray_tracer, bs_Pipeline* pipeline, bs_U32 
     }
 
     _bs_procs_.vkCmdTraceRaysKHR(command_buffer, tables + 0, tables + 1, tables + 2, tables + 3, width, height, depth);
+    */
 }
 
 BSAPI bs_Result _bs_rayTracer(bs_Object* object, bs_U32 flags, bs_Shader* shaders[], int shaders_count) {
@@ -2253,9 +2555,9 @@ BSAPI bs_I32 _bs_queueFamily(bs_QueueBits _bs_flags) {
     VkQueueFlagBits flags = _bs_convertQueueFlags(_bs_flags);
     
     bs_U32 num_families = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(_bs_instance_->physical_device, &num_families, NULL);
+    vkGetPhysicalDeviceQueueFamilyProperties(_bs_context_->physical_device, &num_families, NULL);
     VkQueueFamilyProperties* queue_families = _bs_calloc(num_families, sizeof(VkQueueFamilyProperties));
-    vkGetPhysicalDeviceQueueFamilyProperties(_bs_instance_->physical_device, &num_families, queue_families);
+    vkGetPhysicalDeviceQueueFamilyProperties(_bs_context_->physical_device, &num_families, queue_families);
 
     for (bs_U32 i = 0; i < num_families; i++) {
         if (!(queue_families[i].queueFlags & flags)) continue;
@@ -2265,7 +2567,7 @@ BSAPI bs_I32 _bs_queueFamily(bs_QueueBits _bs_flags) {
         }
 
         VkBool32 supports_present = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(_bs_instance_->physical_device, i, _bs_scope_.window->surface, &supports_present);
+        vkGetPhysicalDeviceSurfaceSupportKHR(_bs_context_->physical_device, i, _bs_context_->surface, &supports_present);
         if (supports_present) {
             _bs_free(queue_families);
             return i;
@@ -2277,11 +2579,11 @@ BSAPI bs_I32 _bs_queueFamily(bs_QueueBits _bs_flags) {
 }
 
 BSAPI int _bs_queueSwapsCount(bs_Queue* queue) {
-    return queue->flags & BSI_QUEUE_SWAPS_BIT ? _bs_scope_.window->frames_in_flight : 1;
+    return queue->flags & BSI_QUEUE_SWAPS_BIT ? _bs_context_->frames_in_flight : 1;
 }
 
 BSAPI int _bs_queueSwap(bs_Queue* queue) {
-    return queue->flags & BSI_QUEUE_SWAPS_BIT ? _bs_scope_.window->frame : 0;
+    return queue->flags & BSI_QUEUE_SWAPS_BIT ? _bs_context_->frame : 0;
 }
 
 BSAPI bs_Result _val_bs_queue(bs_Object* object, bs_QueueBits flags) {
@@ -2416,7 +2718,7 @@ BSAPI void _bs_awaitQueue(bs_Queue* queue, bs_PipelineStage stage) {
 }
 
 BSAPI void _bs_awaitAcquisition() {
-    _bs_scope_.wait_semaphores[_bs_scope_.wait_num] = _bs_scope_.window->_[_bs_scope_.window->frame].semaphore;
+    _bs_scope_.wait_semaphores[_bs_scope_.wait_num] = _bs_context_->_[_bs_context_->frame].semaphore;
     _bs_scope_.wait_stages[_bs_scope_.wait_num] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     _bs_scope_.wait_num++;
 }
@@ -2583,7 +2885,7 @@ BSAPI void _bs_runSingle(bs_Callback f) {
    *============================================================================*/
 
 BSAPI bs_Image* _bs_swapchainImage() {
-    return _bs_scope_.window->swapchain_image->image;
+    return _bs_context_->swapchain_image->image;
 }
 
 BSAPI int _bs_imageIndex() {
@@ -2591,16 +2893,15 @@ BSAPI int _bs_imageIndex() {
 }
 
 static void _bs_destroySwapchain() {
-    bs_Window* window = _bs_scope_.window;
-    bs_Image* swapchain_image = window->swapchain_image->image;
+    bs_Image* swapchain_image = _bs_context_->swapchain_image->image;
 
-    for (int i = 0; i < window->frames_in_flight; i++) {
+    for (int i = 0; i < _bs_context_->frames_in_flight; i++) {
         vkDestroyImageView(_bs_instance_->device, swapchain_image->_[i].vk_image_view, NULL);
         swapchain_image->_[i].vk_image_view = 0;
     }
 
-    vkDestroySwapchainKHR(_bs_instance_->device, window->swapchain, NULL);
-    window->swapchain = 0;
+    vkDestroySwapchainKHR(_bs_instance_->device, _bs_context_->swapchain, NULL);
+    _bs_context_->swapchain = 0;
 }
 
 static void _bs_resizeSwapchain() {
@@ -2621,15 +2922,13 @@ static void _bs_resizeSwapchain() {
 
 // these functions should probably not be called by user
 BSAPI void _bs_acquire() {
-    bs_Window* window = _bs_scope_.window;
-
-    if (window->image_acquired) return;
+    if (_bs_context_->image_acquired) return;
 
     VkResult result = vkAcquireNextImageKHR(
         _bs_instance_->device,
-        window->swapchain,
+        _bs_context_->swapchain,
         BS_U64_MAX,
-        window->_[window->frame].semaphore,
+        _bs_context_->_[_bs_context_->frame].semaphore,
         VK_NULL_HANDLE,
         &_bs_image_index_);
 
@@ -2699,8 +2998,6 @@ BSAPI void _val_bs_present(bs_Queue* queue, bs_Queue* wait_queues[], int wait_qu
 }
 
 BSAPI void _bs_present(bs_Queue* queue, bs_Queue* wait_queues[], int wait_queues_count) {
-    bs_Window* window = _bs_scope_.window;
-
     VkSemaphore wait_semaphores[BS_MAX_NUM_WAITS];
     bs_U32 num_wait_semaphores = 0;
 
@@ -2716,7 +3013,7 @@ BSAPI void _bs_present(bs_Queue* queue, bs_Queue* wait_queues[], int wait_queues
         .waitSemaphoreCount = num_wait_semaphores,
         .pWaitSemaphores = wait_semaphores,
         .swapchainCount = 1,
-        .pSwapchains = &window->swapchain,
+        .pSwapchains = &_bs_context_->swapchain,
         .pImageIndices = &_bs_image_index_,
     };
 
@@ -2727,6 +3024,6 @@ BSAPI void _bs_present(bs_Queue* queue, bs_Queue* wait_queues[], int wait_queues
     else if (result != VK_SUCCESS)
         _bs_warn(BS_CONSTANT_STRING("Failed to present swapchain image\n"));
 
-    window->frame = (window->frame + 1) % window->frames_in_flight;
-    window->image_acquired = false;
+    _bs_context_->frame = (_bs_context_->frame + 1) % _bs_context_->frames_in_flight;
+    _bs_context_->image_acquired = false;
 }

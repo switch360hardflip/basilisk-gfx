@@ -38,7 +38,7 @@
 
 typedef bsgfx_Scene*(__stdcall* PFN_bsgfx_currentScene)();
 typedef void(__stdcall* PFN_bsgfx_loadScene)(const char* name);
-typedef int(__stdcall* PFN_bsgfx_windows)();
+typedef int(__stdcall* PFN_bsgfx_contexts)();
 typedef int(__stdcall* PFN_bsgfx_images)();
 typedef int(__stdcall* PFN_bsgfx_samplers)();
 typedef int(__stdcall* PFN_bsgfx_buffers)();
@@ -173,7 +173,7 @@ typedef void(__stdcall* PFN_bsgfx_renderColorPickers)();
 typedef struct {
     PFN_bsgfx_currentScene bsgfx_currentScene;
     PFN_bsgfx_loadScene bsgfx_loadScene;
-    PFN_bsgfx_windows bsgfx_windows;
+    PFN_bsgfx_contexts bsgfx_contexts;
     PFN_bsgfx_images bsgfx_images;
     PFN_bsgfx_samplers bsgfx_samplers;
     PFN_bsgfx_buffers bsgfx_buffers;
@@ -308,7 +308,7 @@ typedef struct {
 
 BSGFXAPI bsgfx_Scene* _bsgfx_currentScene();
 BSGFXAPI void _bsgfx_loadScene(const char* name);
-BSGFXAPI int _bsgfx_windows();
+BSGFXAPI int _bsgfx_contexts();
 BSGFXAPI int _bsgfx_images();
 BSGFXAPI int _bsgfx_samplers();
 BSGFXAPI int _bsgfx_buffers();
@@ -445,7 +445,7 @@ static inline bsgfx_FunctionTable* _bsgfx_getFunctions() {
 
     functions.bsgfx_currentScene = _bsgfx_currentScene;
     functions.bsgfx_loadScene = _bsgfx_loadScene;
-    functions.bsgfx_windows = _bsgfx_windows;
+    functions.bsgfx_contexts = _bsgfx_contexts;
     functions.bsgfx_images = _bsgfx_images;
     functions.bsgfx_samplers = _bsgfx_samplers;
     functions.bsgfx_buffers = _bsgfx_buffers;

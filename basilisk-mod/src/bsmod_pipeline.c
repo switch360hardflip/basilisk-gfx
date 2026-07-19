@@ -757,8 +757,8 @@ static void _bsmod_runRenderPass() {
     bs_blit((bs_BlitOperation) {
         .source = src_depth,
         .destination = dst_depth,
-        .source_layout = BS_LAYOUT_GENERAL,
-        .destination_layout = BS_LAYOUT_GENERAL,
+        .source_layout = BS_IMAGE_LAYOUT_GENERAL,
+        .destination_layout = BS_IMAGE_LAYOUT_GENERAL,
         .source_scale = src_depth->dim,
         .destination_scale = dst_depth->dim,
     });
@@ -768,7 +768,7 @@ static void _bsmod_runRenderPass() {
 
     bs_runPass(bs_fetch(BSMOD_RENDERERS, BSMOD_RENDERER)->renderer, callbacks_2d, sizeof(callbacks_2d) / sizeof(*callbacks_2d));
 
-    //bs_transition(dst_depth, 0, BS_LAYOUT_PRESENT_SRC_KHR, BS_LAYOUT_GENERAL);
+    //bs_transition(dst_depth, 0, BS_IMAGE_LAYOUT_PRESENT_SRC_KHR, BS_IMAGE_LAYOUT_GENERAL);
     bs_runPass(bs_fetch(BSMOD_RENDERERS, BSMOD_RENDERER_3D)->renderer, callbacks_3d, sizeof(callbacks_3d) / sizeof(*callbacks_3d));
 
     //bs_Renderer* lo_res_overlay_renderer = bs_fetch(BSMOD_RENDERERS, BSMOD_RENDERER)->renderer;

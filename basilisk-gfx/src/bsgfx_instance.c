@@ -103,9 +103,9 @@ BSGFXAPI void _bsgfx_instanceType(int instance_type_id, int max_instance_count, 
 	bs_Binding* binding = bs_queryBinding(bs_queryBindSet(bind_set), point);
 	bs_BufferUsageFlags usage_flags = 0;
 	bs_MemoryPropertyFlags memory_flags = BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | BS_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-	if (binding->type == BS_BIND_TYPE_UNIFORM_BUFFER)
+	if (binding->type == BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
 		usage_flags |= BS_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-	else if (binding->type == BS_BIND_TYPE_STORAGE_BUFFER)
+	else if (binding->type == BS_DESCRIPTOR_TYPE_STORAGE_BUFFER)
 		usage_flags |= BS_BUFFER_USAGE_STORAGE_BUFFER_BIT | BS_BUFFER_USAGE_TRANSFER_DST_BIT | BS_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	else {
 		bs_warnF("Invalid bind type %d\n", binding->type); // TODO: _bsgfx_warn
@@ -134,7 +134,7 @@ BSGFXAPI void _bsgfx_instanceType(int instance_type_id, int max_instance_count, 
 	if (result != BS_RESULT_OK)
 		return;
 
-	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_scope()->window->frames_in_flight : 1;
+	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_context()->frames_in_flight : 1;
 	for (int i = 0; i < num_swaps; i++) {
 		bsgfx_InstanceMetadata* metadata = buffer->_[i].data;
 		metadata->instance_types[instance_type_id].allocated = max_instance_count;
@@ -154,7 +154,7 @@ BSGFXAPI bool _bsgfx_validateSubtype(const char* library_name, int subtype) { //
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
 	BSGFX_VALIDATE(bs_bufferIsMapped(buffer), false, );
 
-	int index = buffer->flags & BSI_BUFFER_SWAPS_BIT ? bs_scope()->window->frame : 0;
+	int index = buffer->flags & BSI_BUFFER_SWAPS_BIT ? bs_context()->frame : 0;
 	bsgfx_InstanceMetadata* metadata = buffer->_[index].data;
 
 	BSGFX_VALIDATE(subtype < metadata->subtypes_count, false, );
@@ -174,7 +174,7 @@ BSGFXAPI void _val_bsgfx_deleteSubtype(int subtype) {
 
 BSGFXAPI void _bsgfx_deleteSubtype(int subtype) {
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_scope()->window->frames_in_flight : 1;
+	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_context()->frames_in_flight : 1;
 
 	for (int i = 0; i < num_swaps; i++) {
 		bsgfx_InstanceMetadata* metadata = buffer->_[i].data;
@@ -199,7 +199,7 @@ BSGFXAPI bs_Range _val_bsgfx_subtypeRange(int subtype) {
 
 BSGFXAPI bs_Range _bsgfx_subtypeRange(int subtype) {
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	int index = buffer->flags & BSI_BUFFER_SWAPS_BIT ? bs_scope()->window->frame : 0;
+	int index = buffer->flags & BSI_BUFFER_SWAPS_BIT ? bs_context()->frame : 0;
 	bsgfx_InstanceMetadata* metadata = buffer->_[index].data;
 
 	bsgfx_InstanceSubtypeMetadata* subtype_metadata = metadata->instance_subtypes + subtype;
@@ -223,7 +223,7 @@ BSGFXAPI int _val_bsgfx_instanceCount(int subtype) {
 
 BSGFXAPI int _bsgfx_instanceCount(int subtype) {
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	int index = buffer->flags & BSI_BUFFER_SWAPS_BIT ? bs_scope()->window->frame : 0;
+	int index = buffer->flags & BSI_BUFFER_SWAPS_BIT ? bs_context()->frame : 0;
 
 	bsgfx_InstanceMetadata* metadata = buffer->_[index].data;
 	return metadata->instance_subtypes[subtype].instance_count;
@@ -241,7 +241,7 @@ BSGFXAPI int _val_bsgfx_subtypeCount(int instance_type_id) {
 
 BSGFXAPI int _bsgfx_subtypeCount(int instance_type_id) {
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	int index = buffer->flags & BSI_BUFFER_SWAPS_BIT ? bs_scope()->window->frame : 0;
+	int index = buffer->flags & BSI_BUFFER_SWAPS_BIT ? bs_context()->frame : 0;
 
 	bsgfx_InstanceMetadata* metadata = buffer->_[index].data;
 	return metadata->instance_types[instance_type_id].subtype_count;
@@ -259,7 +259,7 @@ BSGFXAPI int _val_bsgfx_subtype(int instance_type_id, bs_Batch* batch, bs_U32 fl
 		return 0;
 
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_scope()->window->frames_in_flight : 1;
+	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_context()->frames_in_flight : 1;
 	for (int i = 0; i < num_swaps; i++) {
 		bsgfx_InstanceMetadata* metadata = buffer->_[i].data;
 		BSGFX_VALIDATE(metadata->subtypes_count < BSGFX_MAX_NUM_SUBTYPES, 0,);
@@ -270,7 +270,7 @@ BSGFXAPI int _val_bsgfx_subtype(int instance_type_id, bs_Batch* batch, bs_U32 fl
 
 BSGFXAPI int _bsgfx_subtype(int instance_type_id, bs_Batch* batch, bs_U32 flags, bs_Range range) {
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
-	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_scope()->window->frames_in_flight : 1;
+	int num_swaps = (buffer->flags & BSI_BUFFER_SWAPS_BIT) ? bs_context()->frames_in_flight : 1;
 
 	//int existing = -1;
 

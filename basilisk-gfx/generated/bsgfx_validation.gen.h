@@ -47,7 +47,7 @@ static inline bsgfx_FunctionTable* _val_bsgfx_getFunctions() {
 
     functions.bsgfx_currentScene = (PFN_bsgfx_currentScene)GetProcAddress(module, "_val_bsgfx_currentScene");
     functions.bsgfx_loadScene = (PFN_bsgfx_loadScene)GetProcAddress(module, "_val_bsgfx_loadScene");
-    functions.bsgfx_windows = (PFN_bsgfx_windows)GetProcAddress(module, "_val_bsgfx_windows");
+    functions.bsgfx_contexts = (PFN_bsgfx_contexts)GetProcAddress(module, "_val_bsgfx_contexts");
     functions.bsgfx_images = (PFN_bsgfx_images)GetProcAddress(module, "_val_bsgfx_images");
     functions.bsgfx_samplers = (PFN_bsgfx_samplers)GetProcAddress(module, "_val_bsgfx_samplers");
     functions.bsgfx_buffers = (PFN_bsgfx_buffers)GetProcAddress(module, "_val_bsgfx_buffers");

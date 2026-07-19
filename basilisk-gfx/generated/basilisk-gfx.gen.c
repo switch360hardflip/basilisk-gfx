@@ -80,9 +80,9 @@ void bsgfx_loadScene(
     next.bsgfx_loadScene(name);
 }
 
-int bsgfx_windows()
+int bsgfx_contexts()
 {
-    return next.bsgfx_windows();
+    return next.bsgfx_contexts();
 }
 
 int bsgfx_images()

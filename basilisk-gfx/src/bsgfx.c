@@ -307,7 +307,7 @@ BSGFXAPI void _bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc
     if (_bsgfx_callbacks_.ini)
         _bsgfx_callbacks_.ini();
 
-    bs_tick(NULL, _bsgfx_tick, _bsgfx_fixedTick);// TODO
+    bs_tick(_bsgfx_tick, _bsgfx_fixedTick);// TODO
 
     if (bs_exists(BSGFX_RAY_TRACERS, BSGFX_RAY_TRACER_MAIN))
         bs_destroyRayTracer(bs_fetch(BSGFX_RAY_TRACERS, BSGFX_RAY_TRACER_MAIN)->ray_tracer);

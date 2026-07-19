@@ -98,27 +98,4 @@
 
 #endif
 
-#define BS_MAX_PHYSICAL_DEVICE_NAME_SIZE 256U
-
-typedef struct {
-    bs_U32 queue_flags;
-    bool supports_present;
-    bs_U32 queue_count;
-} bs_QueueFamily;
-
-typedef struct {
-    bs_Format format;
-    enum VkColorSpaceKHR color_space;
-} bs_SurfaceFormat;
-
-typedef struct {
-    struct VkPhysicalDevice_T* vk_device;
-    const char name[BS_MAX_PHYSICAL_DEVICE_NAME_SIZE];
-    bool supports_present;
-    bs_U32 api_version;
-    int type;
-    bs_List queue_families;
-    bs_List surface_formats;
-} bs_PhysicalDevice;
-
 #endif 

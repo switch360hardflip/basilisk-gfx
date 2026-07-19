@@ -148,22 +148,22 @@ BSMODAPI bs_Result _bsmod_rasterizeInstance(
         BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | BS_MEMORY_PROPERTY_HOST_COHERENT_BIT, 0);
     if (result != BS_RESULT_OK) goto fail;
 
-    bs_transition(rasterization->image, 0, BS_LAYOUT_UNDEFINED, BS_LAYOUT_GENERAL);
-    bs_transition(rasterization->scaled_image, 0, BS_LAYOUT_UNDEFINED, BS_LAYOUT_GENERAL);
+    bs_transition(rasterization->image, 0, BS_IMAGE_LAYOUT_UNDEFINED, BS_IMAGE_LAYOUT_GENERAL);
+    bs_transition(rasterization->scaled_image, 0, BS_IMAGE_LAYOUT_UNDEFINED, BS_IMAGE_LAYOUT_GENERAL);
 
     bs_output(rasterization->renderer, (bs_Output) {
         .subpass = 0,
         .image = rasterization->image,
-        .old_layout = BS_LAYOUT_UNDEFINED,
-        .new_layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
+        .new_layout = BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         .flags = 0
     });
 
     bs_output(rasterization->renderer, (bs_Output) {
         .subpass = 0,
         .image = rasterization->depth_image,
-        .old_layout = BS_LAYOUT_UNDEFINED,
-        .new_layout = BS_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        .old_layout = BS_IMAGE_LAYOUT_UNDEFINED,
+        .new_layout = BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
         .flags = 0
     });
 
@@ -206,10 +206,10 @@ BSMODAPI void _bsmod_endRasterize() {
         
         bs_blit((bs_BlitOperation) {
             .source = rasterization->image, 
-            .source_layout = BS_LAYOUT_GENERAL, 
+            .source_layout = BS_IMAGE_LAYOUT_GENERAL, 
             .source_scale = rasterization->image->dim, 
             .destination = rasterization->scaled_image, 
-            .destination_layout = BS_LAYOUT_GENERAL, 
+            .destination_layout = BS_IMAGE_LAYOUT_GENERAL, 
             .destination_scale = rasterization->scaled_image->dim,
         });
 
@@ -217,7 +217,7 @@ BSMODAPI void _bsmod_endRasterize() {
             rasterization->scaled_image,
             rasterization->buffer,
             0,
-            BS_LAYOUT_GENERAL,
+            BS_IMAGE_LAYOUT_GENERAL,
             0,
             BS_IV2(0, 0),
             rasterization->scaled_image->dim);

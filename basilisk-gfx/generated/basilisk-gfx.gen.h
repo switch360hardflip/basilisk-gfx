@@ -212,8 +212,8 @@ typedef enum bsgfx_WidgetAdvanceType bsgfx_WidgetAdvanceType;
     X(BSGFX_FONT_ARIAL_32)                                           \
     X(BSGFX_FONT_ARIAL_48)
 
-#define BSGFX_WINDOWS                                                \
-    bsgfx_windows()
+#define BSGFX_CONTEXTS                                               \
+    bsgfx_contexts()
 
 #define BSGFX_IMAGES                                                 \
     bsgfx_images()
@@ -1393,7 +1393,7 @@ bsgfx_loadScene(
   @return int
   */
 BSGFXAPI int
-bsgfx_windows();
+bsgfx_contexts();
 
  /**
   @return int
@@ -2714,6 +2714,7 @@ BSGFXAPI void
 bsgfx_renderColorPickers();
 
 BSGFXAPI extern bsgfx_Scene _bsgfx_current_scene_;
+BSGFXAPI extern int _bsgfx_contexts_;
 BSGFXAPI extern int _bsgfx_images_;
 BSGFXAPI extern int _bsgfx_samplers_;
 BSGFXAPI extern int _bsgfx_buffers_;

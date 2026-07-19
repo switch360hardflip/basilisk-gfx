@@ -118,23 +118,13 @@ static void _bs_destroyDescriptors() {
 
 } 
 
-static inline VkDescriptorType _bs_convertBindType(bs_BindType type) {
-    switch (type) {
-    case BS_BIND_TYPE_INLINE_UNIFORM_BLOCK: return VK_DESCRIPTOR_TYPE_INLINE_UNIFORM_BLOCK;
-    case BS_BIND_TYPE_ACCELERATION_STRUCTURE: return VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
-    case BS_BIND_TYPE_MUTABLE_VALVE: return VK_DESCRIPTOR_TYPE_MUTABLE_VALVE;
-    default: 
-        return (VkDescriptorType)type;
-    }
-}
-
 static void _bs_pushDescriptorPools() {
 //    if (_bs_instance->descriptor_pool_needs_update) {
 //        _bs_instance->descriptor_pool_needs_update = false;
 //    }
 //    else return;
     _bs_warnF("Creating descriptor pools\n");
-
+    /*
     static VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
     if (descriptor_pool) {
         for (int i = 0; i < BS_MAX_NUM_BIND_SETS; i++) {
@@ -198,6 +188,7 @@ static void _bs_pushDescriptorPools() {
         bind_set->vk_layout = _bs_pushDescriptorLayout(bind_set);
         bind_set->vk_set    = _bs_pushDescriptorSet(bind_set, bind_set->vk_layout, descriptor_pool);
     }
+    */
 }
 
  /**
@@ -225,10 +216,15 @@ BSAPI void _bs_pushDescriptors() {
 }
 
 static inline bool _bs_bindIsImageType(bs_BindType type) {
-    return type == BS_BIND_TYPE_SAMPLER || type == BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER || type == BS_BIND_TYPE_SAMPLED_IMAGE || type == BS_BIND_TYPE_STORAGE_IMAGE;
+    _bs_criticalF("%s: Not implemented", __func__);
+    return false;
+    //return type == BS_BIND_TYPE_SAMPLER || type == BS_BIND_TYPE_COMBINED_IMAGE_SAMPLER || type == BS_BIND_TYPE_SAMPLED_IMAGE || type == BS_BIND_TYPE_STORAGE_IMAGE;
 }
 
 static void _bs_prepareDescriptorTemplate(bs_BindSet* bind_set) {
+    _bs_criticalF("%s: Not implemented", __func__);
+
+    /*
     if (!bind_set->vk_layout)
         return;
 
@@ -267,6 +263,7 @@ static void _bs_prepareDescriptorTemplate(bs_BindSet* bind_set) {
     };
 
     vkCreateDescriptorUpdateTemplate(_bs_instance_->device, &ci, NULL, &bind_set->vk_update_template);
+    */
 }
 
 BSAPI void _bs_pushBindings() {
@@ -357,7 +354,7 @@ BSAPI bs_Result _bs_bindImages(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_
         descriptors[i] = (bs_Descriptor) {
             .as_image = {
                 .vk_image_layout = (struct VkImageLayout_T*)descriptor->layout,
-                .vk_image_view = descriptor->image->_[descriptor->image->flags & BS_IMAGE_SWAPS_BIT ? _bs_scope_.window->frame : 0].vk_image_view,
+                .vk_image_view = descriptor->image->_[descriptor->image->flags & BS_IMAGE_SWAPS_BIT ? _bs_context_->frame : 0].vk_image_view,
                 .vk_sampler = descriptor->sampler ? descriptor->sampler->_->vk_sampler : VK_NULL_HANDLE,
                 .image = descriptor->image,
                 .sampler = descriptor->sampler,
@@ -402,7 +399,7 @@ BSAPI bs_Result _bs_bindBuffers(bs_U32 bind_set_slot, bs_U32 slot, bs_Buffer** b
 
         descriptors[i] = (bs_Descriptor) {
             .as_buffer = {
-                .vk_buffer = buffer->_[buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_scope_.window->frame : 0].vk_buffer,
+                .vk_buffer = buffer->_[buffer->flags & BSI_BUFFER_SWAPS_BIT ? _bs_context_->frame : 0].vk_buffer,
                 .vk_range = buffer->num_bytes,
                 .buffer = buffer,
             },
@@ -514,6 +511,8 @@ static int _bs_compareBindSets(const bs_BindSet* a, const bs_BindSet* b) {
 }
 
 BSAPI void _bs_loadBindings(int package_id, const char* path) {
+    _bs_criticalF("%s: Not implemented", __func__);
+    /*
     bs_Result result;
 
     bs_Resource* resource;
@@ -609,10 +608,11 @@ BSAPI void _bs_loadBindings(int package_id, const char* path) {
     _bs_instance_->descriptors_count = descriptors_count;
 
     _bs_destroyJson(&json);
-    
+    */
    /**
     Lookup table
     */
+/*
     int total_max_bindings = 0;
     for (int i = 0; i < bind_sets_count; i++)
         total_max_bindings += _bs_instance_->bind_sets[i].max_binding + 1;
@@ -639,6 +639,7 @@ BSAPI void _bs_loadBindings(int package_id, const char* path) {
     }
 
     _bs_pushDescriptorPools();
+    */
 }
 
 
@@ -651,6 +652,9 @@ BSAPI void _bs_loadBindings(int package_id, const char* path) {
   TODO: Rework this, write own shader format instead of using JSON
   */
 static void _bs_readBuffer(bs_Shader* shader, bs_Json* root, const char* name) {
+    _bs_criticalF("%s: Not implemented", __func__);
+
+    /*
     bs_JsonValue objects = _bs_fetchJson(root, BS_JSON_UNDEFINED, name, strlen(name));
 
     if (!objects.found)
@@ -679,6 +683,7 @@ static void _bs_readBuffer(bs_Shader* shader, bs_Json* root, const char* name) {
     }
 
     _bs_free(objects.as_array.as_objects);
+    */
 }
 
 static inline bs_Format _bs_convertFormatFromBaseType(VkFormat format, bs_U32 size) {
@@ -1115,8 +1120,8 @@ static void _bs_defaultDescriptor(bs_PipelineHash* descriptor) {
 
 BSAPI bs_Result _val_bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out) {
     BS_VALIDATE(_bs_scope_.renderer != NULL, BS_RESULT_VALIDATION_ERROR, "Pipelines must be created within a renderer");
-    BS_VALIDATE(descriptor->shaders[0]->type == BS_VERTEX_SHADER, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(descriptor->shaders[1]->type == BS_FRAGMENT_SHADER, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(descriptor->shaders[0]->type == BS_SHADER_STAGE_VERTEX_BIT, BS_RESULT_VALIDATION_ERROR,);
+    BS_VALIDATE(descriptor->shaders[1]->type == BS_SHADER_STAGE_FRAGMENT_BIT, BS_RESULT_VALIDATION_ERROR,);
 
     bool is_dynamic_renderer = _bs_rendererIsDynamic(_bs_scope_.renderer);
     if (!is_dynamic_renderer) {
