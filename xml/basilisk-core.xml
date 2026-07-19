@@ -295,6 +295,7 @@
 			<line><name>BS_BATCH_KEEP_DATA</name><value>(1 &lt;&lt; 2)</value></line>
 			<line><name>BSI_BATCH_SWAPS_BIT</name><value>(1 &lt;&lt; 3)</value></line>
 			<line><name>BS_BATCH_RAY_TRACEABLE</name><value>(1 &lt;&lt; 4)</value></line>
+			<line><name>BS_BATCH_IS_CREATED</name><value>(1 &lt;&lt; 5)</value></line>
 		</enum>
 		<enum name="bs_QueueBit">
 			<line><name>BSI_QUEUE_SWAPS_BIT</name><value>(1 &lt;&lt; 0)</value></line>
@@ -1099,9 +1100,9 @@
             <field><type>int</type><name>source_id</name></field>
         </structure>
         <structure name="bs_Object">
-            <field><type>bs_Header*</type><name>head</name></field>
             <field><type>bs_U32</type><name>flags</name></field>
             <structure type="union">
+                <field><type>bs_Header*</type><name>head</name></field>
                 <field><type>bs_Batch*</type><name>batch</name></field>
                 <field><type>bs_Buffer*</type><name>buffer</name></field>
                 <field><type>bs_Image*</type><name>image</name></field>
@@ -2642,7 +2643,7 @@
             <return>bs_Attribute*</return>
             <param><type>bs_Batch*</type><name>batch</name></param>
         </variadicStringTemplate>
-        <function name="bs_batchIsPushed">
+        <function name="bs_canPushBatch">
             <return>bool</return>
             <param><type>bs_Batch*</type><name>batch</name></param>
         </function>
@@ -3356,7 +3357,7 @@
         </function>
 		<variadicStringTemplate name="bs_string">
             <return>bs_String*</return>
-            <param><type>bs_String*</type><name>old</name></param>
+			<param nullable="true"><type>bs_String*</type><name>old</name></param>
         </variadicStringTemplate>
         <function name="bs_toUpper">
             <return>void</return>
@@ -4081,7 +4082,7 @@
 		<function name="bs_device">
 			<return>void</return>
             <param><type>bs_Context*</type><name>context</name></param>
-            <param><type>bs_PhysicalDevice*</type><name>device</name></param>
+            <param nullable="true"><type>bs_PhysicalDevice*</type><name>device</name></param>
         </function>
         <function name="bs_tick">
             <return>void</return>

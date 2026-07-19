@@ -107,8 +107,7 @@ static inline const char* _bs_physicalDeviceTypeName(VkPhysicalDeviceType type) 
 
 static void _bs_logPhysicalDeviceInfo(bs_PhysicalDevice* physical_device) {
     _bs_logF("Device \"%s\":\n", physical_device->name);
-    _bs_logF("    API version: %d.%d.%d.%d\n",
-        VK_API_VERSION_VARIANT(physical_device->api_version),
+    _bs_logF("    API version: %d.%d.%d\n",
         VK_API_VERSION_MAJOR(physical_device->api_version),
         VK_API_VERSION_MINOR(physical_device->api_version),
         VK_API_VERSION_PATCH(physical_device->api_version)
@@ -117,8 +116,8 @@ static void _bs_logPhysicalDeviceInfo(bs_PhysicalDevice* physical_device) {
 
     for (int i = 0; i < physical_device->queue_families.count; i++) {
         bs_QueueFamily* family = _bs_fetchUnit(&physical_device->queue_families, i);
-        _bs_logF("    Family %d queues count: %d\n", i, family->queue_count);
-        _bs_logF("    Graphics %s, Compute %s, Transfer %s, Sparse binding %s\n",
+        _bs_logF("    Family %d queues count: %d ", i, family->queue_count);
+        _bs_logF("Graphics %s, Compute %s, Transfer %s, Sparse binding %s\n",
             (family->queue_flags & VK_QUEUE_GRAPHICS_BIT) ? "[X]" : "[ ]",
             (family->queue_flags & VK_QUEUE_COMPUTE_BIT) ? "[X]" : "[ ]", 
             (family->queue_flags & VK_QUEUE_TRANSFER_BIT) ? "[X]" : "[ ]", 
@@ -150,7 +149,7 @@ static void _bs_readQueueFamilies(bs_PhysicalDevice* physical_device) {
 
     int actual_count = 0;
     for (bs_U32 i = 0; i < families_count; i++) {
-        bs_QueueFamily* queue_family = _bs_fetchUnit(&physical_device->queue_families, i);
+        bs_QueueFamily* queue_family = _bs_pushBack(&physical_device->queue_families, NULL);
 
         VkBool32 supports_present = false;
         result = vkGetPhysicalDeviceSurfaceSupportKHR(physical_device->vk_device, i, _bs_context_->surface, &supports_present);
@@ -191,8 +190,8 @@ static void _bs_readSurfaceFormats(bs_PhysicalDevice* physical_device) {
     physical_device->surface_formats = bs_list(sizeof(VkSurfaceFormatKHR), 0);
     bs_ensureSize(&physical_device->surface_formats, surface_formats_count);
 
-    for (int i = 0; i < physical_device->surface_formats.count; i++) {
-        bs_SurfaceFormat* surface_format = _bs_fetchUnit(&physical_device->surface_formats, i);
+    for (int i = 0; i < surface_formats_count; i++) {
+        bs_SurfaceFormat* surface_format = _bs_pushBack(&physical_device->surface_formats, NULL);
         surface_format->color_space = (bs_ColorSpace)formats[i].colorSpace;
         surface_format->format = (bs_Format)formats[i].format;
     }
@@ -223,7 +222,7 @@ static void _bs_preparePhysicalDevice() {
 
     int chosen = 0;
     for(int i = 0; i < num_devices; i++) {
-        bs_PhysicalDevice* physical_device = _bs_fetchUnit(&_bs_physical_devices_, i);
+        bs_PhysicalDevice* physical_device = _bs_pushBack(&_bs_physical_devices_, NULL);
         VkPhysicalDevice device = devices[i];
 
         VkPhysicalDeviceProperties props;
@@ -231,6 +230,7 @@ static void _bs_preparePhysicalDevice() {
 
         physical_device->vk_device = device;
         physical_device->type = props.deviceType;
+        physical_device->api_version = props.apiVersion;
         memcpy(physical_device->name, props.deviceName, BS_MAX_PHYSICAL_DEVICE_NAME_SIZE);
 
         _bs_readQueueFamilies(physical_device);
@@ -263,8 +263,6 @@ static void _bs_queryPhysicalDevice(VkQueueFlags required_flags, bool supports_p
                 return;
             }
         }
-
-        _bs_logPhysicalDeviceInfo(physical_device);
     }
 
     _bs_critical(BS_CONSTANT_STRING("No GPU with graphics and present support was found\n"));
@@ -286,7 +284,7 @@ static void _bs_prepareLogicalDevice() {
     VkPhysicalDeviceVulkan12Features features12 = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, .pNext = &dynamic_rendering_features };
     VkPhysicalDeviceFeatures2 features2 = { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &features12 };
     VkPhysicalDeviceFeatures* features = &features2.features;
-    vkGetPhysicalDeviceFeatures2(_bs_context_->physical_device, &features2);
+    vkGetPhysicalDeviceFeatures2(_bs_context_->physical_device->vk_device, &features2);
 
    /**
     NVIDIA Aftermath
@@ -329,13 +327,13 @@ static void _bs_prepareLogicalDevice() {
     bool supported_extensions[sizeof(extensions) / sizeof(const char*)] = { 0 };
 
     bs_U32 total_extensions_count = 0;
-    vk_result = vkEnumerateDeviceExtensionProperties(_bs_context_->physical_device, NULL, &total_extensions_count, NULL);
+    vk_result = vkEnumerateDeviceExtensionProperties(_bs_context_->physical_device->vk_device, NULL, &total_extensions_count, NULL);
     if (vk_result != VK_SUCCESS) {
         BS_WARN_VULKAN_ERROR("vkEnumerateDeviceExtensionProperties", vk_result, "");
     }
 
     VkExtensionProperties* props = _bs_calloc(total_extensions_count, sizeof(VkExtensionProperties));
-    vk_result = vkEnumerateDeviceExtensionProperties(_bs_context_->physical_device, NULL, &total_extensions_count, props);
+    vk_result = vkEnumerateDeviceExtensionProperties(_bs_context_->physical_device->vk_device, NULL, &total_extensions_count, props);
     if (vk_result != VK_SUCCESS) {
         BS_WARN_VULKAN_ERROR("vkEnumerateDeviceExtensionProperties", vk_result, "");
     }
@@ -380,7 +378,7 @@ static void _bs_prepareLogicalDevice() {
        // .pNext = &ray_tracing_pipeline_properties
     };
 
-    vkGetPhysicalDeviceProperties2(_bs_context_->physical_device, &device_properties);
+    vkGetPhysicalDeviceProperties2(_bs_context_->physical_device->vk_device, &device_properties);
 
     _bs_props_.shader_group_handle_size = ray_tracing_pipeline_properties.shaderGroupHandleSize;
     _bs_props_.shader_group_base_alignment = ray_tracing_pipeline_properties.shaderGroupBaseAlignment;
@@ -408,7 +406,7 @@ static void _bs_prepareLogicalDevice() {
         //.enabledLayerCount = _bs_args_.use_validation_layers ? sizeof(validation_layers) / sizeof(const char*) : 0,
     };
 
-    vk_result = vkCreateDevice(_bs_context_->physical_device, &ci, NULL, &_bs_instance_->device);
+    vk_result = vkCreateDevice(_bs_context_->physical_device->vk_device, &ci, NULL, &_bs_instance_->device);
     if (vk_result != VK_SUCCESS) {
         BS_CRITICAL_VULKAN_ERROR("vkCreateDevice", vk_result, "");
     }
@@ -425,21 +423,8 @@ static void _bs_prepareCommands() {
     };
 
     VkResult result = vkCreateCommandPool(_bs_instance_->device, &pool_ci, NULL, &_bs_instance_->command_pool);
-    BS_CRITICAL_VULKAN_ERROR("vkCreateCommandPool", result, "");
-}
-
-BSAPI void _bs_device(bs_Context* context, bs_PhysicalDevice* device) {
-    if (device) {
-        context->physical_device = device;
-    }
-    else {
-        _bs_preparePhysicalDevice();
-        _bs_queryPhysicalDevice(VK_QUEUE_GRAPHICS_BIT, true, &context->physical_device, &context->queue_family);
-        _bs_prepareLogicalDevice();
-        _bs_prepareCommands();
-
-        bs_Procedure procedures[] = { BS_FOREACH_PROC(BS_STRING_GEN_2) };
-        _bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), 0, &_bs_procs_);
+    if (result != VK_SUCCESS) {
+        BS_CRITICAL_VULKAN_ERROR("vkCreateCommandPool", result, "");
     }
 }
 
@@ -470,9 +455,9 @@ static void _bs_querySwapchainFormat(VkFormat candidates[], int candidates_count
 static void _bs_querySwapchainMode(VkPresentModeKHR candidates[], int candidates_count) {
     bs_U32 num_modes = 0;
     VkPresentModeKHR result = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(_bs_context_->physical_device, _bs_context_->surface, &num_modes, NULL);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(_bs_context_->physical_device->vk_device, _bs_context_->surface, &num_modes, NULL);
     VkPresentModeKHR* modes = bs_alloca(num_modes * sizeof(VkPresentModeKHR));
-    vkGetPhysicalDeviceSurfacePresentModesKHR(_bs_context_->physical_device, _bs_context_->surface, &num_modes, modes);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(_bs_context_->physical_device->vk_device, _bs_context_->surface, &num_modes, modes);
 
     for (int i = 0; i < candidates_count; i++) {
         VkPresentModeKHR candidate = candidates[i];
@@ -480,7 +465,6 @@ static void _bs_querySwapchainMode(VkPresentModeKHR candidates[], int candidates
         for (int j = 0; j < num_modes; j++) {
             VkPresentModeKHR mode = modes[j];
             if (candidate == mode) {
-                _bs_free(modes);
                 _bs_context_->present_mode = (bs_PresentMode)mode;
                 return;
             }
@@ -516,7 +500,7 @@ static void _bs_prepareSwapchain() {
     _bs_querySwapchainFormat(formats, sizeof(formats) / sizeof(*formats));
 
     VkSurfaceCapabilitiesKHR capabilities;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_bs_context_->physical_device, _bs_context_->surface, &capabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_bs_context_->physical_device->vk_device, _bs_context_->surface, &capabilities);
 
     const bool same_family = true; // TODO: this shouldn't always be true
 
@@ -532,7 +516,7 @@ static void _bs_prepareSwapchain() {
     const int frames_in_flight_target = 2;
     const int frames_in_flight_max = 3;
 
-    _bs_context_->frames_in_flight = _bs_clamp(frames_in_flight_target, capabilities.minImageCount, frames_in_flight_max);
+    _bs_context_->frames_in_flight = bs_clamp(frames_in_flight_target, capabilities.minImageCount, frames_in_flight_max);
 
     VkSwapchainCreateInfoKHR swapchain_ci = {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -1159,5 +1143,24 @@ BSAPI bs_Result _bs_window(bs_Context* context, bs_U32 width, bs_U32 height, con
 
 	 _bs_setCursor(BS_CURSOR_DEFAULT);
 
+     _bs_createSurface();
+
      return BS_RESULT_OK;
  }
+
+BSAPI void _bs_device(bs_Context* context, bs_PhysicalDevice* device) {
+    if (device) {
+        context->physical_device = device;
+    }
+    else {
+        _bs_preparePhysicalDevice();
+        _bs_queryPhysicalDevice(VK_QUEUE_GRAPHICS_BIT, true, &context->physical_device, &context->queue_family);
+        _bs_prepareLogicalDevice();
+        _bs_prepareCommands();
+
+        bs_Procedure procedures[] = { BS_FOREACH_PROC(BS_STRING_GEN_2) };
+        _bs_queryProcedures(procedures, sizeof(procedures) / sizeof(*procedures), 0, &_bs_procs_);
+    }
+
+    _bs_prepareSwapchain();
+}

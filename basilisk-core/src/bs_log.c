@@ -48,6 +48,7 @@ BSAPI char* _bs_logSection(char* message, int message_len) {
     _bs_io_.log = _bs_appendString(_bs_io_.log, BS_SECTION_HEADER_START, sizeof(BS_SECTION_HEADER_START) - 1);
     _bs_io_.log = _bs_appendString(_bs_io_.log, message, message_len);
     _bs_io_.log = _bs_appendString(_bs_io_.log, BS_SECTION_HEADER_END, sizeof(BS_SECTION_HEADER_END) - 1);
+    printf("%s", _bs_io_.log->value + len);
     return _bs_io_.log->value + len;
 }
 
@@ -60,6 +61,7 @@ BSAPI char* _postval_bs_logSection(char* message, int message_len, char* _return
 BSAPI char* _bs_logEndOfSection() {
     int len = _bs_io_.log->len;
     _bs_io_.log = _bs_appendString(_bs_io_.log, BS_SECTION_END, sizeof(BS_SECTION_END) - 1);
+    printf("%s", _bs_io_.log->value + len);
     return _bs_io_.log->value + len;
 }
 
@@ -78,6 +80,8 @@ BSAPI char* _bs_logWithTimestamp(const char* type, int type_len, char* message, 
     _bs_io_.log = _bs_appendString(_bs_io_.log, type, type_len);
     _bs_io_.log = _bs_appendString(_bs_io_.log, message, message_len);
 
+    printf("%s", _bs_io_.log->value + len);
+
     return _bs_io_.log->value + len;
 }
 
@@ -89,6 +93,7 @@ BSAPI char* _postval_bs_logWithTimestamp(const char* type, int type_len, const c
 BSAPI char* _bs_log(char* message, int message_len) {
     int len = _bs_io_.log->len;
     _bs_io_.log = _bs_appendString(_bs_io_.log, message, message_len);
+    printf("%s", _bs_io_.log->value + len);
     return _bs_io_.log->value + len;
 }
 

@@ -455,7 +455,7 @@ BSGFXAPI void _bsgfx_loadTiles(int package_id, bool force_destroy) {
     if (result != BS_RESULT_OK)
         return;
 
-    if (bs_batchIsPushed(primitive_tiles_object->batch))
+    if (!bs_canPushBatch(primitive_tiles_object->batch))
         bs_unpushBatch(primitive_tiles_object->batch);
 
     int red_material = $red_material()->id;

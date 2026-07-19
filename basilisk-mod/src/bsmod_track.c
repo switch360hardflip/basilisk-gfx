@@ -590,6 +590,8 @@ BSMODAPI void _bsmod_onTrack() {
 	bs_infoF(BS_PRINT_COLOR("track\n", BS_PRINT_RED));
 
 	bs_List* hooks = _bsmod_loadHooks();
+	if (!hooks)
+		return;
 
 	static bool reload_all = false; // temp
 	for (int i = 0; i < hooks->count; i++) {

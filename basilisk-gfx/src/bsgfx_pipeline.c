@@ -583,7 +583,7 @@ static void _bsgfx_swapBufferBindings() {
         if (!(batch->flags & BSI_BATCH_SWAPS_BIT))
             continue;
 
-        if (!bs_batchIsPushed(batch))
+        if (bs_canPushBatch(batch))
             continue;
 
         if (batch->vertex_buffer->buffer && batch->vertex_buffer->buffer->flags & BSI_BUFFER_IS_BOUND)
@@ -603,11 +603,10 @@ BSGFXAPI void _val_bsgfx_pipeline() {
 }
 
 BSGFXAPI void _bsgfx_pipeline() {
-#ifdef _DEBUG
-    _val_bsgfx_pipeline();
-#endif
+    if (!bs_exists(BSGFX_QUEUES, BSGFX_QUEUE_GRAPHICS))
+        return;
 
-    bs_Queue* graphics_queue = bs_fetch(BSGFX_QUEUES, BSGFX_QUEUE_GRAPHICS)->queue;
+    bs_Queue* graphics_queue = bs_fetch(BSGFX_QUEUES, BSGFX_QUEUE_GRAPHICS);
     bs_Queue* compute_queue = bs_exists(BSGFX_QUEUES, BSGFX_QUEUE_COMPUTE) ? bs_fetch(BSGFX_QUEUES, BSGFX_QUEUE_COMPUTE)->queue : NULL;
     bs_setScope(&(bs_Scope) { 0 });
 

@@ -93,7 +93,7 @@
             </xsl:variable>
 
             <xsl:for-each select="param">
-                <xsl:if test="contains(type, '*')">
+                <xsl:if test="contains(type, '*') and not(@nullable)">
                     <xsl:text>    </xsl:text>
                     <xsl:value-of select="/registry/functionPrefixCaps"/>
                     <xsl:text>VALIDATE(</xsl:text>
@@ -102,20 +102,31 @@
                     <xsl:value-of select="$returnValue"/>
                     <xsl:text>,);&#xA;</xsl:text>
 
-                    <!-- Object type safety check-->
-                    <xsl:variable name="objectType" select="/registry/structures/structure[@name = translate(current()/type, '*', '')]/@object"/>
-                    <xsl:if test="not(contains(type, '**')) and $objectType and not(size)">
-                        <xsl:text>    </xsl:text>
-                        <xsl:value-of select="/registry/functionPrefixCaps"/>
-                        <xsl:text>VALIDATE(</xsl:text>
-                        <xsl:value-of select="name"/>
-                        <xsl:text>->head.source_id == </xsl:text>
-                        <xsl:value-of select="$objectType"/>
-                        <xsl:text>, </xsl:text>
-                        <xsl:value-of select="$returnValue"/>
-                        <xsl:text>,);&#xA;</xsl:text>
-                    </xsl:if>
-                </xsl:if>
+					<!-- Object type safety check -->
+					<xsl:variable name="objectType" select="/registry/structures/structure[@name = translate(current()/type, '*', '')]/@object"/>
+					<xsl:if test="not(contains(type, '**')) and $objectType and not(size)">
+						<xsl:text>    </xsl:text>
+						<xsl:value-of select="/registry/functionPrefixCaps"/>
+						<xsl:text>VALIDATE(</xsl:text>
+						<xsl:value-of select="name"/>
+						<xsl:text>->head.source_id == </xsl:text>
+						<xsl:value-of select="$objectType"/>
+						<xsl:text>, </xsl:text>
+						<xsl:value-of select="$returnValue"/>
+						<xsl:text>,);&#xA;</xsl:text>
+					</xsl:if>
+
+					<!-- List safety check -->
+					<xsl:if test="type = 'bs_List*'">
+						<xsl:text>    </xsl:text>
+						<xsl:value-of select="/registry/functionPrefixCaps"/>
+						<xsl:text>VALIDATE(</xsl:text>
+						<xsl:value-of select="name"/>
+						<xsl:text>->unit_size > 0, </xsl:text>
+						<xsl:value-of select="$returnValue"/>
+						<xsl:text>,);&#xA;</xsl:text>
+					</xsl:if>
+				</xsl:if>
             </xsl:for-each>
 
 			<xsl:text>    </xsl:text>
@@ -136,29 +147,5 @@
             <xsl:text>&#xA;</xsl:text>
         </xsl:if>
     </xsl:template>
-
-	<!--
-    <xsl:template match="function" mode="enableValidation">
-        <xsl:if test="not(body)">
-            <xsl:text>    </xsl:text>
-            <xsl:text>functions.</xsl:text>
-            <xsl:value-of select="@name"/>
-            <xsl:text> = _preval_</xsl:text>
-            <xsl:value-of select="@name"/>
-            <xsl:text>;&#xA;</xsl:text>
-        </xsl:if>
-    </xsl:template>
-
-    <xsl:template match="function" mode="disableValidation">
-        <xsl:if test="not(body)">
-            <xsl:text>    </xsl:text>
-            <xsl:text>functions.</xsl:text>
-            <xsl:value-of select="@name"/>
-            <xsl:text> = _</xsl:text>
-            <xsl:value-of select="@name"/>
-            <xsl:text>;&#xA;</xsl:text>
-        </xsl:if>
-    </xsl:template>
-	-->
 
 </xsl:stylesheet>

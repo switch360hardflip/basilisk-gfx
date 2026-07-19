@@ -60,7 +60,7 @@ extern struct bs_Procs {
 
 #define BS_VALIDATE(condition, ret, format, ...)                     \
     if (!(condition)) {                                              \
-        bs_warnF(BS_PRINT_COLOR("[CORE] [VAL]", BS_PRINT_RED) " %s at %s:%d: %s\n" __VA_OPT__(format) "\n", __func__, __FILE__, __LINE__, #condition __VA_OPT__(,) __VA_ARGS__); \
+        bs_warnF(BS_PRINT_COLOR("[CORE] [VAL]", BS_PRINT_RED) " %s " BS_PRINT_COLOR("in", BS_PRINT_CYAN) " %s " BS_PRINT_COLOR("at", BS_PRINT_CYAN) " %s:%d\n" __VA_OPT__(format) "\n", #condition, __func__, __FILE__, __LINE__ __VA_OPT__(,) __VA_ARGS__); \
         return ret;                                                  \
     }
 

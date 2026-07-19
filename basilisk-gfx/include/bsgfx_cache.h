@@ -33,6 +33,7 @@
         static bs_Resource* resource = NULL;                                                    \
         if (!resource) {                                                                        \
             bs_shader(BSGFX_PACKAGE, "shaders/" #path "." #type, 0, &resource);                 \
+            if (!resource) return NULL;                                                         \
         }                                                                                       \
         return resource->shader;                                                                \
     }

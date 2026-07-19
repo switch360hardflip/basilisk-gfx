@@ -174,7 +174,7 @@ BSAPI bs_Result _bs_loadPackage(const char* path, int* out) {
 
     bs_String* raw;
     result = _bs_loadFileF(&raw, "%s.bpak", path_dup);
-    if (!raw)
+    if (result != BS_RESULT_OK)
         return result;
 
     existing = old;
@@ -434,8 +434,14 @@ static bs_Object* _bs_update(bs_U32 source_id, bs_U32 id, int size, int swap_siz
 }
 
 BSAPI bs_Object* _val_bs_object(bs_U32 source_id, bs_U32 id, size_t size, size_t flexible_array_size, int flexible_count, bs_U32 flags) {
-    BS_VALIDATE_SOURCE(source_id, NULL);
-    BS_VALIDATE_ID(id, NULL);
+    if (source_id != BS_U32_MAX) {
+        BS_VALIDATE_SOURCE(source_id, NULL);
+    }
+    if (source_id != BS_U32_MAX) {
+        BS_VALIDATE_ID(id, NULL);
+    }
+
+    BS_VALIDATE(flexible_count >= 0, NULL,);
 
     return _bs_object(source_id, id, size, flexible_array_size, flexible_count, flags);
 }

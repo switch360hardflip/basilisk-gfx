@@ -52,6 +52,28 @@ bs_U32 _bsgfx_num_shader_joints_ = 0;
 
 bsgfx_Application _bsgfx_app_;
 
+int _bsgfx_subtypes_[BSGFX_SUBTYPE_COUNT] = { 0 };
+
+// TODO: object configuration generation
+int _bsgfx_contexts_ = -1, _bsgfx_images_ = -1, _bsgfx_samplers_ = -1, _bsgfx_buffers_ = -1,
+_bsgfx_batches_ = -1, _bsgfx_renderers_ = -1, _bsgfx_ray_tracers_ = -1,
+_bsgfx_queues_ = -1, _bsgfx_atlases_ = -1, _bsgfx_fonts_ = -1;
+
+BSGFXAPI int _bsgfx_contexts() { return _bsgfx_contexts_; }
+BSGFXAPI int _bsgfx_images() { return _bsgfx_images_; }
+BSGFXAPI int _bsgfx_samplers() { return _bsgfx_samplers_; }
+BSGFXAPI int _bsgfx_buffers() { return _bsgfx_buffers_; }
+BSGFXAPI int _bsgfx_batches() { return _bsgfx_batches_; }
+BSGFXAPI int _bsgfx_renderers() { return _bsgfx_renderers_; }
+BSGFXAPI int _bsgfx_rayTracers() { return _bsgfx_ray_tracers_; }
+BSGFXAPI int _bsgfx_queues() { return _bsgfx_queues_; }
+BSGFXAPI int _bsgfx_atlases() { return _bsgfx_atlases_; }
+BSGFXAPI int _bsgfx_fonts() { return _bsgfx_fonts_; }
+
+BSGFXAPI bsgfx_Scene* _bsgfx_currentScene() {
+    return &_bsgfx_current_scene_;
+}
+
 BSGFXAPI bsgfx_Application* _bsgfx_app() {
     return &_bsgfx_app_;
 }
@@ -264,7 +286,12 @@ BSGFXAPI void _bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc
     bs_parseArgs(sizeof(args) / sizeof(char*), args);
 #endif
     
-    bs_window(NULL, width, height, name);// TODO
+    _bsgfx_configure();
+    bs_ini();
+
+    bs_Object* context_object = BS_CONTEXT(-1, 0, 0);
+    bs_window(context_object->context, width, height, name);
+    bs_device(context_object->context, NULL);
 
     /*
     GFSDK_Aftermath_Result result = GFSDK_Aftermath_EnableGpuCrashDumps(
@@ -299,10 +326,8 @@ BSGFXAPI void _bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc
 #endif
 */
 
-    _bsgfx_configure();
-    bs_ini();
     bs_iniAudio();
-    bs_loadBindings(_bsgfx_package_, "bindings");
+   // bs_loadBindings(_bsgfx_package_, "bindings");
 
    // bs_pause();
 

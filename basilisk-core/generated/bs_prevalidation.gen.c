@@ -402,6 +402,7 @@ BSAPI void _preval_bs_stageList(bs_Buffer* buffer, bs_List* list) {
     BS_VALIDATE(buffer != NULL, ,);
     BS_VALIDATE(buffer->head.source_id == BS_OBJECT_BUFFER, ,);
     BS_VALIDATE(list != NULL, ,);
+    BS_VALIDATE(list->unit_size > 0, ,);
     next.bs_stageList(buffer, list);
 }
 
@@ -452,10 +453,10 @@ BSAPI bs_Attribute* _preval_bs_queryAttributeV(bs_Batch* batch, char* format, va
     return next.bs_queryAttributeV(batch, format, args);
 }
 
-BSAPI bool _preval_bs_batchIsPushed(bs_Batch* batch) {
+BSAPI bool _preval_bs_canPushBatch(bs_Batch* batch) {
     BS_VALIDATE(batch != NULL, false,);
     BS_VALIDATE(batch->head.source_id == BS_OBJECT_BATCH, false,);
-    return next.bs_batchIsPushed(batch);
+    return next.bs_canPushBatch(batch);
 }
 
 BSAPI bool _preval_bs_batchIsIndexed(bs_Batch* batch) {
@@ -1481,6 +1482,7 @@ BSAPI int _preval_bs_formatStringLength(const char* format, va_list args) {
 
 BSAPI const char* _preval_bs_checkStringPool(bs_List* pool, char* string) {
     BS_VALIDATE(pool != NULL, NULL,);
+    BS_VALIDATE(pool->unit_size > 0, NULL,);
     BS_VALIDATE(string != NULL, NULL,);
     return next.bs_checkStringPool(pool, string);
 }
@@ -1496,13 +1498,11 @@ BSAPI bs_String* _preval_bs_emptyString(bs_String* old) {
 }
 
 BSAPI bs_String* _preval_bs_string(bs_String* old, char* value, int value_length) {
-    BS_VALIDATE(old != NULL, NULL,);
     BS_VALIDATE(value != NULL, NULL,);
     return next.bs_string(old, value, value_length);
 }
 
 BSAPI bs_String* _preval_bs_stringV(bs_String* old, char* format, va_list args) {
-    BS_VALIDATE(old != NULL, NULL,);
     BS_VALIDATE(format != NULL, NULL,);
     return next.bs_stringV(old, format, args);
 }
@@ -1665,54 +1665,65 @@ BSAPI void* _preval_bs_realloc(void* p, bs_U64 size) {
 
 BSAPI bool _preval_bs_listContains(bs_List* list, void* data) {
     BS_VALIDATE(list != NULL, false,);
+    BS_VALIDATE(list->unit_size > 0, false,);
     BS_VALIDATE(data != NULL, false,);
     return next.bs_listContains(list, data);
 }
 
 BSAPI void* _preval_bs_fetchUnit(bs_List* list, bs_U32 index) {
     BS_VALIDATE(list != NULL, NULL,);
+    BS_VALIDATE(list->unit_size > 0, NULL,);
     return next.bs_fetchUnit(list, index);
 }
 
 BSAPI void* _preval_bs_fetchLast(bs_List* list) {
     BS_VALIDATE(list != NULL, NULL,);
+    BS_VALIDATE(list->unit_size > 0, NULL,);
     return next.bs_fetchLast(list);
 }
 
 BSAPI void _preval_bs_ensureSize(bs_List* list, bs_U32 num_units) {
     BS_VALIDATE(list != NULL, ,);
+    BS_VALIDATE(list->unit_size > 0, ,);
     next.bs_ensureSize(list, num_units);
 }
 
 BSAPI void _preval_bs_erase(bs_List* list, int index, bs_U32 count) {
     BS_VALIDATE(list != NULL, ,);
+    BS_VALIDATE(list->unit_size > 0, ,);
     next.bs_erase(list, index, count);
 }
 
 BSAPI void* _preval_bs_pushBack(bs_List* list, char* data) {
     BS_VALIDATE(list != NULL, NULL,);
+    BS_VALIDATE(list->unit_size > 0, NULL,);
     BS_VALIDATE(data != NULL, NULL,);
     return next.bs_pushBack(list, data);
 }
 
 BSAPI void* _preval_bs_pushBackList(bs_List* source, bs_List* destination) {
     BS_VALIDATE(source != NULL, NULL,);
+    BS_VALIDATE(source->unit_size > 0, NULL,);
     BS_VALIDATE(destination != NULL, NULL,);
+    BS_VALIDATE(destination->unit_size > 0, NULL,);
     return next.bs_pushBackList(source, destination);
 }
 
 BSAPI void _preval_bs_destroyList(bs_List* list) {
     BS_VALIDATE(list != NULL, ,);
+    BS_VALIDATE(list->unit_size > 0, ,);
     next.bs_destroyList(list);
 }
 
 BSAPI void _preval_bs_seekList(bs_List* list, bs_U32 unit_index) {
     BS_VALIDATE(list != NULL, ,);
+    BS_VALIDATE(list->unit_size > 0, ,);
     next.bs_seekList(list, unit_index);
 }
 
 BSAPI void _preval_bs_minimizeList(bs_List* list) {
     BS_VALIDATE(list != NULL, ,);
+    BS_VALIDATE(list->unit_size > 0, ,);
     next.bs_minimizeList(list);
 }
 
@@ -2313,7 +2324,6 @@ BSAPI bs_Result _preval_bs_window(bs_Context* context, bs_U32 width, bs_U32 heig
 
 BSAPI void _preval_bs_device(bs_Context* context, bs_PhysicalDevice* device) {
     BS_VALIDATE(context != NULL, ,);
-    BS_VALIDATE(device != NULL, ,);
     next.bs_device(context, device);
 }
 
@@ -2566,7 +2576,7 @@ bs_FunctionTable* _preval_bs_getFunctionTable() {
     functions.bs_batch = _preval_bs_batch;
     functions.bs_queryAttribute = _preval_bs_queryAttribute;
     functions.bs_queryAttributeV = _preval_bs_queryAttributeV;
-    functions.bs_batchIsPushed = _preval_bs_batchIsPushed;
+    functions.bs_canPushBatch = _preval_bs_canPushBatch;
     functions.bs_batchIsIndexed = _preval_bs_batchIsIndexed;
     functions.bs_minimizeBatch = _preval_bs_minimizeBatch;
     functions.bs_pushBatch = _preval_bs_pushBatch;

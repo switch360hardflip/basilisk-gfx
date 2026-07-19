@@ -2,10 +2,10 @@
 
 Need to:
 
-- [ ] Replace shitty in house math library with cglm
-- [ ] Error system rebuild (validation layer project)
+- [x] Replace shitty in house math library with cglm
+- [x] Error system rebuild (validation layer project)
 - [ ] Get demos running (test project)
-- [ ] Code generation project
+- [x] Code generation project
 - [ ] Bootstrapping project
 
 After that, engine should be working again

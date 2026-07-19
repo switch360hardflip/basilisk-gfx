@@ -500,7 +500,7 @@ BSMODAPI void _bsmod_onLoad() {
 
     bs_Object* tile_batch_object = BS_BATCH(BSMOD_BATCHES, BSMOD_BATCH_TILE, 0);
     result = bs_batch(tile_batch_object, sizeof(int), $vs_bsgfx_tile_static(), BS_BATCH_KEEP_DATA);
-    if (result == BS_RESULT_OK && !bs_batchIsPushed(tile_batch_object->batch)) {
+    if (result == BS_RESULT_OK && bs_canPushBatch(tile_batch_object->batch)) {
         bs_Range range;
         bs_Quad quad;
         bs_quad(&BS_V3(0, 0, 0), &BS_V2(1, 1), &quad);

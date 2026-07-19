@@ -282,6 +282,8 @@ BSAPI void _bs_pushBindings() {
    *============================================================================*/
 
 static inline bs_Result _bs_validateBinding(bs_U32 bind_set_slot, bs_U32 bind_point_slot, int descriptors_count) {
+    BS_VALIDATE(_bs_instance_->descriptor_lookup != NULL, BS_RESULT_VALIDATION_ERROR, "No bindings have been loaded");
+
     bs_BindSet* bind_set;
     bs_Binding* binding;
 
@@ -451,7 +453,8 @@ BSAPI bs_Result _bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 bind_
   Query bind set
   */
 BSAPI bs_BindSet* _val_bs_queryBindSet(bs_U32 id) {
-    BS_VALIDATE(id <= _bs_instance_->max_bind_set, NULL, );
+    BS_VALIDATE(_bs_instance_->descriptor_lookup != NULL, NULL,);
+    BS_VALIDATE(id <= _bs_instance_->max_bind_set, NULL,);
     return _bs_queryBindSet(id);
 }
 

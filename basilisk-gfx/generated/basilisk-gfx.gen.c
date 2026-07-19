@@ -59,8 +59,8 @@ void bsgfx_enableValidation()
     bsgfx_FunctionTable* definitions = _bsgfx_getFunctions();
     bsgfx_FunctionTable* preval_definitions = _preval_bsgfx_getFunctions();
     bsgfx_FunctionTable* val_definitions = _val_bsgfx_getFunctions();
-    val_definitions = _bsgfx_setFunctions(val_definitions, definitions);
-    preval_definitions = _preval_bsgfx_setFunctions(preval_definitions, val_definitions);
+    val_definitions = _preval_bsgfx_setFunctions(val_definitions, definitions);
+    preval_definitions = _bsgfx_setFunctions(preval_definitions, val_definitions);
 }
 
 void bsgfx_disableValidation()

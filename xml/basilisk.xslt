@@ -34,12 +34,12 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 				<xsl:text>getFunctions();&#xA;</xsl:text>
 
 				<xsl:text>    </xsl:text>
-				<xsl:text>val_definitions = _</xsl:text>
+				<xsl:text>val_definitions = _preval_</xsl:text>
 				<xsl:value-of select="/registry/functionPrefix"/>
 				<xsl:text>setFunctions(val_definitions, definitions);&#xA;</xsl:text>
-
+				
 				<xsl:text>    </xsl:text>
-				<xsl:text>preval_definitions = _preval_</xsl:text>
+				<xsl:text>preval_definitions = _</xsl:text>
 				<xsl:value-of select="/registry/functionPrefix"/>
 				<xsl:text>setFunctions(preval_definitions, val_definitions);</xsl:text>
 			</body>

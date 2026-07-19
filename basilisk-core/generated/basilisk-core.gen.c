@@ -66,8 +66,8 @@ void bs_enableValidation()
     bs_FunctionTable* definitions = _bs_getFunctions();
     bs_FunctionTable* preval_definitions = _preval_bs_getFunctions();
     bs_FunctionTable* val_definitions = _val_bs_getFunctions();
-    val_definitions = _bs_setFunctions(val_definitions, definitions);
-    preval_definitions = _preval_bs_setFunctions(preval_definitions, val_definitions);
+    val_definitions = _preval_bs_setFunctions(val_definitions, definitions);
+    preval_definitions = _bs_setFunctions(preval_definitions, val_definitions);
 }
 
 void bs_disableValidation()
@@ -1253,10 +1253,10 @@ bs_Attribute* bs_queryAttributeF(
     return _return;
 }
 
-bool bs_batchIsPushed(
+bool bs_canPushBatch(
     bs_Batch* batch)
 {
-    return next.bs_batchIsPushed(batch);
+    return next.bs_canPushBatch(batch);
 }
 
 bool bs_batchIsIndexed(

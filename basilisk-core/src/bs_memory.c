@@ -160,6 +160,7 @@ BSAPI void* _val_bs_malloc(bs_U64 size) {
 }
 
 BSAPI void* _bs_malloc(bs_U64 size) {
+    assert(size != 0);
     void* p = malloc(size);
 
     if (!p) {
@@ -181,6 +182,7 @@ BSAPI void* _val_bs_calloc(bs_U64 num_units, bs_U64 unit_size) {
 }
 
 BSAPI void* _bs_calloc(bs_U64 num_units, bs_U64 unit_size) {
+    assert((num_units * unit_size) != 0);
     void* p = calloc(num_units, unit_size);
 
     if (!p) {
@@ -200,6 +202,7 @@ BSAPI void* _val_bs_realloc(void* p, bs_U64 size) {
 }
 
 BSAPI void* _bs_realloc(void* p, bs_U64 size) {
+    assert(size != 0);
     p = realloc(p, size);
 
     if (!p) {

@@ -277,7 +277,7 @@ BSGFXAPI void _bsgfx_loadPrefabs(int package_id, bs_Model* model) {
 
     bs_Atlas* atlas = bs_fetch(BSGFX_ATLASES, BSGFX_ATLAS_ANY)->atlas;
 
-    if (!bs_batchIsPushed(batch)) {
+    if (bs_canPushBatch(batch)) {
         static int* cached_subtypes;
         static int cached_subtypes_count;
         int cached_subtype_offset = 0;

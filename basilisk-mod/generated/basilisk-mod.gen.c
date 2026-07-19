@@ -59,8 +59,8 @@ void bsmod_enableValidation()
     bsmod_FunctionTable* definitions = _bsmod_getFunctions();
     bsmod_FunctionTable* preval_definitions = _preval_bsmod_getFunctions();
     bsmod_FunctionTable* val_definitions = _val_bsmod_getFunctions();
-    val_definitions = _bsmod_setFunctions(val_definitions, definitions);
-    preval_definitions = _preval_bsmod_setFunctions(preval_definitions, val_definitions);
+    val_definitions = _preval_bsmod_setFunctions(val_definitions, definitions);
+    preval_definitions = _bsmod_setFunctions(preval_definitions, val_definitions);
 }
 
 void bsmod_disableValidation()

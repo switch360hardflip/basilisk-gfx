@@ -306,11 +306,13 @@ BSMODAPI void* _preval_bsmod_add(bsgfx_TypeId id, void* data) {
 
 BSMODAPI bool _preval_bsmod_isSelected(bs_List* list, bsgfx_TypeId type, int id) {
     BSMOD_VALIDATE(list != NULL, false,);
+    BSMOD_VALIDATE(list->unit_size > 0, false,);
     return next.bsmod_isSelected(list, type, id);
 }
 
 BSMODAPI void _preval_bsmod_select(bs_List* list, bsgfx_TypeId type, int id) {
     BSMOD_VALIDATE(list != NULL, ,);
+    BSMOD_VALIDATE(list->unit_size > 0, ,);
     next.bsmod_select(list, type, id);
 }
 
@@ -320,26 +322,31 @@ BSMODAPI void _preval_bsmod_deselectAll() {
 
 BSMODAPI void _preval_bsmod_deselectRange(bs_List* list, int first, int count) {
     BSMOD_VALIDATE(list != NULL, ,);
+    BSMOD_VALIDATE(list->unit_size > 0, ,);
     next.bsmod_deselectRange(list, first, count);
 }
 
 BSMODAPI void _preval_bsmod_deselectIndex(bs_List* list, int id) {
     BSMOD_VALIDATE(list != NULL, ,);
+    BSMOD_VALIDATE(list->unit_size > 0, ,);
     next.bsmod_deselectIndex(list, id);
 }
 
 BSMODAPI void _preval_bsmod_deselect(bs_List* list, int id) {
     BSMOD_VALIDATE(list != NULL, ,);
+    BSMOD_VALIDATE(list->unit_size > 0, ,);
     next.bsmod_deselect(list, id);
 }
 
 BSMODAPI int _preval_bsmod_firstSelectedId(bs_List* list) {
     BSMOD_VALIDATE(list != NULL, 0,);
+    BSMOD_VALIDATE(list->unit_size > 0, 0,);
     return next.bsmod_firstSelectedId(list);
 }
 
 BSMODAPI int _preval_bsmod_lastSelectedId(bs_List* list) {
     BSMOD_VALIDATE(list != NULL, 0,);
+    BSMOD_VALIDATE(list->unit_size > 0, 0,);
     return next.bsmod_lastSelectedId(list);
 }
 
@@ -382,6 +389,7 @@ BSMODAPI void _preval_bsmod_instanceUI() {
 
 BSMODAPI void _preval_bsmod_pushVecNWidget(bs_List* widgets, const char* name, bs_vec3 offset, float width, float* v, int n) {
     BSMOD_VALIDATE(widgets != NULL, ,);
+    BSMOD_VALIDATE(widgets->unit_size > 0, ,);
     BSMOD_VALIDATE(name != NULL, ,);
     BSMOD_VALIDATE(v != NULL, ,);
     next.bsmod_pushVecNWidget(widgets, name, offset, width, v, n);
@@ -389,6 +397,7 @@ BSMODAPI void _preval_bsmod_pushVecNWidget(bs_List* widgets, const char* name, b
 
 BSMODAPI void _preval_bsmod_pushInputWidget(bs_List* widgets, void* value, bs_vec3 offset, float width, int name_padding, bool skip_advance, bool is_last, bool has_buttons, const char* name) {
     BSMOD_VALIDATE(widgets != NULL, ,);
+    BSMOD_VALIDATE(widgets->unit_size > 0, ,);
     BSMOD_VALIDATE(value != NULL, ,);
     BSMOD_VALIDATE(name != NULL, ,);
     next.bsmod_pushInputWidget(widgets, value, offset, width, name_padding, skip_advance, is_last, has_buttons, name);
@@ -400,11 +409,13 @@ BSMODAPI void _preval_bsmod_instanceTileContextMenu(bs_vec3 position, bs_vec2 si
 
 BSMODAPI void _preval_bsmod_instanceContextMenu(bs_List* widgets, bs_vec3 position, bs_vec2 size) {
     BSMOD_VALIDATE(widgets != NULL, ,);
+    BSMOD_VALIDATE(widgets->unit_size > 0, ,);
     next.bsmod_instanceContextMenu(widgets, position, size);
 }
 
 BSMODAPI void _preval_bsmod_pushContextMenuButton(bs_List* widgets, bs_vec2 menu_size, bs_vec3 icon_offset, bsgfx_AtlasCache* icon, const char* name, int indent, PFN_bsgfx_ButtonWidgetCallback action, bool expandable) {
     BSMOD_VALIDATE(widgets != NULL, ,);
+    BSMOD_VALIDATE(widgets->unit_size > 0, ,);
     BSMOD_VALIDATE(icon != NULL, ,);
     BSMOD_VALIDATE(name != NULL, ,);
     next.bsmod_pushContextMenuButton(widgets, menu_size, icon_offset, icon, name, indent, action, expandable);
@@ -420,6 +431,7 @@ BSMODAPI void _preval_bsmod_instanceLightBillboards() {
 
 BSMODAPI void _preval_bsmod_pushMaterialWidgets(bs_List* widgets, bs_vec2 background_size) {
     BSMOD_VALIDATE(widgets != NULL, ,);
+    BSMOD_VALIDATE(widgets->unit_size > 0, ,);
     next.bsmod_pushMaterialWidgets(widgets, background_size);
 }
 
@@ -437,6 +449,7 @@ BSMODAPI void _preval_bsmod_rasterizeMaterialIcons() {
 
 BSMODAPI void _preval_bsmod_pushPrefabMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
     BSMOD_VALIDATE(widgets != NULL, ,);
+    BSMOD_VALIDATE(widgets->unit_size > 0, ,);
     next.bsmod_pushPrefabMenuWidgets(widgets, background_size);
 }
 
@@ -478,6 +491,7 @@ BSMODAPI void _preval_bsmod_instanceSideMenu(bs_vec3 position, bs_vec2 dimension
 
 BSMODAPI void _preval_bsmod_pushTileMenuWidgets(bs_List* widgets, bs_vec2 background_size) {
     BSMOD_VALIDATE(widgets != NULL, ,);
+    BSMOD_VALIDATE(widgets->unit_size > 0, ,);
     next.bsmod_pushTileMenuWidgets(widgets, background_size);
 }
 

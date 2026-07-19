@@ -1584,9 +1584,9 @@ struct bs_Header {
 };
 
 struct bs_Object {
-    bs_Header* head;
     bs_U32 flags;
     union {
+        bs_Header* head;
         bs_Batch* batch;
         bs_Buffer* buffer;
         bs_Image* image;
@@ -2859,6 +2859,7 @@ enum bs_BatchBit {
     BS_BATCH_KEEP_DATA = (1 << 2),
     BSI_BATCH_SWAPS_BIT = (1 << 3),
     BS_BATCH_RAY_TRACEABLE = (1 << 4),
+    BS_BATCH_IS_CREATED = (1 << 5),
 };
 
 enum bs_QueueBit {
@@ -4936,7 +4937,7 @@ bs_queryAttributeF(
   @return bool
   */
 BSAPI bool
-bs_batchIsPushed(
+bs_canPushBatch(
     bs_Batch* batch);
 
  /**

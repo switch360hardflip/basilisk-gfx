@@ -62,7 +62,7 @@ BSAPI bs_Props* _bs_props() { return &_bs_props_; }
 BSAPI bs_Config* _bs_config() { return &_bs_config_; }
 BSAPI bs_Scope* _bs_scope() { return &_bs_scope_; }
 BSAPI bs_IO* _bs_io() { return &_bs_io_; }
-BSAPI bs_Context* _bs_context() { return &_bs_context_; }
+BSAPI bs_Context* _bs_context() { return _bs_context_; }
 
 BSAPI void _bsi_nameHandle(bs_U64 handle, bs_U32 type, char* name, int name_length) {
     PFN_vkSetDebugUtilsObjectNameEXT pfn_vkSetDebugUtilsObjectNameEXT =
@@ -343,7 +343,7 @@ static void _bs_prepareInstance() {
 
 void _bs_findExecutablePaths();
 BSAPI void _bs_ini() {
-    _bs_io_.log = bs_string(_bs_io_.log, "", 0);
+    _bs_io_.log = _bs_string(_bs_io_.log, "", 0);
     _bs_instance_ = _bs_calloc(1, sizeof(bs_Instance));
 
     _bs_configureAttribute("bs_Position", BS_FORMAT_R32_SFLOAT);
@@ -392,7 +392,7 @@ BSAPI void _bs_load(
 
 static inline bs_U32 _bs_queryMemoryType(bs_U32 filter, VkMemoryPropertyFlags props) {
     VkPhysicalDeviceMemoryProperties mem_props;
-    vkGetPhysicalDeviceMemoryProperties(_bs_context_->physical_device, &mem_props);
+    vkGetPhysicalDeviceMemoryProperties(_bs_context_->physical_device->vk_device, &mem_props);
 
     for (bs_U32 i = 0; i < mem_props.memoryTypeCount; i++) {
         if ((filter & (1 << i)) && (mem_props.memoryTypes[i].propertyFlags & props) == props) {
@@ -1450,7 +1450,7 @@ BSAPI bs_Result _bs_batch(bs_Object* object, int index_size, bs_Shader* shader, 
     if (object->flags & BS_OBJECT_HAS_SWAPS_BIT)
         flags |= BSI_BATCH_SWAPS_BIT;
 
-    batch->flags = flags;
+    batch->flags = flags | BS_BATCH_IS_CREATED;
     batch->attributes = shader->attributes;
     batch->attributes_count = shader->num_attributes;
 #define BS_BATCH_INCR_BY 256
@@ -1460,8 +1460,8 @@ BSAPI bs_Result _bs_batch(bs_Object* object, int index_size, bs_Shader* shader, 
     return BS_RESULT_OK;
 }
 
-BSAPI bool _bs_batchIsPushed(bs_Batch* batch) {
-    return batch->flags & BS_BATCH_IS_PUSHED;
+BSAPI bool _bs_canPushBatch(bs_Batch* batch) {
+    return (batch->flags & (BS_BATCH_IS_PUSHED | BS_BATCH_IS_CREATED));
 }
 
 BSAPI bool _bs_batchIsIndexed(bs_Batch* batch) {
@@ -1700,20 +1700,42 @@ BSAPI bs_Result _bs_renderer(bs_Object* object, bs_RendererBits flags) {
     return BS_RESULT_OK;
 }
 
+ /**
+  Output 
+  */
+BSAPI void _val_bs_output(bs_Renderer* renderer, bs_Output output) {
+    BS_VALIDATE(renderer->num_outputs < BS_MAX_ATTACHMENTS_COUNT, , );
+    BS_VALIDATE(output.image->head.source_id == BS_OBJECT_IMAGE, , );
+
+    return _bs_output(renderer, output);
+}
+
 BSAPI void _bs_output(bs_Renderer* renderer, bs_Output output) {
     renderer->outputs[renderer->num_outputs++] = output;
 }
 
+ /**
+  Input
+  */
 BSAPI void _val_bs_input(bs_Renderer* renderer, bs_Input input) {
-    BS_VALIDATE(renderer->num_inputs >= BS_MAX_ATTACHMENTS_COUNT,,);
+    BS_VALIDATE(renderer->num_inputs < BS_MAX_ATTACHMENTS_COUNT,,);
+    BS_VALIDATE(input.image != NULL,,);
+    BS_VALIDATE(input.image->head.source_id == BS_OBJECT_IMAGE,,);
+
+    return _bs_input(renderer, input);
 }
 
 BSAPI void _bs_input(bs_Renderer* renderer, bs_Input input) {
     renderer->inputs[renderer->num_inputs++] = input;
 }
 
+ /**
+  Dependency
+  */
 BSAPI void _val_bs_dependency(bs_Renderer* renderer, bs_U32 src_subpass, bs_U32 dst_subpass, bs_DependencyFlags flags, bs_PipelineStage src_stage, bs_PipelineStage dst_stage, bs_AccessMask src_access, bs_AccessMask dst_access) {
-    BS_VALIDATE(renderer->num_dependencies >= BS_MAX_NUM_SUBPASS_DEPENDENCIES,,);
+    BS_VALIDATE(renderer->num_dependencies < BS_MAX_NUM_SUBPASS_DEPENDENCIES,,);
+
+    return _bs_dependency(renderer, src_subpass, dst_subpass, flags, src_stage, dst_stage, src_access, dst_access);
 }
 
 BSAPI void _bs_dependency(bs_Renderer* renderer, bs_U32 src_subpass, bs_U32 dst_subpass, bs_DependencyFlags flags, bs_PipelineStage src_stage, bs_PipelineStage dst_stage, bs_AccessMask src_access, bs_AccessMask dst_access) {
@@ -2555,9 +2577,9 @@ BSAPI bs_I32 _bs_queueFamily(bs_QueueBits _bs_flags) {
     VkQueueFlagBits flags = _bs_convertQueueFlags(_bs_flags);
     
     bs_U32 num_families = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(_bs_context_->physical_device, &num_families, NULL);
+    vkGetPhysicalDeviceQueueFamilyProperties(_bs_context_->physical_device->vk_device, &num_families, NULL);
     VkQueueFamilyProperties* queue_families = _bs_calloc(num_families, sizeof(VkQueueFamilyProperties));
-    vkGetPhysicalDeviceQueueFamilyProperties(_bs_context_->physical_device, &num_families, queue_families);
+    vkGetPhysicalDeviceQueueFamilyProperties(_bs_context_->physical_device->vk_device, &num_families, queue_families);
 
     for (bs_U32 i = 0; i < num_families; i++) {
         if (!(queue_families[i].queueFlags & flags)) continue;
@@ -2567,7 +2589,7 @@ BSAPI bs_I32 _bs_queueFamily(bs_QueueBits _bs_flags) {
         }
 
         VkBool32 supports_present = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(_bs_context_->physical_device, i, _bs_context_->surface, &supports_present);
+        vkGetPhysicalDeviceSurfaceSupportKHR(_bs_context_->physical_device->vk_device, i, _bs_context_->surface, &supports_present);
         if (supports_present) {
             _bs_free(queue_families);
             return i;

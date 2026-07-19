@@ -235,7 +235,7 @@ BSAPI void _bs_nameImage(bs_Image* image, const char* name) {
 
 static inline bs_Result _bs_queryMemoryType(bs_U32 filter, VkMemoryPropertyFlags props, bs_U32* out) {
     VkPhysicalDeviceMemoryProperties mem_props;
-    vkGetPhysicalDeviceMemoryProperties(_bs_context_->physical_device, &mem_props);
+    vkGetPhysicalDeviceMemoryProperties(_bs_context_->physical_device->vk_device, &mem_props);
 
     for (bs_U32 i = 0; i < mem_props.memoryTypeCount; i++) {
         if ((filter & (1 << i)) && (mem_props.memoryTypes[i].propertyFlags & props) == props) {
@@ -675,7 +675,7 @@ BSAPI bs_Result _bs_sampler(bs_Object* object, bs_ImageFilter filter, bs_Sampler
     sampler->flags = flags;
 
     VkPhysicalDeviceProperties properties = { 0 };
-    vkGetPhysicalDeviceProperties(_bs_context_->physical_device, &properties);
+    vkGetPhysicalDeviceProperties(_bs_context_->physical_device->vk_device, &properties);
 
     VkSamplerCreateInfo sampler_i = {
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,

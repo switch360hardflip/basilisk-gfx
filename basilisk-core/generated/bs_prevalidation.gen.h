@@ -108,7 +108,7 @@ static inline bs_FunctionTable* _preval_bs_getFunctions() {
     functions.bs_setBufferAsync = (PFN_bs_setBufferAsync)GetProcAddress(module, "_preval_bs_setBufferAsync");
     functions.bs_batch = (PFN_bs_batch)GetProcAddress(module, "_preval_bs_batch");
     functions.bs_queryAttribute = (PFN_bs_queryAttribute)GetProcAddress(module, "_preval_bs_queryAttribute");
-    functions.bs_batchIsPushed = (PFN_bs_batchIsPushed)GetProcAddress(module, "_preval_bs_batchIsPushed");
+    functions.bs_canPushBatch = (PFN_bs_canPushBatch)GetProcAddress(module, "_preval_bs_canPushBatch");
     functions.bs_batchIsIndexed = (PFN_bs_batchIsIndexed)GetProcAddress(module, "_preval_bs_batchIsIndexed");
     functions.bs_minimizeBatch = (PFN_bs_minimizeBatch)GetProcAddress(module, "_preval_bs_minimizeBatch");
     functions.bs_pushBatch = (PFN_bs_pushBatch)GetProcAddress(module, "_preval_bs_pushBatch");

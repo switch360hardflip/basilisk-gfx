@@ -66,7 +66,7 @@ BSGFXAPI void _bsgfx_loadPrimitives(int package_id) {
     if (bs_exists(BSGFX_BATCHES, BSGFX_BATCH_MESH_INSTANCED)) {
         bs_Batch* mesh_instanced_batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_MESH_INSTANCED);
 
-        if (bs_batchIsPushed(mesh_instanced_batch)) {
+        if (bs_canPushBatch(mesh_instanced_batch)) {
             bs_Range box_range = bs_pushCube(mesh_instanced_batch, BS_WHITE);
             bs_Range sphere_range = bs_pushSphere(mesh_instanced_batch, BS_V3(0, 0, 0), 1.0, 16, 16, BS_WHITE);
             bs_Range sphere_high_quality_range = bs_pushSphere(mesh_instanced_batch, BS_V3(0, 0, 0), 1.0, 64, 64, BS_WHITE);

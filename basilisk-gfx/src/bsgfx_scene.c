@@ -31,30 +31,6 @@
 
 #include <basilisk-core.h>
 
-int _bsgfx_subtypes_[BSGFX_SUBTYPE_COUNT] = { 0 };
-bsgfx_Scene _bsgfx_current_scene = { 0 };
-
-BSGFXAPI bsgfx_Scene* _bsgfx_currentScene() {
-    return &_bsgfx_current_scene;
-}
-
-// TODO: object configuration generation
-
-int _bsgfx_contexts_ = -1, _bsgfx_images_ = -1, _bsgfx_samplers_ = -1, _bsgfx_buffers_ = -1,
-    _bsgfx_batches_ = -1, _bsgfx_renderers_ = -1, _bsgfx_ray_tracers_ = -1,
-    _bsgfx_queues_ = -1, _bsgfx_atlases_ = -1, _bsgfx_fonts_ = -1;
-
-BSGFXAPI int _bsgfx_contexts() { return _bsgfx_contexts_; }
-BSGFXAPI int _bsgfx_images() { return _bsgfx_images_; }
-BSGFXAPI int _bsgfx_samplers() { return _bsgfx_samplers_; }
-BSGFXAPI int _bsgfx_buffers() { return _bsgfx_buffers_; }
-BSGFXAPI int _bsgfx_batches() { return _bsgfx_batches_; }
-BSGFXAPI int _bsgfx_renderers() { return _bsgfx_renderers_; }
-BSGFXAPI int _bsgfx_rayTracers() { return _bsgfx_ray_tracers_; }
-BSGFXAPI int _bsgfx_queues() { return _bsgfx_queues_; }
-BSGFXAPI int _bsgfx_atlases() { return _bsgfx_atlases_; }
-BSGFXAPI int _bsgfx_fonts() { return _bsgfx_fonts_; }
-
 static void _bsgfx_createRenderers() {
    /**
     high resolution renderer
@@ -295,20 +271,23 @@ static void _bsgfx_loadResources() {
     bs_batch(mesh_instance_batch, sizeof(bs_U32), $vs_bsgfx_mesh_instanced(), 0);
     bs_batch(bone_instance_batch, sizeof(bs_U32), $vs_bsgfx_bone_instanced(), BS_BATCH_RAY_TRACEABLE);
 
-    if (mesh_instance_batch && !bs_batchIsPushed(mesh_instance_batch)) {
+    if (mesh_instance_batch && bs_canPushBatch(mesh_instance_batch)) {
         _bsgfx_instanceType(BSGFX_INSTANCE_TYPE_MESH, BSGFX_MESH_INSTANCE_COUNT, BSGFX_SET_MESH_INSTANCES, BSGFX_BINDING_MESH_INSTANCES);
         _bsgfx_instanceType(BSGFX_INSTANCE_TYPE_MESH_STATIC, BSGFX_MESH_STATIC_INSTANCE_COUNT, BSGFX_SET_MESH_STATIC_INSTANCES, BSGFX_BINDING_MESH_STATIC_INSTANCES);
     }
 
-    if (sphere_batch && !bs_batchIsPushed(sphere_batch->batch)) {
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_CONE_MESH] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, sphere_batch->batch, 0, bs_pushCone(sphere_batch->batch, 10, 2.0, 1.0, BS_WHITE));
-        _bsgfx_subtypes_[BSGFX_SUBTYPE_SPHERE_MESH] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, sphere_batch->batch, 0, bs_pushSphere(sphere_batch->batch, (bs_vec3) { 0 }, 1.0, 8, 8, BS_WHITE));
+    if (sphere_batch && bs_canPushBatch(sphere_batch->batch)) {
+        bs_Range cone_range = bs_pushCone(sphere_batch->batch, 10, 2.0, 1.0, BS_WHITE);
+        bs_Range sphere_range = bs_pushSphere(sphere_batch->batch, (bs_vec3) { 0 }, 1.0, 8, 8, BS_WHITE);
+
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_CONE_MESH] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, sphere_batch->batch, 0, cone_range);
+        _bsgfx_subtypes_[BSGFX_SUBTYPE_SPHERE_MESH] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, sphere_batch->batch, 0, sphere_range);
     }
 
     bs_Quad quad;
     bs_quad(&(bs_vec3) { 0 }, & (bs_vec2) { 1.0, 1.0 }, & quad);
 
-    if (quad_instance_batch && !bs_batchIsPushed(quad_instance_batch->batch)) {
+    if (quad_instance_batch && bs_canPushBatch(quad_instance_batch->batch)) {
         _bsgfx_instanceType(BSGFX_INSTANCE_TYPE_QUAD, BSGFX_QUAD_INSTANCE_COUNT, BSGFX_SET_QUAD_INSTANCES, BSGFX_BINDING_QUAD_INSTANCES);
 
         bs_Range range = bs_pushQuad(quad_instance_batch->batch, &quad, BS_WHITE);
@@ -338,7 +317,7 @@ static void _bsgfx_loadResources() {
         bs_pushBatch(quad_instance_batch->batch, BS_U32_MAX, BS_U32_MAX);
     }
 
-    if (!bs_batchIsPushed(volume_batch->batch)) {
+    if (bs_canPushBatch(volume_batch->batch)) {
         bs_ensureBatchSize(volume_batch->batch, 0, BSGFX_NUM_SHADOW_VERTICES);
 
         bs_pushQuad(volume_screen_batch->batch, &quad, BSGFX_SHADOW_COLOR);
@@ -347,7 +326,7 @@ static void _bsgfx_loadResources() {
         bs_bindBuffer(BSGFX_SET_VOLUME_OUT_VERTICES, BSGFX_BINDING_VOLUME_OUT_VERTICES, volume_batch->batch->vertex_buffer->buffer);
     }
 
-    if (!bs_batchIsPushed(screen_batch->batch)) {
+    if (bs_canPushBatch(screen_batch->batch)) {
         bs_pushQuad(screen_batch->batch, &quad, BS_WHITE);
         bs_pushQuad(screen_batch->batch, &quad, BS_WHITE);
        // const float offset = 0.75;
@@ -358,7 +337,7 @@ static void _bsgfx_loadResources() {
     bs_Object* mesh_volume_batch = BS_BATCH(BSGFX_BATCHES, BSGFX_BATCH_MESH_TYPE_VOLUME_COMPUTED, true);
     result = bs_batch(mesh_volume_batch, 0, $vs_bsgfx_volume(), 0);
 
-    if (result == BS_RESULT_OK && !bs_batchIsPushed(mesh_volume_batch->batch)) {
+    if (result == BS_RESULT_OK && bs_canPushBatch(mesh_volume_batch->batch)) {
         bs_pushBatch(mesh_volume_batch->batch, 0, BSGFX_PRE_COMPUTED_VOLUME_SIZE);
       //  bs_bindBuffer(BSGFX_SET_VOLUME_OUT_VERTICES, BSGFX_BINDING_VOLUME_OUT_VERTICES_MESH_TYPE, mesh_volume_batch->batch->vertex_buffer->buffer);
     }
@@ -399,21 +378,21 @@ static void _bsgfx_loadResources() {
     bs_bindAccelerationStructure(BSGFX_SET_ACCELERATION_STRUCTURE, BSGFX_BINDING_ACCELERATION_STRUCTURE, ray_tracer);
     */
 
-    if (bone_instance_batch->batch && !bs_batchIsPushed(bone_instance_batch->batch)) {
+    if (bone_instance_batch->batch && bs_canPushBatch(bone_instance_batch->batch)) {
         _bsgfx_instanceType(BSGFX_INSTANCE_TYPE_BONE, BSGFX_BONE_INSTANCE_COUNT, BSGFX_SET_BONE_INSTANCES, BSGFX_BINDING_BONE_INSTANCES);
     }
 
-    if (mesh_instance_batch) {
+    if (mesh_instance_batch && bs_canPushBatch(mesh_instance_batch->batch)) {
         bs_Range pyramid = bs_pushBipyramid(mesh_instance_batch->batch, (bs_vec3) { 0 }, 0.75, 1.0, BS_WHITE);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_BIPYRAMID] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_MESH, mesh_instance_batch->batch, BSGFX_SUBTYPE_HAS_SHADOWS, pyramid);
     }
 
-    if (point_batch && !bs_batchIsPushed(point_batch->batch) && bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)) {
+    if (point_batch && bs_canPushBatch(point_batch->batch) && bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)) {
         _bsgfx_instanceType(BSGFX_INSTANCE_TYPE_POINT, BSGFX_POINT_INSTANCE_COUNT, BSGFX_SET_POINT_INSTANCES, BSGFX_BINDING_POINT_INSTANCES);
         _bsgfx_subtypes_[BSGFX_SUBTYPE_POINT] = _bsgfx_subtype(BSGFX_INSTANCE_TYPE_POINT, point_batch->batch, 0, bs_pushPoint(point_batch->batch, (bs_vec3) { 0 }, BS_WHITE));
     }
 
-    if (line_batch && !bs_batchIsPushed(line_batch->batch) && bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)) {
+    if (line_batch && bs_canPushBatch(line_batch->batch) && bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)) {
         _bsgfx_instanceType(BSGFX_INSTANCE_TYPE_LINE, BSGFX_LINE_INSTANCE_COUNT, BSGFX_SET_LINE_INSTANCES, BSGFX_BINDING_LINE_INSTANCES);
 
         bs_Range range = bs_pushLine(line_batch->batch, (bs_vec3) { 0 }, BS_V3(0, 1.0, 0.0), BS_WHITE);
@@ -430,7 +409,7 @@ static void _bsgfx_loadResources() {
 
     if (_bsgfx_prefab_model_ && bs_exists(BSGFX_BATCHES, BSGFX_BATCH_MESH_INSTANCED)) { // _bsgfx_prefab_model_ is temp
         mesh_instance_batch = bs_fetch(BSGFX_BATCHES, BSGFX_BATCH_MESH_INSTANCED);
-        if (!bs_batchIsPushed(mesh_instance_batch->batch)) {
+        if (bs_canPushBatch(mesh_instance_batch->batch)) {
             bs_pushBatch(mesh_instance_batch->batch, BS_U32_MAX, BS_U32_MAX);
             bs_bindBuffer(BSGFX_SET_VOLUME_IN_VERTICES, BSGFX_BINDING_VOLUME_IN_VERTICES_MESH, mesh_instance_batch->batch->vertex_buffer->buffer);
             bs_bindBuffer(BSGFX_SET_VOLUME_IN_INDICES, BSGFX_BINDING_VOLUME_IN_INDICES_MESH, mesh_instance_batch->batch->index_buffer->buffer);
@@ -440,15 +419,15 @@ static void _bsgfx_loadResources() {
 
     }
 
-    if (point_batch && !bs_batchIsPushed(point_batch->batch)) {
+    if (point_batch && bs_canPushBatch(point_batch->batch)) {
         bs_pushBatch(point_batch->batch, BS_U32_MAX, BS_U32_MAX);
     }
 
-    if (line_batch && !bs_batchIsPushed(line_batch->batch)) {
+    if (line_batch && bs_canPushBatch(line_batch->batch)) {
         bs_pushBatch(line_batch->batch, BS_U32_MAX, BS_U32_MAX);
     }
 
-    if (bone_instance_batch && !bs_batchIsPushed(bone_instance_batch->batch)) {
+    if (bone_instance_batch && bs_canPushBatch(bone_instance_batch->batch)) {
         bs_pushBatch(bone_instance_batch->batch, BS_U32_MAX, BS_U32_MAX);
        // bs_bindBuffer(BSGFX_SET_VOLUME_IN_VERTICES, BSGFX_BINDING_VOLUME_IN_VERTICES_BONE, bone_instance_batch->batch->vertex_buffer->buffer);
        // bs_bindBuffer(BSGFX_SET_VOLUME_IN_INDICES, BSGFX_BINDING_VOLUME_IN_INDICES_BONE, bone_instance_batch->batch->index_buffer->buffer);
@@ -506,7 +485,7 @@ static void _bsgfx_loadResources() {
 BSGFXAPI void _bsgfx_loadScene(const char* name) {
     bs_logSectionF("Scene \"%s\"", name);
 
-    _bsgfx_current_scene = (bsgfx_Scene){
+    _bsgfx_current_scene_ = (bsgfx_Scene){
         .name = name,
         .name_hash = bs_stringHash(name),
     };

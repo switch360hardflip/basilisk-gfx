@@ -58,8 +58,8 @@ BSGFXAPI bs_Result _bsgfx_iniInstances() {
 		return result;
 
 	result = bs_bindBuffer(BSGFX_SET_MESH_DATA, BSGFX_BINDING_MESH_DATA, object->buffer);
-	if (result != BS_RESULT_OK)
-		return result;
+//	if (result != BS_RESULT_OK)
+//		return result;
 
 	result = bs_mapBuffer(object->buffer, BS_U32_MAX);
 
@@ -101,6 +101,9 @@ BSGFXAPI void _bsgfx_instanceType(int instance_type_id, int max_instance_count, 
 	bs_Buffer* buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
 	
 	bs_Binding* binding = bs_queryBinding(bs_queryBindSet(bind_set), point);
+	if (!binding)
+		return;
+
 	bs_BufferUsageFlags usage_flags = 0;
 	bs_MemoryPropertyFlags memory_flags = BS_MEMORY_PROPERTY_HOST_VISIBLE_BIT | BS_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 	if (binding->type == BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER)
@@ -449,6 +452,9 @@ BSGFXAPI void _val_bsgfx_tickInstances() {
 }
 
 BSGFXAPI void _bsgfx_tickInstances() {
+	if (!bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA))
+		return;
+
 	bs_Buffer* metadata_buffer = bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_INSTANCE_METADATA)->buffer;
 	bsgfx_InstanceMetadata* metadata = bs_bufferMap(metadata_buffer);
 

@@ -108,7 +108,7 @@ typedef bs_Result(__stdcall* PFN_bs_batch)(bs_Object* object, int index_size, bs
 typedef bs_Attribute*(__stdcall* PFN_bs_queryAttribute)(bs_Batch* batch, char* name, int name_length);
 typedef bs_Attribute*(__stdcall* PFN_bs_queryAttributeV)(bs_Batch* batch, char* format, va_list args);
 typedef bs_Attribute*(__stdcall* PFN_bs_queryAttributeF)(bs_Batch* batch, char* format, ...);
-typedef bool(__stdcall* PFN_bs_batchIsPushed)(bs_Batch* batch);
+typedef bool(__stdcall* PFN_bs_canPushBatch)(bs_Batch* batch);
 typedef bool(__stdcall* PFN_bs_batchIsIndexed)(bs_Batch* batch);
 typedef void(__stdcall* PFN_bs_minimizeBatch)(bs_Batch* batch);
 typedef bs_Result(__stdcall* PFN_bs_pushBatch)(bs_Batch* batch, bs_U32 num_index_bytes, bs_U32 num_vertex_bytes);
@@ -604,7 +604,7 @@ typedef struct {
     PFN_bs_queryAttribute bs_queryAttribute;
     PFN_bs_queryAttributeV bs_queryAttributeV;
     PFN_bs_queryAttributeF bs_queryAttributeF;
-    PFN_bs_batchIsPushed bs_batchIsPushed;
+    PFN_bs_canPushBatch bs_canPushBatch;
     PFN_bs_batchIsIndexed bs_batchIsIndexed;
     PFN_bs_minimizeBatch bs_minimizeBatch;
     PFN_bs_pushBatch bs_pushBatch;
@@ -1100,7 +1100,7 @@ BSAPI bs_Result _bs_batch(bs_Object* object, int index_size, bs_Shader* vertex_s
 BSAPI bs_Attribute* _bs_queryAttribute(bs_Batch* batch, char* name, int name_length);
 BSAPI bs_Attribute* _bs_queryAttributeV(bs_Batch* batch, char* format, va_list args);
 BSAPI bs_Attribute* _bs_queryAttributeF(bs_Batch* batch, char* format,  ...);
-BSAPI bool _bs_batchIsPushed(bs_Batch* batch);
+BSAPI bool _bs_canPushBatch(bs_Batch* batch);
 BSAPI bool _bs_batchIsIndexed(bs_Batch* batch);
 BSAPI void _bs_minimizeBatch(bs_Batch* batch);
 BSAPI bs_Result _bs_pushBatch(bs_Batch* batch, bs_U32 num_index_bytes, bs_U32 num_vertex_bytes);
@@ -1598,7 +1598,7 @@ static inline bs_FunctionTable* _bs_getFunctions() {
     functions.bs_queryAttribute = _bs_queryAttribute;
     functions.bs_queryAttributeV = _bs_queryAttributeV;
     functions.bs_queryAttributeF = _bs_queryAttributeF;
-    functions.bs_batchIsPushed = _bs_batchIsPushed;
+    functions.bs_canPushBatch = _bs_canPushBatch;
     functions.bs_batchIsIndexed = _bs_batchIsIndexed;
     functions.bs_minimizeBatch = _bs_minimizeBatch;
     functions.bs_pushBatch = _bs_pushBatch;
