@@ -61,18 +61,27 @@ BSMODAPI bsmod_Package* _bsmod_ensurePackage(const char* name) {
 	});
 }
 
-static bsmod_Resource* _bsmod_ensureResource(bsmod_Package* package, char* name) {
+BSMODAPI bsmod_Resource* _bsmod_queryResource(bsmod_Package* package, const char* name) {
 	bs_U64 hash = bs_stringHash(name);
 
-	for (int i = 0; i < package->resources.count; i++) {
+	for (int i = 0; i < _bsmod_packages_.count; i++) {
 		bsmod_Resource* resource = bs_fetchUnit(&package->resources, i);
+
 		if (hash == resource->header.name_hash)
 			return resource;
 	}
 
+	return NULL;
+}
+
+static bsmod_Resource* _bsmod_ensureResource(bsmod_Package* package, char* name) {
+	bsmod_Resource* existing = _bsmod_queryResource(package, name);
+	if (existing)
+		return existing;
+
 	return bs_pushBack(&package->resources, &(bsmod_Resource) {
 		.header = {
-			.name_hash = hash,
+			.name_hash = bs_stringHash(name),
 			.name_length = strlen(name),
 		},
 		.name = strdup(name),

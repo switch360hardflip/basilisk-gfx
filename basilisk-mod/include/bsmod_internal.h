@@ -228,4 +228,8 @@ enum { BSMOD_FONT_IDS(BSMOD_ENUM_GEN) BSMOD_FONTS_COUNT };
 extern int _bsmod_fonts_;
 #define BSMOD_FONTS _bsmod_fonts_
 
+#define BSMOD_WARN_SPVC_ERROR(function, code, format, ...)            \
+    bs_warnF("%s at %s:%d: %s failed" __VA_OPT__(", ") format " (SPVC result %d\n", __func__, __FILE__, __LINE__, function __VA_OPT__(,) __VA_ARGS__, code)
+
+
 #endif

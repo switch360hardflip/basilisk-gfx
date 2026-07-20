@@ -510,6 +510,16 @@ bsmod_ensurePackage(
     const char* name);
 
  /**
+  @param package
+  @param name
+  @return bsmod_Resource*
+  */
+BSMODAPI bsmod_Resource*
+bsmod_queryResource(
+    bsmod_Package* package,
+    const char* name);
+
+ /**
   @param package_name
   @return bs_Result
   */

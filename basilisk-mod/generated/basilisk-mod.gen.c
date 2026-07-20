@@ -279,6 +279,13 @@ bsmod_Package* bsmod_ensurePackage(
     return next.bsmod_ensurePackage(name);
 }
 
+bsmod_Resource* bsmod_queryResource(
+    bsmod_Package* package, 
+    const char* name)
+{
+    return next.bsmod_queryResource(package, name);
+}
+
 bs_Result bsmod_iniPackage(
     const char* package_name)
 {

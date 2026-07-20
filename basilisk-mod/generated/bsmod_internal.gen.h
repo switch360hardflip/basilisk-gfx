@@ -67,6 +67,7 @@ typedef void(__stdcall* PFN_bsmod_iconWidget)(const bsgfx_AtlasCache* cache, flo
 typedef bs_List*(__stdcall* PFN_bsmod_packages)();
 typedef bsmod_Package*(__stdcall* PFN_bsmod_queryPackage)(const char* name);
 typedef bsmod_Package*(__stdcall* PFN_bsmod_ensurePackage)(const char* name);
+typedef bsmod_Resource*(__stdcall* PFN_bsmod_queryResource)(bsmod_Package* package, const char* name);
 typedef bs_Result(__stdcall* PFN_bsmod_iniPackage)(const char* package_name);
 typedef bs_Result(__stdcall* PFN_bsmod_packResource)(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, char* resource_name, int resource_name_length);
 typedef bs_Result(__stdcall* PFN_bsmod_packResourceV)(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, char* format, va_list args);
@@ -165,6 +166,7 @@ typedef struct {
     PFN_bsmod_packages bsmod_packages;
     PFN_bsmod_queryPackage bsmod_queryPackage;
     PFN_bsmod_ensurePackage bsmod_ensurePackage;
+    PFN_bsmod_queryResource bsmod_queryResource;
     PFN_bsmod_iniPackage bsmod_iniPackage;
     PFN_bsmod_packResource bsmod_packResource;
     PFN_bsmod_packResourceV bsmod_packResourceV;
@@ -263,6 +265,7 @@ BSMODAPI void _bsmod_iconWidget(const bsgfx_AtlasCache* cache, float align_heigh
 BSMODAPI bs_List* _bsmod_packages();
 BSMODAPI bsmod_Package* _bsmod_queryPackage(const char* name);
 BSMODAPI bsmod_Package* _bsmod_ensurePackage(const char* name);
+BSMODAPI bsmod_Resource* _bsmod_queryResource(bsmod_Package* package, const char* name);
 BSMODAPI bs_Result _bsmod_iniPackage(const char* package_name);
 BSMODAPI bs_Result _bsmod_packResource(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, char* resource_name, int resource_name_length);
 BSMODAPI bs_Result _bsmod_packResourceV(bs_ResourceType type, unsigned char* data, size_t data_size, const char* package_name, char* format, va_list args);
@@ -363,6 +366,7 @@ static inline bsmod_FunctionTable* _bsmod_getFunctions() {
     functions.bsmod_packages = _bsmod_packages;
     functions.bsmod_queryPackage = _bsmod_queryPackage;
     functions.bsmod_ensurePackage = _bsmod_ensurePackage;
+    functions.bsmod_queryResource = _bsmod_queryResource;
     functions.bsmod_iniPackage = _bsmod_iniPackage;
     functions.bsmod_packResource = _bsmod_packResource;
     functions.bsmod_packResourceV = _bsmod_packResourceV;

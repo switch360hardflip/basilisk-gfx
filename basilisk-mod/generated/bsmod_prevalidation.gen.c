@@ -193,6 +193,12 @@ BSMODAPI bsmod_Package* _preval_bsmod_ensurePackage(const char* name) {
     return next.bsmod_ensurePackage(name);
 }
 
+BSMODAPI bsmod_Resource* _preval_bsmod_queryResource(bsmod_Package* package, const char* name) {
+    BSMOD_VALIDATE(package != NULL, NULL,);
+    BSMOD_VALIDATE(name != NULL, NULL,);
+    return next.bsmod_queryResource(package, name);
+}
+
 BSMODAPI bs_Result _preval_bsmod_iniPackage(const char* package_name) {
     BSMOD_VALIDATE(package_name != NULL, BS_RESULT_VALIDATION_ERROR,);
     return next.bsmod_iniPackage(package_name);
@@ -538,6 +544,7 @@ bsmod_FunctionTable* _preval_bsmod_getFunctionTable() {
     functions.bsmod_packages = _preval_bsmod_packages;
     functions.bsmod_queryPackage = _preval_bsmod_queryPackage;
     functions.bsmod_ensurePackage = _preval_bsmod_ensurePackage;
+    functions.bsmod_queryResource = _preval_bsmod_queryResource;
     functions.bsmod_iniPackage = _preval_bsmod_iniPackage;
     functions.bsmod_packResource = _preval_bsmod_packResource;
     functions.bsmod_packResourceV = _preval_bsmod_packResourceV;

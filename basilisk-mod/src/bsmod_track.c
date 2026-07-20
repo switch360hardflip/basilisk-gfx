@@ -686,8 +686,12 @@ BSMODAPI void _bsmod_onTrack() {
 						});
 					}
 				}
-				else
-					bs_warnF("Changes found in \"%s\", but callback function \"%s\" does not exist!\n", dir->path, dir->function);
+				else {
+					if (_bsmod_.module)
+						bs_warnF("Changes found in \"%s\", but callback function \"%s\" does not exist\n", dir->path, dir->function);
+					else
+						bs_warnF("Changes found in \"%s\", but basilisk-mod.dll has not been loaded\n", dir->package);
+				}
 
 				if (changed && function) {
 					bsmod_TrackParams params = {

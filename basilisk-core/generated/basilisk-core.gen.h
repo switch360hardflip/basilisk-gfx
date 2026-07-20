@@ -85,6 +85,9 @@ typedef struct bs_BlitOperation bs_BlitOperation;
 typedef struct bs_ImageIndex bs_ImageIndex;
 typedef struct bs_ImageSwaps bs_ImageSwaps;
 typedef struct bs_Image bs_Image;
+typedef struct bs_BshaHeader bs_BshaHeader;
+typedef struct bs_BshaAttribute bs_BshaAttribute;
+typedef struct bs_BbndHeader bs_BbndHeader;
 typedef struct bs_BiffHeader bs_BiffHeader;
 typedef struct bs_BiffPointer bs_BiffPointer;
 typedef struct bs_BatlHeader bs_BatlHeader;
@@ -219,6 +222,12 @@ typedef enum bs_VkObjectType bs_VkObjectType;
 
 #define BS_FLT_MAX                                                   \
     3.402823466e+38F
+
+#define BSMOD_BSHA_MAGIC                                             \
+    0x61687362
+
+#define BSMOD_BBND_MAGIC                                             \
+    0x646E6262
 
 #define BS_CONSTANT_STRING(s)                                        \
     s, sizeof(s) - 1
@@ -1674,6 +1683,41 @@ struct bs_Image {
     enum VkImageUsageFlags usage_flags;
     enum VkImageAspectFlags aspect_flags;
     bs_ImageSwaps _[];
+};
+
+struct bs_BshaHeader {
+    bs_U32 magic;
+    bs_U32 version;
+    bs_U32 push_constant_size;
+    bs_U32 bind_set_flags;
+    bs_ShaderType shader_type;
+    bs_U32 attributes_count;
+    bs_U64 spirv_size;
+    bs_U32 reserved_0;
+    bs_U32 reserved_1;
+    bs_U32 reserved_2;
+    bs_U32 reserved_3;
+};
+
+struct bs_BshaAttribute {
+    bs_U64 name_hash;
+    bs_U32 location;
+    bs_U32 size;
+};
+
+struct bs_BbndHeader {
+    bs_U32 magic;
+    bs_U32 version;
+    bs_U32 set;
+    bs_U32 point;
+    bs_U32 size;
+    bs_U32 descriptors_count;
+    bs_BindType type;
+    bs_U32 reserved_0;
+    bs_U32 reserved_1;
+    bs_U32 reserved_2;
+    bs_U32 reserved_3;
+    bs_U32 reserved_4;
 };
 
 struct bs_BiffHeader {

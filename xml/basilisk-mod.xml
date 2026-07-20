@@ -333,6 +333,11 @@
 			<return>bsmod_Package*</return>
 			<param><type>const char*</type><name>name</name></param>
 		</function>
+		<function name="bsmod_queryResource">
+			<return>bsmod_Resource*</return>
+			<param><type>bsmod_Package*</type><name>package</name></param>
+			<param><type>const char*</type><name>name</name></param>
+		</function>
 		<function name="bsmod_iniPackage">
 			<return>bs_Result</return>
 			<param><type>const char*</type><name>package_name</name></param>

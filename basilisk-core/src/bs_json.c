@@ -144,6 +144,7 @@ BSAPI bs_Result _bs_loadJson(bs_Json* out, char* path, int path_length) {
 
 	_bs_free(raw);
 
+	*out = json;
 	return BS_RESULT_OK;
 }
 

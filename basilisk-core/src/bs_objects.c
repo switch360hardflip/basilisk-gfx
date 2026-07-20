@@ -150,7 +150,7 @@ BSAPI bs_Result _bs_queryPackage(const char* name, int* out) {
         *out = existing->resource;
     }
 
-    return BS_RESULT_OK;
+    return result;
 }
 
 BSAPI bs_Result _bs_loadPackage(const char* path, int* out) {

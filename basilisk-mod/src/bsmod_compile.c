@@ -25,19 +25,305 @@
 
 #include <bsmod_internal.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include <spirv_cross_c.h>
 #include <glslang/Include/glslang_c_interface.h>
 #include <glslang/Public/resource_limits_c.h>
 
-typedef struct bsmod_Reflection bsmod_Reflection;
-struct bsmod_Reflection {
-	spvc_compiler compiler;
-	spvc_reflected_resource* data;
-	size_t num;
-};
-
 static spvc_context _bsmod_compiler_context_;
+
+
+
+  /*==============================================================================
+   * Shader Format
+   *============================================================================*/
+
+static bs_U32 _bsmod_readPushConstantSize(spvc_compiler compiler, spvc_resources resources) {
+	spvc_reflected_resource* resource_list = NULL;
+	size_t resource_size = 0;
+	spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_PUSH_CONSTANT, &resource_list, &resource_size);
+
+	if (resource_size == 0)
+		return 0;
+
+	if (resource_size > 1) {
+		bs_warnF("Too many push constants, reading the first one\n");
+	}
+
+	spvc_type spirv_type = spvc_compiler_get_type_handle(compiler, resource_list->type_id);
+
+	size_t struct_size = 0;
+	spvc_compiler_get_declared_struct_size(compiler, spirv_type, &struct_size);
+}
+
+
+static bs_U32 _bsmod_readBindSetFlags(spvc_compiler compiler, spvc_resources resources, spvc_resource_type type) {
+	bs_U32 bind_set_flags = 0;
+
+	spvc_reflected_resource* resource_list = NULL;
+	size_t resource_size = 0;
+	spvc_resources_get_resource_list_for_type(resources, type, &resource_list, &resource_size);
+
+	for (int i = 0; i < resource_size; i++) {
+		spvc_reflected_resource* data = resource_list + i;
+
+		int set = spvc_compiler_get_decoration(compiler, data->id, SpvDecorationDescriptorSet);
+		if (set >= BS_MAX_NUM_BIND_SETS) {
+			bs_warnF("Bind set %d is greater than BS_MAX_NUM_BIND_SETS (%d)\n", set, BS_MAX_NUM_BIND_SETS);
+			continue;
+		}
+
+		bind_set_flags |= (1 << set);
+	}
+
+	return bind_set_flags;
+}
+
+BSMODAPI bs_Result _bsmod_packShader(spvc_compiler compiler, spvc_resources resources, bs_U32* spirv, size_t spirv_size, bs_ShaderType shader_type, bsmod_Package* package, char* resource_name) {
+	bs_Result result;
+
+	bs_BshaHeader header = {
+		.magic = BSMOD_BSHA_MAGIC,
+		.version = 1,
+		.push_constant_size = _bsmod_readPushConstantSize(compiler, resources),
+		.shader_type = shader_type,
+		.spirv_size = spirv_size,
+	};
+
+	spvc_resource_type types[] = {
+		SPVC_RESOURCE_TYPE_UNIFORM_BUFFER,
+		SPVC_RESOURCE_TYPE_STORAGE_BUFFER,
+		SPVC_RESOURCE_TYPE_SEPARATE_IMAGE,
+		SPVC_RESOURCE_TYPE_SEPARATE_SAMPLERS,
+		SPVC_RESOURCE_TYPE_SUBPASS_INPUT,
+		SPVC_RESOURCE_TYPE_SAMPLED_IMAGE,
+		SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE,
+		SPVC_RESOURCE_TYPE_STORAGE_IMAGE,
+	};
+
+	for (int i = 0; i < (sizeof(types) / sizeof(*types)); i++)
+		header.bind_set_flags |= _bsmod_readBindSetFlags(compiler, resources, types[i]);
+
+	spvc_reflected_resource* attributes_resource_list = NULL;
+	if (shader_type == BS_SHADER_STAGE_VERTEX_BIT) {
+		size_t attributes_count = 0;
+		spvc_resources_get_resource_list_for_type(resources, SPVC_RESOURCE_TYPE_STAGE_INPUT, &attributes_resource_list, &attributes_count);
+		header.attributes_count = attributes_count;
+	}
+
+	const size_t total_size_excluding_binary = sizeof(bs_BshaHeader) + header.attributes_count * sizeof(bs_BshaAttribute);
+	const size_t total_size = total_size_excluding_binary + spirv_size;
+
+	unsigned char* bsha = bs_malloc(total_size);
+
+	for (int i = 0; i < header.attributes_count; i++) {
+		spvc_reflected_resource* data = attributes_resource_list + i;
+
+		spvc_type type = spvc_compiler_get_type_handle(compiler, data->base_type_id);
+		int num_units = spvc_type_get_vector_size(type);
+		int location = spvc_compiler_get_decoration(compiler, data->id, SpvDecorationLocation);
+		bs_U64 name_hash = bs_stringHash(data->name);
+
+		bs_BshaAttribute attribute = {
+			.location = location,
+			.name_hash = name_hash,
+			.size = num_units * sizeof(bs_U32),
+		};
+
+		memcpy(bsha + sizeof(bs_BshaHeader) + i * sizeof(bs_BshaAttribute), &attribute, sizeof(bs_BshaAttribute));
+	}
+
+	memcpy(bsha + total_size, spirv, spirv_size);
+	memcpy(bsha, &header, sizeof(bs_BatlHeader));
+
+	result = _bsmod_packResource(BS_RESOURCE_SHADER, bsha, total_size, package->name, resource_name, strlen(resource_name));
+	bs_free(bsha);
+
+	return BS_RESULT_OK;
+}
+
+
+
+  /*==============================================================================
+   * Binding Format
+   *============================================================================*/
+
+static bs_BindType bsmod_convertBindType(spvc_resource_type type) {
+	switch (type) {
+	case SPVC_RESOURCE_TYPE_STORAGE_BUFFER: return BS_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER: return BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	case SPVC_RESOURCE_TYPE_SEPARATE_IMAGE: return BS_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+	case SPVC_RESOURCE_TYPE_SUBPASS_INPUT: return BS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+	case SPVC_RESOURCE_TYPE_SEPARATE_SAMPLERS: return BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE: return BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+//	case SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE: return BS_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE;
+	case SPVC_RESOURCE_TYPE_STORAGE_IMAGE: return BS_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+	default:
+		bs_warnF("SPVC buffer type (%d) not supported\n", type);
+		return SPVC_RESOURCE_TYPE_UNKNOWN;
+	}
+}
+
+static bs_Result _bsmod_packBinding(spvc_compiler compiler, spvc_reflected_resource* resource, bsmod_Package* package, char* resource_name) {
+	bs_Result bs_result;
+	spvc_result result;
+
+	// bsmod_Resource* existing = _bsmod_queryResource(package, resource);
+	
+	bs_BbndHeader header = {
+		.magic = BSMOD_BBND_MAGIC,
+		.version = 1,
+		.set = spvc_compiler_get_decoration(compiler, resource->id, SpvDecorationDescriptorSet),
+		.point = spvc_compiler_get_decoration(compiler, resource->id, SpvDecorationBinding),
+		.descriptors_count = 1,
+	};
+
+	const size_t total_size_excluding_binary = sizeof(bs_BbndHeader);
+	const size_t total_size = total_size_excluding_binary ;
+
+	//int block = spvc_compiler_get_decoration(compiler, resource->id, SpvDecorationUniform);
+
+	int len = vsnprintf(NULL, 0, "_bbnd/%d/%d", header.set, header.point);
+	char* name = bs_alloca(len + 1);
+	vsnprintf(name, len, "_bbnd/%d/%d", header.set, header.point);
+
+	spvc_type spirv_type = spvc_compiler_get_type_handle(compiler, resource->type_id);
+
+	int count = spvc_type_get_num_array_dimensions(spirv_type);
+	if (count == 1 && spvc_type_array_dimension_is_literal(spirv_type, 0)) { // nested arrays not supported atm, idk how to handle
+		header.descriptors_count = spvc_type_get_array_dimension(spirv_type, 0);
+	}
+
+	size_t struct_size = 0;
+	result = spvc_compiler_get_declared_struct_size(compiler, spirv_type, &struct_size);
+	if (result != SPVC_SUCCESS) {
+		BSMOD_WARN_SPVC_ERROR("spvc_compiler_get_declared_struct_size", result,);
+		return BS_RESULT_GENERAL_ERROR;
+	}
+
+
+	//.type = bs_serializeBindType(type),
+
+	//shader_stages |= shader_type;
+	//name = strdup(name);
+	//source = strdup(path);
+
+	unsigned char* bbnd = bs_malloc(total_size);
+	bs_result = _bsmod_packResource(BS_RESOURCE_SHADER, bbnd, total_size, package->name, name, len);
+	bs_free(bbnd);
+
+	return bs_result;
+
+	/*
+	bs_JsonValue objects = bs_fetchJson(root, BS_JSON_UNDEFINED, name, strlen(name));
+
+	if (!objects.found)
+		return;
+
+	char* shader_type_string = bs_fetchJson(root, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string;
+	bs_ShaderType shader_type = bs_deserializeShaderType(shader_type_string);
+
+	for (int i = 0; i < objects.size; i++) {
+		bs_Json object = bs_jsonRoot(root, objects.as_array.as_objects[i]);
+
+		char* name = bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string;
+		bs_BindType type = bs_deserializeBindType(bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string);
+		int set = bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("set")).as_number;
+		int point = bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("point")).as_number;
+		int size = bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("size")).as_number;
+
+		if (type == BS_BIND_TYPE_PUSH_CONSTANT) {
+			continue;
+		}
+
+		ls_Binding* existing = NULL;
+		for (int j = 0; j < bindings->count; j++) {
+			ls_Binding* binding = bs_fetchUnit(bindings, j);
+			if (binding->set == set && binding->point == point) {
+				existing = binding;
+			}
+		}
+
+		if (!existing) {
+			existing = bs_pushBack(bindings, &(ls_Binding) {
+				.set = set,
+					.point = point,
+					.type = bs_serializeBindType(type),
+			});
+		}
+		else {
+			if (existing->size != size && existing->size != 0) {
+				bs_warnF("Size mismatch in binding \"%s\" (%d, %d) between\n \"%s\" (%d) and\n \"%s\" (%d)\nPicking the larger size (%d)\n", name, set, point, path, size, existing->source, existing->size, size);
+			}
+
+			free(existing->name);
+			free(existing->source);
+		}
+
+		existing->shader_stages |= shader_type;
+		existing->name = strdup(name);
+		existing->source = strdup(path);
+
+		// bs_Binding* binding = bs_queryBinding(bs_queryBindSet(set), point);
+		// if (binding) {
+		//    // binding->stages |= shader->type;
+		//  //   bs_pushDescriptorPools();
+		// }
+	}
+
+	bs_free(objects.as_array.as_objects);
+	*/
+}
+BSMODAPI void _bsmod_updateBindings() {
+	/*
+	bs_String* bindings_path = bs_stringF(NULL, BSMOD_COMPILE_OUTPUT_PATH "/bindings.json");
+
+	// todo correct filenames
+	bs_List bindings = bs_list(sizeof(ls_Binding), 32);
+	bs_except(BSX_NOT_FOUND);
+	bs_foreachFile(_bsmod_readShaderBindings, &bindings, "resources/shaders/vert");
+	bs_except(BSX_NOT_FOUND);
+	bs_foreachFile(_bsmod_readShaderBindings, &bindings, "resources/shaders/geom");
+	bs_except(BSX_NOT_FOUND);
+	bs_foreachFile(_bsmod_readShaderBindings, &bindings, "resources/shaders/frag");
+	bs_except(BSX_NOT_FOUND);
+	bs_foreachFile(_bsmod_readShaderBindings, &bindings, "resources/shaders/comp");
+	bs_except(BSX_NOT_FOUND);
+	bs_foreachFile(_bsmod_readShaderBindings, &bindings, "resources/shaders/rgen");
+	bs_except(BSX_NOT_FOUND);
+	bs_foreachFile(_bsmod_readShaderBindings, &bindings, "resources/shaders/rmiss");
+	bs_caught();
+
+	bs_Json json = bs_emptyJsonArray();
+	for (int i = 0; i < bindings.count; i++) {
+		ls_Binding* binding = bs_fetchUnit(&bindings, i);
+
+		bs_ensureJsonF(&json, bs_jsonValue(binding->name), "$[%d].name", i);
+		bs_ensureJsonF(&json, bs_jsonValue(binding->type), "$[%d].type", i);
+		bs_ensureJsonF(&json, bs_jsonValue(binding->size), "$[%d].size", i);
+		bs_ensureJsonF(&json, bs_jsonValue(binding->set), "$[%d].set", i);
+		bs_ensureJsonF(&json, bs_jsonValue(binding->point), "$[%d].point", i);
+
+		for (int j = 0; j < 32; j++) {
+			if (binding->shader_stages & (1 << j))
+				bs_ensureJsonF(&json, bs_jsonValue(bs_serializeShaderType(1 << j)), "$[%d].stages[999]", i);
+		}
+	}
+
+	char* raw = bs_saveJson(&json, BS_JSON_PRETTY);
+	bs_saveFile(bindings_path->value, raw, strlen(raw));
+	bs_free(raw);
+	bs_free(bindings_path);
+	*/
+}
+
+
+
+
+  /*==============================================================================
+   * Compile Shaders
+   *============================================================================*/
 
 BSMODAPI void _bsmod_onCompileShader(bsmod_TrackParams params) {
 	bs_Result result;
@@ -54,7 +340,7 @@ BSMODAPI void _bsmod_onCompileShader(bsmod_TrackParams params) {
 	bool success = _bsmod_compileShader(params.path, variadic->value, params.package);
 	if (success) {
 
-		_bsmod_packBindings();
+		//_bsmod_packBindings();
 		_bsmod_updateBindings();
 		if (params.compile_references)
 			_bsmod_updateShaderReferences();
@@ -93,46 +379,7 @@ BSMODAPI void _bsmod_onCompileShader(bsmod_TrackParams params) {
 	}
 }
 
-static bsmod_Reflection _bsmod_reflectionData(bs_U32* spirv, bs_U32 size, spvc_resource_type type) {
-	bsmod_Reflection reflection = { 0 };
-
-	spvc_parsed_ir ir = NULL;
-	spvc_resources resources = NULL;
-
-	spvc_context_parse_spirv(_bsmod_compiler_context_, spirv, size, &ir);
-	spvc_context_create_compiler(_bsmod_compiler_context_, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &reflection.compiler);
-	spvc_compiler_create_shader_resources(reflection.compiler, &resources);
-	spvc_resources_get_resource_list_for_type(resources, type, &reflection.data, &reflection.num);
-
-	return reflection;
-}
-
-static const char* _bsmod_serializeBufferType(spvc_resource_type type) {
-	bs_criticalF("%s: Not implemented", __func__);
-	return NULL;
-	/*
-	bs_BindType bind_type;
-
-	switch (type) {
-	case SPVC_RESOURCE_TYPE_STORAGE_BUFFER: bind_type = BS_DESCRIPTOR_TYPE_STORAGE_BUFFER; break;
-	case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER: bind_type = BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER; break;
-	case SPVC_RESOURCE_TYPE_SEPARATE_IMAGE: bind_type = BS_DESCRIPTOR_TYPE_SAMPLED_IMAGE; break;
-	case SPVC_RESOURCE_TYPE_SUBPASS_INPUT: bind_type = BS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT; break;
-	case SPVC_RESOURCE_TYPE_SEPARATE_SAMPLERS: bind_type = BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; break;
-	case SPVC_RESOURCE_TYPE_PUSH_CONSTANT: bind_type = BS_DESCRIPTOR_TYPE_PUSH_CONSTANT; break;
-	case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE: bind_type = BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; break;
-	case SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE: bind_type = BS_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE; break;
-	case SPVC_RESOURCE_TYPE_STORAGE_IMAGE: bind_type = BS_DESCRIPTOR_TYPE_STORAGE_IMAGE; break;
-	default:
-	//	ls_throw("SPVC buffer type (%d) not supported\n", type);
-		return NULL;
-	}
-
-
-	return bs_serializeBindType(bind_type);
-	*/
-}
-
+/*
 static void _bsmod_saveBuffer(bs_Json* json, char* shader_type, const char* name, spvc_resource_type type, bs_U32* spirv, bs_U32 size, bool add_to_bindings) {
 	bsmod_Reflection reflection = _bsmod_reflectionData(spirv, size, type);
 
@@ -202,117 +449,8 @@ static void _bsmod_saveBuffer(bs_Json* json, char* shader_type, const char* name
 		}
 	}
 }
+*/
 
-static void _bsmod_saveAttributes(bs_Json* json, bs_U32* spirv, bs_U32 size) {
-	bsmod_Reflection reflection = _bsmod_reflectionData(spirv, size, SPVC_RESOURCE_TYPE_STAGE_INPUT);
-
-	for (int i = 0; i < reflection.num; i++) {
-		spvc_reflected_resource* data = reflection.data + i;
-
-		spvc_type type = spvc_compiler_get_type_handle(reflection.compiler, data->base_type_id);
-		int num_units = spvc_type_get_vector_size(type);
-		int location = spvc_compiler_get_decoration(reflection.compiler, data->id, SpvDecorationLocation);
-
-	//	bs_ensureJsonF(json, bs_jsonObject(json), "attributes[%d]", i);
-		bs_ensureJsonF(json, bs_jsonValue(data->name), "attributes[%d].name", i);
-		bs_ensureJsonF(json, bs_jsonValue(location), "attributes[%d].location", i);
-		bs_ensureJsonF(json, bs_jsonValue(num_units * sizeof(bs_U32)), "attributes[%d].size", i);
-	}
-}
-
-static bs_Result _bsmod_saveReflection(char* path, char* package, char* name, bs_U32* spirv, bs_U32 size, glslang_stage_t stage) {
-	/*
-	bs_Result result = BS_RESULT_OK;
-
-	bs_Json json;
-	result = bs_json("{}", 2, &json);
-	if (result != BS_RESULT_OK)
-		return result;
-
-	bs_ensureJsonMutable(&json);
-
-	bs_ShaderType shader_type = 0;
-	const char* type_name = NULL;
-	switch (stage) {
-	case GLSLANG_STAGE_VERTEX:
-		_bsmod_saveAttributes(&json, spirv, size);
-		shader_type = BS_VERTEX_SHADER;
-		break;
-	case GLSLANG_STAGE_FRAGMENT: shader_type = BS_FRAGMENT_SHADER; break;
-	case GLSLANG_STAGE_COMPUTE: shader_type = BS_COMPUTE_SHADER; break;
-	case GLSLANG_STAGE_GEOMETRY: shader_type = BS_GEOMETRY_SHADER; break;
-	case GLSLANG_STAGE_RAYGEN: shader_type = BS_RAY_GEN_SHADER; break;
-	case GLSLANG_STAGE_ANYHIT: shader_type = BS_ANY_HIT_SHADER; break;
-	case GLSLANG_STAGE_INTERSECT: shader_type = BS_INTERSECTION_SHADER; break;
-	case GLSLANG_STAGE_CLOSESTHIT: shader_type = BS_CLOSEST_HIT_SHADER; break;
-	case GLSLANG_STAGE_MISS: shader_type = BS_MISS_SHADER; break;
-	default:
-		bs_warnF("Skipping %s, shader stage is unsupported\n", path);
-		return BS_RESULT_OK;
-	}
-	type_name = bs_serializeShaderType(shader_type);
-
-	_bsmod_saveBuffer(&json, type_name, "uniformBuffers", SPVC_RESOURCE_TYPE_UNIFORM_BUFFER, spirv, size, true);
-	_bsmod_saveBuffer(&json, type_name, "storageBuffers", SPVC_RESOURCE_TYPE_STORAGE_BUFFER, spirv, size, true);
-	_bsmod_saveBuffer(&json, type_name, "images", SPVC_RESOURCE_TYPE_SEPARATE_IMAGE, spirv, size, true);
-	_bsmod_saveBuffer(&json, type_name, "samplers", SPVC_RESOURCE_TYPE_SEPARATE_SAMPLERS, spirv, size, true);
-	_bsmod_saveBuffer(&json, type_name, "subpasses", SPVC_RESOURCE_TYPE_SUBPASS_INPUT, spirv, size, true);
-	_bsmod_saveBuffer(&json, type_name, "pushConstants", SPVC_RESOURCE_TYPE_PUSH_CONSTANT, spirv, size, false);
-	_bsmod_saveBuffer(&json, type_name, "sampledImages", SPVC_RESOURCE_TYPE_SAMPLED_IMAGE, spirv, size, true);
-	_bsmod_saveBuffer(&json, type_name, "accelerationStructures", SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE, spirv, size, true);
-	_bsmod_saveBuffer(&json, type_name, "storageImages", SPVC_RESOURCE_TYPE_STORAGE_IMAGE, spirv, size, true);
-	*/
-	bs_warnF("Custom shader format not implemented yet\n");
-	return BS_RESULT_NOT_IMPLEMENTED;
-	/*
-	size_t out_len = 0;
-	char* base64 = NULL;
-	if (result = bs_encodeBase64(spirv, size * sizeof(bs_U32), &out_len, false, &base64)) {
-		bs_ensureJson(&json, bs_jsonValue(type_name), "type");
-		bs_ensureJson(&json, bs_jsonValue(base64), "SPIR-V");
-	}
-	else {
-		bs_destroyJson(&json);
-		return result;
-	}
-	*/
-
-	/*
-	char* file_name = bs_fileName(path);
-	char* ext = bs_fileExtension(path);
-	strncpy(ext, "spv\0", 4);
-	bs_saveFileF(spirv, size * sizeof(bs_U32), "raw/%s", file_name);
-	strncpy(ext, "json", 4);
-	*/
-
-	/*
-	if (ls_cmp.stages_to_delete & (1 << stage)) {
-		ls_cmp.stages_to_delete &= ~(1 << stage);
-		char* name = bs_fileName(path);
-		assert(name);
-		name[-1] = '\0'; // this is safe
-		//if (bs_directoryExists(path))
-		//	bs_deleteDirectoryContents(path);
-		name[-1] = '/';
-	}
-	*/
-	/*
-	char* raw;
-	result = bs_saveJson(&json, BS_JSON_PRETTY, &raw);
-	if (result != BS_RESULT_OK)
-		goto end;
-
-	result = _bsmod_packResource(BS_RESOURCE_SHADER, raw, strlen(raw), package, name, strlen(name));
-	bs_free(raw);
-	if (result != BS_RESULT_OK)
-		goto end;
-
-end:
-	bs_destroyJson(&json);
-
-	return result;
-	*/
-}
 
 static bs_Json _bsmod_shader_references = { 0 };
 BSMODAPI void _bsmod_loadShaderReferences() {
@@ -375,30 +513,79 @@ static void _bsmod_writeReferences(char* path, bs_String* glsl) {
 	bs_free(include_path);
 }
 
-BSMODAPI bs_Result _bsmod_compileShader(char* path, char* name, char* package) {
-	bs_Result result = BS_RESULT_OK;
+static bool _bsmod_queryShaderType(char* path, glslang_stage_t* out_stage, bs_ShaderType* out_type) {
+	char* ext = bs_fileExtension(path);
+
+	if (strcmp(ext, "comp") == 0) {
+		*out_stage = GLSLANG_STAGE_COMPUTE;
+		*out_type = BS_SHADER_STAGE_COMPUTE_BIT;
+	}
+	else if (strcmp(ext, "geom") == 0) {
+		*out_stage = GLSLANG_STAGE_GEOMETRY;
+		*out_type = BS_SHADER_STAGE_GEOMETRY_BIT;
+	}
+	else if (strcmp(ext, "tesc") == 0) {
+		*out_stage = GLSLANG_STAGE_TESSCONTROL;
+		*out_type = BS_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+	}
+	else if (strcmp(ext, "tese") == 0) {
+		*out_stage = GLSLANG_STAGE_TESSEVALUATION;
+		*out_type = GLSLANG_STAGE_TESSEVALUATION;
+	}
+	else if (strcmp(ext, "vert") == 0) {
+		*out_stage = GLSLANG_STAGE_VERTEX;
+		*out_type = BS_SHADER_STAGE_VERTEX_BIT;
+	}
+	else if (strcmp(ext, "frag") == 0) {
+		*out_stage = GLSLANG_STAGE_FRAGMENT;
+		*out_type = BS_SHADER_STAGE_FRAGMENT_BIT;
+	}
+	else {
+		return BS_RESULT_GENERAL_ERROR;
+	}
+
+	return BS_RESULT_OK;
+}
+
+static void _bsmod_packBindings(spvc_compiler compiler, spvc_resources resources, char* package, spvc_resource_type type) {
+	spvc_result result;
+
+	size_t bindings_count = 0;
+	spvc_reflected_resource* resource_list = NULL;
+	result = spvc_resources_get_resource_list_for_type(resources, type, &resource_list, &bindings_count);
+
+	if (result != SPVC_SUCCESS) {
+		BSMOD_WARN_SPVC_ERROR("spvc_resources_get_resource_list_for_type", result,);
+		return BS_RESULT_GENERAL_ERROR;
+	}
+
+	for (int i = 0; i < bindings_count; i++) {
+		spvc_reflected_resource* resource = resource_list + i;
+
+		_bsmod_packBinding(compiler, resource, type, package);
+	}
+}
+
+BSMODAPI bs_Result _bsmod_compileShader(char* path, char* name, char* package_name) {
+	bs_Result bs_result = BS_RESULT_OK;
 
 	bs_String* glsl; 
-	result = bs_loadFile(&glsl, path, strlen(path));
-	if (result != BS_RESULT_OK)
-		return result;
-
-	char* ext = bs_fileExtension(path);
+	bs_result = bs_loadFile(&glsl, path, strlen(path));
+	if (bs_result != BS_RESULT_OK)
+		return bs_result;
 	//char* name = bs_fileName(path);
 	
-	_bsmod_writeReferences(path, glsl);
+//	_bsmod_writeReferences(path, glsl);
 
-	glslang_stage_t stage = 0;
-	if (strcmp(ext, "comp") == 0) stage = GLSLANG_STAGE_COMPUTE;
-	else if (strcmp(ext, "geom") == 0) stage = GLSLANG_STAGE_GEOMETRY;
-	else if (strcmp(ext, "tesc") == 0) stage = GLSLANG_STAGE_TESSCONTROL;
-	else if (strcmp(ext, "tese") == 0) stage = GLSLANG_STAGE_TESSEVALUATION;
-	else if (strcmp(ext, "vert") == 0) stage = GLSLANG_STAGE_VERTEX;
-	else if (strcmp(ext, "frag") == 0) stage = GLSLANG_STAGE_FRAGMENT;
-	else if (strcmp(ext, "rgen") == 0) stage = GLSLANG_STAGE_RAYGEN;
-	else if (strcmp(ext, "rmiss") == 0) stage = GLSLANG_STAGE_MISS;
-	else return BS_RESULT_GENERAL_ERROR;
+	glslang_stage_t stage;
+	bs_ShaderType type;
+	bs_result = _bsmod_queryShaderType(path, &stage, &type);
+	if (bs_result != BS_RESULT_OK) {
+		return bs_result;
+	}
 
+	bsmod_Package* package = _bsmod_ensurePackage(package_name);
+	
 	const glslang_input_t input = {
 		.language = GLSLANG_SOURCE_GLSL,
 		.stage = stage,
@@ -440,22 +627,63 @@ BSMODAPI bs_Result _bsmod_compileShader(char* path, char* name, char* package) {
 		.generate_debug_info = true,
 		.disable_optimizer = true,
 	};
-	glslang_program_SPIRV_generate_with_options(
-		program,
-		stage,
-		&options
-	);
+	glslang_program_SPIRV_generate_with_options(program, stage, &options);
 
-	// glslang_program_SPIRV_generate(program, stage);
 	bs_U64 size = glslang_program_SPIRV_get_size(program);
 	spirv = malloc(size * sizeof(bs_U32));
 	glslang_program_SPIRV_get(program, spirv);
-	const char* spirv_messages = glslang_program_SPIRV_get_messages(program);
-	if (spirv_messages) bs_warnF("%s\b", spirv_messages);
-	//ls_printBackground("  %s\n", result->value);
-	//ls_Register* rand = ls_ensureRegister('?');
 
-	result = _bsmod_saveReflection(path, package, name, spirv, size, stage);
+	const char* spirv_messages = glslang_program_SPIRV_get_messages(program);
+	if (spirv_messages) 
+		bs_warnF("%s\b", spirv_messages);
+
+	spvc_result result;
+	spvc_compiler compiler;
+	spvc_reflected_resource* data;
+	spvc_parsed_ir ir = NULL;
+	spvc_resources resources = NULL;
+
+	result = spvc_context_parse_spirv(_bsmod_compiler_context_, spirv, size, &ir);
+	if (result != SPVC_SUCCESS) {
+		BSMOD_WARN_SPVC_ERROR("spvc_context_parse_spirv", result,);
+		return BS_RESULT_GENERAL_ERROR;
+	}
+
+	result = spvc_context_create_compiler(_bsmod_compiler_context_, SPVC_BACKEND_GLSL, ir, SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler);
+	if (result != SPVC_SUCCESS) {
+		BSMOD_WARN_SPVC_ERROR("spvc_context_create_compiler", result, );
+		return BS_RESULT_GENERAL_ERROR;
+	}
+
+	result = spvc_compiler_create_shader_resources(compiler, &resources);
+	if (result != SPVC_SUCCESS) {
+		BSMOD_WARN_SPVC_ERROR("spvc_compiler_create_shader_resources", result, );
+		return BS_RESULT_GENERAL_ERROR;
+	}
+
+	bs_result = _bsmod_packShader(compiler, resources, spirv, size, spirv, size * sizeof(bs_U32), type, package, name);
+	if (bs_result != BS_RESULT_OK) {
+		return bs_result;
+	}
+
+	spvc_resource_type resource_types[] = {
+		SPVC_RESOURCE_TYPE_STORAGE_BUFFER,
+		SPVC_RESOURCE_TYPE_UNIFORM_BUFFER,
+		SPVC_RESOURCE_TYPE_SEPARATE_IMAGE,
+		SPVC_RESOURCE_TYPE_SUBPASS_INPUT,
+		SPVC_RESOURCE_TYPE_SEPARATE_SAMPLERS,
+		SPVC_RESOURCE_TYPE_SAMPLED_IMAGE,
+		SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE,
+		SPVC_RESOURCE_TYPE_STORAGE_IMAGE,
+	};
+	size_t resource_types_count = sizeof(resource_types) / sizeof(*resource_types);
+
+	for (int i = 0; i < resource_types_count; i++) {
+		_bsmod_packBindings(compiler, resources, path, resource_types[i]);
+	}
+
+	//result = _bsmod_packBinding();
+	//result = _bsmod_packShaderReferences();
 
 destroy:
 	if (glsl)
@@ -469,7 +697,7 @@ destroy:
 		glslang_shader_delete(shader);
 	if (spirv)
 		free(spirv);
-	return result;
+	return bs_result;
 }
 
 static void ls_reflectionError(void* param, const char* error) {
@@ -479,139 +707,6 @@ static void ls_reflectionError(void* param, const char* error) {
 	bs_warnF("Reflection error: %s\n", error); // TODO: bsmod warn
 
 	//ls_throw("%s\n", error);
-}
-
-typedef struct {
-	char* name;
-	char* source;
-	const char* type;
-	int size;
-	int set;
-	int point;
-	bs_U32 shader_stages;
-} ls_Binding;
-
-static void ls_readBuffer(bs_Json* root, bs_List* bindings, char* path, const char* name) {
-	bs_criticalF("%s: Not implemented", __func__);
-	/*
-	bs_JsonValue objects = bs_fetchJson(root, BS_JSON_UNDEFINED, name, strlen(name));
-
-	if (!objects.found) 
-		return;
-
-	char* shader_type_string = bs_fetchJson(root, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string;
-	bs_ShaderType shader_type = bs_deserializeShaderType(shader_type_string);
-
-	for (int i = 0; i < objects.size; i++) {
-		bs_Json object = bs_jsonRoot(root, objects.as_array.as_objects[i]);
-
-		char* name = bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string;
-		bs_BindType type = bs_deserializeBindType(bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string);
-		int set = bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("set")).as_number;
-		int point = bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("point")).as_number;
-		int size = bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("size")).as_number;
-
-		if (type == BS_BIND_TYPE_PUSH_CONSTANT) {
-			continue;
-		}
-
-		ls_Binding* existing = NULL;
-		for (int j = 0; j < bindings->count; j++) {
-			ls_Binding* binding = bs_fetchUnit(bindings, j);
-			if (binding->set == set && binding->point == point) {
-				existing = binding;
-			}
-		}
-
-		if (!existing) {
-			existing = bs_pushBack(bindings, &(ls_Binding) {
-				.set = set,
-					.point = point,
-					.type = bs_serializeBindType(type),
-			});
-		}
-		else {
-			if (existing->size != size && existing->size != 0) {
-				bs_warnF("Size mismatch in binding \"%s\" (%d, %d) between\n \"%s\" (%d) and\n \"%s\" (%d)\nPicking the larger size (%d)\n", name, set, point, path, size, existing->source, existing->size, size);
-			}
-
-			free(existing->name);
-			free(existing->source);
-		}
-
-		existing->shader_stages |= shader_type;
-		existing->name = strdup(name);
-		existing->source = strdup(path);
-
-		// bs_Binding* binding = bs_queryBinding(bs_queryBindSet(set), point);
-		// if (binding) {
-		//    // binding->stages |= shader->type;
-		//  //   bs_pushDescriptorPools();
-		// }
-	}
-
-	bs_free(objects.as_array.as_objects);
-	*/
-}
-
-static void _bsmod_readShaderBindings(char* path, bs_List* bindings) {
-	bs_Json metadata;
-	bs_loadJson(&metadata, path, strlen(path));
-
-	ls_readBuffer(&metadata, bindings, path, "$.uniformBuffers");
-	ls_readBuffer(&metadata, bindings, path, "$.storageBuffers");
-	ls_readBuffer(&metadata, bindings, path, "$.images");
-	ls_readBuffer(&metadata, bindings, path, "$.samplers");
-	ls_readBuffer(&metadata, bindings, path, "$.sampledImages");
-	ls_readBuffer(&metadata, bindings, path, "$.subpasses");
-	ls_readBuffer(&metadata, bindings, path, "$.pushConstants");
-	ls_readBuffer(&metadata, bindings, path, "$.accelerationStructures");
-	ls_readBuffer(&metadata, bindings, path, "$.storageImages");
-
-	bs_destroyJson(&metadata);
-}
-
-BSMODAPI void _bsmod_updateBindings() {
-	/*
-	bs_String* bindings_path = bs_stringF(NULL, BSMOD_COMPILE_OUTPUT_PATH "/bindings.json");
-
-	// todo correct filenames
-	bs_List bindings = bs_list(sizeof(ls_Binding), 32);
-	bs_except(BSX_NOT_FOUND);
-	bs_foreachFile(_bsmod_readShaderBindings, &bindings, "resources/shaders/vert");
-	bs_except(BSX_NOT_FOUND);
-	bs_foreachFile(_bsmod_readShaderBindings, &bindings, "resources/shaders/geom");
-	bs_except(BSX_NOT_FOUND);
-	bs_foreachFile(_bsmod_readShaderBindings, &bindings, "resources/shaders/frag");
-	bs_except(BSX_NOT_FOUND);
-	bs_foreachFile(_bsmod_readShaderBindings, &bindings, "resources/shaders/comp");
-	bs_except(BSX_NOT_FOUND);
-	bs_foreachFile(_bsmod_readShaderBindings, &bindings, "resources/shaders/rgen");
-	bs_except(BSX_NOT_FOUND);
-	bs_foreachFile(_bsmod_readShaderBindings, &bindings, "resources/shaders/rmiss");
-	bs_caught();
-
-	bs_Json json = bs_emptyJsonArray();
-	for (int i = 0; i < bindings.count; i++) {
-		ls_Binding* binding = bs_fetchUnit(&bindings, i);
-
-		bs_ensureJsonF(&json, bs_jsonValue(binding->name), "$[%d].name", i);
-		bs_ensureJsonF(&json, bs_jsonValue(binding->type), "$[%d].type", i);
-		bs_ensureJsonF(&json, bs_jsonValue(binding->size), "$[%d].size", i);
-		bs_ensureJsonF(&json, bs_jsonValue(binding->set), "$[%d].set", i);
-		bs_ensureJsonF(&json, bs_jsonValue(binding->point), "$[%d].point", i);
-
-		for (int j = 0; j < 32; j++) {
-			if (binding->shader_stages & (1 << j))
-				bs_ensureJsonF(&json, bs_jsonValue(bs_serializeShaderType(1 << j)), "$[%d].stages[999]", i);
-		}
-	}
-
-	char* raw = bs_saveJson(&json, BS_JSON_PRETTY);
-	bs_saveFile(bindings_path->value, raw, strlen(raw));
-	bs_free(raw);
-	bs_free(bindings_path);
-	*/
 }
 
 BSMODAPI void _bsmod_iniCompiler() {

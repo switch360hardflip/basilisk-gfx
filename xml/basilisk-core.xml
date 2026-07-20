@@ -367,6 +367,9 @@
             <line>3.402823466e+38F</line>
         </macro>
 
+        <macro><name>#define BSMOD_BSHA_MAGIC</name><line>0x61687362</line></macro>
+        <macro><name>#define BSMOD_BBND_MAGIC</name><line>0x646E6262</line></macro>
+		
         <macro><name>#define BS_CONSTANT_STRING(s)</name><line>s, sizeof(s) - 1</line></macro>
 
 		<macro><name>#define BS_MAX_PHYSICAL_DEVICE_NAME_SIZE</name><line>256U</line></macro>
@@ -1183,6 +1186,38 @@
 
             <field><type>bs_ImageSwaps</type><name>_</name><size></size></field>
         </structure>
+		<structure name="bs_BshaHeader">
+            <field><type>bs_U32</type><name>magic</name></field>
+            <field><type>bs_U32</type><name>version</name></field>
+            <field><type>bs_U32</type><name>push_constant_size</name></field>
+            <field><type>bs_U32</type><name>bind_set_flags</name></field>
+            <field><type>bs_ShaderType</type><name>shader_type</name></field>
+            <field><type>bs_U32</type><name>attributes_count</name></field>
+            <field><type>bs_U64</type><name>spirv_size</name></field>
+            <field><type>bs_U32</type><name>reserved_0</name></field>
+            <field><type>bs_U32</type><name>reserved_1</name></field>
+            <field><type>bs_U32</type><name>reserved_2</name></field>
+            <field><type>bs_U32</type><name>reserved_3</name></field>
+        </structure>
+		<structure name="bs_BshaAttribute">
+            <field><type>bs_U64</type><name>name_hash</name></field>
+            <field><type>bs_U32</type><name>location</name></field>
+            <field><type>bs_U32</type><name>size</name></field>
+        </structure>
+		<structure name="bs_BbndHeader">
+            <field><type>bs_U32</type><name>magic</name></field>
+            <field><type>bs_U32</type><name>version</name></field>
+            <field><type>bs_U32</type><name>set</name></field>
+            <field><type>bs_U32</type><name>point</name></field>
+            <field><type>bs_U32</type><name>size</name></field>
+            <field><type>bs_U32</type><name>descriptors_count</name></field>
+            <field><type>bs_BindType</type><name>type</name></field>
+            <field><type>bs_U32</type><name>reserved_0</name></field>
+            <field><type>bs_U32</type><name>reserved_1</name></field>
+            <field><type>bs_U32</type><name>reserved_2</name></field>
+            <field><type>bs_U32</type><name>reserved_3</name></field>
+            <field><type>bs_U32</type><name>reserved_4</name></field>
+        </structure>
         <structure name="bs_BiffHeader">
             <field><type>bs_U32</type><name>magic</name></field>
             <field><type>bs_U32</type><name>version</name></field>
@@ -1190,7 +1225,7 @@
             <field><type>bs_U32</type><name>width</name></field>
             <field><type>bs_U32</type><name>height</name></field>
             <field><type>bs_U32</type><name>channels_count</name></field>
-            <field><type>bs_U32 reserved_0,</type><name>reserved_1</name></field>
+            <field><type>bs_U32</type><name>reserved_0, reserved_1</name></field>
         </structure>
         <structure name="bs_BiffPointer">
             <field><type>bs_U32</type><name>offset</name></field>
