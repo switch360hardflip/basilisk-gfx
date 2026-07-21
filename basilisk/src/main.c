@@ -1,4 +1,5 @@
 #include <basilisk-mod.h>
+#include <bsgfx_cache.h>
 
 #include <windows.h>
 #include <stdio.h>
@@ -9,6 +10,11 @@ static void basilisk_loadScene() {
 
 }
 
+static void basilisk_tick() {
+	bsmod_onTick();
+
+	$fs_bsgfx_atlas();
+}
 
 static DWORD WINAPI _bsmod_tickAsync(void* param) {
 	while (1) {
@@ -20,7 +26,7 @@ static DWORD WINAPI _bsmod_tickAsync(void* param) {
 }
 
 static void basilisk_ini() {
-	_bsmod_onIni();
+	bsmod_onIni();
 
 	bsmod_onTrack();
 	CreateThread(NULL, 0, _bsmod_tickAsync, NULL, 0, NULL);
@@ -37,6 +43,7 @@ int main(int argc, char* argv[]) {
 	*callbacks = (bsgfx_Callbacks) {
 		.loadScene = basilisk_loadScene,
 		.ini = basilisk_ini,
+		.tick = basilisk_tick,
 	};
 
 	bsgfx_ini("Basilisk", 1920, 1080, argc, argv);

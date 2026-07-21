@@ -108,9 +108,12 @@ BSMODAPI void _bsmod_onTick() {
 
     }
 
-    _bsmod_readHoveringOutputs();
-    _bsmod_readHoveringInstanceData();
-    _bsmod_readHoveringVertex();
+    if (bs_exists(BSGFX_BUFFERS, BSGFX_BUFFER_LO_RES_CURSOR_READS) && bs_bufferIsMapped(bs_fetch(BSGFX_BUFFERS, BSGFX_BUFFER_LO_RES_CURSOR_READS)->buffer)) {
+        _bsmod_readHoveringOutputs();
+        _bsmod_readHoveringInstanceData();
+        _bsmod_readHoveringVertex();
+    }
+
     _bsmod_instanceUI();
     if (!_bsmod_.ui_blocked)
         _bsmod_instanceTransform();

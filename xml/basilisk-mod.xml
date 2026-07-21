@@ -233,7 +233,7 @@
 			<return>void</return>
 		</function>
 
-		<function name="bsmod_packBindings">
+		<function name="bsmod_onPackBindings">
 			<return>bs_Result</return>
 		</function>
 		<function name="bsmod_onCompileShader">
@@ -368,9 +368,6 @@
 			<param><type>char*</type><name>path</name></param>
 			<param><type>char*</type><name>name</name></param>
 			<param><type>char*</type><name>package</name></param>
-		</function>
-		<function name="bsmod_updateBindings">
-			<return>void</return>
 		</function>
 		<function name="bsmod_onQueue">
 			<return>bs_Queue*</return>

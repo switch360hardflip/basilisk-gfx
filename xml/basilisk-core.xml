@@ -230,7 +230,8 @@
 			<line><name>BS_RESOURCE_SOUND</name><value>4</value></line>
 			<line><name>BS_RESOURCE_ATLAS</name><value>5</value></line>
 			<line><name>BS_RESOURCE_FONT</name><value>6</value></line>
-			<line><name>BS_RESOURCE_TYPE_COUNT</name><value>7</value></line>
+			<line><name>BS_RESOURCE_BINDING</name><value>7</value></line>
+			<line><name>BS_RESOURCE_TYPE_COUNT</name><value>8</value></line>
 		</enum>
 		<enum name="bs_ImageBit">
 			<line><name>BS_IMAGE_SWAPS_BIT</name><value>1 &lt;&lt; 0</value></line>
@@ -3332,24 +3333,24 @@
             <param><type>bs_RGBA</type><name>color</name></param>
         </function>
         <variadicStringTemplate name="bs_logSection">
-            <return>char*</return>
-        </variadicStringTemplate>
-        <function name="bs_logEndOfSection">
-            <return>char*</return>
-        </function>
-        <variadicStringTemplate name="bs_logWithTimestamp">
-            <return>char*</return>
+			<return>void</return>
+		</variadicStringTemplate>
+		<function name="bs_logEndOfSection">
+			<return>void</return>
+		</function>
+		<variadicStringTemplate name="bs_logWithTimestamp">
+			<return>void</return>
             <param><type>const char*</type><name>type</name></param>
             <param><assert>type_len &gt;= 0</assert><type>int</type><name>type_len</name></param>
         </variadicStringTemplate>
         <variadicStringTemplate name="bs_log" string="message">
-            <return>char*</return>
+			<return>void</return>
         </variadicStringTemplate>
         <variadicStringTemplate name="bs_info" string="message">
-            <return>char*</return>
+			<return>void</return>
         </variadicStringTemplate>
         <variadicStringTemplate name="bs_warn" string="message">
-            <return>char*</return>
+			<return>void</return>
         </variadicStringTemplate>
         <variadicStringTemplate name="bs_critical" string="message">
             <return>void</return>

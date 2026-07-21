@@ -33,9 +33,9 @@
 #ifndef BSGFX_CONTRACTS_H
 #define BSGFX_CONTRACTS_H
 
-#include <stdint.h>
+#ifndef BSGFX_GLSL
+	#include <stdint.h>
 
-#ifndef DUSTER_GLSL
 	#define BSGFXAPI _declspec(dllexport)
 	typedef unsigned int uint;
 	typedef bs_vec2 vec2;

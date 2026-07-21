@@ -89,8 +89,8 @@ BSMODAPI void _preval_bsmod_onTrack() {
     next.bsmod_onTrack();
 }
 
-BSMODAPI bs_Result _preval_bsmod_packBindings() {
-    return next.bsmod_packBindings();
+BSMODAPI bs_Result _preval_bsmod_onPackBindings() {
+    return next.bsmod_onPackBindings();
 }
 
 BSMODAPI void _preval_bsmod_onCompileShader(bsmod_TrackParams params) {
@@ -240,10 +240,6 @@ BSMODAPI bs_Result _preval_bsmod_compileShader(char* path, char* name, char* pac
     BSMOD_VALIDATE(name != NULL, BS_RESULT_VALIDATION_ERROR,);
     BSMOD_VALIDATE(package != NULL, BS_RESULT_VALIDATION_ERROR,);
     return next.bsmod_compileShader(path, name, package);
-}
-
-BSMODAPI void _preval_bsmod_updateBindings() {
-    next.bsmod_updateBindings();
 }
 
 BSMODAPI bs_Queue* _preval_bsmod_onQueue() {
@@ -524,7 +520,7 @@ bsmod_FunctionTable* _preval_bsmod_getFunctionTable() {
     functions.bsmod_onTick = _preval_bsmod_onTick;
     functions.bsmod_onMap = _preval_bsmod_onMap;
     functions.bsmod_onTrack = _preval_bsmod_onTrack;
-    functions.bsmod_packBindings = _preval_bsmod_packBindings;
+    functions.bsmod_onPackBindings = _preval_bsmod_onPackBindings;
     functions.bsmod_onCompileShader = _preval_bsmod_onCompileShader;
     functions.bsmod_onLoadTTF = _preval_bsmod_onLoadTTF;
     functions.bsmod_onConvertBMFont = _preval_bsmod_onConvertBMFont;
@@ -553,7 +549,6 @@ bsmod_FunctionTable* _preval_bsmod_getFunctionTable() {
     functions.bsmod_updateShaderReferences = _preval_bsmod_updateShaderReferences;
     functions.bsmod_iniCompiler = _preval_bsmod_iniCompiler;
     functions.bsmod_compileShader = _preval_bsmod_compileShader;
-    functions.bsmod_updateBindings = _preval_bsmod_updateBindings;
     functions.bsmod_onQueue = _preval_bsmod_onQueue;
     functions.bsmod_queueRasterize = _preval_bsmod_queueRasterize;
     functions.bsmod_pollRasterizer = _preval_bsmod_pollRasterizer;

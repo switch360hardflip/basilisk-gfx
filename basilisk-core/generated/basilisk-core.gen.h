@@ -2827,7 +2827,8 @@ enum bs_ResourceType {
     BS_RESOURCE_SOUND = 4,
     BS_RESOURCE_ATLAS = 5,
     BS_RESOURCE_FONT = 6,
-    BS_RESOURCE_TYPE_COUNT = 7,
+    BS_RESOURCE_BINDING = 7,
+    BS_RESOURCE_TYPE_COUNT = 8,
 };
 
 enum bs_ImageBit {
@@ -6823,9 +6824,9 @@ bs_jsonRGBA(
  /**
   @param value
   @param value_length
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_logSection(
     char* value,
     int value_length);
@@ -6833,9 +6834,9 @@ bs_logSection(
  /**
   @param format
   @param args
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_logSectionV(
     char* format,
     va_list args);
@@ -6843,17 +6844,17 @@ bs_logSectionV(
  /**
   @param format
   @param ...
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_logSectionF(
     char* format,
      ...);
 
  /**
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_logEndOfSection();
 
  /**
@@ -6861,9 +6862,9 @@ bs_logEndOfSection();
   @param type_len
   @param value
   @param value_length
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_logWithTimestamp(
     const char* type,
     int type_len,
@@ -6875,9 +6876,9 @@ bs_logWithTimestamp(
   @param type_len
   @param format
   @param args
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_logWithTimestampV(
     const char* type,
     int type_len,
@@ -6889,9 +6890,9 @@ bs_logWithTimestampV(
   @param type_len
   @param format
   @param ...
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_logWithTimestampF(
     const char* type,
     int type_len,
@@ -6901,9 +6902,9 @@ bs_logWithTimestampF(
  /**
   @param message
   @param message_length
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_log(
     char* message,
     int message_length);
@@ -6911,9 +6912,9 @@ bs_log(
  /**
   @param format
   @param args
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_logV(
     char* format,
     va_list args);
@@ -6921,9 +6922,9 @@ bs_logV(
  /**
   @param format
   @param ...
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_logF(
     char* format,
      ...);
@@ -6931,9 +6932,9 @@ bs_logF(
  /**
   @param message
   @param message_length
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_info(
     char* message,
     int message_length);
@@ -6941,9 +6942,9 @@ bs_info(
  /**
   @param format
   @param args
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_infoV(
     char* format,
     va_list args);
@@ -6951,9 +6952,9 @@ bs_infoV(
  /**
   @param format
   @param ...
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_infoF(
     char* format,
      ...);
@@ -6961,9 +6962,9 @@ bs_infoF(
  /**
   @param message
   @param message_length
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_warn(
     char* message,
     int message_length);
@@ -6971,9 +6972,9 @@ bs_warn(
  /**
   @param format
   @param args
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_warnV(
     char* format,
     va_list args);
@@ -6981,9 +6982,9 @@ bs_warnV(
  /**
   @param format
   @param ...
-  @return char*
+  @return void
   */
-BSAPI char*
+BSAPI void
 bs_warnF(
     char* format,
      ...);

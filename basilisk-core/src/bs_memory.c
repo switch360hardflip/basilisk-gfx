@@ -78,7 +78,7 @@ BSAPI void _bs_system(char* command, int command_length) {
 
 
   /*==============================================================================
-   * Cross-Platform/Wrapper C Standard Functions
+   * Threads
    *============================================================================*/
 
 BSAPI void _bs_createThread(bs_ThreadFunction function, void* param) {
@@ -87,6 +87,12 @@ BSAPI void _bs_createThread(bs_ThreadFunction function, void* param) {
     if (thrd_create(&thread, function, param) == thrd_success)
         thrd_detach(thread);
 }
+
+
+
+  /*==============================================================================
+   * Cross-Platform/Wrapper C Standard Functions
+   *============================================================================*/
 
 BSAPI bs_U32 _bs_alignUp(bs_U32 value, bs_U32 alignment) {
     return (value + alignment - 1) & ~(alignment - 1);

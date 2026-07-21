@@ -5,7 +5,7 @@
         "package": "content/bsgfx",
         "prefix": "",
         "callOnce": false,
-        "lastModified": "2026-07-19 15:52:55",
+        "lastModified": "2026-07-21 19:24:28",
         "entries": [
             "project/basilisk-gfx/shaders/bsgfx.glsl",
             "project/basilisk-gfx/shaders/bsgfx_atlas.glsl",

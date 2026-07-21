@@ -64,7 +64,7 @@ BSMODAPI bsmod_Package* _bsmod_ensurePackage(const char* name) {
 BSMODAPI bsmod_Resource* _bsmod_queryResource(bsmod_Package* package, const char* name) {
 	bs_U64 hash = bs_stringHash(name);
 
-	for (int i = 0; i < _bsmod_packages_.count; i++) {
+	for (int i = 0; i < package->resources.count; i++) {
 		bsmod_Resource* resource = bs_fetchUnit(&package->resources, i);
 
 		if (hash == resource->header.name_hash)

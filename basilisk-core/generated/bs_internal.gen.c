@@ -322,28 +322,27 @@ bs_Result _bs_ensureJsonF(
     return _return;
 }
 
-char* _bs_logSectionV(
+void _bs_logSectionV(
     char* format, 
     va_list args)
 {
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return _bs_logSection(_formatted, _length);
+    _bs_logSection(_formatted, _length);
 }
 
-char* _bs_logSectionF(
+void _bs_logSectionF(
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    char* _return = _bs_logSectionV(format, args);
+    _bs_logSectionV(format, args);
     va_end(args);
-    return _return;
 }
 
-char* _bs_logWithTimestampV(
+void _bs_logWithTimestampV(
     const char* type, 
     int type_len, 
     char* format, 
@@ -352,10 +351,10 @@ char* _bs_logWithTimestampV(
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return _bs_logWithTimestamp(type, type_len, _formatted, _length);
+    _bs_logWithTimestamp(type, type_len, _formatted, _length);
 }
 
-char* _bs_logWithTimestampF(
+void _bs_logWithTimestampF(
     const char* type, 
     int type_len, 
     char* format, 
@@ -363,72 +362,68 @@ char* _bs_logWithTimestampF(
 {
     va_list args;
     va_start(args, format);
-    char* _return = _bs_logWithTimestampV(type, type_len, format, args);
+    _bs_logWithTimestampV(type, type_len, format, args);
     va_end(args);
-    return _return;
 }
 
-char* _bs_logV(
+void _bs_logV(
     char* format, 
     va_list args)
 {
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return _bs_log(_formatted, _length);
+    _bs_log(_formatted, _length);
 }
 
-char* _bs_logF(
+void _bs_logF(
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    char* _return = _bs_logV(format, args);
+    _bs_logV(format, args);
     va_end(args);
-    return _return;
 }
 
-char* _bs_infoV(
+void _bs_infoV(
     char* format, 
     va_list args)
 {
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return _bs_info(_formatted, _length);
+    _bs_info(_formatted, _length);
 }
 
-char* _bs_infoF(
+void _bs_infoF(
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    char* _return = _bs_infoV(format, args);
+    _bs_infoV(format, args);
     va_end(args);
-    return _return;
 }
 
-char* _bs_warnV(
+void _bs_warnV(
     char* format, 
     va_list args)
 {
     int _length = bs_formatStringLength(format, args);
     char* _formatted = bs_alloca(_length + 1);
     vsnprintf(_formatted, _length + 1, format, args);
-    return _bs_warn(_formatted, _length);
+    _bs_warn(_formatted, _length);
 }
 
-char* _bs_warnF(
+void _bs_warnF(
     char* format, 
     ...)
 {
     va_list args;
     va_start(args, format);
-    char* _return = _bs_warnV(format, args);
+    _bs_warnV(format, args);
     va_end(args);
-    return _return;
 }
 
 void _bs_criticalV(

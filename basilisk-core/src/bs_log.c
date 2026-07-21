@@ -29,6 +29,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <threads.h>
 
 #ifdef _WIN32 // lol
 #include <windows.h>
@@ -36,82 +37,142 @@
 #endif
 #include <vulkan.h>
 
+
 #define BS_SECTION_HEADER_START BS_PRINT_DARK_GREEN "\n\n\n  ==============================================================================\n    "
 #define BS_SECTION_HEADER_END "\n  ==============================================================================\n\n" BS_PRINT_RESET
 #define BS_SECTION_END BS_PRINT_DARK_GREEN "\n  ==============================================================================\n\n" BS_PRINT_RESET
 
- /** TODO: Make this thread safe */
+#define BS_LOG_QUEUE_SIZE 10
+#define BS_MAX_LOG_SIZE 256
 
- /** Log section */
-BSAPI char* _bs_logSection(char* message, int message_len) {
-    int len = _bs_io_.log->len;
-    _bs_io_.log = _bs_appendString(_bs_io_.log, BS_SECTION_HEADER_START, sizeof(BS_SECTION_HEADER_START) - 1);
-    _bs_io_.log = _bs_appendString(_bs_io_.log, message, message_len);
-    _bs_io_.log = _bs_appendString(_bs_io_.log, BS_SECTION_HEADER_END, sizeof(BS_SECTION_HEADER_END) - 1);
-    printf("%s", _bs_io_.log->value + len);
-    return _bs_io_.log->value + len;
+
+
+ /*==============================================================================
+  * Logger
+  * Taken from https://github.com/harshithsunku/ThreadSafeCLogger
+  *============================================================================*/
+
+typedef struct {
+    char message[BS_MAX_LOG_SIZE];
+} bs_QueueItem;
+
+static FILE* _log_file_ = NULL;
+static bs_QueueItem _log_queue_[BS_LOG_QUEUE_SIZE];
+static int _queue_start_ = 0;
+static int _queue_end_ = 0;
+static mtx_t _bs_log_mutex_;
+static mtx_t _bs_log_file_mutex_;
+static cnd_t _bs_log_condition_;
+
+static int bs_loggerThread(void* args) {
+    bool running = true;
+
+    while (1) {
+        mtx_lock(&_bs_log_mutex_);
+
+        while (_queue_start_ == _queue_end_ && running) {
+            cnd_wait(&_bs_log_condition_, &_bs_log_mutex_);
+        }
+
+        if (!running && _queue_start_ == _queue_end_) {
+            mtx_unlock(&_bs_log_mutex_);
+            break;
+        }
+
+        bs_QueueItem msg = _log_queue_[_queue_start_];
+        _queue_start_ = (_queue_start_ + 1) % BS_LOG_QUEUE_SIZE;
+
+        mtx_unlock(&_bs_log_mutex_);
+
+        mtx_lock(&_bs_log_file_mutex_);
+
+        printf("%s\n", msg.message);
+
+        fprintf(_log_file_, "%s\n", msg.message);
+        fflush(_log_file_);
+
+        mtx_unlock(&_bs_log_file_mutex_);
+    }
+
+    mtx_unlock(&_bs_log_mutex_);
+    return 0;
 }
 
-BSAPI char* _postval_bs_logSection(char* message, int message_len, char* _return) {
-    printf("%s", _return);
-    return _return;
+void _bs_iniLogger() {
+    FILE* f = fopen("basilisk.log", "w");
+    if (f)
+        fclose(f);
+
+    _log_file_ = fopen("basilisk.log", "a");
+
+    mtx_init(&_bs_log_mutex_, mtx_plain);
+    mtx_init(&_bs_log_file_mutex_, mtx_plain);
+    cnd_init(&_bs_log_condition_);
+
+    _bs_createThread(bs_loggerThread, NULL);
+}
+
+BSAPI void _bs_log(char* message, int message_len) {
+    mtx_lock(&_bs_log_mutex_);
+
+    strncpy(_log_queue_[_queue_end_].message, message, BS_MAX_LOG_SIZE - 1);
+    _log_queue_[_queue_end_].message[BS_MAX_LOG_SIZE - 1] = '\0';
+    _queue_end_ = (_queue_end_ + 1) % BS_LOG_QUEUE_SIZE;
+
+    cnd_signal(&_bs_log_condition_);
+    mtx_unlock(&_bs_log_mutex_);
+}
+
+void _bs_destroyLogger() {
+//    mtx_lock(&log_mutex);
+//    //running = 0;
+//    cnd_signal(&log_cond);
+//    mtx_unlock(&log_mutex);
+//
+//    pthread_join(log_thread, NULL);
+//
+//    fclose(log_file);
+}
+
+
+
+
+ /*==============================================================================
+  * Log Functions
+  *============================================================================*/
+
+
+ /** Log section */
+BSAPI void _bs_logSection(char* message, int message_len) {
+    _bs_logF("%s%s%s", BS_SECTION_HEADER_START, message, BS_SECTION_HEADER_END);
 }
 
  /** Log end of section */
-BSAPI char* _bs_logEndOfSection() {
-    int len = _bs_io_.log->len;
-    _bs_io_.log = _bs_appendString(_bs_io_.log, BS_SECTION_END, sizeof(BS_SECTION_END) - 1);
-    printf("%s", _bs_io_.log->value + len);
-    return _bs_io_.log->value + len;
+BSAPI void _bs_logEndOfSection() {
+    _bs_log(BS_SECTION_END, 0);
 }
-
-BSAPI char* _postval_bs_logEndOfSection(char* _return) {
-    printf("%s", _return);
-    return _return;
-}
-
 
  /** Log with timestamp */
-BSAPI char* _bs_logWithTimestamp(const char* type, int type_len, char* message, int message_len) {
+BSAPI void _bs_logWithTimestamp(const char* type, int type_len, char* message, int message_len) {
     bs_DateTime dt = _bs_dateTime();
 
-    int len = _bs_io_.log->len;
-    _bs_io_.log = _bs_appendStringF(_bs_io_.log, "[%02d-%02d-%02d %02d:%02d:%02d %04d] ", dt.years, dt.months, dt.days, dt.hours, dt.minutes, dt.seconds, dt.milliseconds);
-    _bs_io_.log = _bs_appendString(_bs_io_.log, type, type_len);
-    _bs_io_.log = _bs_appendString(_bs_io_.log, message, message_len);
-
-    printf("%s", _bs_io_.log->value + len);
-
-    return _bs_io_.log->value + len;
-}
-
-BSAPI char* _postval_bs_logWithTimestamp(const char* type, int type_len, const char* format, va_list args, char* _return) {
-    printf("%s", _return);
-    return _return;
-}
-
-BSAPI char* _bs_log(char* message, int message_len) {
-    int len = _bs_io_.log->len;
-    _bs_io_.log = _bs_appendString(_bs_io_.log, message, message_len);
-    printf("%s", _bs_io_.log->value + len);
-    return _bs_io_.log->value + len;
+    _bs_logF("[%02d-%02d-%02d %02d:%02d:%02d %04d] %s%s", 
+        dt.years, dt.months, dt.days, dt.hours, dt.minutes, dt.seconds, dt.milliseconds, type, message);
 }
 
 /** Info log */
-BSAPI char* _bs_info(char* message, int message_len) {
-    return _bs_logWithTimestamp("", 0, message, message_len);
+BSAPI void _bs_info(char* message, int message_len) {
+    _bs_logWithTimestamp("", 0, message, message_len);
 }
 
  /** Warning log */
-BSAPI char* _bs_warn(char* message, int message_len) {
-    return _bs_logWithTimestamp(BS_WARN_HEADER, sizeof(BS_WARN_HEADER) - 1, message, message_len);
+BSAPI void _bs_warn(char* message, int message_len) {
+    _bs_logWithTimestamp(BS_WARN_HEADER, sizeof(BS_WARN_HEADER) - 1, message, message_len);
 }
 
  /** Critical error log */
 BSAPI void _bs_critical(char* message, int message_len) {
-    char* result = _bs_logWithTimestamp(BS_ERROR_HEADER, sizeof(BS_ERROR_HEADER) - 1, message, message_len);
-
-    _bs_saveFile(result, strlen(result), BS_CONSTANT_STRING("basilisk.log"));
+    _bs_logWithTimestamp(BS_ERROR_HEADER, sizeof(BS_ERROR_HEADER) - 1, message, message_len);
 
 #ifdef _WIN32
     if (_bs_context_ && _bs_context_->hwnd) {

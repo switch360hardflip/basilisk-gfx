@@ -122,9 +122,9 @@ void bsmod_onTrack()
     next.bsmod_onTrack();
 }
 
-bs_Result bsmod_packBindings()
+bs_Result bsmod_onPackBindings()
 {
-    return next.bsmod_packBindings();
+    return next.bsmod_onPackBindings();
 }
 
 void bsmod_onCompileShader(
@@ -356,11 +356,6 @@ bs_Result bsmod_compileShader(
     char* package)
 {
     return next.bsmod_compileShader(path, name, package);
-}
-
-void bsmod_updateBindings()
-{
-    next.bsmod_updateBindings();
 }
 
 bs_Queue* bsmod_onQueue()

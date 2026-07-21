@@ -38,6 +38,7 @@
 #include <time.h>
 #include <assert.h>
 #include <math.h>
+#include <threads.h>
 
 bs_Args _bs_args_ = { 0 };
 bs_Features _bs_features_ = { 0 };
@@ -341,10 +342,12 @@ static void _bs_prepareInstance() {
         create_reporter(_bs_instance_->instance, &report_ci, NULL, &reporter);
 }
 
-void _bs_findExecutablePaths();
+void _bs_iniLogger();
 BSAPI void _bs_ini() {
     _bs_io_.log = _bs_string(_bs_io_.log, "", 0);
     _bs_instance_ = _bs_calloc(1, sizeof(bs_Instance));
+
+    _bs_iniLogger();
 
     _bs_configureAttribute("bs_Position", BS_FORMAT_R32_SFLOAT);
     _bs_configureAttribute("bs_Texture", BS_FORMAT_R32_SFLOAT);

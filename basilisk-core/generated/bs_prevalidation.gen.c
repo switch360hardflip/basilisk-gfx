@@ -1362,60 +1362,60 @@ BSAPI bs_JsonValue _preval_bs_jsonRGBA(bs_RGBA color) {
     return next.bs_jsonRGBA(color);
 }
 
-BSAPI char* _preval_bs_logSection(char* value, int value_length) {
-    BS_VALIDATE(value != NULL, NULL,);
-    return next.bs_logSection(value, value_length);
+BSAPI void _preval_bs_logSection(char* value, int value_length) {
+    BS_VALIDATE(value != NULL, ,);
+    next.bs_logSection(value, value_length);
 }
 
-BSAPI char* _preval_bs_logSectionV(char* format, va_list args) {
-    BS_VALIDATE(format != NULL, NULL,);
-    return next.bs_logSectionV(format, args);
+BSAPI void _preval_bs_logSectionV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, ,);
+    next.bs_logSectionV(format, args);
 }
 
-BSAPI char* _preval_bs_logEndOfSection() {
-    return next.bs_logEndOfSection();
+BSAPI void _preval_bs_logEndOfSection() {
+    next.bs_logEndOfSection();
 }
 
-BSAPI char* _preval_bs_logWithTimestamp(const char* type, int type_len, char* value, int value_length) {
-    BS_VALIDATE(type != NULL, NULL,);
-    BS_VALIDATE(value != NULL, NULL,);
-    return next.bs_logWithTimestamp(type, type_len, value, value_length);
+BSAPI void _preval_bs_logWithTimestamp(const char* type, int type_len, char* value, int value_length) {
+    BS_VALIDATE(type != NULL, ,);
+    BS_VALIDATE(value != NULL, ,);
+    next.bs_logWithTimestamp(type, type_len, value, value_length);
 }
 
-BSAPI char* _preval_bs_logWithTimestampV(const char* type, int type_len, char* format, va_list args) {
-    BS_VALIDATE(type != NULL, NULL,);
-    BS_VALIDATE(format != NULL, NULL,);
-    return next.bs_logWithTimestampV(type, type_len, format, args);
+BSAPI void _preval_bs_logWithTimestampV(const char* type, int type_len, char* format, va_list args) {
+    BS_VALIDATE(type != NULL, ,);
+    BS_VALIDATE(format != NULL, ,);
+    next.bs_logWithTimestampV(type, type_len, format, args);
 }
 
-BSAPI char* _preval_bs_log(char* message, int message_length) {
-    BS_VALIDATE(message != NULL, NULL,);
-    return next.bs_log(message, message_length);
+BSAPI void _preval_bs_log(char* message, int message_length) {
+    BS_VALIDATE(message != NULL, ,);
+    next.bs_log(message, message_length);
 }
 
-BSAPI char* _preval_bs_logV(char* format, va_list args) {
-    BS_VALIDATE(format != NULL, NULL,);
-    return next.bs_logV(format, args);
+BSAPI void _preval_bs_logV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, ,);
+    next.bs_logV(format, args);
 }
 
-BSAPI char* _preval_bs_info(char* message, int message_length) {
-    BS_VALIDATE(message != NULL, NULL,);
-    return next.bs_info(message, message_length);
+BSAPI void _preval_bs_info(char* message, int message_length) {
+    BS_VALIDATE(message != NULL, ,);
+    next.bs_info(message, message_length);
 }
 
-BSAPI char* _preval_bs_infoV(char* format, va_list args) {
-    BS_VALIDATE(format != NULL, NULL,);
-    return next.bs_infoV(format, args);
+BSAPI void _preval_bs_infoV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, ,);
+    next.bs_infoV(format, args);
 }
 
-BSAPI char* _preval_bs_warn(char* message, int message_length) {
-    BS_VALIDATE(message != NULL, NULL,);
-    return next.bs_warn(message, message_length);
+BSAPI void _preval_bs_warn(char* message, int message_length) {
+    BS_VALIDATE(message != NULL, ,);
+    next.bs_warn(message, message_length);
 }
 
-BSAPI char* _preval_bs_warnV(char* format, va_list args) {
-    BS_VALIDATE(format != NULL, NULL,);
-    return next.bs_warnV(format, args);
+BSAPI void _preval_bs_warnV(char* format, va_list args) {
+    BS_VALIDATE(format != NULL, ,);
+    next.bs_warnV(format, args);
 }
 
 BSAPI void _preval_bs_critical(char* message, int message_length) {

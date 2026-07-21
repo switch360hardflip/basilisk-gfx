@@ -97,9 +97,9 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 target_link_directories(${PROJECT_NAME} PRIVATE 
     ${CMAKE_SOURCE_DIR}/external/
-    ${CMAKE_SOURCE_DIR}/external/glslang/build/glslang/Release
-    ${CMAKE_SOURCE_DIR}/external/glslang/build/SPIRV/Release
-    ${CMAKE_SOURCE_DIR}/external/SPIRV-Cross/build/Release
+    ${CMAKE_SOURCE_DIR}/external/glslang/build/glslang/Debug
+    ${CMAKE_SOURCE_DIR}/external/glslang/build/SPIRV/Debug
+    ${CMAKE_SOURCE_DIR}/external/SPIRV-Cross/build/Debug
 )
 
 if (MSVC)
@@ -114,12 +114,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     #steam_api64 
     dwmapi
     #GFSDK_Aftermath_Lib.x64
-    GenericCodeGen
-    glslang optimized glslang
-    glslang-default-resource-limits optimized glslang-default-resource-limits
-    MachineIndependent optimized MachineIndependent
-    SPIRV optimized SPIRV
-    spirv-cross-c optimized spirv-cross-c
-    spirv-cross-core optimized spirv-cross-core
-    spirv-cross-glsl optimized spirv-cross-glsl
+    GenericCodeGend
+    glslangd optimized glslangd
+    glslang-default-resource-limitsd optimized glslang-default-resource-limitsd
+    MachineIndependentd optimized MachineIndependentd
+    SPIRVd optimized SPIRVd
+    spirv-cross-cd optimized spirv-cross-cd
+    spirv-cross-cored optimized spirv-cross-cored
+    spirv-cross-glsld optimized spirv-cross-glsld
 )

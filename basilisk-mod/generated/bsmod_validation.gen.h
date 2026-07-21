@@ -54,7 +54,7 @@ static inline bsmod_FunctionTable* _val_bsmod_getFunctions() {
     functions.bsmod_onTick = (PFN_bsmod_onTick)GetProcAddress(module, "_val_bsmod_onTick");
     functions.bsmod_onMap = (PFN_bsmod_onMap)GetProcAddress(module, "_val_bsmod_onMap");
     functions.bsmod_onTrack = (PFN_bsmod_onTrack)GetProcAddress(module, "_val_bsmod_onTrack");
-    functions.bsmod_packBindings = (PFN_bsmod_packBindings)GetProcAddress(module, "_val_bsmod_packBindings");
+    functions.bsmod_onPackBindings = (PFN_bsmod_onPackBindings)GetProcAddress(module, "_val_bsmod_onPackBindings");
     functions.bsmod_onCompileShader = (PFN_bsmod_onCompileShader)GetProcAddress(module, "_val_bsmod_onCompileShader");
     functions.bsmod_onLoadTTF = (PFN_bsmod_onLoadTTF)GetProcAddress(module, "_val_bsmod_onLoadTTF");
     functions.bsmod_onConvertBMFont = (PFN_bsmod_onConvertBMFont)GetProcAddress(module, "_val_bsmod_onConvertBMFont");
@@ -81,7 +81,6 @@ static inline bsmod_FunctionTable* _val_bsmod_getFunctions() {
     functions.bsmod_updateShaderReferences = (PFN_bsmod_updateShaderReferences)GetProcAddress(module, "_val_bsmod_updateShaderReferences");
     functions.bsmod_iniCompiler = (PFN_bsmod_iniCompiler)GetProcAddress(module, "_val_bsmod_iniCompiler");
     functions.bsmod_compileShader = (PFN_bsmod_compileShader)GetProcAddress(module, "_val_bsmod_compileShader");
-    functions.bsmod_updateBindings = (PFN_bsmod_updateBindings)GetProcAddress(module, "_val_bsmod_updateBindings");
     functions.bsmod_onQueue = (PFN_bsmod_onQueue)GetProcAddress(module, "_val_bsmod_onQueue");
     functions.bsmod_queueRasterize = (PFN_bsmod_queueRasterize)GetProcAddress(module, "_val_bsmod_queueRasterize");
     functions.bsmod_pollRasterizer = (PFN_bsmod_pollRasterizer)GetProcAddress(module, "_val_bsmod_pollRasterizer");

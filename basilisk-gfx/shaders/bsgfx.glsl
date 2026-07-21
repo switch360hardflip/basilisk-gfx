@@ -1,5 +1,5 @@
-#ifndef DUSTER_GLSL
-#define DUSTER_GLSL
+#ifndef BSGFX_GLSL
+#define BSGFX_GLSL
 
 #extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 #extension GL_EXT_shader_16bit_storage : require
@@ -26,4 +26,4 @@ mat4x3 bsgfx_m4x3(float transform[12]) {
 }
 
 
-#endif // DUSTER_GLSL
+#endif

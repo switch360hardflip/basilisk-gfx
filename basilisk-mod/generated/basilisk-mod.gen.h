@@ -291,7 +291,7 @@ bsmod_onTrack();
   @return bs_Result
   */
 BSMODAPI bs_Result
-bsmod_packBindings();
+bsmod_onPackBindings();
 
  /**
   @param params
@@ -618,12 +618,6 @@ bsmod_compileShader(
     char* path,
     char* name,
     char* package);
-
- /**
-  @return void
-  */
-BSMODAPI void
-bsmod_updateBindings();
 
  /**
   @return bs_Queue*

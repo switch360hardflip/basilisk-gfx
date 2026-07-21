@@ -136,7 +136,7 @@ static void _bsmod_saveHooks(bs_List* hooks) {
    * Definition needs BSMODAPI
    *============================================================================*/
 
-BSMODAPI bs_Result _bsmod_packBindings() {
+BSMODAPI bs_Result _bsmod_onPackBindings() {
 	bs_Result result;
 
 	int descriptors_count = 0;
