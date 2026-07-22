@@ -789,6 +789,7 @@
 			<field><type>PFN_void</type><name>fixedTick</name></field>
 			<field><type>PFN_void</type><name>render</name></field>
 			<field><type>PFN_void</type><name>ini</name></field>
+			<field><type>PFN_void</type><name>lateIni</name></field>
 			<field><type>PFN_void</type><name>loadScene</name></field>
 		</structure>
 

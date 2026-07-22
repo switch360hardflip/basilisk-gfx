@@ -7,15 +7,16 @@
 volatile long has_performed_tracked_changes = 1;
 
 static void basilisk_loadScene() {
-	int package_id = bs_queryPackage("content/bsgfx");
-	bs_loadBindings(package_id);
+	$vs_bsgfx_mesh_color();
+	$fs_bsgfx_atlas();
 
+	bsmod_onLoad();
+	bsmod_bindAtlases();
 }
 
 static void basilisk_tick() {
 	bsmod_onTick();
 
-	$fs_bsgfx_atlas();
 }
 
 static DWORD WINAPI _bsmod_tickAsync(void* param) {
@@ -32,6 +33,12 @@ static void basilisk_ini() {
 
 	bsmod_onTrack();
 	bsmod_savePackage(BSGFX_CONTENT_PATH);
+
+}
+
+static void basilisk_lateIni() {
+	bsmod_onLateIni();
+
 	CreateThread(NULL, 0, _bsmod_tickAsync, NULL, 0, NULL);
 
 	bsgfx_loadScene("engine");
@@ -46,6 +53,7 @@ int main(int argc, char* argv[]) {
 	*callbacks = (bsgfx_Callbacks) {
 		.loadScene = basilisk_loadScene,
 		.ini = basilisk_ini,
+		.lateIni = basilisk_lateIni,
 		.tick = basilisk_tick,
 	};
 

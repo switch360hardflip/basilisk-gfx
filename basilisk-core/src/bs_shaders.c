@@ -271,13 +271,16 @@ BSAPI void _bs_pushBindings() {
    *============================================================================*/
 
 static inline bs_Result _bs_validateBinding(bs_U32 bind_set_slot, bs_U32 bind_point_slot, int descriptors_count) {
-    BS_VALIDATE(_bs_instance_->descriptor_lookup != NULL, BS_RESULT_VALIDATION_ERROR, "No bindings have been loaded");
+   // BS_VALIDATE(_bs_instance_->descriptor_lookup != NULL, BS_RESULT_VALIDATION_ERROR, "No bindings have been loaded");
 
     bs_BindSet* bind_set;
     bs_Binding* binding;
 
-    BS_VALIDATE(bind_set = bs_queryBindSet(bind_set_slot) != NULL, BS_RESULT_VALIDATION_ERROR, );
-    BS_VALIDATE(binding = bs_queryBinding(bind_set, bind_point_slot) != NULL, BS_RESULT_VALIDATION_ERROR, "Binding (%d, %d) is not used by any shader", bind_set_slot, bind_point_slot);
+    bind_set = bs_queryBindSet(bind_set_slot);
+    BS_VALIDATE(bind_set != NULL, BS_RESULT_VALIDATION_ERROR, );
+
+    binding = bs_queryBinding(bind_set, bind_point_slot);
+    BS_VALIDATE(binding != NULL, BS_RESULT_VALIDATION_ERROR, "Binding (%d, %d) is not used by any shader", bind_set_slot, bind_point_slot);
 
     if (!binding->in_use) {
         BS_VALIDATE(descriptors_count <= binding->descriptors_count, BS_RESULT_VALIDATION_ERROR, );
@@ -442,8 +445,13 @@ BSAPI bs_Result _bs_bindAccelerationStructure(bs_U32 bind_set_slot, bs_U32 bind_
   Query bind set
   */
 BSAPI bs_BindSet* _val_bs_queryBindSet(bs_U32 id) {
-    BS_VALIDATE(_bs_instance_->descriptor_lookup != NULL, NULL,);
-    BS_VALIDATE(id <= _bs_instance_->max_bind_set, NULL,);
+    //BS_VALIDATE(_bs_instance_->descriptor_lookup != NULL, NULL,);
+    //BS_VALIDATE(id <= _bs_instance_->max_bind_set, NULL, );
+
+    //int bind_set_id = _bs_instance_->descriptor_lookup[id].bind_set;
+    //BS_VALIDATE(bind_set_id >= 0, NULL,);
+    //BS_VALIDATE(bind_set_id < _bs_instance_->bind_sets_count, NULL, );
+
     return _bs_queryBindSet(id);
 }
 
@@ -453,13 +461,20 @@ BSAPI bs_BindSet* _postval_bs_queryBindSet(bs_U32 id, bs_BindSet* _return) {
 }
 
 BSAPI bs_BindSet* _bs_queryBindSet(bs_U32 id) {
+    /*
     int bind_set = _bs_instance_->descriptor_lookup[id].bind_set;
     if (bind_set < 0) {
         _bs_warnF("Failed to query bind set %d\n", id);
         return NULL;
     }
+    */
+
+    for (int i = 0; i < _bs_instance_->bind_sets_count; i++) {
+        if (_bs_instance_->bind_sets[i].slot == id)
+            return _bs_instance_->bind_sets + i;
+    }
  
-    return _bs_instance_->bind_sets + bind_set;
+    return NULL;
 }
 
  /**
@@ -476,13 +491,21 @@ BSAPI bs_Binding* _postval_bs_queryBinding(bs_BindSet* bind_set, bs_U32 id, bs_B
 }
 
 BSAPI bs_Binding* _bs_queryBinding(const bs_BindSet* bind_set, bs_U32 id) {
-    int binding = _bs_instance_->descriptor_lookup[bind_set->slot].bindings[id];
-    if (binding < 0) {
-        _bs_warnF("Failed to query binding %d\n", id);
-        return NULL;
+
+    for (int i = 0; i < bind_set->bindings_count; i++) {
+        if (bind_set->bindings[i].slot == id)
+            return bind_set->bindings + i;
     }
 
-    return _bs_instance_->bindings + binding;
+    return NULL;
+
+  //  int binding = _bs_instance_->descriptor_lookup[bind_set->slot].bindings[id];
+  //  if (binding < 0) {
+  //      _bs_warnF("Failed to query binding %d\n", id);
+  //      return NULL;
+  //  }
+  //
+  //  return _bs_instance_->bindings + binding;
 }
 
  /**
@@ -532,7 +555,8 @@ BSAPI void _bs_loadBinding(bs_Binding* binding, int bind_set, int bind_point, in
     binding->stages = header->shader_stages;
 }
 
-static void _bs_loadPackageBindings(bs_Package* package, int package_id) {
+static int _bs_loadPackageBindings(bs_Package* package, int package_id) {
+    int descriptors_count = 0;
     for (int i = 0; i < package->resource_headers_count; i++) {
         bs_ResourceHeader* resource_header = package->resource_headers + i;
         if (resource_header->header.type != BS_RESOURCE_BINDING)
@@ -559,9 +583,11 @@ static void _bs_loadPackageBindings(bs_Package* package, int package_id) {
         bs_Binding* binding = _bs_instance_->bindings + _bs_instance_->bindings_count;
         _bs_loadBinding(binding, bind_set, bind_point, package_id, resource_header->name);
 
+        descriptors_count += binding->descriptors_count;
         _bs_instance_->bind_sets_count = BS_MAX(_bs_instance_->bind_sets_count, bind_set + 1);
     }
 
+    return descriptors_count;
 }
 
 BSAPI void _bs_loadBindings() {
@@ -582,32 +608,64 @@ BSAPI void _bs_loadBindings() {
     */
     const size_t bind_sets_size = BS_MAX_NUM_BIND_SETS * sizeof(bs_BindSet);
     const size_t bindings_size = bindings_count * sizeof(bs_Binding);
-    //  const size_t descriptors_size = header->descriptors_count * sizeof(bs_Descriptor);
+
+    if (bindings_size == 0)
+        return;
 
     _bs_instance_->bind_sets = _bs_realloc(_bs_instance_->bind_sets, bind_sets_size);
     _bs_instance_->bindings = _bs_realloc(_bs_instance_->bindings, bindings_size);
-    //  _bs_instance_->descriptors = _bs_realloc(_bs_instance_->descriptors, descriptors_size);
     memset(_bs_instance_->bind_sets, 0, bind_sets_size);
     memset(_bs_instance_->bindings, 0, bindings_size);
-    //  memset(_bs_instance_->descriptors, 0, descriptors_size);
     _bs_instance_->descriptor_pool_needs_update = true;
 
    /**
     Load bindings
     */
+    int desriptors_count = 0;
     for (int i = 0; i < packages->count; i++) {
         bs_Package* package = _bs_fetchUnit(packages, i);
-        _bs_loadPackageBindings(package, i);
+        desriptors_count += _bs_loadPackageBindings(package, i);
     }
+
+    const size_t descriptors_size = desriptors_count * sizeof(bs_Descriptor);
+    _bs_instance_->descriptors = _bs_realloc(_bs_instance_->descriptors, descriptors_size);
+    memset(_bs_instance_->descriptors, 0, descriptors_size);
 
    /**
     Sort bindings
     */
     qsort(_bs_instance_->bindings, _bs_instance_->bindings_count, sizeof(bs_Binding), _bs_compareBindings);
-    
+
+    int current_set = -1;
+    int descriptor_offset = 0;
+    for (int i = 0; i < bindings_count; i++) {
+        bs_Binding* binding = _bs_instance_->bindings + i;
+        bs_BindSet* bind_set = _bs_instance_->bind_sets + binding->set;
+
+        assert(binding->set < _bs_instance_->bind_sets_count);
+
+        if (binding->set != current_set) {
+            current_set = binding->set;
+
+            *bind_set = (bs_BindSet){
+                .slot = current_set,
+                .bindings = binding,
+                .descriptors = _bs_instance_->descriptors + descriptor_offset,
+            };
+        }
+
+        _bs_instance_->max_bind_set = BS_MAX(_bs_instance_->max_bind_set, bind_set->slot);
+        bind_set->max_binding = BS_MAX(bind_set->max_binding, binding->slot);
+
+        bind_set->bindings_count++;
+        bind_set->descriptors_count += binding->descriptors_count;
+        descriptor_offset += binding->descriptors_count;
+    }
+
    /**
     Create lookup table
     */
+    /*
     int total_max_bindings = 0;
     for (int i = 0; i < _bs_instance_->bind_sets_count; i++)
         total_max_bindings += _bs_instance_->bind_sets[i].max_binding + 1;
@@ -633,6 +691,7 @@ BSAPI void _bs_loadBindings() {
         binding_lookup_offset += (bind_set->max_binding + 1) * sizeof(int);
     }
 
+    */
     _bs_pushDescriptorPools();
 
     return BS_RESULT_OK;
@@ -710,7 +769,7 @@ BSAPI bs_Result _bs_shader(int package_id, const char* name, bs_U32 flags, bs_Re
         return BS_RESULT_NOT_SUPPORTED;
     }
 
-    size_t attributes_size = header->attributes_count * sizeof(bs_Attribute);
+    size_t attributes_size = header->attributes_count * sizeof(bs_BshaAttribute);
     size_t spirv_offset = sizeof(bs_BshaHeader) + attributes_size;
 
     bs_Shader shader = {

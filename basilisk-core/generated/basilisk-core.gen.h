@@ -3178,10 +3178,10 @@ struct bs_Instance {
     bool descriptor_pool_needs_update;
     bool alive;
     bs_vec2 screen_cursor;
-    struct {
-        int* bindings;
-        int bind_set;
-    }* descriptor_lookup;
+    //struct {
+    //    int* bindings;
+    //    int bind_set;
+    //}* descriptor_lookup;
     struct {
         bs_SurfaceType surface_type;
     } extensions;
@@ -8560,12 +8560,10 @@ bs_rayTracingPipeline(
     bs_Pipeline** out);
 
  /**
-  @param package_id
   @return void
   */
 BSAPI void
-bs_loadBindings(
-    int package_id);
+bs_loadBindings();
 
  /**
   @param bind_set_slot

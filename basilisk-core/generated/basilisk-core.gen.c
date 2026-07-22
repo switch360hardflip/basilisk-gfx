@@ -3794,10 +3794,9 @@ bs_Result bs_rayTracingPipeline(
     return next.bs_rayTracingPipeline(pipeline_hash, out);
 }
 
-void bs_loadBindings(
-    int package_id)
+void bs_loadBindings()
 {
-    next.bs_loadBindings(package_id);
+    next.bs_loadBindings();
 }
 
 bs_Result bs_binding(

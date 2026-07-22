@@ -3948,7 +3948,6 @@
         </function>
         <function name="bs_loadBindings">
             <return>void</return>
-            <param><type>int</type><name>package_id</name></param>
         </function>
         <function name="bs_binding">
             <return>bs_Result</return>

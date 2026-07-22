@@ -110,7 +110,8 @@ BSAPI bs_Json _bs_emptyJsonArray() {
 }
 
 BSAPI bs_Result _bs_json(char* raw, int len, bs_Json* out_json) {
-	yyjson_doc* doc = yyjson_read(raw, len, 0);
+	yyjson_read_err err;
+	yyjson_doc* doc = yyjson_read_opts(raw, len, 0, NULL, &err);
 
 	bs_Json json = {
 		.doc = doc,
@@ -118,7 +119,7 @@ BSAPI bs_Result _bs_json(char* raw, int len, bs_Json* out_json) {
 	};
 
 	if (!json.doc) {
-		_bs_warn(BS_CONSTANT_STRING("Failed to parse JSON\n"));
+		BS_WARN_YYJSON_ERROR("yyjson_read_opts", err.code, "%s", err.msg);
 		return BS_RESULT_FAILED_TO_PARSE;
 	}
 

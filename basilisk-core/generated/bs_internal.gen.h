@@ -441,7 +441,7 @@ typedef bs_Result(__stdcall* PFN_bs_pipeline)(bs_PipelineHash* descriptor, bs_Pi
 typedef void(__stdcall* PFN_bs_destroyPipeline)(bs_Pipeline* pipeline);
 typedef void(__stdcall* PFN_bs_pushConstant)(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 size, void* data);
 typedef bs_Result(__stdcall* PFN_bs_rayTracingPipeline)(bs_RayTracePipelineHash* pipeline_hash, bs_Pipeline** out);
-typedef void(__stdcall* PFN_bs_loadBindings)(int package_id);
+typedef void(__stdcall* PFN_bs_loadBindings)();
 typedef bs_Result(__stdcall* PFN_bs_binding)(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Descriptor* descriptors, int descriptors_count);
 typedef bs_Result(__stdcall* PFN_bs_bindImage)(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Image* image, bs_Sampler* sampler, bs_ImageLayout layout);
 typedef bs_Result(__stdcall* PFN_bs_bindImages)(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_ImageDescriptor* images, int images_count);
@@ -1433,7 +1433,7 @@ BSAPI bs_Result _bs_pipeline(bs_PipelineHash* descriptor, bs_Pipeline** out);
 BSAPI void _bs_destroyPipeline(bs_Pipeline* pipeline);
 BSAPI void _bs_pushConstant(bs_Pipeline* pipeline, bs_U32 offset, bs_U32 size, void* data);
 BSAPI bs_Result _bs_rayTracingPipeline(bs_RayTracePipelineHash* pipeline_hash, bs_Pipeline** out);
-BSAPI void _bs_loadBindings(int package_id);
+BSAPI void _bs_loadBindings();
 BSAPI bs_Result _bs_binding(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Descriptor* descriptors, int descriptors_count);
 BSAPI bs_Result _bs_bindImage(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Image* image, bs_Sampler* sampler, bs_ImageLayout layout);
 BSAPI bs_Result _bs_bindImages(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_ImageDescriptor* images, int images_count);

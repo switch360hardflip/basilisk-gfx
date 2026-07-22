@@ -561,8 +561,8 @@ BSAPI bs_Result _bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs
    /**
     Staging buffer
     */
-    bs_Buffer* staging_buffer = BS_BUFFER(-1, 0, 0)->buffer;
-    result = _bs_buffer(staging_buffer, size,
+    bs_Object* staging_buffer_object = BS_BUFFER(-1, 0, 0);
+    result = _bs_buffer(staging_buffer_object, size,
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         0);
@@ -572,10 +572,14 @@ BSAPI bs_Result _bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs
         return result;
     }
 
-    result = _bs_mapBuffer(staging_buffer, size);
+    result = _bs_mapBuffer(staging_buffer_object->buffer, size);
+    if (result != BS_RESULT_OK) {
+        _bs_destroyImage(image);
+        return result;
+    }
 
-    _bs_stageImage(staging_buffer, format, image->dim, image_data);
-    _bs_unmapBuffer(staging_buffer);
+    _bs_stageImage(staging_buffer_object->buffer, format, image->dim, image_data);
+    _bs_unmapBuffer(staging_buffer_object->buffer);
 
    /**
     Create image
@@ -588,7 +592,7 @@ BSAPI bs_Result _bs_bitmapImage(bs_Object* object, unsigned char* image_data, bs
         VK_IMAGE_ASPECT_COLOR_BIT);
 
     _bs_transition(object->image, 0, BS_IMAGE_LAYOUT_UNDEFINED, BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    _bs_copyBufferToImage(staging_buffer, object->image, 0, BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    _bs_copyBufferToImage(staging_buffer_object->buffer, object->image, 0, BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     _bs_transition(object->image, 0, BS_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, BS_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
    // _bs_destroyBuffer(staging_buffer); // queue this or sum shit idk how to deal with this

@@ -376,7 +376,7 @@ BSAPI void _bs_load(
             return;
         }
 
-        _bs_instance_->single_times_queue;
+        _bs_instance_->single_times_queue = object->queue;
     }
     _bs_scope_.queue = _bs_instance_->single_times_queue;
 

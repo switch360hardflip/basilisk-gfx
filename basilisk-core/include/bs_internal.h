@@ -65,7 +65,7 @@ extern struct bs_Procs {
     }
 
 #define BS_WARN_VULKAN_ERROR(function, code, format, ...)            \
-    bs_warnF("%s at %s:%d: %s failed" __VA_OPT__(", ") format " (Vulkan result %d\n", __func__, __FILE__, __LINE__, function __VA_OPT__(,) __VA_ARGS__, code)
+    bs_warnF("%s at %s:%d: %s failed" __VA_OPT__(", ") format " (Vulkan result %d)\n", __func__, __FILE__, __LINE__, function __VA_OPT__(,) __VA_ARGS__, code)
 
 #define BS_CRITICAL_VULKAN_ERROR(function, code, format, ...)        \
     bs_warnF("%s at %s:%d: %s failed" __VA_OPT__(", ") format " (Vulkan result %d)\n", __func__, __FILE__, __LINE__, function __VA_OPT__(,) __VA_ARGS__, code)
@@ -79,5 +79,7 @@ extern struct bs_Procs {
 #define BS_WARN_UNSUPPORTED_VERSION(resource_type, path)             \
     bs_warnF("%s at %s:%d: Unsupported version for %s \"%s\"\n", __func__, __FILE__, __LINE__, resource_type, path)
 
+#define BS_WARN_YYJSON_ERROR(function, code, format, ...)            \
+    bs_warnF("%s at %s:%d: %s failed" __VA_OPT__(", ") format " (yyjson result %d)\n", __func__, __FILE__, __LINE__, function __VA_OPT__(, ) __VA_ARGS__, code)
 
 #endif

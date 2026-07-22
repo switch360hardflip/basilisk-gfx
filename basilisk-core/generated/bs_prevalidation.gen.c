@@ -2132,8 +2132,8 @@ BSAPI bs_Result _preval_bs_rayTracingPipeline(bs_RayTracePipelineHash* pipeline_
     return next.bs_rayTracingPipeline(pipeline_hash, out);
 }
 
-BSAPI void _preval_bs_loadBindings(int package_id) {
-    next.bs_loadBindings(package_id);
+BSAPI void _preval_bs_loadBindings() {
+    next.bs_loadBindings();
 }
 
 BSAPI bs_Result _preval_bs_binding(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Descriptor* descriptors, int descriptors_count) {

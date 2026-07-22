@@ -5,7 +5,7 @@
         "package": "content/bsgfx",
         "prefix": "",
         "callOnce": false,
-        "lastModified": "2026-07-22 18:53:11",
+        "lastModified": "2026-07-22 21:57:23",
         "entries": [
             "project/basilisk-gfx/shaders/bsgfx.glsl",
             "project/basilisk-gfx/shaders/bsgfx_atlas.glsl",
@@ -83,6 +83,34 @@
             "project/basilisk-gfx/shaders/vert/vs_bsgfx_volume.vert",
             "project/basilisk-gfx/shaders/vert/vs_bsgfx_volume_isolated.vert",
             "project/basilisk-gfx/shaders/vert/vs_bsgfx_volume_mesh_instanced.vert"
+        ]
+    },
+    {
+        "path": "project/basilisk-mod/atlas/ui",
+        "function": "bsmod_onPackAtlas",
+        "package": "content/bsmod",
+        "prefix": "",
+        "callOnce": true,
+        "lastModified": "2026-07-22 19:14:10",
+        "entries": [
+            "project/basilisk-mod/atlas/ui/circle.png",
+            "project/basilisk-mod/atlas/ui/expand.png",
+            "project/basilisk-mod/atlas/ui/folder.png",
+            "project/basilisk-mod/atlas/ui/grid_hover.png",
+            "project/basilisk-mod/atlas/ui/increment.png",
+            "project/basilisk-mod/atlas/ui/instance.png",
+            "project/basilisk-mod/atlas/ui/light.png",
+            "project/basilisk-mod/atlas/ui/light_add.png",
+            "project/basilisk-mod/atlas/ui/material.png",
+            "project/basilisk-mod/atlas/ui/minimize.png",
+            "project/basilisk-mod/atlas/ui/prohibition.png",
+            "project/basilisk-mod/atlas/ui/scrollbar_button.png",
+            "project/basilisk-mod/atlas/ui/sun.png",
+            "project/basilisk-mod/atlas/ui/sun_add.png",
+            "project/basilisk-mod/atlas/ui/title_bar_close.png",
+            "project/basilisk-mod/atlas/ui/title_bar_maximize.png",
+            "project/basilisk-mod/atlas/ui/title_bar_minimize.png",
+            "project/basilisk-mod/atlas/ui/white.png"
         ]
     }
 ]

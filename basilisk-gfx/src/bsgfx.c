@@ -137,8 +137,6 @@ static void _bsgfx_resize() {
 
 void _bsgfx_tickMaterials();
 static void _bsgfx_tick() {
-    if (_bsgfx_callbacks_.tick)
-        _bsgfx_callbacks_.tick();
     return;
     _poser_->menu_blocked = false;
 
@@ -330,12 +328,16 @@ BSGFXAPI void _bsgfx_ini(const char* name, bs_U32 width, bs_U32 height, int argc
 */
 
     bs_iniAudio();
-   // bs_loadBindings(_bsgfx_package_, "bindings");
 
    // bs_pause();
 
     if (_bsgfx_callbacks_.ini)
         _bsgfx_callbacks_.ini();
+
+    bs_loadBindings();
+
+    if (_bsgfx_callbacks_.lateIni)
+        _bsgfx_callbacks_.lateIni();
 
     bs_tick(_bsgfx_tick, _bsgfx_fixedTick);// TODO
 

@@ -880,6 +880,7 @@ struct bsgfx_Callbacks {
     PFN_void fixedTick;
     PFN_void render;
     PFN_void ini;
+    PFN_void lateIni;
     PFN_void loadScene;
 };
 
