@@ -91,7 +91,18 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:template match="serializableEnum" mode="enum">
         <enum name="bs_{@name}">
             <xsl:copy-of select="line"/>
+			<xsl:if test="@count and not(@count = '')">
+				<line><name><xsl:value-of select="@count"/></name><value><xsl:value-of select="count(line)"/></value></line>
+			</xsl:if>
         </enum>
+					
+		<xsl:if test="@index = 'true'">
+			<enum name="bs_{@name}Index">
+				<xsl:for-each select="line">
+					<line><name><xsl:value-of select="name"/>_INDEX</name><value><xsl:value-of select="position() - 1"/></value></line>
+				</xsl:for-each>
+			</enum>
+		</xsl:if>
     </xsl:template>
 
     <xsl:template match="serializableEnum" mode="function">
@@ -100,7 +111,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
             <param><type>bs_<xsl:value-of select="@name"/></type><name>e</name></param>
             <body>
                 <xsl:choose>
-                    <xsl:when test="@count">
+                    <xsl:when test="@count = 'true'">
                         <xsl:text>    static const char*</xsl:text>
                         <xsl:text> values[</xsl:text>
                         <xsl:value-of select="@count"/>
@@ -135,9 +146,10 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
             </body>
         </function>
+		
         <xsl:if test="@deserialize = 'true'">
-            <function name="bs_deserialize{@name}">
-                <return>bs_<xsl:value-of select="@name"/></return>
+            <function name="{/registry/functionPrefix}deserialize{@name}">
+                <return><xsl:value-of select="/registry/functionPrefix"/><xsl:value-of select="@name"/></return>
                 <param><type>const char*</type><name>value</name></param>
                 <body>
                     <xsl:text>    </xsl:text>
@@ -156,6 +168,32 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                 </body>
             </function>
         </xsl:if>
+
+		<xsl:if test="@index = 'true'">
+			<function name="{/registry/functionPrefix}index{@name}">
+				<return>
+					<xsl:value-of select="/registry/functionPrefix"/>
+					<xsl:value-of select="@name"/>
+				</return>
+				<param>
+					<type>int</type>
+					<name>index</name>
+				</param>
+				<body>
+					<xsl:text>    static </xsl:text>
+					<xsl:value-of select="/registry/functionPrefix"/>
+					<xsl:value-of select="@name"/>
+					<xsl:text> table[] = {</xsl:text>
+					
+					<xsl:for-each select="line">
+						<xsl:text>&#xA;        </xsl:text>
+						<xsl:value-of select="name"/>
+						<xsl:text>,</xsl:text>
+					</xsl:for-each>
+					<xsl:text>&#xA;    };&#xA;&#xA;    return table[index];</xsl:text>
+				</body>
+			</function>
+		</xsl:if>
     </xsl:template>
     
     <xsl:template match="matrixTemplate">

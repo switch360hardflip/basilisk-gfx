@@ -25,8 +25,8 @@
         <xsl:text>&#xA;</xsl:text>
         <xsl:apply-templates select="registry/macros/*"/>
         <xsl:apply-templates select="registry/typedefs/*"/>
-        <xsl:apply-templates select="registry/structures/*" mode="definition"/>
-        <xsl:apply-templates select="registry/enums/enum" mode="definition"/>
+		<xsl:apply-templates select="registry/enums/enum" mode="definition"/>
+		<xsl:apply-templates select="registry/structures/*" mode="definition"/>
         <xsl:apply-templates select="registry/functions/*"/>
         <xsl:apply-templates select="registry/externs/*"/>
 

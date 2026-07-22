@@ -1204,7 +1204,7 @@ BSAPI bs_I64 _bs_toLong(const char* str) {
 
     if (str == o) {
         BS_WARN_ERRNO_PATH("strtol", str);
-        return 0;
+        return BS_I64_MAX;
     }
 
     return v;
@@ -1216,12 +1216,12 @@ BSAPI bs_U64 _bs_toULong(const char* str) {
 
     if (v < 0) {
         _bs_warnF("Expected unsigned value for \"%s\"\n", str);
-        return 0;
+        return BS_U64_MAX;
     }
 
     if (str == o) {
-        _bs_warnF("Failed to convert \"%s\" to ULong\n", str);
-        return 0;
+        BS_WARN_ERRNO_PATH("strtol", str);
+        return BS_U64_MAX;
     }
 
     return v;
@@ -1232,8 +1232,8 @@ BSAPI bs_F64 _bs_toDouble(const char *str) {
     bs_F64 v = strtod(str, &o);
 
     if (str == o) {
-        _bs_warnF("Failed to convert \"%s\" to Double\n", str);
-        return 0.0;
+        BS_WARN_ERRNO_PATH("strtod", str);
+        return 0.0; // TODO
     }
 
     return v;

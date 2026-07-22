@@ -843,7 +843,7 @@ BSAPI bs_Result _bs_loadImage(bs_Object* object, int package_id, bs_ImageBits fl
         return result;
 
     bs_BiffHeader* header = resource->data->value;
-    if (header->magic != 0x66666962) {
+    if (header->magic != BS_BIFF_MAGIC) {
         _bs_destroyResource(resource);
         return BS_RESULT_CORRUPTED;
     }
@@ -1034,7 +1034,7 @@ BSAPI bs_Result _bs_loadAtlasMemory(bs_Object* object, int package_id, char* res
     _bs_destroyAtlas(object->atlas);
 
     bs_BatlHeader* header = data;
-    if (header->magic != 0x6C746162) {
+    if (header->magic != BS_BATL_MAGIC) {
         _bs_warnF("Atlas resource \"%s\" is corrupted, invalid magic number\n", resource_name);
         return BS_RESULT_CORRUPTED;
     }

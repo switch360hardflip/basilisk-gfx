@@ -202,7 +202,7 @@
 		<enum name="bs_BlendFactor" copyFrom="VkBlendFactor"/>
 		<enum name="bs_BlendOperationType" copyFrom="VkBlendOp"/>
 		<enum name="bs_CompareOp" copyFrom="VkCompareOp"/>
-		<serializableEnum name="BindType" deserialize="true" copyFrom="VkDescriptorType"/>
+		<serializableEnum name="BindType" deserialize="true" index="true" count="BS_DESCRIPTOR_TYPES_COUNT" copyFrom="VkDescriptorType"/>
 		<enum name="bs_TopologyType" copyFrom="VkPrimitiveTopology"/>
 		<enum name="bs_PolygonType" copyFrom="VkPolygonMode"/>
 		<enum name="bs_StoreOp" copyFrom="VkAttachmentStoreOp"/>
@@ -368,8 +368,12 @@
             <line>3.402823466e+38F</line>
         </macro>
 
-        <macro><name>#define BSMOD_BSHA_MAGIC</name><line>0x61687362</line></macro>
-        <macro><name>#define BSMOD_BBND_MAGIC</name><line>0x646E6262</line></macro>
+        <macro><name>#define BS_BPAK_MAGIC</name><line>0x6B617062</line></macro>
+		
+        <macro><name>#define BS_BSHA_MAGIC</name><line>0x61687362</line></macro>
+        <macro><name>#define BS_BBND_MAGIC</name><line>0x646E6262</line></macro>
+        <macro><name>#define BS_BATL_MAGIC</name><line>0x6C746162</line></macro>
+        <macro><name>#define BS_BIFF_MAGIC</name><line>0x66666962</line></macro>
 		
         <macro><name>#define BS_CONSTANT_STRING(s)</name><line>s, sizeof(s) - 1</line></macro>
 
@@ -1140,21 +1144,32 @@
         </structure>
         <structure name="bs_ResourceHeaderData">
             <field><type>bs_U64</type><name>name_hash</name></field>
-            <field><type>int</type><name>chunk</name></field>
-            <field><type>int</type><name>offset</name></field>
-            <field><type>int</type><name>size</name></field>
-            <field><type>int</type><name>name_length</name></field>
+            <field><type>bs_I32</type><name>chunk</name></field>
+            <field><type>bs_I32</type><name>offset</name></field>
+            <field><type>bs_I32</type><name>size</name></field>
+            <field><type>bs_I32</type><name>name_length</name></field>
+            <field><type>bs_I32</type><name>type</name></field>
+            <field><type>bs_I32</type><name>reserved</name></field>
         </structure>
         <structure name="bs_ResourceHeader">
             <field><type>bs_ResourceHeaderData</type><name>header</name></field>
             <field><type>char*</type><name>name</name></field>
             <field><type>bs_Resource*</type><name>resource</name></field>
         </structure>
+		<structure name="bs_PackageHeader">
+            <field><type>bs_U32</type><name>magic</name></field>
+            <field><type>bs_I32</type><name>resources_count</name></field>
+            <field><type>bs_I32</type><name>resource_types_count</name></field>
+            <field><type>bs_I32</type><name>reserved</name></field>
+            <field><type>bs_Range</type><name>resource_type_offsets</name><size>BS_RESOURCE_TYPE_COUNT</size></field>
+        </structure>
         <structure name="bs_Package">
             <field><type>bs_U64</type><name>path_hash</name></field>
             <field><type>char*</type><name>path</name></field>
-            <field><type>bs_List</type><name>resource_headers</name></field>
+            <field><type>int</type><name>resource_headers_count</name></field>
+            <field><type>bs_ResourceHeader*</type><name>resource_headers</name></field>
             <field><type>bs_String*</type><name>raw</name></field>
+            <field><type>bs_Range</type><name>resource_type_offsets</name><size>BS_RESOURCE_TYPE_COUNT</size></field>
         </structure>
         <structure name="bs_BlitOperation">
             <field><type>bs_Image*</type><name>source</name></field>
@@ -1213,11 +1228,11 @@
             <field><type>bs_U32</type><name>size</name></field>
             <field><type>bs_U32</type><name>descriptors_count</name></field>
             <field><type>bs_BindType</type><name>type</name></field>
+            <field><type>bs_BindTypeIndex</type><name>type_index</name></field>
+            <field><type>bs_U32</type><name>shader_stages</name></field>
             <field><type>bs_U32</type><name>reserved_0</name></field>
             <field><type>bs_U32</type><name>reserved_1</name></field>
             <field><type>bs_U32</type><name>reserved_2</name></field>
-            <field><type>bs_U32</type><name>reserved_3</name></field>
-            <field><type>bs_U32</type><name>reserved_4</name></field>
         </structure>
         <structure name="bs_BiffHeader">
             <field><type>bs_U32</type><name>magic</name></field>
@@ -1347,7 +1362,6 @@
             <field><type>bs_Format</type><name>base_format</name></field>
         </structure>
         <structure name="bs_Attribute">
-            <field><type>char*</type><name>name</name></field>
             <field><type>bs_U64</type><name>name_hash</name></field>
             <field><type>bs_U32</type><name>location</name></field>
             <field><type>bs_U32</type><name>size</name></field>
@@ -1355,7 +1369,6 @@
             <field><type>bs_U32</type><name>offset</name></field>
         </structure>
         <structure name="bs_Shader">
-            <field><type>bs_Header</type><name>head</name></field>
             <field><type>bs_ShaderType</type><name>type</name></field>
             <field><type>bs_PipelineType</type><name>pipeline_type</name></field>
             <field><type>bs_SlotBits</type><name>bind_sets</name></field>
@@ -1830,8 +1843,8 @@
             <field><type>int</type><name>descriptors_count</name></field>
             <field><type>bool</type><name>in_use</name></field>
             <field><type>bs_BindType</type><name>type</name></field>
+            <field><type>bs_BindTypeIndex</type><name>type_index</name></field>
             <field><type>int</type><name>size</name></field>
-            <field><type>char*</type><name>name</name></field>
         </structure>
         <structure name="bs_BindSet">
             <field><type>bs_U32</type><name>slot</name></field>
@@ -3847,9 +3860,8 @@
             <param><type>bs_Resource**</type><name>out</name></param>
         </function>
         <function name="bs_queryPackage">
-            <return>bs_Result</return>
+            <return>int</return>
             <param><type>const char*</type><name>name</name></param>
-            <param><type>int*</type><name>out</name></param>
         </function>
         <variadicStringTemplate name="bs_loadResource">
             <return>bs_Result</return>
@@ -3937,7 +3949,6 @@
         <function name="bs_loadBindings">
             <return>void</return>
             <param><type>int</type><name>package_id</name></param>
-            <param><type>const char*</type><name>path</name></param>
         </function>
         <function name="bs_binding">
             <return>bs_Result</return>

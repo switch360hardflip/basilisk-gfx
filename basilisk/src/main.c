@@ -7,6 +7,8 @@
 volatile long has_performed_tracked_changes = 1;
 
 static void basilisk_loadScene() {
+	int package_id = bs_queryPackage("content/bsgfx");
+	bs_loadBindings(package_id);
 
 }
 
@@ -29,6 +31,7 @@ static void basilisk_ini() {
 	bsmod_onIni();
 
 	bsmod_onTrack();
+	bsmod_savePackage(BSGFX_CONTENT_PATH);
 	CreateThread(NULL, 0, _bsmod_tickAsync, NULL, 0, NULL);
 
 	bsgfx_loadScene("engine");

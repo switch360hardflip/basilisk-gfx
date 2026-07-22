@@ -84,7 +84,7 @@ BSMODAPI bs_Result _bsmod_packShader(spvc_compiler compiler, spvc_resources reso
 	bs_Result result;
 
 	bs_BshaHeader header = {
-		.magic = BSMOD_BSHA_MAGIC,
+		.magic = BS_BSHA_MAGIC,
 		.version = 1,
 		.push_constant_size = _bsmod_readPushConstantSize(compiler, resources),
 		.shader_type = shader_type,
@@ -149,34 +149,37 @@ BSMODAPI bs_Result _bsmod_packShader(spvc_compiler compiler, spvc_resources reso
    * Binding Format
    *============================================================================*/
 
-static bs_BindType bsmod_convertBindType(spvc_resource_type type) {
+static bs_BindTypeIndex bsmod_convertBindType(spvc_resource_type type) {
 	switch (type) {
-	case SPVC_RESOURCE_TYPE_STORAGE_BUFFER: return BS_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER: return BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	case SPVC_RESOURCE_TYPE_SEPARATE_IMAGE: return BS_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-	case SPVC_RESOURCE_TYPE_SUBPASS_INPUT: return BS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	case SPVC_RESOURCE_TYPE_SEPARATE_SAMPLERS: return BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE: return BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-//	case SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE: return BS_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE;
-	case SPVC_RESOURCE_TYPE_STORAGE_IMAGE: return BS_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+	case SPVC_RESOURCE_TYPE_STORAGE_BUFFER: return BS_DESCRIPTOR_TYPE_STORAGE_BUFFER_INDEX;
+	case SPVC_RESOURCE_TYPE_UNIFORM_BUFFER: return BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_INDEX;
+	case SPVC_RESOURCE_TYPE_SEPARATE_IMAGE: return BS_DESCRIPTOR_TYPE_SAMPLED_IMAGE_INDEX;
+	case SPVC_RESOURCE_TYPE_SUBPASS_INPUT: return BS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT_INDEX;
+	case SPVC_RESOURCE_TYPE_SEPARATE_SAMPLERS: return BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER_INDEX;
+	case SPVC_RESOURCE_TYPE_SAMPLED_IMAGE: return BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER_INDEX;
+//	case SPVC_RESOURCE_TYPE_ACCELERATION_STRUCTURE: return BS_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_INDEX;
+	case SPVC_RESOURCE_TYPE_STORAGE_IMAGE: return BS_DESCRIPTOR_TYPE_STORAGE_IMAGE_INDEX;
 	default:
 		bs_warnF("SPVC buffer type (%d) not supported\n", type);
 		return SPVC_RESOURCE_TYPE_UNKNOWN;
 	}
 }
 
-static bs_Result _bsmod_packBinding(spvc_compiler compiler, spvc_reflected_resource* resource, bsmod_Package* package) {
+static bs_Result _bsmod_packBinding(spvc_compiler compiler, spvc_reflected_resource* resource, bsmod_Package* package, bs_BindTypeIndex bind_type_index, bs_ShaderType shader_type) {
 	bs_Result bs_result;
 	spvc_result result;
 
-	// bsmod_Resource* existing = _bsmod_queryResource(package, resource);
-	
+	bsmod_Resource* existing = _bsmod_queryResource(package, resource);
+
 	bs_BbndHeader header = {
-		.magic = BSMOD_BBND_MAGIC,
+		.magic = BS_BBND_MAGIC,
 		.version = 1,
 		.set = spvc_compiler_get_decoration(compiler, resource->id, SpvDecorationDescriptorSet),
 		.point = spvc_compiler_get_decoration(compiler, resource->id, SpvDecorationBinding),
 		.descriptors_count = 1,
+		.type = bs_indexBindType(bind_type_index),
+		.type_index = bind_type_index,
+		.shader_stages = shader_type,
 	};
 
 	const size_t total_size_excluding_binary = sizeof(bs_BbndHeader);
@@ -187,6 +190,18 @@ static bs_Result _bsmod_packBinding(spvc_compiler compiler, spvc_reflected_resou
 	int len = snprintf(NULL, 0, "_bbnd/%d/%d", header.set, header.point);
 	char* name = bs_alloca(len + 1);
 	snprintf(name, len + 1, "_bbnd/%d/%d", header.set, header.point);
+
+	if (existing) {
+		bsmod_Chunk* chunk = bs_fetchUnit(&package->chunks, existing->header.chunk);
+		bs_BbndHeader* existing_header = chunk->bin.data;
+
+		if (existing_header->magic == BS_BBND_MAGIC) {
+			header.shader_stages |= existing_header->shader_stages;
+		}
+		else {
+			bs_warnF("Found existing binding \"%s\" with invalid magic, overwriting.\n", name);
+		}
+	}
 
 	spvc_type spirv_type = spvc_compiler_get_type_handle(compiler, resource->type_id);
 
@@ -199,7 +214,6 @@ static bs_Result _bsmod_packBinding(spvc_compiler compiler, spvc_reflected_resou
 	result = spvc_compiler_get_declared_struct_size(compiler, spirv_type, &struct_size);
 	if (result != SPVC_SUCCESS) {
 		BSMOD_WARN_SPVC_ERROR("spvc_compiler_get_declared_struct_size", result,);
-	//	return BS_RESULT_GENERAL_ERROR;
 	}
 
 	//.type = bs_serializeBindType(type),
@@ -442,7 +456,7 @@ static bool _bsmod_queryShaderType(char* path, glslang_stage_t* out_stage, bs_Sh
 	return BS_RESULT_OK;
 }
 
-static void _bsmod_packBindings(spvc_compiler compiler, spvc_resources resources, bsmod_Package* package, spvc_resource_type type) {
+static void _bsmod_packBindings(spvc_compiler compiler, spvc_resources resources, bsmod_Package* package, spvc_resource_type type, bs_ShaderType shader_type) {
 	spvc_result result;
 
 	size_t bindings_count = 0;
@@ -454,10 +468,11 @@ static void _bsmod_packBindings(spvc_compiler compiler, spvc_resources resources
 		return BS_RESULT_GENERAL_ERROR;
 	}
 
+	bs_BindTypeIndex bind_type = bsmod_convertBindType(type);
 	for (int i = 0; i < bindings_count; i++) {
 		spvc_reflected_resource* resource = resource_list + i;
-
-		_bsmod_packBinding(compiler, resource, package);
+		
+		_bsmod_packBinding(compiler, resource, package, bind_type, shader_type);
 	}
 }
 
@@ -574,7 +589,7 @@ BSMODAPI bs_Result _bsmod_compileShader(char* path, char* name, char* package_na
 	size_t resource_types_count = sizeof(resource_types) / sizeof(*resource_types);
 
 	for (int i = 0; i < resource_types_count; i++) {
-		_bsmod_packBindings(compiler, resources, package, resource_types[i]);
+		_bsmod_packBindings(compiler, resources, package, resource_types[i], type);
 	}
 
 	//result = _bsmod_packBinding();

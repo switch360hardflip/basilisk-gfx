@@ -3647,11 +3647,10 @@ bs_Result bs_queryResource(
     return next.bs_queryResource(package_id, name, out);
 }
 
-bs_Result bs_queryPackage(
-    const char* name, 
-    int* out)
+int bs_queryPackage(
+    const char* name)
 {
-    return next.bs_queryPackage(name, out);
+    return next.bs_queryPackage(name);
 }
 
 bs_Result bs_loadResource(
@@ -3796,10 +3795,9 @@ bs_Result bs_rayTracingPipeline(
 }
 
 void bs_loadBindings(
-    int package_id, 
-    const char* path)
+    int package_id)
 {
-    next.bs_loadBindings(package_id, path);
+    next.bs_loadBindings(package_id);
 }
 
 bs_Result bs_binding(
@@ -4784,6 +4782,26 @@ bs_BindType bs_deserializeBindType(
 
     bs_warnF("Failed to deserialize enum value \"%s\"\n", value);
     return 0;
+}
+
+bs_BindType bs_indexBindType(
+    int index)
+{
+    static bs_BindType table[] = {
+        BS_DESCRIPTOR_TYPE_SAMPLER,
+        BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        BS_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+        BS_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        BS_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,
+        BS_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,
+        BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        BS_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+        BS_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,
+        BS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+    };
+
+    return table[index];
 }
 
 const char* bs_serializeVkObjectType(

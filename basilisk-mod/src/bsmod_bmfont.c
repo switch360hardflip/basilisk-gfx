@@ -170,7 +170,7 @@ BSMODAPI bs_Result _bsmod_packBMFont(char* package_name, char* bmfont_path, char
     */
     bs_BatlHeader* batl_header = offset;
     *batl_header = (bs_BatlHeader) {
-        .magic = 0x6C746162,
+        .magic = BS_BATL_MAGIC,
         .version = 1,
         .binary_offset = batl_size,
         .width = width,

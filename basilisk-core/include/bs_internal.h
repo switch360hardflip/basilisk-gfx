@@ -73,5 +73,11 @@ extern struct bs_Procs {
 #define BS_VALIDATE_OBJECT_TYPE(object, source_id, _return)          \
     BS_VALIDATE(((bs_ObjectSource*)bs_fetchUnit(bs_objectSources(), source_id))->type == source_id, _return,,)
 
+#define BS_WARN_INVALID_MAGIC(resource_type, path)                   \
+    bs_warnF("%s at %s:%d: Invalid magic for %s \"%s\"\n", __func__, __FILE__, __LINE__, resource_type, path)
+
+#define BS_WARN_UNSUPPORTED_VERSION(resource_type, path)             \
+    bs_warnF("%s at %s:%d: Unsupported version for %s \"%s\"\n", __func__, __FILE__, __LINE__, resource_type, path)
+
 
 #endif

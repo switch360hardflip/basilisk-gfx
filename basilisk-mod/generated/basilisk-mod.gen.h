@@ -120,6 +120,31 @@ enum {                                                               \
 typedef void (__stdcall* PFN_void)();
 typedef const char* (__stdcall* PFN_bsmod_GridMenu)(bs_List* widgets);
 typedef void (__stdcall* PFN_bsmod_GridMenuCallback)(struct bsgfx_DebugMenuWidget*, int);
+enum bsmod_EditType {
+    BSMOD_EDIT_UNDEFINED,
+    BSMOD_EDIT_POSITION,
+    BSMOD_EDIT_ROTATION,
+    BSMOD_EDIT_SCALE,
+};
+
+enum bsmod_DraggingType {
+    BSMOD_DRAGGING_UNDEFINED,
+    BSMOD_DRAGGING_TILE,
+    BSMOD_DRAGGING_ATLAS,
+    BSMOD_DRAGGING_TEXTURE,
+    BSMOD_DRAGGING_PREFAB,
+    BSMOD_DRAGGING_MATERIAL,
+    BSMOD_DRAGGING_PRIMITIVE,
+    BSMOD_DRAGGING_ITEM,
+};
+
+enum bsmod_SideMenuTabId {
+    BSMOD_TAB_INSTANCE,
+    BSMOD_TAB_MATERIAL,
+    BSMOD_TAB_SETTINGS,
+    BSMOD_TABS_COUNT,
+};
+
 struct bsmod_TrackParams {
     char* path;
     char* package;
@@ -182,31 +207,6 @@ struct bsmod_SideMenuTab {
     bsgfx_AtlasCache* (*cache)();
     void (*push_widgets)(bs_List*, bs_vec2);
     void (*on_click)(bsmod_GridClickParams);
-};
-
-enum bsmod_EditType {
-    BSMOD_EDIT_UNDEFINED,
-    BSMOD_EDIT_POSITION,
-    BSMOD_EDIT_ROTATION,
-    BSMOD_EDIT_SCALE,
-};
-
-enum bsmod_DraggingType {
-    BSMOD_DRAGGING_UNDEFINED,
-    BSMOD_DRAGGING_TILE,
-    BSMOD_DRAGGING_ATLAS,
-    BSMOD_DRAGGING_TEXTURE,
-    BSMOD_DRAGGING_PREFAB,
-    BSMOD_DRAGGING_MATERIAL,
-    BSMOD_DRAGGING_PRIMITIVE,
-    BSMOD_DRAGGING_ITEM,
-};
-
-enum bsmod_SideMenuTabId {
-    BSMOD_TAB_INSTANCE,
-    BSMOD_TAB_MATERIAL,
-    BSMOD_TAB_SETTINGS,
-    BSMOD_TABS_COUNT,
 };
 
  /**

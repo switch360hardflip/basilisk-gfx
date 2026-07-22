@@ -83,7 +83,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	</xsl:template>
 
 	<xsl:template match="serializableEnum[@copyFrom]">
-		<serializableEnum name="{@name}" deserialize="{@deserialize}">
+		<serializableEnum name="{@name}" deserialize="{@deserialize}" index="{@index}" count="{@count}">
 			<xsl:variable name="sourceEnum" select="@copyFrom"/>
 			<xsl:apply-templates select="$vk/registry/enums[@name = $sourceEnum]/enum" mode="vk-line"/>
 			<xsl:call-template name="applyEnumExtensions"><xsl:with-param name="sourceEnum" select="$sourceEnum"/></xsl:call-template>

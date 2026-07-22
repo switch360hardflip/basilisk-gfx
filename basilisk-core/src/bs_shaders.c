@@ -58,7 +58,7 @@ static VkDescriptorSetLayout _bs_pushDescriptorLayout(bs_BindSet* bind_set) {
         
         layout_binding->binding = binding->slot;
         layout_binding->descriptorCount = binding->descriptors_count; // == VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE) ? _bs_num_objects.images : 1;
-        layout_binding->descriptorType = _bs_convertBindType(binding->type);
+        layout_binding->descriptorType = (VkDescriptorType)binding->type;
         layout_binding->stageFlags = binding->stages;
     }
 
@@ -123,8 +123,6 @@ static void _bs_pushDescriptorPools() {
 //        _bs_instance->descriptor_pool_needs_update = false;
 //    }
 //    else return;
-    _bs_warnF("Creating descriptor pools\n");
-    /*
     static VkDescriptorPool descriptor_pool = VK_NULL_HANDLE;
     if (descriptor_pool) {
         for (int i = 0; i < BS_MAX_NUM_BIND_SETS; i++) {
@@ -137,8 +135,8 @@ static void _bs_pushDescriptorPools() {
         vkDestroyDescriptorPool(_bs_instance_->device, descriptor_pool, NULL);
     }
 
-    VkDescriptorPoolSize pool_sizes[BS_BIND_TYPES_COUNT] = { 0 };
-    VkDescriptorPoolSize pool_sizes_contiguous[BS_BIND_TYPES_COUNT] = { 0 };
+    VkDescriptorPoolSize pool_sizes[BS_DESCRIPTOR_TYPES_COUNT] = { 0 };
+    VkDescriptorPoolSize pool_sizes_contiguous[BS_DESCRIPTOR_TYPES_COUNT] = { 0 };
     bs_U32 num_pool_sizes = 0;
 
     for(int i = 0; i < _bs_instance_->bind_sets_count; i++) {
@@ -150,15 +148,12 @@ static void _bs_pushDescriptorPools() {
         for(int j = 0; j < bind_set->bindings_count; j++) {
             bs_Binding* binding = bind_set->bindings + j;
 
-            if (binding->type == BS_BIND_TYPE_PUSH_CONSTANT)
-                continue;
-
-            pool_sizes[binding->type].descriptorCount++;
-            pool_sizes[binding->type].type = _bs_convertBindType(binding->type);
+            pool_sizes[binding->type_index].descriptorCount++;
+            pool_sizes[binding->type_index].type = (VkDescriptorType)binding->type;
         }
     }
 
-    for(int i = 0; i < BS_BIND_TYPES_COUNT; i++) {
+    for(int i = 0; i < BS_DESCRIPTOR_TYPES_COUNT; i++) {
         if (pool_sizes[i].descriptorCount == 0) 
             continue;
 
@@ -188,7 +183,6 @@ static void _bs_pushDescriptorPools() {
         bind_set->vk_layout = _bs_pushDescriptorLayout(bind_set);
         bind_set->vk_set    = _bs_pushDescriptorSet(bind_set, bind_set->vk_layout, descriptor_pool);
     }
-    */
 }
 
  /**
@@ -222,9 +216,6 @@ static inline bool _bs_bindIsImageType(bs_BindType type) {
 }
 
 static void _bs_prepareDescriptorTemplate(bs_BindSet* bind_set) {
-    _bs_criticalF("%s: Not implemented", __func__);
-
-    /*
     if (!bind_set->vk_layout)
         return;
 
@@ -239,12 +230,11 @@ static void _bs_prepareDescriptorTemplate(bs_BindSet* bind_set) {
         bs_U32 stride = sizeof(bs_Descriptor);
 
         if (!binding->in_use) continue;
-        if (binding->type == BS_BIND_TYPE_PUSH_CONSTANT) continue;
         
         entries[num_entries++] = (VkDescriptorUpdateTemplateEntry) {
             .dstBinding = binding->slot,
             .descriptorCount = binding->descriptors_count,
-            .descriptorType = _bs_convertBindType(binding->type),
+            .descriptorType = (VkDescriptorType)binding->type,
             .offset = binding->location,
             .stride = stride,
         };
@@ -263,7 +253,6 @@ static void _bs_prepareDescriptorTemplate(bs_BindSet* bind_set) {
     };
 
     vkCreateDescriptorUpdateTemplate(_bs_instance_->device, &ci, NULL, &bind_set->vk_update_template);
-    */
 }
 
 BSAPI void _bs_pushBindings() {
@@ -287,8 +276,8 @@ static inline bs_Result _bs_validateBinding(bs_U32 bind_set_slot, bs_U32 bind_po
     bs_BindSet* bind_set;
     bs_Binding* binding;
 
-    BS_VALIDATE(bind_set = _bs_queryBindSet(bind_set_slot) != NULL, BS_RESULT_VALIDATION_ERROR, );
-    BS_VALIDATE(binding = _bs_queryBinding(bind_set, bind_point_slot) != NULL, BS_RESULT_VALIDATION_ERROR, "Binding (%d, %d) is not used by any shader", bind_set_slot, bind_point_slot);
+    BS_VALIDATE(bind_set = bs_queryBindSet(bind_set_slot) != NULL, BS_RESULT_VALIDATION_ERROR, );
+    BS_VALIDATE(binding = bs_queryBinding(bind_set, bind_point_slot) != NULL, BS_RESULT_VALIDATION_ERROR, "Binding (%d, %d) is not used by any shader", bind_set_slot, bind_point_slot);
 
     if (!binding->in_use) {
         BS_VALIDATE(descriptors_count <= binding->descriptors_count, BS_RESULT_VALIDATION_ERROR, );
@@ -513,9 +502,7 @@ static int _bs_compareBindSets(const bs_BindSet* a, const bs_BindSet* b) {
     return 0;
 }
 
-BSAPI void _bs_loadBindings(int package_id, const char* path) {
-    _bs_criticalF("%s: Not implemented", __func__);
-    /*
+BSAPI void _bs_loadBinding(bs_Binding* binding, int bind_set, int bind_point, int package_id, char* path) {
     bs_Result result;
 
     bs_Resource* resource;
@@ -524,100 +511,105 @@ BSAPI void _bs_loadBindings(int package_id, const char* path) {
         return;
     }
 
-    bs_Json json;
-    result = _bs_json(resource->data->value, resource->data->len, &json);
-    if (result != BS_RESULT_OK) {
-        return;
+    bs_BbndHeader* header = resource->data->value;
+
+    if (header->magic != BS_BBND_MAGIC) {
+        BS_WARN_INVALID_MAGIC("bindings", path);
+        return BS_RESULT_CORRUPTED;
     }
 
-    int bindings_count = _bs_fetchJson(&json, BS_JSON_NUMBER, BS_CONSTANT_STRING("bindingsCount")).as_number;
-    int bind_sets_count = _bs_fetchJson(&json, BS_JSON_NUMBER, BS_CONSTANT_STRING("bindSetsCount")).as_number;
-    int descriptors_count = _bs_fetchJson(&json, BS_JSON_NUMBER, BS_CONSTANT_STRING("descriptorsCount")).as_number;
+    if (header->version != 1) {
+        BS_WARN_UNSUPPORTED_VERSION("bindings", path);
+        return BS_RESULT_NOT_SUPPORTED;
+    }
 
-    const size_t bind_sets_size = bind_sets_count * sizeof(bs_BindSet);
+    binding->descriptors_count = header->descriptors_count;
+    binding->type = header->type;
+    binding->type_index = header->type_index;
+    binding->slot = bind_point;
+    binding->set = bind_set;
+    binding->size = header->size;
+    binding->stages = header->shader_stages;
+}
+
+static void _bs_loadPackageBindings(bs_Package* package, int package_id) {
+    for (int i = 0; i < package->resource_headers_count; i++) {
+        bs_ResourceHeader* resource_header = package->resource_headers + i;
+        if (resource_header->header.type != BS_RESOURCE_BINDING)
+            continue;
+
+        char* bind_set_string = strchr(resource_header->name, '/');
+        if (bind_set_string == NULL) {
+            bs_warnF("Binding \"%s\" has a missing bind set\n", resource_header->name);
+            continue;
+        }
+
+        char* bind_point_string = strchr(bind_set_string + 1, '/');
+        if (bind_point_string == NULL) {
+            bs_warnF("Binding \"%s\" has a missing bind point\n", resource_header->name);
+            continue;
+        }
+
+        bs_U64 bind_set = _bs_toULong(bind_set_string + 1);
+        if (bind_set == BS_U64_MAX) continue;
+
+        bs_U64 bind_point = _bs_toULong(bind_point_string + 1);
+        if (bind_point == BS_U64_MAX) continue;
+
+        bs_Binding* binding = _bs_instance_->bindings + _bs_instance_->bindings_count;
+        _bs_loadBinding(binding, bind_set, bind_point, package_id, resource_header->name);
+
+        _bs_instance_->bind_sets_count = BS_MAX(_bs_instance_->bind_sets_count, bind_set + 1);
+    }
+
+}
+
+BSAPI void _bs_loadBindings() {
+    bs_List* packages = _bs_packages();
+
+   /**
+    Find total bindings count
+    */
+    int bindings_count = 0;
+
+    for (int i = 0; i < packages->count; i++) {
+        bs_Package* package = _bs_fetchUnit(packages, i);
+        bindings_count += package->resource_type_offsets[BS_RESOURCE_BINDING].num;
+    }
+
+   /**
+    Allocate memory
+    */
+    const size_t bind_sets_size = BS_MAX_NUM_BIND_SETS * sizeof(bs_BindSet);
     const size_t bindings_size = bindings_count * sizeof(bs_Binding);
-    const size_t descriptors_size = descriptors_count * sizeof(bs_Descriptor);
+    //  const size_t descriptors_size = header->descriptors_count * sizeof(bs_Descriptor);
 
     _bs_instance_->bind_sets = _bs_realloc(_bs_instance_->bind_sets, bind_sets_size);
     _bs_instance_->bindings = _bs_realloc(_bs_instance_->bindings, bindings_size);
-    _bs_instance_->descriptors = _bs_realloc(_bs_instance_->descriptors, descriptors_size);
+    //  _bs_instance_->descriptors = _bs_realloc(_bs_instance_->descriptors, descriptors_size);
     memset(_bs_instance_->bind_sets, 0, bind_sets_size);
     memset(_bs_instance_->bindings, 0, bindings_size);
-    memset(_bs_instance_->descriptors, 0, descriptors_size);
+    //  memset(_bs_instance_->descriptors, 0, descriptors_size);
     _bs_instance_->descriptor_pool_needs_update = true;
 
-    int binding_offset = 0, descriptor_offset = 0;
-    bs_foreachJson(&json, e) {
-        if (e.value.type != BS_JSON_OBJECT)
-            continue;
-
-        bs_Json root = _bs_jsonRoot(&json, e.value.as_object);
-
-        bs_BindType bind_type = bs_deserializeBindType(_bs_fetchJson(&root, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string);
-        if (bind_type == BS_BIND_TYPE_PUSH_CONSTANT)
-            continue;
-
-        bs_Binding* binding = _bs_instance_->bindings + binding_offset++;
-        *binding = (bs_Binding) {
-            .descriptors_count = _bs_fetchJson(&root, BS_JSON_UNDEFINED, BS_CONSTANT_STRING("count")).as_number,
-            .type = bind_type,
-            .slot = _bs_fetchJson(&root, BS_JSON_NUMBER, BS_CONSTANT_STRING("point")).as_number,
-            .set = _bs_fetchJson(&root, BS_JSON_NUMBER, BS_CONSTANT_STRING("set")).as_number,
-            .name = strdup(e.key),
-            .size = _bs_fetchJson(&root, BS_JSON_NUMBER, BS_CONSTANT_STRING("size")).as_number,
-        };
-
-        bs_JsonValue stages = _bs_fetchJson(&root, BS_JSON_ARRAY, BS_CONSTANT_STRING("stages"));
-        for (int j = 0; j < stages.size; j++)
-            binding->stages |= bs_deserializeShaderType(stages.as_array.as_strings[j]);
-
-        _bs_free(stages.as_array.as_strings);
-    }
-
-    assert(bindings_count == binding_offset);
-
-    qsort(_bs_instance_->bindings, bindings_count, sizeof(bs_Binding), _bs_compareBindings);
-
-    int current_set = -1;
-    _bs_instance_->max_bind_set = 0;
-    for (int i = 0; i < bindings_count; i++) {
-        bs_Binding* binding = _bs_instance_->bindings + i;
-        bs_BindSet* bind_set = _bs_instance_->bind_sets + binding->set;
-
-        assert(binding->set < bind_sets_count);
-
-        if (binding->set != current_set) {
-            current_set = binding->set;
-
-            *bind_set = (bs_BindSet) {
-                .slot = current_set,
-                .bindings = binding,
-                .descriptors = _bs_instance_->descriptors + descriptor_offset,
-            };
-        }
-
-        _bs_instance_->max_bind_set = BS_MAX(_bs_instance_->max_bind_set, bind_set->slot);
-        bind_set->max_binding = BS_MAX(bind_set->max_binding, binding->slot);
-
-        bind_set->bindings_count++;
-        bind_set->descriptors_count += binding->descriptors_count;
-        descriptor_offset += binding->descriptors_count;
-    }
- //   qsort(_bs_instance_->bind_sets, bind_sets_count, sizeof(bs_BindSet), _bs_compareBindSets);
-    assert(descriptors_count == descriptor_offset);
-
-    _bs_instance_->bind_sets_count = bind_sets_count;
-    _bs_instance_->bindings_count = bindings_count;
-    _bs_instance_->descriptors_count = descriptors_count;
-
-    _bs_destroyJson(&json);
-    */
    /**
-    Lookup table
+    Load bindings
     */
-/*
+    for (int i = 0; i < packages->count; i++) {
+        bs_Package* package = _bs_fetchUnit(packages, i);
+        _bs_loadPackageBindings(package, i);
+    }
+
+   /**
+    Sort bindings
+    */
+    qsort(_bs_instance_->bindings, _bs_instance_->bindings_count, sizeof(bs_Binding), _bs_compareBindings);
+    
+   /**
+    Create lookup table
+    */
     int total_max_bindings = 0;
-    for (int i = 0; i < bind_sets_count; i++)
+    for (int i = 0; i < _bs_instance_->bind_sets_count; i++)
         total_max_bindings += _bs_instance_->bind_sets[i].max_binding + 1;
 
     size_t bind_set_lookup_size = (_bs_instance_->max_bind_set + 1) * sizeof(*_bs_instance_->descriptor_lookup);
@@ -627,7 +619,7 @@ BSAPI void _bs_loadBindings(int package_id, const char* path) {
     memset(_bs_instance_->descriptor_lookup, -1, lookup_size);
     unsigned char* binding_lookup_offset = ((unsigned char*)_bs_instance_->descriptor_lookup) + bind_set_lookup_size;
 
-    for (int i = 0; i < bind_sets_count; i++) {
+    for (int i = 0; i < _bs_instance_->bind_sets_count; i++) {
         bs_BindSet* bind_set = _bs_instance_->bind_sets + i;
 
         _bs_instance_->descriptor_lookup[bind_set->slot].bindings = _bs_calloc(bind_set->max_binding + 1, sizeof(int));
@@ -642,7 +634,8 @@ BSAPI void _bs_loadBindings(int package_id, const char* path) {
     }
 
     _bs_pushDescriptorPools();
-    */
+
+    return BS_RESULT_OK;
 }
 
 
@@ -650,44 +643,6 @@ BSAPI void _bs_loadBindings(int package_id, const char* path) {
   /*==============================================================================
    * Shaders
    *============================================================================*/
-
- /**
-  TODO: Rework this, write own shader format instead of using JSON
-  */
-static void _bs_readBuffer(bs_Shader* shader, bs_Json* root, const char* name) {
-    _bs_criticalF("%s: Not implemented", __func__);
-
-    /*
-    bs_JsonValue objects = _bs_fetchJson(root, BS_JSON_UNDEFINED, name, strlen(name));
-
-    if (!objects.found)
-        return;
-
-    for (int i = 0; i < objects.size; i++) {
-        bs_Json object = _bs_jsonRoot(root, objects.as_array.as_objects[i]);
-
-        char* name = _bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string;
-        bs_BindType type = bs_deserializeBindType(_bs_fetchJson(&object, BS_JSON_STRING, BS_CONSTANT_STRING("type")).as_string);
-        int set = _bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("set")).as_number;
-        int point = _bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("point")).as_number;
-
-        if (type == BS_BIND_TYPE_PUSH_CONSTANT) {
-            shader->constant_size = _bs_fetchJson(&object, BS_JSON_NUMBER, BS_CONSTANT_STRING("size")).as_number;
-            continue;
-        }
-
-        shader->bind_sets |= (1 << set);
-
-       // bs_Binding* binding = _bs_queryBinding(_bs_queryBindSet(set), point);
-       // if (binding) {
-       //    // binding->stages |= shader->type;
-       //  //   _bs_pushDescriptorPools();
-       // }
-    }
-
-    _bs_free(objects.as_array.as_objects);
-    */
-}
 
 static inline bs_Format _bs_convertFormatFromBaseType(VkFormat format, bs_U32 size) {
     switch (format) {
@@ -729,132 +684,118 @@ BSAPI void _bs_configureAttribute(const char* name, bs_Format base_format) {
     });
 }
 
-static inline void _bs_readAttributeType(bs_Attribute* result) {
-    for (int i = 0; i < _bs_config_.attributes.count; i++) {
-        bs_AttributeType* config = _bs_fetchUnit(&_bs_config_.attributes, i);
-        if (config->name_hash == result->name_hash) {
-            result->format = _bs_convertFormatFromBaseType((VkFormat)config->base_format, result->size);
-            return;
-        }
-    }
-    
-    _bs_criticalF("Attribute \"%s\" has not been configured, please configure with _bs_configureAttribute(...)\n", result->name);
-}
-
 static int _bs_compareAttributes(const bs_Attribute* a, const bs_Attribute* b) {
     if      (a->location == b->location) return 0;
     else if (a->location <  b->location) return -1;
     else return 1;
 }
 
-static inline void _bs_readAttributes(bs_Shader* shader, bs_Json* root) {
-    bs_JsonValue objects = _bs_fetchJson(root, BS_JSON_ARRAY, BS_CONSTANT_STRING("attributes"));
-    shader->attributes = _bs_calloc(objects.size, sizeof(bs_Attribute));
-    shader->num_attributes = objects.size;
-
-    for (int i = 0; i < objects.size; i++) {
-        bs_Json attribute = _bs_jsonRoot(root, objects.as_array.as_objects[i]);
-        bs_Attribute* result = shader->attributes + i;
-
-        result->name      = strdup(_bs_fetchJson(&attribute, BS_JSON_STRING, BS_CONSTANT_STRING("name")).as_string);
-        result->location  = _bs_fetchJson(&attribute, BS_JSON_NUMBER, BS_CONSTANT_STRING("location")).as_number;
-        result->size      = _bs_fetchJson(&attribute, BS_JSON_NUMBER, BS_CONSTANT_STRING("size")).as_number;
-        result->name_hash = _bs_stringHash(result->name);
-
-        _bs_readAttributeType(result);
-    }
-
-    qsort(shader->attributes, shader->num_attributes, sizeof(bs_Attribute), _bs_compareAttributes);
-
-    for (int i = 0, offset = 0; i < objects.size; i++) {
-        bs_Attribute* result = shader->attributes + i;
-        result->offset = offset;
-        offset += result->size;
-    }
-}
-
 BSAPI bs_Result _bs_shader(int package_id, const char* name, bs_U32 flags, bs_Resource** out) {
-    /*
     bs_Result result;
 
-    bs_Resource* resource = _bs_loadResource(package_id, name, flags);
+    bs_Resource* resource;
+    result = _bs_loadResource(package_id, flags, &resource, name, strlen(name));
+    if (result != BS_RESULT_OK)
+        return result;
 
-    bs_Json metadata;
-    result = _bs_json(resource->data->value, resource->data->len, &metadata);
+    bs_BshaHeader* header = resource->data->value;
 
-    char* base64 = _bs_fetchJson(&metadata, BS_JSON_STRING, "SPIR-V").as_string;
-    char* type = _bs_fetchJson(&metadata, BS_JSON_STRING, "type").as_string;
-
-    bs_U64 code_len = 0;
-    bs_U32* spirv;
-    if (!_bs_decodeBase64(base64, strlen(base64), &code_len, &spirv)) {
-        if (out) *out = NULL;
-        _bs_destroyJson(&metadata);
-        return BS_RESULT_OK;
+    if (header->magic != BS_BSHA_MAGIC) {
+        BS_WARN_INVALID_MAGIC("shader", name);
+        return BS_RESULT_CORRUPTED;
     }
 
+    if (header->version != 1) {
+        BS_WARN_UNSUPPORTED_VERSION("shader", name);
+        return BS_RESULT_NOT_SUPPORTED;
+    }
+
+    size_t attributes_size = header->attributes_count * sizeof(bs_Attribute);
+    size_t spirv_offset = sizeof(bs_BshaHeader) + attributes_size;
+
     bs_Shader shader = {
-        .type = bs_deserializeShaderType(type),
-       // .name = strdup(path),
-        .spirv = spirv,
-        .spirv_length = code_len,
+        .type = header->shader_type,
+        .num_attributes = header->attributes_count,
+        .constant_size = header->push_constant_size,
+        .spirv = resource->data->value + spirv_offset,
+        .spirv_length = header->spirv_size,
+        .bind_sets = header->bind_set_flags,
         .resource = resource,
     };
 
-    _bs_readBuffer(&shader, &metadata, "$.uniformBuffers");
-    _bs_readBuffer(&shader, &metadata, "$.storageBuffers");
-    _bs_readBuffer(&shader, &metadata, "$.images");
-    _bs_readBuffer(&shader, &metadata, "$.samplers");
-    _bs_readBuffer(&shader, &metadata, "$.sampledImages");
-    _bs_readBuffer(&shader, &metadata, "$.subpasses");
-    _bs_readBuffer(&shader, &metadata, "$.pushConstants");
-    _bs_readBuffer(&shader, &metadata, "$.accelerationStructures");
-    _bs_readBuffer(&shader, &metadata, "$.storageImages");
+   /**
+    Read attributes
+    */
+    if (header->attributes_count > 0)
+        shader.attributes = bs_calloc(header->attributes_count, sizeof(bs_Attribute));
 
-    if (shader.type == BS_VERTEX_SHADER)
-        _bs_readAttributes(&shader, &metadata);
+    for (int i = 0; i < header->attributes_count; i++) {
+        size_t offset = sizeof(bs_BshaHeader) + i * sizeof(bs_BshaAttribute);
 
+        bs_BshaAttribute* attribute = resource->data->value + offset;
+        bs_Attribute* result = shader.attributes + i;
+
+        result->location = attribute->location;
+        result->size = attribute->size;
+        result->name_hash = attribute->name_hash;
+
+        for (int j = 0; j < _bs_config_.attributes.count; j++) {
+            bs_AttributeType* config = _bs_fetchUnit(&_bs_config_.attributes, j);
+            if (config->name_hash == result->name_hash) {
+                result->format = _bs_convertFormatFromBaseType((VkFormat)config->base_format, result->size);
+                break;
+            }
+        }
+        
+        if (result->format == 0) {
+            _bs_warnF("Attribute (location %d) from shader \"%s\" has not been configured, please configure with _bs_configureAttribute(...)\n", name);
+            return BS_RESULT_INVALID_STATE; // TODO invalid config or sum
+        }
+    }
+
+    qsort(shader.attributes, header->attributes_count, sizeof(bs_Attribute), _bs_compareAttributes);
+
+    for (int i = 0, offset = 0; i < header->attributes_count; i++) {
+        bs_Attribute* result = shader.attributes + i;
+        result->offset = offset;
+        offset += result->size;
+    }
+
+   /**
+    Create module
+    */
     VkShaderModuleCreateInfo shader_ci = {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = code_len,
-        .pCode = spirv,
+        .codeSize = shader.spirv_length,
+        .pCode = shader.spirv,
     };
 
-    VkResult vk_result = vkCreateShaderModule(_bs_instance_->device, &shader_ci, NULL, &shader.module);
+    VkResult vk_result = vkCreateShaderModule(_bs_instance_->device, &shader_ci, NULL, &shader.vk_module);
     if (vk_result != VK_SUCCESS) {
-        _bs_warnF("vkCreateShaderModule failed: %d\n", vk_result);
-        _bs_destroyJson(&metadata);
+        BS_WARN_VULKAN_ERROR("vkCreateShaderModule", vk_result,);
         return _bs_convertVulkanResult(vk_result);
     }
 
-    _bs_destroyJson(&metadata);
-    if (!(flags & BS_SHADER_KEEP_SPIRV)) {
-        shader.spirv = _bs_free(spirv);
-        shader.spirv_length = 0;
-    }
-
-    bsi_nameHandle(shader.module, VK_OBJECT_TYPE_SHADER_MODULE, name);
-
     switch (shader.type) {
-    case BS_VERTEX_SHADER:
-    case BS_FRAGMENT_SHADER:
-    case BS_GEOMETRY_SHADER:
+    case BS_SHADER_STAGE_VERTEX_BIT:
+    case BS_SHADER_STAGE_FRAGMENT_BIT:
+    case BS_SHADER_STAGE_GEOMETRY_BIT:
         shader.pipeline_type = BS_PIPELINE_GRAPHICS;
         break;
-    case BS_COMPUTE_SHADER:
+    case BS_SHADER_STAGE_COMPUTE_BIT:
         shader.pipeline_type = BS_PIPELINE_COMPUTE;
         break;
-    case BS_RAY_GEN_SHADER:
-    case BS_ANY_HIT_SHADER:
-    case BS_CLOSEST_HIT_SHADER:
-    case BS_MISS_SHADER:
-    case BS_INTERSECTION_SHADER:
-        shader.pipeline_type = BS_PIPELINE_RAY_TRACE;
-        break;
+//    case BS_SHADER_STAGE_RAY_GEN_BIT:
+//    case BS_SHADER_STAGE_ANY_HIT_BIT:
+//    case BS_SHADER_STAGE_CLOSEST_HIT_BIT:
+//    case BS_SHADER_STAGE_MISS_BIT:
+//    case BS_SHADER_STAGE_INTERSECTION_BIT:
+//        shader.pipeline_type = BS_PIPELINE_RAY_TRACE;
+//        break;
     }
 
-    for (int i = 0; i < _bs_pipelines[shader.pipeline_type].count; i++) {
-        bs_Pipeline* pipeline = *(bs_Pipeline**)_bs_fetchUnit(_bs_pipelines + shader.pipeline_type, i);
+    for (int i = 0; i < _bs_pipelines_[shader.pipeline_type].count; i++) {
+        bs_Pipeline* pipeline = *(bs_Pipeline**)_bs_fetchUnit(_bs_pipelines_ + shader.pipeline_type, i);
 
         for (int j = 0; j < pipeline->shaders_count; j++) {
             if (pipeline->_[j].shader == resource->shader) {
@@ -863,24 +804,17 @@ BSAPI bs_Result _bs_shader(int package_id, const char* name, bs_U32 flags, bs_Re
             }
         }
     }
-    //_bs_destroyShader(existing);
-    if (!resource->shader)
-        resource->shader = _bs_malloc(sizeof(bs_Shader)); // todo dont do this
+
+    resource->shader = _bs_malloc(sizeof(bs_Shader)); // todo dont do this
     memcpy(resource->shader, &shader, sizeof(bs_Shader));
 
-    if (out)
-*out = resource;
+    bsi_nameHandle(shader.vk_module, VK_OBJECT_TYPE_SHADER_MODULE, name, strlen(name));
+    *out = resource;
+
     return BS_RESULT_OK;
-    */
-    _bs_warn(BS_CONSTANT_STRING("_bs_shader(...) has not been implemented yet\n"));
-    return BS_RESULT_NOT_IMPLEMENTED;
 }
 
 BSAPI void _bs_destroyShader(bs_Shader* shader) {
-   // free(shader->name);
-    for (int i = 0; i < shader->num_attributes; i++)
-        free(shader->attributes[i].name);
-
     vkDestroyShaderModule(_bs_instance_->device, shader->vk_module, NULL);
 }
 
@@ -1071,13 +1005,7 @@ BSAPI bs_Result _bs_computePipeline(bs_Shader* compute_shader, bs_PipelineFlags 
     const char* cyan = (_bs_args_.color_log ? BS_PRINT_CYAN : "");
     const char* reset = (_bs_args_.color_log ? BS_PRINT_RESET : "");
 
-    _bs_infoF("%s%" PRIx64 "%s (%d) %s%s%s\n",
-        blue, pipeline->hash, reset,
-
-        compute_shader->head.id,
-        (compute_shader->head.id == 0 ? "" : cyan),
-        (compute_shader->head.id == 0 ? "" : _bs_idName(compute_shader->head.source_id, compute_shader->head.id)),
-        reset);
+    _bs_infoF("%s%" PRIx64 "%s %s\n", blue, pipeline->hash, reset, reset);
 
     return BS_RESULT_OK;
 }

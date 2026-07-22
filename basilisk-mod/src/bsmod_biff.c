@@ -30,7 +30,7 @@
 
 BSGFXAPI void _bsmod_saveBiff() {
 	bs_BiffHeader header = {
-		.magic = 0x66666962,
+		.magic = BS_BIFF_MAGIC,
 		.version = 1,
 	};
 }
@@ -91,7 +91,7 @@ BSMODAPI bs_Result _bsmod_packImageDirectory(char* directory_name, char* package
 	bs_List images = bs_list(sizeof(bsmod_BiffInfo), 32);
 
 	bs_BiffHeader header = {
-		.magic = 0x66666962,
+		.magic = BS_BIFF_MAGIC,
 		.version = 1,
 		.channels_count = 4,
 	};

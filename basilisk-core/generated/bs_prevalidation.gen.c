@@ -2038,10 +2038,9 @@ BSAPI bs_Result _preval_bs_queryResource(int package_id, const char* name, bs_Re
     return next.bs_queryResource(package_id, name, out);
 }
 
-BSAPI bs_Result _preval_bs_queryPackage(const char* name, int* out) {
-    BS_VALIDATE(name != NULL, BS_RESULT_VALIDATION_ERROR,);
-    BS_VALIDATE(out != NULL, BS_RESULT_VALIDATION_ERROR,);
-    return next.bs_queryPackage(name, out);
+BSAPI int _preval_bs_queryPackage(const char* name) {
+    BS_VALIDATE(name != NULL, 0,);
+    return next.bs_queryPackage(name);
 }
 
 BSAPI bs_Result _preval_bs_loadResource(int package_id, bs_U32 flags, bs_Resource** out, char* value, int value_length) {
@@ -2133,9 +2132,8 @@ BSAPI bs_Result _preval_bs_rayTracingPipeline(bs_RayTracePipelineHash* pipeline_
     return next.bs_rayTracingPipeline(pipeline_hash, out);
 }
 
-BSAPI void _preval_bs_loadBindings(int package_id, const char* path) {
-    BS_VALIDATE(path != NULL, ,);
-    next.bs_loadBindings(package_id, path);
+BSAPI void _preval_bs_loadBindings(int package_id) {
+    next.bs_loadBindings(package_id);
 }
 
 BSAPI bs_Result _preval_bs_binding(bs_U32 bind_set_slot, bs_U32 bind_point_slot, bs_Descriptor* descriptors, int descriptors_count) {

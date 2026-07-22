@@ -80,6 +80,7 @@ typedef struct bs_ResourceParams bs_ResourceParams;
 typedef struct bs_Resource bs_Resource;
 typedef struct bs_ResourceHeaderData bs_ResourceHeaderData;
 typedef struct bs_ResourceHeader bs_ResourceHeader;
+typedef struct bs_PackageHeader bs_PackageHeader;
 typedef struct bs_Package bs_Package;
 typedef struct bs_BlitOperation bs_BlitOperation;
 typedef struct bs_ImageIndex bs_ImageIndex;
@@ -215,6 +216,7 @@ typedef enum bs_ColorSpace bs_ColorSpace;
 typedef enum bs_PresentMode bs_PresentMode;
 typedef enum bs_ImageLayout bs_ImageLayout;
 typedef enum bs_BindType bs_BindType;
+typedef enum bs_BindTypeIndex bs_BindTypeIndex;
 typedef enum bs_VkObjectType bs_VkObjectType;
 
 #define BS_RGBA(r, g, b, a)                                          \
@@ -223,11 +225,20 @@ typedef enum bs_VkObjectType bs_VkObjectType;
 #define BS_FLT_MAX                                                   \
     3.402823466e+38F
 
-#define BSMOD_BSHA_MAGIC                                             \
+#define BS_BPAK_MAGIC                                                \
+    0x6B617062
+
+#define BS_BSHA_MAGIC                                                \
     0x61687362
 
-#define BSMOD_BBND_MAGIC                                             \
+#define BS_BBND_MAGIC                                                \
     0x646E6262
+
+#define BS_BATL_MAGIC                                                \
+    0x6C746162
+
+#define BS_BIFF_MAGIC                                                \
+    0x66666962
 
 #define BS_CONSTANT_STRING(s)                                        \
     s, sizeof(s) - 1
@@ -1338,1234 +1349,6 @@ typedef bs_U32 bs_AnimationFlags;
 typedef bs_U32 bs_SaveJsonBits;
 typedef void (*bs_Callback)();
 typedef BS_VERTEX_DECLARATION_STRUCTURE() bs_VertexDeclaration;
-union bs_vec2 {
-    float a[2];
-    struct {
-        float x;
-        float y;
-    };
-};
-
-union bs_vec3 {
-    float a[3];
-    struct {
-        float x;
-        float y;
-        float z;
-    };
-    bs_vec2 xy;
-    bs_vec2 yz;
-};
-
-union bs_vec4 {
-    float a[4];
-    struct {
-        float x;
-        float y;
-        float z;
-        float w;
-    };
-    bs_vec2 xy;
-    bs_vec2 zw;
-    bs_vec3 xyz;
-};
-
-union bs_ivec2 {
-    int a[2];
-    struct {
-        int x;
-        int y;
-    };
-};
-
-union bs_ivec3 {
-    int a[3];
-    struct {
-        int x;
-        int y;
-        int z;
-    };
-    bs_ivec2 xy;
-    bs_ivec2 yz;
-};
-
-union bs_ivec4 {
-    int a[4];
-    struct {
-        int x;
-        int y;
-        int z;
-        int w;
-    };
-    bs_ivec2 xy;
-    bs_ivec2 zw;
-    bs_ivec3 xyz;
-};
-
-union bs_mat2 {
-    bs_vec2 v[2];
-    float f[4];
-    float a[2][2];
-};
-
-union bs_mat3 {
-    bs_vec3 v[3];
-    float f[9];
-    float a[3][3];
-};
-
-union bs_mat4 {
-    bs_vec4 v[4];
-    float f[16];
-    float a[4][4];
-};
-
-union bs_mat4x3 {
-    bs_vec3 v[4];
-    float f[12];
-    float a[4][3];
-};
-
-union bs_RGBA {
-    struct {
-        unsigned char r;
-        unsigned char g;
-        unsigned char b;
-        unsigned char a;
-    };
-    bs_U32 hex;
-    unsigned char array[4];
-};
-
-union bs_RGB {
-    struct {
-        unsigned char r;
-        unsigned char g;
-        unsigned char b;
-    };
-    bs_U32 hex;
-};
-
-union bs_BigInt {
-    unsigned long low_part;
-    long high_part;
-    long long quad_part;
-};
-
-struct bs_Aabb {
-    bs_vec3 min;
-    bs_vec3 max;
-};
-
-struct bs_Sphere {
-    bs_vec3 center;
-    float radius;
-};
-
-struct bs_Rectangle {
-    bs_vec2 position;
-    bs_vec2 dimensions;
-};
-
-struct bs_Ray {
-    bs_vec3 origin;
-    bs_vec3 direction;
-    float length;
-};
-
-struct bs_Quad {
-    bs_vec3 a, b, c, d;
-    bs_vec2 ca, cb, cc, cd;
-};
-
-struct bs_Plane {
-    bs_vec3 point;
-    bs_vec3 normal;
-};
-
-struct bs_Box {
-    bs_vec3 extent;
-    bs_mat4* transform;
-};
-
-struct bs_FileInfo {
-    char* path;
-    size_t size;
-};
-
-struct bs_PngData {
-    int width;
-    int height;
-    int channels_count;
-    size_t size;
-    unsigned char* data;
-};
-
-struct bs_Procedure {
-    const char* func;
-    size_t size;
-    bool is_required;
-};
-
-struct bs_Timer {
-    bs_BigInt ticks_per_second;
-    bs_BigInt tick_count;
-    bs_BigInt last_tick_count;
-    bs_U64 microseconds;
-    double seconds;
-};
-
-struct bs_DateTime {
-    unsigned int years;
-    unsigned int months;
-    unsigned int days;
-    unsigned int hours;
-    unsigned int minutes;
-    unsigned int seconds;
-    unsigned int milliseconds;
-    unsigned int day_of_week;
-};
-
-struct bs_RayVsObb {
-    bs_vec3 coordinate;
-    bs_vec3 normal;
-    int plane;
-    bool hit;
-};
-
-struct bs_SphereVsPoint {
-    bool hit;
-};
-
-struct bs_SphereVsBox {
-    bs_vec3 point;
-    bs_vec3 normal;
-    float penetration;
-    bool hit;
-};
-
-struct bs_RectangleVsPoint {
-    bool hit;
-};
-
-struct bs_LineVsLine {
-    bs_vec2 point;
-    bool hit;
-};
-
-struct bs_GUID {
-    bs_U64 a, b;
-};
-
-struct bs_List {
-    int count;
-    int unit_size;
-    int capacity;
-    int increment;
-    bs_U8* data;
-};
-
-struct bs_mat3SVD {
-    bs_mat3 U;
-    bs_vec3 S;
-    bs_mat3 V;
-};
-
-struct bs_String {
-    int len;
-    int capacity;
-    char value[];
-};
-
-struct bs_StringPoolEntry {
-    bs_U64 hash;
-    const char* string;
-};
-
-struct bs_Range {
-    bs_U32 offset;
-    bs_U32 num;
-};
-
-struct bs_Header {
-    int id;
-    int source_id;
-};
-
-struct bs_Object {
-    bs_U32 flags;
-    union {
-        bs_Header* head;
-        bs_Batch* batch;
-        bs_Buffer* buffer;
-        bs_Image* image;
-        bs_Atlas* atlas;
-        bs_Sampler* sampler;
-        bs_Renderer* renderer;
-        bs_Sound* sound;
-        bs_Queue* queue;
-        bs_RayTracer* ray_tracer;
-        bs_Font* font;
-        bs_Context* context;
-    };
-};
-
-struct bs_ResourceParams {
-    bs_U32 type;
-    int unit_size;
-    const char* name;
-};
-
-struct bs_Resource {
-    bs_U64 hash;
-    char* name;
-    bs_String* data;
-    union {
-        bs_Model* model;
-        bs_Shader* shader;
-        bs_Sound* sound;
-        bs_Atlas* atlas;
-        bs_Font* font;
-        bs_Image* image;
-    };
-};
-
-struct bs_ResourceHeaderData {
-    bs_U64 name_hash;
-    int chunk;
-    int offset;
-    int size;
-    int name_length;
-};
-
-struct bs_ResourceHeader {
-    bs_ResourceHeaderData header;
-    char* name;
-    bs_Resource* resource;
-};
-
-struct bs_Package {
-    bs_U64 path_hash;
-    char* path;
-    bs_List resource_headers;
-    bs_String* raw;
-};
-
-struct bs_BlitOperation {
-    bs_Image* source;
-    bs_Image* destination;
-    bs_ImageLayout source_layout;
-    bs_ImageLayout destination_layout;
-    bs_ivec2 source_scale;
-    bs_ivec2 destination_scale;
-};
-
-struct bs_ImageIndex {
-    char* name;
-    bs_U64 name_hash;
-};
-
-struct bs_ImageSwaps {
-    struct VkImage_T* vk_image;
-    struct VkImageView_T* vk_image_view;
-    struct VkDeviceMemory_T* vk_memory;
-};
-
-struct bs_Image {
-    bs_Header head;
-    bs_ImageBits flags;
-    bs_ivec2 dim;
-    int num_indices;
-    bs_ImageIndex* indices;
-    int bind_set;
-    int bind_point;
-    bs_Format format;
-    enum VkImageUsageFlags usage_flags;
-    enum VkImageAspectFlags aspect_flags;
-    bs_ImageSwaps _[];
-};
-
-struct bs_BshaHeader {
-    bs_U32 magic;
-    bs_U32 version;
-    bs_U32 push_constant_size;
-    bs_U32 bind_set_flags;
-    bs_ShaderType shader_type;
-    bs_U32 attributes_count;
-    bs_U64 spirv_size;
-    bs_U32 reserved_0;
-    bs_U32 reserved_1;
-    bs_U32 reserved_2;
-    bs_U32 reserved_3;
-};
-
-struct bs_BshaAttribute {
-    bs_U64 name_hash;
-    bs_U32 location;
-    bs_U32 size;
-};
-
-struct bs_BbndHeader {
-    bs_U32 magic;
-    bs_U32 version;
-    bs_U32 set;
-    bs_U32 point;
-    bs_U32 size;
-    bs_U32 descriptors_count;
-    bs_BindType type;
-    bs_U32 reserved_0;
-    bs_U32 reserved_1;
-    bs_U32 reserved_2;
-    bs_U32 reserved_3;
-    bs_U32 reserved_4;
-};
-
-struct bs_BiffHeader {
-    bs_U32 magic;
-    bs_U32 version;
-    bs_U32 images_count;
-    bs_U32 width;
-    bs_U32 height;
-    bs_U32 channels_count;
-    bs_U32 reserved_0, reserved_1;
-};
-
-struct bs_BiffPointer {
-    bs_U32 offset;
-    bs_U32 size;
-    bs_U32 name_length;
-    bs_U32 reserved;
-};
-
-struct bs_BatlHeader {
-    bs_U32 magic;
-    bs_U32 version;
-    bs_U32 images_count;
-    bs_U32 width;
-    bs_U32 height;
-    bs_U32 channels_count;
-    bs_U32 binary_offset;
-    bs_U32 reserved_0;
-};
-
-struct bs_BatlPointer {
-    bs_U32 x;
-    bs_U32 y;
-    bs_U32 w;
-    bs_U32 h;
-    bs_U32 name_length;
-    bs_U32 flags;
-    int category;
-    bs_U32 reserved_1;
-};
-
-struct bs_AtlasTexture {
-    bs_vec4 coords;
-    int x, y;
-    int w, h;
-    int split;
-    bs_U32 flags;
-};
-
-struct bs_Atlas {
-    bs_Header head;
-    int count;
-    struct {
-        char* name;
-        bs_U64 name_hash;
-        int category;
-    }* unmapped;
-    bs_AtlasTexture* mapped;
-    bs_Image* image;
-    bs_Buffer* buffer;
-    struct {
-        void* unused;
-    }_[];
-};
-
-struct bs_Sampler {
-    bs_Header head;
-    bs_SamplerBits flags;
-    bs_ImageFilter filter;
-    struct {
-        struct VkSampler_T* vk_sampler;
-    }_[];
-};
-
-struct bs_StencilOperation {
-    bs_StencilOp fail_op;
-    bs_StencilOp pass_op;
-    bs_StencilOp depth_fail_op;
-    bs_CompareOp compare_op;
-    bs_U32 compare_mask;
-    bs_U32 write_mask;
-    bs_U32 reference;
-};
-
-struct bs_Pipeline {
-    bs_Header head;
-    int shaders_count;
-    bs_U64 hash;
-    bs_PipelineType type;
-    bs_PipelineFlags flags;
-    bs_SlotBits bind_sets;
-    bs_U32 shader_stages;
-    int num_bind_sets;
-    int constant_size;
-    bs_String* name;
-    bs_Buffer* binding_table;
-    struct VkPipelineLayout_T* vk_layout;
-    struct VkPipeline_T* vk_pipeline;
-    struct {
-        bs_Shader* shader;
-    }_[];
-};
-
-struct bs_PipelineHash {
-    bs_PipelineFlags flags;
-    int subpass;
-    bs_Renderer* renderer;
-    bs_TopologyType topology_type;
-    bs_BlendFactor src_color_factor;
-    bs_BlendFactor dst_color_factor;
-    bs_BlendFactor src_alpha_factor;
-    bs_BlendFactor dst_alpha_factor;
-    bs_BlendOperationType color_op;
-    bs_BlendOperationType alpha_op;
-    bs_StencilOperation stencil_front;
-    bs_StencilOperation stencil_back;
-    bs_CullModeFlag cull_type;
-    bs_PolygonType polygon_type;
-    bs_CompareOp depth_comparison;
-    bool restart_primitive;
-    bool clamp_depth;
-    bool skip_depth_test;
-    bool skip_stencil_test;
-    bool skip_depth_write;
-    bool disable_blend;
-    bs_Shader* shaders[2];
-    struct {
-        bool skip_write;
-    } attachments[BS_MAX_ATTACHMENTS_COUNT];
-};
-
-struct bs_RayTracePipelineHash {
-    bs_RayTracer* ray_tracer;
-};
-
-struct bs_AttributeType {
-    const char* name;
-    bs_U64 name_hash;
-    bs_Format base_format;
-};
-
-struct bs_Attribute {
-    char* name;
-    bs_U64 name_hash;
-    bs_U32 location;
-    bs_U32 size;
-    bs_Format format;
-    bs_U32 offset;
-};
-
-struct bs_Shader {
-    bs_Header head;
-    bs_ShaderType type;
-    bs_PipelineType pipeline_type;
-    bs_SlotBits bind_sets;
-    bs_U32* spirv;
-    bs_U32 spirv_length;
-    bs_Attribute* attributes;
-    int num_attributes;
-    int constant_size;
-    bs_Resource* resource;
-    struct VkShaderModule_T* vk_module;
-};
-
-struct bs_BufferSwap {
-    struct VkBuffer_T* vk_buffer;
-    struct VkDeviceMemory_T* memory;
-    char* data;
-};
-
-struct bs_Buffer {
-    bs_Header head;
-    bs_BufferBits flags;
-    bs_U32 bind_set;
-    bs_U32 binding;
-    bs_U32 num_bytes;
-    bs_BufferUsageFlags usage_flags;
-    bs_MemoryPropertyFlags memory_flags;
-    bs_BufferSwap _[];
-};
-
-struct bs_Output {
-    bs_OutputFlags flags;
-    bs_U32 subpass;
-    bs_U32 attachment;
-    bs_LoadOp load_op;
-    bs_StoreOp store_op;
-    bs_Image* image;
-    bs_ImageLayout old_layout;
-    bs_ImageLayout new_layout;
-};
-
-struct bs_Input {
-    bs_InputBits flags;
-    bs_U32 subpass;
-    bs_U32 parent_subpass;
-    bs_U32 attachment;
-    bs_Image* image;
-};
-
-struct bs_RendererSwaps {
-    struct VkFramebuffer_T* framebuffer;
-};
-
-struct bs_Renderer {
-    bs_Header head;
-    bs_RendererBits flags;
-    bs_Input* inputs;
-    bs_Output* outputs;
-    struct VkSubpassDependency* dependencies;
-    int num_inputs;
-    int num_outputs;
-    int num_subpasses;
-    int num_dependencies;
-    bs_ivec2 dim;
-    struct VkRenderPass_T* render_pass;
-    bs_RendererSwaps _[];
-};
-
-struct bs_Batch {
-    bs_Header head;
-    bs_BatchBits flags;
-    bs_Attribute* attributes;
-    bs_U32 attributes_count;
-    bs_U32 attribute_flags;
-    bs_Object* vertex_buffer;
-    bs_Object* index_buffer;
-    bs_Object* staging_buffer;
-    bs_List vertices;
-    bs_List indices;
-    struct {
-        void* unused;
-    }_[];
-};
-
-struct bs_QueueSwaps {
-    struct VkCommandBuffer_T* command_buffer;
-    struct VkSemaphore_T* semaphore;
-    struct VkFence_T* fence;
-};
-
-struct bs_Queue {
-    bs_Header head;
-    bs_QueueBits flags;
-    bs_U32 family;
-    struct VkQueue_T* queue;
-    bs_QueueSwaps _[];
-};
-
-struct bs_ShaderGroup {
-    bs_Shader* shader;
-};
-
-struct bs_RayTracer {
-    bs_Header head;
-    bs_List aabbs;
-    bs_List batches;
-    bs_Buffer* BLAS_buffer;
-    bs_Buffer* TLAS_buffer;
-    bs_Buffer* BLAS_scratch_buffer;
-    bs_Buffer* TLAS_scratch_buffer;
-    bs_U32 record_size;
-    bs_U32 groups_count;
-    struct VkAccelerationStructureKHR_T* BLAS;
-    struct VkAccelerationStructureKHR_T* TLAS;
-    bs_ShaderGroup _[];
-};
-
-union bs_JsonArray {
-    unsigned char* as_uchars;
-    float* as_floats;
-    int* as_ints;
-    bs_F64* as_numbers;
-    char** as_strings;
-    bs_JsonObject* as_objects;
-    bool* as_bools;
-    bs_vec2* vec2;
-    bs_vec3* vec3;
-    bs_vec4* vec4;
-};
-
-struct bs_Json {
-    bool is_mutable;
-    union {
-        bs_JsonObject as_object;
-    };
-    void* doc;
-};
-
-struct bs_JsonValue {
-    bool found;
-    bs_JsonType type;
-    int size;
-    union bs_JsonValueUnion {
-        bs_JsonArray as_array;
-        bs_JsonObject as_object;
-        bs_F64 as_number;
-        char* as_string;
-        bool as_bool;
-    };
-};
-
-struct bs_JsonEnumeration {
-    const char* key;
-    bs_JsonValue value;
-    struct {
-        bs_U64 idx;
-        bs_U64 max;
-        void* cur;
-        union {
-            void* obj;
-            bs_JsonArray as_array;
-            struct {
-                void* mut_pre;
-                void* mut_obj;
-            };
-        };
-    }iter;
-};
-
-struct bs_Material {
-    char* name;
-    bs_RGBA color;
-};
-
-struct bs_Primitive {
-    float* vertices;
-    int num_vertices;
-    int vertex_size;
-    int texture_offset;
-    int normal_offset;
-    int bone_offset;
-    int weight_offset;
-    int index_offset;
-    bs_U32 num_indices;
-    bs_U32* indices;
-    int material_id;
-    bs_Mesh* parent;
-    bs_Aabb aabb;
-    int* extra;
-};
-
-struct bs_Mesh {
-    char* name;
-    bs_U64 name_hash;
-    bs_vec3 position;
-    bs_vec4 rotation;
-    bs_vec3 scale;
-    bs_Primitive* primitives;
-    int primitives_count;
-    int num_vertices;
-    int num_indices;
-    bs_Model* model;
-    bs_Aabb aabb;
-    int* extra;
-};
-
-struct bs_Model {
-    bs_Header head;
-    bs_ModelFlags flags;
-    bs_Armature* armatures;
-    bs_Mesh* meshes;
-    bs_Material* materials;
-    bs_U64* animation_hashes;
-    int animations_count;
-    int armatures_count;
-    int meshes_count;
-    int materials_count;
-    int primitives_count;
-    int num_vertices;
-    int num_indices;
-    bs_Json json;
-    bs_Aabb aabb;
-    unsigned char* gltf;
-    int* extra;
-};
-
-struct bs_Bone {
-    bs_U32 id;
-    int parent_idx;
-    int opposite_id;
-    int name_length;
-    char* name;
-    bs_U64 name_hash;
-    bs_mat4 local_matrix;
-    bs_mat4 bind_matrix_inverse;
-};
-
-struct bs_Armature {
-    struct {
-        float ik_length;
-        int ik_id;
-        bs_vec3 ik_direction;
-        bs_vec3 ik_position;
-        bs_mat4 matrix;
-        bs_Bone bone;
-    }* bones;
-    int bones_count;
-    int bones_allocated;
-    char* name;
-};
-
-struct bs_AnimationBone {
-    bs_vec3 last_translation;
-    bs_vec4 last_rotation;
-    bs_vec3 last_scale;
-    int translations_count, translations_allocated;
-    int rotations_count, rotations_allocated;
-    int scalings_count, scalings_allocated;
-    struct {
-        float time;
-        bs_vec3 value;
-    }* translations;
-    struct {
-        float time;
-        bs_vec4 value;
-    }* rotations;
-    struct {
-        float time;
-        bs_vec3 value;
-    }* scalings;
-};
-
-struct bs_Animation {
-    char* name;
-    bs_AnimationBone* bones;
-    int bones_count;
-    int bones_allocated;
-    int frames_count;
-    float length;
-};
-
-struct bs_Sound {
-    bs_Header head;
-    const char* name;
-    void* data;
-    void* xaudio;
-    int size;
-};
-
-struct bs_LongHorMetric {
-    bs_U16 advance_width;
-    bs_I16 left_side_bearing;
-};
-
-struct bs_GlyfPt {
-    bs_I16 x, y;
-    bool on_curve;
-};
-
-struct bs_Glyph {
-    int index;
-    bs_U16 num_points;
-    bs_U16 num_contours;
-    bs_I16 x_min, x_max;
-    bs_I16 y_min, y_max;
-    bs_U16* contours;
-    bs_GlyfPt* coords;
-    bs_vec2 tex_coord;
-    bs_vec2 tex_offset;
-    int width;
-    int height;
-    bs_U16 pairs_count;
-    bs_U16 pairs_offset;
-    bs_LongHorMetric long_hor_metric;
-    union {
-        bs_U16 code;
-        char ascii;
-    };
-};
-
-struct bs_Head {
-    char* buf;
-    int units_per_em;
-    bs_I16 index_to_loc_format;
-};
-
-struct bs_Maxp {
-    char* buf;
-    bs_U16 num_glyphs;
-};
-
-struct bs_Hhea {
-    char* buf;
-    bs_U16 num_of_long_hor_metrics;
-};
-
-struct bs_Hmtx {
-    char* buf;
-};
-
-struct bs_Loca {
-    char* buf;
-};
-
-struct bs_Glyf {
-    char* buf;
-};
-
-struct bs_Cmap {
-    char* buf;
-    bs_U32 offset;
-    int num_subtables;
-    char* subtable;
-    bs_U16 format;
-    bs_U16 length;
-    bs_U16 seg_count_x2;
-    bs_U16 search_range;
-    bs_U16 entry_selector;
-    bs_U16 range_shift;
-    bs_U16* format_data;
-    bs_U16* end_code;
-    bs_U16* start_code;
-    bs_I16* id_delta;
-    bs_U16* id_range_offset;
-};
-
-struct bs_KerningPair {
-    int right_index;
-    bs_U16 right;
-    bs_I16 value;
-};
-
-struct bs_TTF {
-    bs_Header header;
-    bs_U32 offset;
-    bs_String* buffer;
-    const char* name;
-    const char* alphabet;
-    bs_List glyphs;
-    bs_List kerning_pairs;
-    bs_U16 table_count;
-    int x_offset;
-    int y_offset;
-    bs_Head head;
-    bs_Maxp maxp;
-    bs_Hhea hhea;
-    bs_Hmtx hmtx;
-    bs_Loca loca;
-    bs_Glyf glyf;
-};
-
-struct bs_BfntHeader {
-    bs_U32 magic;
-    bs_U32 version;
-    bs_U32 glyphs_count;
-    bs_U32 kerning_pairs_count;
-    bs_U32 line_height;
-    bs_U32 units_per_em;
-    bs_U32 size;
-    bs_U32 batl_offset;
-    char ascii_table[256];
-};
-
-struct bs_BfntKerningPair {
-    int right;
-    int value;
-};
-
-struct bs_BfntGlyph {
-    bs_U32 code;
-    int y_offset;
-    int advance_width;
-    int left_side_bearing;
-    bs_U32 kerning_pair_offset;
-    bs_U32 kerning_pair_count;
-    bs_U32 reserved_0, reserved_1;
-};
-
-struct bs_Font {
-    bs_Header head;
-    const char* alphabet;
-    bs_Atlas* atlas;
-    int min_y_shift;
-    int size;
-    int units_per_em;
-    int height;
-    float spacing;
-    int pairs_count;
-    struct {
-        int right;
-        float value;
-    }* pairs;
-    struct {
-        int y_offset;
-        float advance_width;
-        float left_side_bearing;
-        int kerning_pair_offset;
-        int kerning_pair_count;
-    }* glyphs;
-    char table[256];
-    struct {
-        void* unused;
-    }_[];
-};
-
-struct bs_Endpoint {
-    bs_EndpointType type;
-    int name_len;
-    const char* name;
-};
-
-struct bs_Server {
-    bs_List endpoints;
-    void* queue;
-    void* overlapped;
-    char* buffer;
-    int buffer_capacity;
-    bool is_waiting;
-    int reserved;
-};
-
-struct bs_Simulation {
-    float mass;
-    float inverse_mass;
-    float damping;
-    float angular_damping;
-    float gravity_scale;
-    bs_vec3 velocity;
-    bs_vec3 angular_velocity;
-    bs_vec3 acceleration_last;
-    bs_vec3 force;
-    bs_vec3 torque;
-    bs_vec3 position;
-    bs_vec4 rotation;
-    bs_mat3 local_inverse_inertia;
-    bs_mat3 world_inverse_inertia;
-};
-
-struct bs_Contact {
-    bs_mat3 to_world;
-    bs_vec3 normal;
-    bs_vec3 point;
-    bs_vec3 velocity;
-    float delta_velocity;
-    float penetration;
-};
-
-struct bs_ImageDescriptor {
-    bs_Sampler* sampler;
-    bs_Image* image;
-    bs_ImageLayout layout;
-};
-
-struct bs_Descriptor {
-    int object_type;
-    int reserved;
-    int bind_set;
-    int bind_point;
-    union {
-        struct {
-            bs_Image* image;
-            bs_Sampler* sampler;
-            struct VkImageLayout_T* vk_image_layout;
-            struct VkImageView_T* vk_image_view;
-            struct VkSampler_T* vk_sampler;
-        }as_image;
-        struct {
-            bs_Buffer* buffer;
-            struct VkBuffer_T* vk_buffer;
-            bs_U32 vk_range;
-        }as_buffer;
-    };
-};
-
-struct bs_Binding {
-    bs_U32 stages;
-    int slot;
-    int set;
-    int location;
-    int descriptors_count;
-    bool in_use;
-    bs_BindType type;
-    int size;
-    char* name;
-};
-
-struct bs_BindSet {
-    bs_U32 slot;
-    bool needs_update;
-    int bindings_count;
-    int descriptors_count;
-    int max_binding;
-    int bound_descriptors_count;
-    bs_Binding* bindings;
-    bs_Descriptor* descriptors;
-    struct VkDescriptorUpdateTemplate_T* vk_update_template;
-    struct VkDescriptorSetLayout_T* vk_layout;
-    struct VkDescriptorSet_T* vk_set;
-};
-
-struct bs_ObjectSource {
-    bs_ObjectId* ids;
-    int ids_count;
-    bs_ObjectType type;
-};
-
-struct bs_ObjectId {
-    const char* name;
-    bs_U64 name_hash;
-    bs_Object* object;
-};
-
-struct bs_IO {
-    bool left_clicked;
-    bool right_clicked;
-    bool middle_clicked;
-    bool left_clicked_last;
-    bool right_clicked_last;
-    bool middle_clicked_last;
-    bool disable_inputs;
-    bs_U8 hold_keys[BS_KEY_BYTES_COUNT];
-    bs_U8 keys[BS_KEY_BYTES_COUNT];
-    bs_U8 keys_old[BS_KEY_BYTES_COUNT];
-    bs_U8 chars[BS_KEY_BYTES_COUNT];
-    bs_U8 chars_old[BS_KEY_BYTES_COUNT];
-    bs_I8 scroll, scroll_old;
-    bs_String* executable;
-    bs_String* cwd;
-    bs_String* appdata;
-    bs_String* log;
-};
-
-struct bs_Instance {
-    bs_Queue* single_times_queue;
-    int bind_sets_count;
-    int bindings_count;
-    int descriptors_count;
-    int max_bind_set;
-    bs_BindSet* bind_sets;
-    bs_Binding* bindings;
-    bs_Descriptor* descriptors;
-    bool descriptor_pool_needs_update;
-    bool alive;
-    bs_vec2 screen_cursor;
-    struct {
-        int* bindings;
-        int bind_set;
-    }* descriptor_lookup;
-    struct {
-        bs_SurfaceType surface_type;
-    } extensions;
-    struct VkDescriptorSet_T* sets[BS_MAX_NUM_BIND_SETS];
-    struct VkDescriptorSetLayout_T* layouts[BS_MAX_NUM_BIND_SETS];
-    struct VkInstance_T* instance;
-    struct VkDevice_T* device;
-    struct VkCommandPool_T* command_pool;
-};
-
-struct bs_Bindings {
-    bs_BindSet* bs_bind_sets;
-    int bs_bind_sets_count;
-};
-
-struct bs_Config {
-    bs_List attributes;
-};
-
-struct bs_Scope {
-    bool has_begun;
-    bs_Renderer* renderer;
-    int subpass;
-    bs_Queue* queue;
-    bs_U32 wait_num;
-    bs_U32 wait_stages[BS_MAX_NUM_WAITS];
-    struct VkSemaphore_T* wait_semaphores[BS_MAX_NUM_WAITS];
-};
-
-struct bs_QueueFamily {
-    bool supports_present;
-    bs_U32 queue_flags;
-    bs_U32 queue_count;
-};
-
-struct bs_SurfaceFormat {
-    bs_Format format;
-    bs_ColorSpace color_space;
-};
-
-struct bs_PhysicalDevice {
-    struct VkPhysicalDevice_T* vk_device;
-    bool supports_present;
-    bs_U32 api_version;
-    int type;
-    bs_List queue_families;
-    bs_List surface_formats;
-    const char name[BS_MAX_PHYSICAL_DEVICE_NAME_SIZE];
-};
-
-struct bs_Context {
-    bs_Header head;
-    const char* title;
-    void* hwnd;
-    bs_Timer timer;
-    bs_ivec2 dimensions;
-    bs_Callback resize;
-    bs_Callback destroy;
-    bs_vec2 cursor;
-    double time, time_old;
-    double delta_time;
-    double fixed_time;
-    double fixed_interpolation;
-    double target_frame_time;
-    double elapsed_time;
-    int last_fixed_update_times[2];
-    int new_time_index;
-    bool in_fixed;
-    bool lock_cursor_position;
-    bool active;
-    bs_CursorIcon cursor_icon;
-    bool paused;
-    bool advance;
-    struct VkSurfaceKHR_T* surface;
-    bs_PhysicalDevice* physical_device;
-    bs_QueueFamily* queue_family;
-    bs_SurfaceFormat surface_format;
-    bs_PresentMode present_mode;
-    int id;
-    int frames_in_flight;
-    int frame;
-    bool resized;
-    bool image_acquired;
-    bs_Object* swapchain_image;
-    struct VkSwapchainKHR_T* swapchain;
-    struct {
-        struct VkSemaphore_T* semaphore;
-    }_[];
-};
-
-struct bs_Args {
-    bool send_bugs;
-    bool color_log;
-    bool use_lisk;
-    bool use_validation_layers;
-    bool track_changes;
-};
-
-struct bs_Features {
-    bool independent_blend;
-    bool ray_tracing;
-};
-
-struct bs_Props {
-    bs_U32 shader_group_handle_size;
-    bs_U32 shader_group_base_alignment;
-    bs_U32 min_acceleration_structure_scratch_offset_alignment;
-};
-
 enum bs_Result {
     BS_RESULT_OK,
     BS_RESULT_WAITING,
@@ -3223,6 +2006,21 @@ enum bs_BindType {
     BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC = 8,
     BS_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC = 9,
     BS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT = 10,
+    BS_DESCRIPTOR_TYPES_COUNT = 11,
+};
+
+enum bs_BindTypeIndex {
+    BS_DESCRIPTOR_TYPE_SAMPLER_INDEX = 0,
+    BS_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER_INDEX = 1,
+    BS_DESCRIPTOR_TYPE_SAMPLED_IMAGE_INDEX = 2,
+    BS_DESCRIPTOR_TYPE_STORAGE_IMAGE_INDEX = 3,
+    BS_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER_INDEX = 4,
+    BS_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER_INDEX = 5,
+    BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_INDEX = 6,
+    BS_DESCRIPTOR_TYPE_STORAGE_BUFFER_INDEX = 7,
+    BS_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC_INDEX = 8,
+    BS_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC_INDEX = 9,
+    BS_DESCRIPTOR_TYPE_INPUT_ATTACHMENT_INDEX = 10,
 };
 
 enum bs_VkObjectType {
@@ -3253,6 +2051,1244 @@ enum bs_VkObjectType {
     BS_OBJECT_TYPE_FRAMEBUFFER = 24,
     BS_OBJECT_TYPE_COMMAND_POOL = 25,
     BS_OBJECT_TYPE_SWAPCHAIN_KHR = 1000001000,
+};
+
+union bs_vec2 {
+    float a[2];
+    struct {
+        float x;
+        float y;
+    };
+};
+
+union bs_vec3 {
+    float a[3];
+    struct {
+        float x;
+        float y;
+        float z;
+    };
+    bs_vec2 xy;
+    bs_vec2 yz;
+};
+
+union bs_vec4 {
+    float a[4];
+    struct {
+        float x;
+        float y;
+        float z;
+        float w;
+    };
+    bs_vec2 xy;
+    bs_vec2 zw;
+    bs_vec3 xyz;
+};
+
+union bs_ivec2 {
+    int a[2];
+    struct {
+        int x;
+        int y;
+    };
+};
+
+union bs_ivec3 {
+    int a[3];
+    struct {
+        int x;
+        int y;
+        int z;
+    };
+    bs_ivec2 xy;
+    bs_ivec2 yz;
+};
+
+union bs_ivec4 {
+    int a[4];
+    struct {
+        int x;
+        int y;
+        int z;
+        int w;
+    };
+    bs_ivec2 xy;
+    bs_ivec2 zw;
+    bs_ivec3 xyz;
+};
+
+union bs_mat2 {
+    bs_vec2 v[2];
+    float f[4];
+    float a[2][2];
+};
+
+union bs_mat3 {
+    bs_vec3 v[3];
+    float f[9];
+    float a[3][3];
+};
+
+union bs_mat4 {
+    bs_vec4 v[4];
+    float f[16];
+    float a[4][4];
+};
+
+union bs_mat4x3 {
+    bs_vec3 v[4];
+    float f[12];
+    float a[4][3];
+};
+
+union bs_RGBA {
+    struct {
+        unsigned char r;
+        unsigned char g;
+        unsigned char b;
+        unsigned char a;
+    };
+    bs_U32 hex;
+    unsigned char array[4];
+};
+
+union bs_RGB {
+    struct {
+        unsigned char r;
+        unsigned char g;
+        unsigned char b;
+    };
+    bs_U32 hex;
+};
+
+union bs_BigInt {
+    unsigned long low_part;
+    long high_part;
+    long long quad_part;
+};
+
+struct bs_Aabb {
+    bs_vec3 min;
+    bs_vec3 max;
+};
+
+struct bs_Sphere {
+    bs_vec3 center;
+    float radius;
+};
+
+struct bs_Rectangle {
+    bs_vec2 position;
+    bs_vec2 dimensions;
+};
+
+struct bs_Ray {
+    bs_vec3 origin;
+    bs_vec3 direction;
+    float length;
+};
+
+struct bs_Quad {
+    bs_vec3 a, b, c, d;
+    bs_vec2 ca, cb, cc, cd;
+};
+
+struct bs_Plane {
+    bs_vec3 point;
+    bs_vec3 normal;
+};
+
+struct bs_Box {
+    bs_vec3 extent;
+    bs_mat4* transform;
+};
+
+struct bs_FileInfo {
+    char* path;
+    size_t size;
+};
+
+struct bs_PngData {
+    int width;
+    int height;
+    int channels_count;
+    size_t size;
+    unsigned char* data;
+};
+
+struct bs_Procedure {
+    const char* func;
+    size_t size;
+    bool is_required;
+};
+
+struct bs_Timer {
+    bs_BigInt ticks_per_second;
+    bs_BigInt tick_count;
+    bs_BigInt last_tick_count;
+    bs_U64 microseconds;
+    double seconds;
+};
+
+struct bs_DateTime {
+    unsigned int years;
+    unsigned int months;
+    unsigned int days;
+    unsigned int hours;
+    unsigned int minutes;
+    unsigned int seconds;
+    unsigned int milliseconds;
+    unsigned int day_of_week;
+};
+
+struct bs_RayVsObb {
+    bs_vec3 coordinate;
+    bs_vec3 normal;
+    int plane;
+    bool hit;
+};
+
+struct bs_SphereVsPoint {
+    bool hit;
+};
+
+struct bs_SphereVsBox {
+    bs_vec3 point;
+    bs_vec3 normal;
+    float penetration;
+    bool hit;
+};
+
+struct bs_RectangleVsPoint {
+    bool hit;
+};
+
+struct bs_LineVsLine {
+    bs_vec2 point;
+    bool hit;
+};
+
+struct bs_GUID {
+    bs_U64 a, b;
+};
+
+struct bs_List {
+    int count;
+    int unit_size;
+    int capacity;
+    int increment;
+    bs_U8* data;
+};
+
+struct bs_mat3SVD {
+    bs_mat3 U;
+    bs_vec3 S;
+    bs_mat3 V;
+};
+
+struct bs_String {
+    int len;
+    int capacity;
+    char value[];
+};
+
+struct bs_StringPoolEntry {
+    bs_U64 hash;
+    const char* string;
+};
+
+struct bs_Range {
+    bs_U32 offset;
+    bs_U32 num;
+};
+
+struct bs_Header {
+    int id;
+    int source_id;
+};
+
+struct bs_Object {
+    bs_U32 flags;
+    union {
+        bs_Header* head;
+        bs_Batch* batch;
+        bs_Buffer* buffer;
+        bs_Image* image;
+        bs_Atlas* atlas;
+        bs_Sampler* sampler;
+        bs_Renderer* renderer;
+        bs_Sound* sound;
+        bs_Queue* queue;
+        bs_RayTracer* ray_tracer;
+        bs_Font* font;
+        bs_Context* context;
+    };
+};
+
+struct bs_ResourceParams {
+    bs_U32 type;
+    int unit_size;
+    const char* name;
+};
+
+struct bs_Resource {
+    bs_U64 hash;
+    char* name;
+    bs_String* data;
+    union {
+        bs_Model* model;
+        bs_Shader* shader;
+        bs_Sound* sound;
+        bs_Atlas* atlas;
+        bs_Font* font;
+        bs_Image* image;
+    };
+};
+
+struct bs_ResourceHeaderData {
+    bs_U64 name_hash;
+    bs_I32 chunk;
+    bs_I32 offset;
+    bs_I32 size;
+    bs_I32 name_length;
+    bs_I32 type;
+    bs_I32 reserved;
+};
+
+struct bs_ResourceHeader {
+    bs_ResourceHeaderData header;
+    char* name;
+    bs_Resource* resource;
+};
+
+struct bs_PackageHeader {
+    bs_U32 magic;
+    bs_I32 resources_count;
+    bs_I32 resource_types_count;
+    bs_I32 reserved;
+    bs_Range resource_type_offsets[BS_RESOURCE_TYPE_COUNT];
+};
+
+struct bs_Package {
+    bs_U64 path_hash;
+    char* path;
+    int resource_headers_count;
+    bs_ResourceHeader* resource_headers;
+    bs_String* raw;
+    bs_Range resource_type_offsets[BS_RESOURCE_TYPE_COUNT];
+};
+
+struct bs_BlitOperation {
+    bs_Image* source;
+    bs_Image* destination;
+    bs_ImageLayout source_layout;
+    bs_ImageLayout destination_layout;
+    bs_ivec2 source_scale;
+    bs_ivec2 destination_scale;
+};
+
+struct bs_ImageIndex {
+    char* name;
+    bs_U64 name_hash;
+};
+
+struct bs_ImageSwaps {
+    struct VkImage_T* vk_image;
+    struct VkImageView_T* vk_image_view;
+    struct VkDeviceMemory_T* vk_memory;
+};
+
+struct bs_Image {
+    bs_Header head;
+    bs_ImageBits flags;
+    bs_ivec2 dim;
+    int num_indices;
+    bs_ImageIndex* indices;
+    int bind_set;
+    int bind_point;
+    bs_Format format;
+    enum VkImageUsageFlags usage_flags;
+    enum VkImageAspectFlags aspect_flags;
+    bs_ImageSwaps _[];
+};
+
+struct bs_BshaHeader {
+    bs_U32 magic;
+    bs_U32 version;
+    bs_U32 push_constant_size;
+    bs_U32 bind_set_flags;
+    bs_ShaderType shader_type;
+    bs_U32 attributes_count;
+    bs_U64 spirv_size;
+    bs_U32 reserved_0;
+    bs_U32 reserved_1;
+    bs_U32 reserved_2;
+    bs_U32 reserved_3;
+};
+
+struct bs_BshaAttribute {
+    bs_U64 name_hash;
+    bs_U32 location;
+    bs_U32 size;
+};
+
+struct bs_BbndHeader {
+    bs_U32 magic;
+    bs_U32 version;
+    bs_U32 set;
+    bs_U32 point;
+    bs_U32 size;
+    bs_U32 descriptors_count;
+    bs_BindType type;
+    bs_BindTypeIndex type_index;
+    bs_U32 shader_stages;
+    bs_U32 reserved_0;
+    bs_U32 reserved_1;
+    bs_U32 reserved_2;
+};
+
+struct bs_BiffHeader {
+    bs_U32 magic;
+    bs_U32 version;
+    bs_U32 images_count;
+    bs_U32 width;
+    bs_U32 height;
+    bs_U32 channels_count;
+    bs_U32 reserved_0, reserved_1;
+};
+
+struct bs_BiffPointer {
+    bs_U32 offset;
+    bs_U32 size;
+    bs_U32 name_length;
+    bs_U32 reserved;
+};
+
+struct bs_BatlHeader {
+    bs_U32 magic;
+    bs_U32 version;
+    bs_U32 images_count;
+    bs_U32 width;
+    bs_U32 height;
+    bs_U32 channels_count;
+    bs_U32 binary_offset;
+    bs_U32 reserved_0;
+};
+
+struct bs_BatlPointer {
+    bs_U32 x;
+    bs_U32 y;
+    bs_U32 w;
+    bs_U32 h;
+    bs_U32 name_length;
+    bs_U32 flags;
+    int category;
+    bs_U32 reserved_1;
+};
+
+struct bs_AtlasTexture {
+    bs_vec4 coords;
+    int x, y;
+    int w, h;
+    int split;
+    bs_U32 flags;
+};
+
+struct bs_Atlas {
+    bs_Header head;
+    int count;
+    struct {
+        char* name;
+        bs_U64 name_hash;
+        int category;
+    }* unmapped;
+    bs_AtlasTexture* mapped;
+    bs_Image* image;
+    bs_Buffer* buffer;
+    struct {
+        void* unused;
+    }_[];
+};
+
+struct bs_Sampler {
+    bs_Header head;
+    bs_SamplerBits flags;
+    bs_ImageFilter filter;
+    struct {
+        struct VkSampler_T* vk_sampler;
+    }_[];
+};
+
+struct bs_StencilOperation {
+    bs_StencilOp fail_op;
+    bs_StencilOp pass_op;
+    bs_StencilOp depth_fail_op;
+    bs_CompareOp compare_op;
+    bs_U32 compare_mask;
+    bs_U32 write_mask;
+    bs_U32 reference;
+};
+
+struct bs_Pipeline {
+    bs_Header head;
+    int shaders_count;
+    bs_U64 hash;
+    bs_PipelineType type;
+    bs_PipelineFlags flags;
+    bs_SlotBits bind_sets;
+    bs_U32 shader_stages;
+    int num_bind_sets;
+    int constant_size;
+    bs_String* name;
+    bs_Buffer* binding_table;
+    struct VkPipelineLayout_T* vk_layout;
+    struct VkPipeline_T* vk_pipeline;
+    struct {
+        bs_Shader* shader;
+    }_[];
+};
+
+struct bs_PipelineHash {
+    bs_PipelineFlags flags;
+    int subpass;
+    bs_Renderer* renderer;
+    bs_TopologyType topology_type;
+    bs_BlendFactor src_color_factor;
+    bs_BlendFactor dst_color_factor;
+    bs_BlendFactor src_alpha_factor;
+    bs_BlendFactor dst_alpha_factor;
+    bs_BlendOperationType color_op;
+    bs_BlendOperationType alpha_op;
+    bs_StencilOperation stencil_front;
+    bs_StencilOperation stencil_back;
+    bs_CullModeFlag cull_type;
+    bs_PolygonType polygon_type;
+    bs_CompareOp depth_comparison;
+    bool restart_primitive;
+    bool clamp_depth;
+    bool skip_depth_test;
+    bool skip_stencil_test;
+    bool skip_depth_write;
+    bool disable_blend;
+    bs_Shader* shaders[2];
+    struct {
+        bool skip_write;
+    } attachments[BS_MAX_ATTACHMENTS_COUNT];
+};
+
+struct bs_RayTracePipelineHash {
+    bs_RayTracer* ray_tracer;
+};
+
+struct bs_AttributeType {
+    const char* name;
+    bs_U64 name_hash;
+    bs_Format base_format;
+};
+
+struct bs_Attribute {
+    bs_U64 name_hash;
+    bs_U32 location;
+    bs_U32 size;
+    bs_Format format;
+    bs_U32 offset;
+};
+
+struct bs_Shader {
+    bs_ShaderType type;
+    bs_PipelineType pipeline_type;
+    bs_SlotBits bind_sets;
+    bs_U32* spirv;
+    bs_U32 spirv_length;
+    bs_Attribute* attributes;
+    int num_attributes;
+    int constant_size;
+    bs_Resource* resource;
+    struct VkShaderModule_T* vk_module;
+};
+
+struct bs_BufferSwap {
+    struct VkBuffer_T* vk_buffer;
+    struct VkDeviceMemory_T* memory;
+    char* data;
+};
+
+struct bs_Buffer {
+    bs_Header head;
+    bs_BufferBits flags;
+    bs_U32 bind_set;
+    bs_U32 binding;
+    bs_U32 num_bytes;
+    bs_BufferUsageFlags usage_flags;
+    bs_MemoryPropertyFlags memory_flags;
+    bs_BufferSwap _[];
+};
+
+struct bs_Output {
+    bs_OutputFlags flags;
+    bs_U32 subpass;
+    bs_U32 attachment;
+    bs_LoadOp load_op;
+    bs_StoreOp store_op;
+    bs_Image* image;
+    bs_ImageLayout old_layout;
+    bs_ImageLayout new_layout;
+};
+
+struct bs_Input {
+    bs_InputBits flags;
+    bs_U32 subpass;
+    bs_U32 parent_subpass;
+    bs_U32 attachment;
+    bs_Image* image;
+};
+
+struct bs_RendererSwaps {
+    struct VkFramebuffer_T* framebuffer;
+};
+
+struct bs_Renderer {
+    bs_Header head;
+    bs_RendererBits flags;
+    bs_Input* inputs;
+    bs_Output* outputs;
+    struct VkSubpassDependency* dependencies;
+    int num_inputs;
+    int num_outputs;
+    int num_subpasses;
+    int num_dependencies;
+    bs_ivec2 dim;
+    struct VkRenderPass_T* render_pass;
+    bs_RendererSwaps _[];
+};
+
+struct bs_Batch {
+    bs_Header head;
+    bs_BatchBits flags;
+    bs_Attribute* attributes;
+    bs_U32 attributes_count;
+    bs_U32 attribute_flags;
+    bs_Object* vertex_buffer;
+    bs_Object* index_buffer;
+    bs_Object* staging_buffer;
+    bs_List vertices;
+    bs_List indices;
+    struct {
+        void* unused;
+    }_[];
+};
+
+struct bs_QueueSwaps {
+    struct VkCommandBuffer_T* command_buffer;
+    struct VkSemaphore_T* semaphore;
+    struct VkFence_T* fence;
+};
+
+struct bs_Queue {
+    bs_Header head;
+    bs_QueueBits flags;
+    bs_U32 family;
+    struct VkQueue_T* queue;
+    bs_QueueSwaps _[];
+};
+
+struct bs_ShaderGroup {
+    bs_Shader* shader;
+};
+
+struct bs_RayTracer {
+    bs_Header head;
+    bs_List aabbs;
+    bs_List batches;
+    bs_Buffer* BLAS_buffer;
+    bs_Buffer* TLAS_buffer;
+    bs_Buffer* BLAS_scratch_buffer;
+    bs_Buffer* TLAS_scratch_buffer;
+    bs_U32 record_size;
+    bs_U32 groups_count;
+    struct VkAccelerationStructureKHR_T* BLAS;
+    struct VkAccelerationStructureKHR_T* TLAS;
+    bs_ShaderGroup _[];
+};
+
+union bs_JsonArray {
+    unsigned char* as_uchars;
+    float* as_floats;
+    int* as_ints;
+    bs_F64* as_numbers;
+    char** as_strings;
+    bs_JsonObject* as_objects;
+    bool* as_bools;
+    bs_vec2* vec2;
+    bs_vec3* vec3;
+    bs_vec4* vec4;
+};
+
+struct bs_Json {
+    bool is_mutable;
+    union {
+        bs_JsonObject as_object;
+    };
+    void* doc;
+};
+
+struct bs_JsonValue {
+    bool found;
+    bs_JsonType type;
+    int size;
+    union bs_JsonValueUnion {
+        bs_JsonArray as_array;
+        bs_JsonObject as_object;
+        bs_F64 as_number;
+        char* as_string;
+        bool as_bool;
+    };
+};
+
+struct bs_JsonEnumeration {
+    const char* key;
+    bs_JsonValue value;
+    struct {
+        bs_U64 idx;
+        bs_U64 max;
+        void* cur;
+        union {
+            void* obj;
+            bs_JsonArray as_array;
+            struct {
+                void* mut_pre;
+                void* mut_obj;
+            };
+        };
+    }iter;
+};
+
+struct bs_Material {
+    char* name;
+    bs_RGBA color;
+};
+
+struct bs_Primitive {
+    float* vertices;
+    int num_vertices;
+    int vertex_size;
+    int texture_offset;
+    int normal_offset;
+    int bone_offset;
+    int weight_offset;
+    int index_offset;
+    bs_U32 num_indices;
+    bs_U32* indices;
+    int material_id;
+    bs_Mesh* parent;
+    bs_Aabb aabb;
+    int* extra;
+};
+
+struct bs_Mesh {
+    char* name;
+    bs_U64 name_hash;
+    bs_vec3 position;
+    bs_vec4 rotation;
+    bs_vec3 scale;
+    bs_Primitive* primitives;
+    int primitives_count;
+    int num_vertices;
+    int num_indices;
+    bs_Model* model;
+    bs_Aabb aabb;
+    int* extra;
+};
+
+struct bs_Model {
+    bs_Header head;
+    bs_ModelFlags flags;
+    bs_Armature* armatures;
+    bs_Mesh* meshes;
+    bs_Material* materials;
+    bs_U64* animation_hashes;
+    int animations_count;
+    int armatures_count;
+    int meshes_count;
+    int materials_count;
+    int primitives_count;
+    int num_vertices;
+    int num_indices;
+    bs_Json json;
+    bs_Aabb aabb;
+    unsigned char* gltf;
+    int* extra;
+};
+
+struct bs_Bone {
+    bs_U32 id;
+    int parent_idx;
+    int opposite_id;
+    int name_length;
+    char* name;
+    bs_U64 name_hash;
+    bs_mat4 local_matrix;
+    bs_mat4 bind_matrix_inverse;
+};
+
+struct bs_Armature {
+    struct {
+        float ik_length;
+        int ik_id;
+        bs_vec3 ik_direction;
+        bs_vec3 ik_position;
+        bs_mat4 matrix;
+        bs_Bone bone;
+    }* bones;
+    int bones_count;
+    int bones_allocated;
+    char* name;
+};
+
+struct bs_AnimationBone {
+    bs_vec3 last_translation;
+    bs_vec4 last_rotation;
+    bs_vec3 last_scale;
+    int translations_count, translations_allocated;
+    int rotations_count, rotations_allocated;
+    int scalings_count, scalings_allocated;
+    struct {
+        float time;
+        bs_vec3 value;
+    }* translations;
+    struct {
+        float time;
+        bs_vec4 value;
+    }* rotations;
+    struct {
+        float time;
+        bs_vec3 value;
+    }* scalings;
+};
+
+struct bs_Animation {
+    char* name;
+    bs_AnimationBone* bones;
+    int bones_count;
+    int bones_allocated;
+    int frames_count;
+    float length;
+};
+
+struct bs_Sound {
+    bs_Header head;
+    const char* name;
+    void* data;
+    void* xaudio;
+    int size;
+};
+
+struct bs_LongHorMetric {
+    bs_U16 advance_width;
+    bs_I16 left_side_bearing;
+};
+
+struct bs_GlyfPt {
+    bs_I16 x, y;
+    bool on_curve;
+};
+
+struct bs_Glyph {
+    int index;
+    bs_U16 num_points;
+    bs_U16 num_contours;
+    bs_I16 x_min, x_max;
+    bs_I16 y_min, y_max;
+    bs_U16* contours;
+    bs_GlyfPt* coords;
+    bs_vec2 tex_coord;
+    bs_vec2 tex_offset;
+    int width;
+    int height;
+    bs_U16 pairs_count;
+    bs_U16 pairs_offset;
+    bs_LongHorMetric long_hor_metric;
+    union {
+        bs_U16 code;
+        char ascii;
+    };
+};
+
+struct bs_Head {
+    char* buf;
+    int units_per_em;
+    bs_I16 index_to_loc_format;
+};
+
+struct bs_Maxp {
+    char* buf;
+    bs_U16 num_glyphs;
+};
+
+struct bs_Hhea {
+    char* buf;
+    bs_U16 num_of_long_hor_metrics;
+};
+
+struct bs_Hmtx {
+    char* buf;
+};
+
+struct bs_Loca {
+    char* buf;
+};
+
+struct bs_Glyf {
+    char* buf;
+};
+
+struct bs_Cmap {
+    char* buf;
+    bs_U32 offset;
+    int num_subtables;
+    char* subtable;
+    bs_U16 format;
+    bs_U16 length;
+    bs_U16 seg_count_x2;
+    bs_U16 search_range;
+    bs_U16 entry_selector;
+    bs_U16 range_shift;
+    bs_U16* format_data;
+    bs_U16* end_code;
+    bs_U16* start_code;
+    bs_I16* id_delta;
+    bs_U16* id_range_offset;
+};
+
+struct bs_KerningPair {
+    int right_index;
+    bs_U16 right;
+    bs_I16 value;
+};
+
+struct bs_TTF {
+    bs_Header header;
+    bs_U32 offset;
+    bs_String* buffer;
+    const char* name;
+    const char* alphabet;
+    bs_List glyphs;
+    bs_List kerning_pairs;
+    bs_U16 table_count;
+    int x_offset;
+    int y_offset;
+    bs_Head head;
+    bs_Maxp maxp;
+    bs_Hhea hhea;
+    bs_Hmtx hmtx;
+    bs_Loca loca;
+    bs_Glyf glyf;
+};
+
+struct bs_BfntHeader {
+    bs_U32 magic;
+    bs_U32 version;
+    bs_U32 glyphs_count;
+    bs_U32 kerning_pairs_count;
+    bs_U32 line_height;
+    bs_U32 units_per_em;
+    bs_U32 size;
+    bs_U32 batl_offset;
+    char ascii_table[256];
+};
+
+struct bs_BfntKerningPair {
+    int right;
+    int value;
+};
+
+struct bs_BfntGlyph {
+    bs_U32 code;
+    int y_offset;
+    int advance_width;
+    int left_side_bearing;
+    bs_U32 kerning_pair_offset;
+    bs_U32 kerning_pair_count;
+    bs_U32 reserved_0, reserved_1;
+};
+
+struct bs_Font {
+    bs_Header head;
+    const char* alphabet;
+    bs_Atlas* atlas;
+    int min_y_shift;
+    int size;
+    int units_per_em;
+    int height;
+    float spacing;
+    int pairs_count;
+    struct {
+        int right;
+        float value;
+    }* pairs;
+    struct {
+        int y_offset;
+        float advance_width;
+        float left_side_bearing;
+        int kerning_pair_offset;
+        int kerning_pair_count;
+    }* glyphs;
+    char table[256];
+    struct {
+        void* unused;
+    }_[];
+};
+
+struct bs_Endpoint {
+    bs_EndpointType type;
+    int name_len;
+    const char* name;
+};
+
+struct bs_Server {
+    bs_List endpoints;
+    void* queue;
+    void* overlapped;
+    char* buffer;
+    int buffer_capacity;
+    bool is_waiting;
+    int reserved;
+};
+
+struct bs_Simulation {
+    float mass;
+    float inverse_mass;
+    float damping;
+    float angular_damping;
+    float gravity_scale;
+    bs_vec3 velocity;
+    bs_vec3 angular_velocity;
+    bs_vec3 acceleration_last;
+    bs_vec3 force;
+    bs_vec3 torque;
+    bs_vec3 position;
+    bs_vec4 rotation;
+    bs_mat3 local_inverse_inertia;
+    bs_mat3 world_inverse_inertia;
+};
+
+struct bs_Contact {
+    bs_mat3 to_world;
+    bs_vec3 normal;
+    bs_vec3 point;
+    bs_vec3 velocity;
+    float delta_velocity;
+    float penetration;
+};
+
+struct bs_ImageDescriptor {
+    bs_Sampler* sampler;
+    bs_Image* image;
+    bs_ImageLayout layout;
+};
+
+struct bs_Descriptor {
+    int object_type;
+    int reserved;
+    int bind_set;
+    int bind_point;
+    union {
+        struct {
+            bs_Image* image;
+            bs_Sampler* sampler;
+            struct VkImageLayout_T* vk_image_layout;
+            struct VkImageView_T* vk_image_view;
+            struct VkSampler_T* vk_sampler;
+        }as_image;
+        struct {
+            bs_Buffer* buffer;
+            struct VkBuffer_T* vk_buffer;
+            bs_U32 vk_range;
+        }as_buffer;
+    };
+};
+
+struct bs_Binding {
+    bs_U32 stages;
+    int slot;
+    int set;
+    int location;
+    int descriptors_count;
+    bool in_use;
+    bs_BindType type;
+    bs_BindTypeIndex type_index;
+    int size;
+};
+
+struct bs_BindSet {
+    bs_U32 slot;
+    bool needs_update;
+    int bindings_count;
+    int descriptors_count;
+    int max_binding;
+    int bound_descriptors_count;
+    bs_Binding* bindings;
+    bs_Descriptor* descriptors;
+    struct VkDescriptorUpdateTemplate_T* vk_update_template;
+    struct VkDescriptorSetLayout_T* vk_layout;
+    struct VkDescriptorSet_T* vk_set;
+};
+
+struct bs_ObjectSource {
+    bs_ObjectId* ids;
+    int ids_count;
+    bs_ObjectType type;
+};
+
+struct bs_ObjectId {
+    const char* name;
+    bs_U64 name_hash;
+    bs_Object* object;
+};
+
+struct bs_IO {
+    bool left_clicked;
+    bool right_clicked;
+    bool middle_clicked;
+    bool left_clicked_last;
+    bool right_clicked_last;
+    bool middle_clicked_last;
+    bool disable_inputs;
+    bs_U8 hold_keys[BS_KEY_BYTES_COUNT];
+    bs_U8 keys[BS_KEY_BYTES_COUNT];
+    bs_U8 keys_old[BS_KEY_BYTES_COUNT];
+    bs_U8 chars[BS_KEY_BYTES_COUNT];
+    bs_U8 chars_old[BS_KEY_BYTES_COUNT];
+    bs_I8 scroll, scroll_old;
+    bs_String* executable;
+    bs_String* cwd;
+    bs_String* appdata;
+    bs_String* log;
+};
+
+struct bs_Instance {
+    bs_Queue* single_times_queue;
+    int bind_sets_count;
+    int bindings_count;
+    int descriptors_count;
+    int max_bind_set;
+    bs_BindSet* bind_sets;
+    bs_Binding* bindings;
+    bs_Descriptor* descriptors;
+    bool descriptor_pool_needs_update;
+    bool alive;
+    bs_vec2 screen_cursor;
+    struct {
+        int* bindings;
+        int bind_set;
+    }* descriptor_lookup;
+    struct {
+        bs_SurfaceType surface_type;
+    } extensions;
+    struct VkDescriptorSet_T* sets[BS_MAX_NUM_BIND_SETS];
+    struct VkDescriptorSetLayout_T* layouts[BS_MAX_NUM_BIND_SETS];
+    struct VkInstance_T* instance;
+    struct VkDevice_T* device;
+    struct VkCommandPool_T* command_pool;
+};
+
+struct bs_Bindings {
+    bs_BindSet* bs_bind_sets;
+    int bs_bind_sets_count;
+};
+
+struct bs_Config {
+    bs_List attributes;
+};
+
+struct bs_Scope {
+    bool has_begun;
+    bs_Renderer* renderer;
+    int subpass;
+    bs_Queue* queue;
+    bs_U32 wait_num;
+    bs_U32 wait_stages[BS_MAX_NUM_WAITS];
+    struct VkSemaphore_T* wait_semaphores[BS_MAX_NUM_WAITS];
+};
+
+struct bs_QueueFamily {
+    bool supports_present;
+    bs_U32 queue_flags;
+    bs_U32 queue_count;
+};
+
+struct bs_SurfaceFormat {
+    bs_Format format;
+    bs_ColorSpace color_space;
+};
+
+struct bs_PhysicalDevice {
+    struct VkPhysicalDevice_T* vk_device;
+    bool supports_present;
+    bs_U32 api_version;
+    int type;
+    bs_List queue_families;
+    bs_List surface_formats;
+    const char name[BS_MAX_PHYSICAL_DEVICE_NAME_SIZE];
+};
+
+struct bs_Context {
+    bs_Header head;
+    const char* title;
+    void* hwnd;
+    bs_Timer timer;
+    bs_ivec2 dimensions;
+    bs_Callback resize;
+    bs_Callback destroy;
+    bs_vec2 cursor;
+    double time, time_old;
+    double delta_time;
+    double fixed_time;
+    double fixed_interpolation;
+    double target_frame_time;
+    double elapsed_time;
+    int last_fixed_update_times[2];
+    int new_time_index;
+    bool in_fixed;
+    bool lock_cursor_position;
+    bool active;
+    bs_CursorIcon cursor_icon;
+    bool paused;
+    bool advance;
+    struct VkSurfaceKHR_T* surface;
+    bs_PhysicalDevice* physical_device;
+    bs_QueueFamily* queue_family;
+    bs_SurfaceFormat surface_format;
+    bs_PresentMode present_mode;
+    int id;
+    int frames_in_flight;
+    int frame;
+    bool resized;
+    bool image_acquired;
+    bs_Object* swapchain_image;
+    struct VkSwapchainKHR_T* swapchain;
+    struct {
+        struct VkSemaphore_T* semaphore;
+    }_[];
+};
+
+struct bs_Args {
+    bool send_bugs;
+    bool color_log;
+    bool use_lisk;
+    bool use_validation_layers;
+    bool track_changes;
+};
+
+struct bs_Features {
+    bool independent_blend;
+    bool ray_tracing;
+};
+
+struct bs_Props {
+    bs_U32 shader_group_handle_size;
+    bs_U32 shader_group_base_alignment;
+    bs_U32 min_acceleration_structure_scratch_offset_alignment;
 };
 
  /**
@@ -8315,13 +8351,11 @@ bs_queryResource(
 
  /**
   @param name
-  @param out
-  @return bs_Result
+  @return int
   */
-BSAPI bs_Result
+BSAPI int
 bs_queryPackage(
-    const char* name,
-    int* out);
+    const char* name);
 
  /**
   @param package_id
@@ -8527,13 +8561,11 @@ bs_rayTracingPipeline(
 
  /**
   @param package_id
-  @param path
   @return void
   */
 BSAPI void
 bs_loadBindings(
-    int package_id,
-    const char* path);
+    int package_id);
 
  /**
   @param bind_set_slot
@@ -9464,6 +9496,14 @@ bs_serializeBindType(
 BSAPI bs_BindType
 bs_deserializeBindType(
     const char* value);
+
+ /**
+  @param index
+  @return bs_BindType
+  */
+BSAPI bs_BindType
+bs_indexBindType(
+    int index);
 
  /**
   @param e

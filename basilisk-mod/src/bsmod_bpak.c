@@ -212,6 +212,8 @@ BSMODAPI bs_Result _bsmod_packResource(bs_ResourceType type, unsigned char* data
 		resource->header.chunk = chunk->id;
 		resource->header.offset = chunk->bin.count;
 		resource->header.size = data_size;
+		resource->header.type = type;
+		resource->header.reserved = 0;
 		chunk->bin.count += data_size;
 		bs_infoF("Created resource %s " BS_PRINT_COLOR("(+%d bytes)", BS_PRINT_GREEN) "\n", resource_name, data_size);
 	} 
@@ -387,6 +389,12 @@ end:
 	return result;
 }
 
+static int _bsmod_compareResource(const bsmod_Resource* a, const bsmod_Resource* b) {
+	if (a->type < b->type) return -1;
+	else if (a->type > b->type) return 1;
+	return 0;
+}
+
 BSMODAPI bs_Result _val_bsmod_savePackage(const char* name) {
 	BSMOD_VALIDATE(bs_instance()->device != NULL, BS_RESULT_VALIDATION_ERROR,);
 
@@ -415,6 +423,11 @@ BSMODAPI bs_Result _bsmod_savePackage(const char* name) {
 	}
 
 	/**
+	 Sort by type
+	 */
+	qsort(package->resources.data, package->resources.count, sizeof(bsmod_Resource), _bsmod_compareResource);
+
+	/**
 	 Headers
 	 */
 	int name_lengths = 0;
@@ -423,13 +436,33 @@ BSMODAPI bs_Result _bsmod_savePackage(const char* name) {
 		name_lengths += strlen(resource->name);
 	}
 
-	bsmod_Resource* t;
-	const size_t header_size = sizeof(t->header);
+	const size_t header_size = sizeof(bs_ResourceHeaderData);
 
-	size_t size = package->resources.count * (header_size + 1) + name_lengths;
+	size_t size = sizeof(bs_PackageHeader) + package->resources.count * (header_size + 1) + name_lengths;
 	unsigned char* data = bs_malloc(size);
 
-	size_t offset = 0;
+	bs_PackageHeader header = {
+		.magic = BS_BPAK_MAGIC,
+		.resources_count = package->resources.count,
+		.resource_types_count = BS_RESOURCE_TYPE_COUNT,
+	};
+
+	bs_ResourceType last_type = -1;
+	for (int i = 0; i < package->resources.count; i++) {
+		bsmod_Resource* resource = bs_fetchUnit(&package->resources, i);
+
+		if (last_type != resource->type) {
+			last_type = resource->type;
+			header.resource_type_offsets[last_type].offset = i;
+		}
+
+		assert(last_type >= 0);
+		header.resource_type_offsets[last_type].num++;
+	}
+
+	memcpy(data, &header, sizeof(bs_PackageHeader));
+
+	size_t offset = sizeof(bs_PackageHeader);
 	for (int i = 0; i < package->resources.count; i++) {
 		bsmod_Resource* resource = bs_fetchUnit(&package->resources, i);
 

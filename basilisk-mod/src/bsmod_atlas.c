@@ -147,7 +147,7 @@ BSMODAPI bs_Result _bsmod_packAtlas(bsmod_AtlasPacker* packer, int width, int he
 	bs_Result result;
 
 	bs_BatlHeader header = {
-		.magic = 0x6C746162,
+		.magic = BS_BATL_MAGIC,
 		.version = 1,
 		.channels_count = 4,
 		.width = width,

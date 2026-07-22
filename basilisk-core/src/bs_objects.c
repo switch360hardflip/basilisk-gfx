@@ -80,8 +80,8 @@ BSAPI bs_Result _bs_queryResource(int package_id, const char* name, bs_Resource*
     bs_Package* package = _bs_fetchUnit(_bs_packages(), package_id);
     bs_U64 hash = _bs_stringHash(name);
 
-    for (int i = 0; i < package->resource_headers.count; i++) {
-        bs_ResourceHeader* resource = _bs_fetchUnit(&package->resource_headers, i);
+    for (int i = 0; i < package->resource_headers_count; i++) {
+        bs_ResourceHeader* resource = package->resource_headers + i;
         if (resource->header.name_hash == hash) {
             *out = resource->resource;
             return BS_RESULT_OK;
@@ -94,30 +94,30 @@ BSAPI bs_Result _bs_queryResource(int package_id, const char* name, bs_Resource*
     return BS_RESULT_FAILED_TO_QUERY;
 }
 
-BSAPI bs_Result _bs_queryPackage(const char* name, int* out) {
+BSAPI int _bs_queryPackage(const char* name) {
     bs_U64 hash = _bs_stringHash(name);
 
     for (int i = 0; i < _bs_packages()->count; i++) {
         bs_Package* package = _bs_fetchUnit(_bs_packages(), i);
         if (package->path_hash == hash) {
-            *out = i;
             return i;
         }
     }
 
-    *out = -1;
-    BS_FAILED_TO_QUERY("Package \"%s\"", name);
-    return BS_RESULT_FAILED_TO_QUERY;
+    return -1;
 }
 
- BSAPI bs_Result _bs_loadResource(int package_id, bs_U32 flags, bs_Resource** out, char* resource_name, int resource_name_length) {
+BSAPI bs_Result _bs_loadResource(int package_id, bs_U32 flags, bs_Resource** out, char* resource_name, int resource_name_length) {
+    if (package_id < 0)
+        return BS_RESULT_OUT_OF_BOUNDS;
+
     bs_Package* package = _bs_fetchUnit(_bs_packages(), package_id);
 
     bs_U64 hash = _bs_stringHash(resource_name);
 
     bs_ResourceHeader* existing = NULL;
-    for (int i = 0; i < package->resource_headers.count; i++) {
-        bs_ResourceHeader* resource = _bs_fetchUnit(&package->resource_headers, i);
+    for (int i = 0; i < package->resource_headers_count; i++) {
+        bs_ResourceHeader* resource = package->resource_headers + i;
         if (resource->header.name_hash == hash) {
             existing = resource;
             break;
@@ -137,7 +137,6 @@ BSAPI bs_Result _bs_queryPackage(const char* name, int* out) {
     //else
     //    _bs_free(existing->resource->data);
     bs_Result result = _bs_loadFileChunkF(
-        package->path,
         existing->header.offset, 
         existing->header.size, 
         &existing->resource->data, 
@@ -156,6 +155,23 @@ BSAPI bs_Result _bs_queryPackage(const char* name, int* out) {
 BSAPI bs_Result _bs_loadPackage(const char* path, int* out) {
     bs_Result result;
 
+    bs_String* raw;
+    result = _bs_loadFileF(&raw, "%s.bpak", path);
+    if (result != BS_RESULT_OK)
+        return result;
+
+    bs_PackageHeader* package_header = raw->value;
+    if (package_header->magic != BS_BPAK_MAGIC) {
+        bs_free(raw);
+        BS_WARN_INVALID_MAGIC("package", path);
+        return BS_RESULT_CORRUPTED;
+    }
+
+    if (package_header->resources_count <= 0) {
+        bs_warnF("%s at %s:%d: No resources in package \"%s\"\n", __func__, __FILE__, __LINE__, path);
+        return BS_RESULT_CORRUPTED;
+    }
+
     char* path_dup = strdup(path);
     bs_U64 hash = _bs_stringHash(path_dup);
 
@@ -172,14 +188,8 @@ BSAPI bs_Result _bs_loadPackage(const char* path, int* out) {
         }
     }
 
-    bs_String* raw;
-    result = _bs_loadFileF(&raw, "%s.bpak", path_dup);
-    if (result != BS_RESULT_OK)
-        return result;
-
     existing = old;
 
-    bs_List new_resources = _bs_list(sizeof(bs_ResourceHeader), 32);
     _bs_infoF("Loading package \"%s\"\n", path_dup);
     if (!existing) {
         id = _bs_packages()->count;
@@ -190,8 +200,14 @@ BSAPI bs_Result _bs_loadPackage(const char* path, int* out) {
     }
 
     existing->raw = raw;
+    existing->resource_headers_count = package_header->resources_count;
+    existing->resource_headers = bs_calloc(package_header->resources_count, sizeof(bs_ResourceHeader));
 
-    for (int i = 0; i < (raw->len - 1);) {
+    int resource_types_count = BS_MIN(package_header->resource_types_count, BS_RESOURCE_TYPE_COUNT);
+    memcpy(existing->resource_type_offsets, package_header->resource_type_offsets, resource_types_count * sizeof(bs_Range));
+
+    int actual_resources_count = 0;
+    for (int i = sizeof(bs_PackageHeader); i < (raw->len - 1);) {
         bs_ResourceHeader* header = raw->value + i;
         i += sizeof(header->header);
         if (i >= raw->len) {
@@ -210,14 +226,20 @@ BSAPI bs_Result _bs_loadPackage(const char* path, int* out) {
         }
         end[0] = '\0';
 
-        bs_ResourceHeader* added = _bs_pushBack(&new_resources, &(bs_ResourceHeader) {
+        bs_ResourceHeader* added = existing->resource_headers + actual_resources_count++;
+
+        if (actual_resources_count > package_header->resources_count) {
+            break;
+        }
+
+        *added = (bs_ResourceHeader) {
             .header = header->header,
             .name = strdup(name),
-        });
-
+        };
+        
         if (old) {
-            for (int j = 0; j < old->resource_headers.count; j++) {
-                bs_ResourceHeader* existing_header = _bs_fetchUnit(&old->resource_headers, j);
+            for (int j = 0; j < old->resource_headers_count; j++) {
+                bs_ResourceHeader* existing_header = old->resource_headers + j;
                 if (existing_header->header.name_hash == header->header.name_hash) {
                     added->resource = existing_header->resource;
                     break;
@@ -228,9 +250,14 @@ BSAPI bs_Result _bs_loadPackage(const char* path, int* out) {
         end[0] = '\n';
     }
 
-    existing->resource_headers = new_resources;
-
     *out = id;
+
+    if (actual_resources_count != package_header->resources_count) {
+        // Kinda critical but we'll see what happens, shouldn't happen though
+        bs_warnF("Package \"%s\" specifies %d resources, but %d resources were found\n", package_header->resources_count, (actual_resources_count + 1));
+        return BS_RESULT_CORRUPTED;
+    }
+
     return BS_RESULT_OK;
 }
 
